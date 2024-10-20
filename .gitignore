@@ -1,5 +1,5 @@
-/target
 /sample
 Cargo.lock
 */.rag_index
 __pycache__
+target
