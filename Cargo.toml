@@ -20,8 +20,8 @@ ragit-fs = { path = "./crates/fs", version = "0.1.0" }
 rand = "0.8.5"
 regex = "1.10.6"
 rust-stemmers = "1.2.0"
-serde = { version = "*", features = ["derive"] }
+serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 sha3 = "0.10.8"
-tera = "*"
-tokio = { version = "*", features = ["full"] }
+tera = "1.20.0"
+tokio = { version = "1.40.0", features = ["full"] }
