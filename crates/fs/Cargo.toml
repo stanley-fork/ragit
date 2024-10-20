@@ -2,6 +2,8 @@
 name = "ragit-fs"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "fs utilities for ragit"
 
 [dependencies]
 chrono = "0.4.37"

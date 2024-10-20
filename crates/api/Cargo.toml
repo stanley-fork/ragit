@@ -2,6 +2,8 @@
 name = "ragit-api"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "api utilities for ragit"
 
 [dependencies]
 async-std = "1.12.0"
