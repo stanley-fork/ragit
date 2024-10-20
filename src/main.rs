@@ -70,7 +70,7 @@ async fn run() -> Result<(), Error> {
         },
         Some("build") => {
             let mut index = Index::load(root_dir?, false)?;
-            index.build_knowledge_base().await?;
+            index.build_knowledge_base(args.contains(&String::from("--dashboard"))).await?;
         },
         Some("add") => {
             let mut index = Index::load(root_dir?, false)?;

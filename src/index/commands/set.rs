@@ -62,7 +62,7 @@ impl Index {
                         let original_type = get_type(original_value);
                         let new_value = original_type.parse(&value)?;
 
-                        let previous_value = obj.get(&key).map(|value| value.dump());
+                        previous_value = obj.get(&key).map(|value| value.dump());
                         obj.insert(
                             &key,
                             new_value,

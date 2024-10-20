@@ -1,4 +1,8 @@
 use crate::{Error, Message};
+use crate::json_type::{
+    JsonType,
+    get_type,
+};
 use h_time::Date;
 use json::JsonValue;
 use ragit_fs::{
@@ -39,9 +43,9 @@ impl From<Record> for JsonValue {
 }
 
 impl TryFrom<JsonValue> for Record {
-    type Error = String;
+    type Error = Error;
 
-    fn try_from(j: JsonValue) -> Result<Record, String> {
+    fn try_from(j: JsonValue) -> Result<Record, Error> {
         let mut result = vec![];
 
         for member in j.members() {
@@ -50,16 +54,19 @@ impl TryFrom<JsonValue> for Record {
                     result.push(n);
                 },
                 Some(_) => {
-                    return Err(format!("Record::try_from({j:?}) failed with \"too many values\""));
+                    return Err(Error::WrongSchema(String::from("expected an array of length 5, but got more than 5")));
                 },
                 None => {
-                    return Err(format!("Record::try_from({j:?}) failed with \"type error\""));
+                    return Err(Error::JsonTypeError {
+                        expected: JsonType::U64,
+                        got: get_type(member),
+                    });
                 },
             }
         }
 
         if result.len() != 5 {
-            Err(format!("Record::try_from({j:?}) failed"))
+            Err(Error::WrongSchema(format!("expected an array of length 5, but got length {}", result.len())))
         }
 
         else {
@@ -75,9 +82,12 @@ impl TryFrom<JsonValue> for Record {
 }
 
 // why do I have to impl it manually?
-fn records_from_json(j: JsonValue) -> Result<Vec<Record>, String> {
+fn records_from_json(j: JsonValue) -> Result<Vec<Record>, Error> {
     if !j.is_array() {
-        return Err(format!("Vec::<Record>::try_from({j:?}) failed"));
+        return Err(Error::JsonTypeError {
+            expected: JsonType::Array,
+            got: get_type(&j),
+        });
     }
 
     let mut result = vec![];
@@ -99,9 +109,9 @@ impl From<Tracker> for JsonValue {
 }
 
 impl TryFrom<JsonValue> for Tracker {
-    type Error = String;
+    type Error = Error;
 
-    fn try_from(j: JsonValue) -> Result<Tracker, String> {
+    fn try_from(j: JsonValue) -> Result<Tracker, Error> {
         let mut result = HashMap::new();
 
         for (k, v) in j.entries() {
@@ -120,24 +130,20 @@ impl Tracker {
         Tracker(HashMap::new())
     }
 
-    pub fn load_from_file(path: &str) -> Result<Self, String> {
-        match read_string(path) {
-            Ok(s) => match json::parse(&s) {
-                Ok(j) => Ok(Self::try_from(j)?),
-                Err(e) => Err(format!("json::parse({s:?}) failed with {e:?}")),
-            }
-            Err(e) => Err(format!("Tracker::load_from_file({path:?}) failed with {e:?}")),
-        }
+    pub fn load_from_file(path: &str) -> Result<Self, Error> {
+        let content = read_string(path)?;
+        let j = json::parse(&content)?;
+        Self::try_from(j)
     }
 
-    pub fn save_to_file(&self, path: &str) -> Result<(), String> {
+    pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
         let result = JsonValue::from(self.clone());
 
-        write_string(
+        Ok(write_string(
             path,
             &result.pretty(4),
             WriteMode::CreateOrTruncate,
-        ).map_err(|e| format!("Tracker::save_to_file({path:?}) failed with {e:?}"))
+        )?)
     }
 }
 
@@ -152,7 +158,7 @@ pub fn record_api_usage(
 
     auto_clean_up_records: bool,
 ) -> Result<(), String> {
-    let mut tracker = Tracker::load_from_file(&at.path)?;
+    let mut tracker = Tracker::load_from_file(&at.path).map_err(|e| format!("{e:?}"))?;
     let new_record = Record {
         time: Date::now().to_i64().max(0) as u64,
         input: input_count,
@@ -174,7 +180,7 @@ pub fn record_api_usage(
         },
     }
 
-    tracker.save_to_file(&at.path)?;
+    tracker.save_to_file(&at.path).map_err(|e| format!("{e:?}"))?;
 
     Ok(())
 }

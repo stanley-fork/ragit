@@ -299,9 +299,18 @@ impl Index {
         Ok(())
     }
 
-    pub async fn build_knowledge_base(&mut self) -> Result<(), Error> {
+    pub async fn build_knowledge_base(&mut self, dashboard: bool) -> Result<(), Error> {
         let mut chunks = self.load_curr_processing_chunks()?;
-        self.println("Starting index creation. Press Ctrl+C to pause the process. You can resume from where you left off (almost).\nRun `rag build --dashboard` for detailed information.");
+
+        if !dashboard {
+            // TODO: more flexible println, for example, respecting `--verbose` or `--quiet`
+            println!("Starting index creation. Press Ctrl+C to pause the process. You can resume from where you left off (almost).\nRun `rag build --dashboard` for detailed information.");
+        }
+
+        else {
+            self.render_dashboard()?;
+        }
+
         let prompt = self.get_prompt("summarize")?;
         let mut hasher = Sha3_256::new();
         hasher.update(prompt.as_bytes());
@@ -328,12 +337,19 @@ impl Index {
             );
 
             while fd.can_generate_chunk() {
-                self.println(&format!(
-                    "Creating index... staged files: {}, processed files: {}, processed chunks: {}",
-                    self.staged_files.len() + if self.curr_processing_file.is_some() { 1 } else { 0 },
-                    self.processed_files.len(),
-                    self.chunk_count,
-                ));
+                if !dashboard {
+                    println!(
+                        "Creating index... staged files: {}, processed files: {}, processed chunks: {}",
+                        self.staged_files.len() + if self.curr_processing_file.is_some() { 1 } else { 0 },
+                        self.processed_files.len(),
+                        self.chunk_count,
+                    );
+                }
+
+                else {
+                    self.render_dashboard()?;
+                }
+
                 let chunk_path = self.get_curr_processing_chunks_path();
                 let new_chunk = fd.generate_chunk(&self.api_config, &prompt, build_info.clone()).await?;
                 self.add_chunk_index(&new_chunk.uid, &chunk_path)?;
@@ -685,7 +701,7 @@ impl Index {
                     self.prompts.insert(prompt_name.to_string(), p);
                 },
                 Err(_) => {
-                    self.println(&format!("Warning: failed to load `{prompt_name}.pdl`"));
+                    println!("Warning: failed to load `{prompt_name}.pdl`");
                 },
             }
         }
@@ -875,11 +891,6 @@ impl Index {
             WriteMode::CreateOrTruncate,
         )?;
         Ok(())
-    }
-
-    // TODO: impl `--quiet` and `--verbose`
-    fn println(&self, s: &str) {
-        println!("{s}")
     }
 
     fn count_external_chunks(&self) -> usize {

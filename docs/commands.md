@@ -26,7 +26,6 @@ See also [chunks.md](./chunks.md#data-files).
 
 - `rag build`
 - `rag build --dashboard`
-  - TODO: Not Implemented Yet
 
 It reads files in the staging area and process them. Once it's processed, you can ask queries on them.
 

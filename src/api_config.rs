@@ -1,4 +1,5 @@
-use ragit_api as api;
+use crate::error::Error;
+use ragit_api::{self as api, record::{Record, Tracker}};
 use ragit_fs::join;
 use serde::{Deserialize, Serialize};
 
@@ -50,9 +51,8 @@ pub struct ApiConfig {
     pub sleep_between_retries: u64,  // milliseconds
     pub max_retry: usize,
 
-    pub dump_log_at: Option<String>,
-
     // dir of pdl files
+    pub dump_log_at: Option<String>,
     pub dump_api_usage_at: Option<String>,
 
     // in milliseconds
@@ -78,6 +78,26 @@ impl ApiConfig {
                 ),
             ).unwrap()
         )
+    }
+
+    pub fn get_api_usage(&self, id: &str) -> Result<Vec<Record>, Error> {
+        match &self.dump_api_usage_at {
+            Some(path) => {
+                let tracker = Tracker::load_from_file(path)?;
+
+                match tracker.0.get(id) {
+                    Some(record) => Ok(record.clone()),
+                    None => {
+                        // TODO: what here?
+                        todo!()
+                    },
+                }
+            },
+            None => {
+                // TODO: what here?
+                todo!()
+            },
+        }
     }
 }
 

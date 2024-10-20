@@ -2,6 +2,7 @@ pub use super::{Config, Index};
 
 // functions in these modules are not supposed to call `Index::save_to_file`
 mod add;
+mod build;
 mod check;
 mod gc;
 mod get;

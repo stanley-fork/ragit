@@ -8,6 +8,7 @@ name = "rag"
 path = "src/main.rs"
 
 [dependencies]
+clearscreen = "3.0.0"
 flate2 = "1.0.34"
 h_time = "0.1.0"
 json = "0.12.4"
