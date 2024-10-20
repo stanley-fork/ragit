@@ -50,15 +50,15 @@ struct Args {
 async fn main() {
     let args = Args::parse();
 
-    let messages = groq_rs::messages_from_file(&args.input, tera::Context::new()).unwrap();
-    let model = groq_rs::ChatModel::from_str(&args.model).unwrap();
+    let messages = ragit_api::messages_from_file(&args.input, tera::Context::new()).unwrap();
+    let model = ragit_api::ChatModel::from_str(&args.model).unwrap();
     let timeout = match &args.timeout {
         t if t == "d" => Some(model.api_timeout()),
         t if t == "n" => None,
         t => Some(t.parse::<u64>().unwrap()),
     };
 
-    let request = groq_rs::ChatRequest {
+    let request = ragit_api::ChatRequest {
         messages,
         model,
         temperature: args.temperature,
