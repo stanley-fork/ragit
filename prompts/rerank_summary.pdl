@@ -1,0 +1,129 @@
+<|system|>
+
+Your job is to select documents that are relevant to user's query. You'll be given a query and titles and summaries of documents. You have to choose documents that look helpful to answer the query. You can select at most {{max_retrieval}} documents.
+
+Think as much as possible before you answer. Then give me the list of the indexes of the documents. The list must be in a json format, an array containing the numbers.
+
+<|user|>
+
+Give me the indexes of the documents that are relevant to the user's query. Below is the query and the documents. The query is wrapped in triple quotation marks.
+
+1. Evolution of the Haskell Programming Language
+source: Haskell.txt
+summary: This text provides a detailed history of the Haskell programming language, from its inception to recent developments. It covers key milestones including the introduction of type classes, evolution of input/output handling, development of Haskell versions up to Haskell 98, the Haskell 2010 standard, and plans for future standards. The text also highlights Haskell's main features, including lazy evaluation, strong static typing, and its use of monads for handling side effects. It emphasizes Haskell's status as a purely functional language with a published specification and multiple implementations, with the Glasgow Haskell Compiler (GHC) being the primary one.
+
+2. Glasgow Haskell Compiler (GHC) Overview
+source: Glasgow Haskell Compiler.txt
+summary: This text provides a comprehensive overview of the Glasgow Haskell Compiler (GHC), a widely-used compiler for the Haskell programming language. It covers GHC's architecture, including its simplifier and back-end, language compliance, and numerous language extensions. The article details GHC's support for Haskell 98 and 2010 standards, as well as its many extensions to the Haskell language, including type system enhancements, syntactic improvements, and performance optimizations. It also discusses GHC's portability across different platforms and architectures.
+
+3. Haskell Programming Language Overview
+source: Haskell.txt
+summary: Haskell is a general-purpose, statically-typed, purely functional programming language with type inference and lazy evaluation. Key features include: 1. Developed by a committee in the late 1980s to consolidate existing functional languages; 2. Named after logician Haskell Curry; 3. Main implementation is the Glasgow Haskell Compiler (GHC); 4. Introduced innovations like type classes for type-safe operator overloading; 5. Evolved through several versions (1.0 to 1.4) before stabilizing with Haskell 98; 6. Incorporates monadic I/O for handling side effects while maintaining referential transparency; 7. Used in both academia and industry, though with relatively small market share; 8. Influenced many other programming languages and features. The language continues to evolve, with the latest formal specification being Haskell 2010 and ongoing development of GHC adding new language extensions.
+
+4. Haskell Programming Language Overview
+source: Haskell.txt
+summary: This text provides a comprehensive overview of the Haskell programming language. It covers various Haskell implementations, notable applications built with Haskell, its use in industry and web development, criticisms of the language, related languages, and academic conferences. The content also includes information on Haskell variants, bibliographic references, and external links for further reading.
+
+5. Overview of Haskell Programming Language
+source: Haskell.txt
+summary: This text provides a comprehensive overview of Haskell, a purely functional programming language. It describes Haskell's key features including lazy evaluation, lambda expressions, pattern matching, type classes, and strong static typing. The article also discusses Haskell's implementation of monads for handling side effects, its various implementations (with focus on the Glasgow Haskell Compiler), and its active community. Code examples are provided to demonstrate basic syntax and common functions like factorial and quicksort. The text also mentions different Haskell implementations, both current and historical, highlighting their specific features and target platforms.
+
+6. Overview of the Glasgow Haskell Compiler (GHC)
+source: Glasgow Haskell Compiler.txt
+summary: The Glasgow Haskell Compiler (GHC) is an open-source, native code compiler for the Haskell programming language. Key features include: Originally developed at the University of Glasgow starting in 1989; Written primarily in Haskell, with some C for the runtime system; Provides a cross-platform environment for writing and testing Haskell code; Supports many language extensions, libraries and optimizations; Uses a multi-stage compilation process including front-end (lexing, parsing, type checking), middle-end (optimization passes on intermediate 'Core' language), and back-end (code generation via C-- and LLVM); Developed by Simon Marlow, Simon Peyton Jones and many contributors; Released under a BSD license; The most commonly used Haskell compiler.
+
+7. Purely Functional Programming
+source: Purely functional programming.txt
+summary: This article discusses purely functional programming, a programming paradigm that treats all computation as the evaluation of mathematical functions. It explains the key characteristics of purely functional programming, including its handling of program state, referential transparency, and the differences between pure and impure functional programming. The article also covers properties such as evaluation strategies, parallel computing advantages, and the use of persistent data structures in purely functional programming. It concludes by mentioning purely functional languages and how purely functional programs can be written in non-purely functional languages.
+
+Query
+
+'''
+How does Haskell implement IO functions? I'm curious how purely functional languages deal with IO, which is impure.
+'''
+
+<|assistant|>
+
+I'll analyze the query and the document summaries to select the most relevant documents for answering the question about how Haskell implements IO functions in a purely functional context.
+
+The query specifically asks about:
+1. How Haskell implements IO functions
+2. How purely functional languages deal with IO, which is impure
+
+After careful consideration, I believe the most relevant documents are:
+
+1. Document 3: "Haskell Programming Language Overview"
+   This document explicitly mentions "monadic I/O for handling side effects while maintaining referential transparency," which directly addresses how Haskell deals with IO in a purely functional context.
+
+2. Document 5: "Overview of Haskell Programming Language"
+   This document also mentions "Haskell's implementation of monads for handling side effects," which is directly relevant to the query.
+
+These two documents together should provide a good overview of how Haskell, as a purely functional language, implements IO functions using monads to maintain its purely functional nature while dealing with impure operations.
+
+Here's the JSON array with the indexes of the selected documents:
+
+[3, 5]
+
+<|user|>
+
+Give me the indexes of the documents that are relevant to the user's query. Below is the query and the documents. The query is wrapped in triple quotation marks.
+
+1. Git Branching and Commit History
+source: user-manual.txt
+summary: This text explains key concepts in Git's branching model and commit history. It covers how commits are identified, the parent-child relationship between commits, and the concept of reachability. It also describes branches as references to specific commits, and explains how to manipulate branches using Git commands. The text includes information on detached HEAD state, examining remote branches, and the naming conventions for references in Git.
+
+2. Git Merge and Conflict Resolution Guide
+source: user-manual.txt
+summary: This text provides a comprehensive explanation of Git's merge functionality and conflict resolution process. It covers the basics of merging branches, how to handle conflicts, and the tools Git provides for resolving conflicts. Key topics include using the 'git merge' command, understanding conflict markers, utilizing 'git diff' for conflict resolution, and the specifics of the 'ort' merge strategy. The guide also details how Git stores different versions of conflicted files and offers various commands for comparing these versions during the conflict resolution process.
+
+3. Git Object Storage and Pack Files
+source: user-manual.txt
+summary: This text explains how Git efficiently stores objects using pack files. It covers blob objects, which store file contents, and tag objects, which contain metadata about Git tags. The document describes how Git initially stores objects as loose files but can compress them into pack files to save space and improve performance. It also explains dangling objects, which are objects not referenced by any branch or tag, and how they can occur during operations like rebasing. The text provides commands for managing pack files and dealing with dangling objects.
+
+4. Git Repository Maintenance and Recovery
+source: user-manual.txt
+summary: This text covers dangling objects in Git repositories and methods for recovering from repository corruption. It explains that dangling objects are often harmless byproducts of Git operations, but can be useful for recovery. The text outlines steps to examine and prune dangling objects. For repository corruption, it emphasizes the importance of backups and provides a detailed process for recovering missing blob objects, including using git fsck to identify issues, git ls-tree to examine affected trees, and git log to track file history. The guide also describes how to reconstruct and re-add missing objects to repair the repository.
+
+5. Git Internals: Merging and Implementation Details
+source: user-manual.txt
+summary: This text provides an in-depth explanation of Git's internal workings, focusing on two main areas: 1) The process of merging multiple trees, including handling non-trivial merges and conflict resolution, and 2) Details about Git's implementation, such as object storage format, hash generation, and guidance on navigating Git's source code. It offers specific command examples and explanations of Git's low-level operations, aimed at Git developers or those interested in understanding Git's internals.
+
+6. Git Commit Signoff Option Documentation
+source: signoff-option.txt
+summary: This text describes the '--signoff' and '--no-signoff' options for Git commit commands. The '--signoff' option adds a 'Signed-off-by' trailer to the commit message, which can certify various things depending on the project, such as rights to submit work or agreement to a Developer Certificate of Origin. The '--no-signoff' option can be used to cancel a previous '--signoff' option. The text also notes that the '-s' short option is available in some Git commit contexts.
+
+7. Git Workflows Overview
+source: gitworkflows.txt
+summary: This manual page describes recommended Git workflows, particularly for large projects. Key points include: 1) Separate changes into small, logical commits. 2) Use merges over cherry-picking when possible for better scalability. 3) Use integration branches (maint, master, next, seen) for graduating features from experimental to stable. 4) Always commit fixes to the oldest supported branch that needs them, then merge upwards. 5) Use topic branches for features and bugfixes, forking from the oldest relevant integration branch. 6) Avoid habitually merging upstream branches into topic branches. 7) Use throw-away integration branches to test interactions between multiple topics. These guidelines aim to create a clear, manageable history and workflow for complex projects with multiple contributors.
+
+8. Git Branching and Workflow Best Practices
+source: gitworkflows.txt
+summary: This document outlines best practices for Git branching and workflows in collaborative projects. It covers topics such as throw-away integration branches, branch management for releases, maintenance branch management, and distributed workflows. The text emphasizes the importance of proper branch management, avoiding unnecessary merges, and provides specific recipes for common Git operations. It also discusses the differences between merge and patch workflows, explaining when and how to use each approach in distributed development scenarios.
+
+Query
+
+'''
+Hi, how are you?
+'''
+
+<|assistant|>
+
+"Hi, how are you?" is a simple greeting and doesn't relate to any of the Git-related topics covered in the documents.
+
+Therefore, the list of relevant document indexes is empty:
+
+[]
+
+<|user|>
+
+Give me the indexes of the documents that are relevant to the user's query. Below is the query and the documents. The query is wrapped in triple quotation marks.
+
+{{entries|safe}}
+
+Query
+
+'''
+{{query|safe}}
+'''
+
+<|assistant|>

@@ -1,0 +1,9 @@
+<|system|>
+
+You're a kind chatbot.
+
+<|user|>
+
+{{query|safe}}
+
+<|assistant|>

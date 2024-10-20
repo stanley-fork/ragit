@@ -1,0 +1,145 @@
+<|system|>
+
+Your job is to select documents that are relevant to user's query. You'll be given a query and titles of documents. You have to choose titles that look helpful to answer the query.
+
+Think as much as possible before you answer. Then give me the list of the numbers of the titles. The list must be in a json format, an array containing numbers.
+
+<|user|>
+
+Give me the numbers of the titles that are relevant to the user's query. Below is the query and the titles. The query is wrapped in triple quotation marks.
+
+1. MAWK Manual Page
+2. AWK Language Specification
+3. AWK Regular Expression and Language Reference
+4. AWK Built-in Functions and I/O Operations
+5. AWK Programming Language Features
+6. mawk Documentation: Multi-line Records and Program Execution
+7. MAWK Manual Page
+8. Manual Page for cat Command
+9. dd Command Manual Page
+10. Manual Page for 'du' Command
+11. Manual Page for grep Command
+12. GNU Grep Command Options
+13. grep Command Options and Regular Expression Syntax
+14. Manual Page for GNU grep
+15. Manual Page for kill Command
+16. ln Command Manual Page
+17. nohup Command Manual Page
+18. Manual Page for PS Command
+19. PS Command Output Format Options
+20. PS Command Options and Output Modifiers
+21. PS Command Options and Format Specifiers
+22. PS Command Format Specifiers
+23. PS Command Output Format Options
+24. Manual Page for ps Command
+25. Man Page for sed (Stream Editor)
+26. Man Page for sort Command
+27. SSH Command Manual Page
+28. SSH Command Line Options
+29. SSH Command Options
+30. SSH Command Options and Authentication Methods
+31. SSH Authentication and Security Features
+32. SSH Escape Characters and Advanced Features
+33. SSH Manual Page Excerpt
+34. sudo and sudoedit Command Manual
+35. Key Features of sudo Command
+36. sudo Command Options and Execution Details
+37. Sudo Command Usage and Behavior
+38. sudo Man Page
+39. Man Page for 'tail' Command
+40. Manual Page for uniq Command
+
+Query
+
+'''
+I have tons of files and directories in my home directory. I want to find all the files that starts with "proj1_". How do I do that?
+'''
+
+<|assistant|>
+
+To answer this query, we need to consider commands that can search for files with specific patterns. The most relevant command for this task is 'grep', which can search for patterns in file names when combined with other commands. However, a more direct and efficient command for this specific task would be 'find', which isn't listed in the titles provided.
+
+Among the given titles, the ones that might be most relevant to this query are:
+
+11. Manual Page for grep Command
+12. GNU Grep Command Options
+13. grep Command Options and Regular Expression Syntax
+14. Manual Page for GNU grep
+
+These titles relate to the 'grep' command, which could potentially be used in combination with other commands to find files with specific naming patterns. While not the most efficient solution for this specific task, understanding grep could help in constructing a command to solve the problem.
+
+Therefore, the relevant title numbers are:
+
+[11, 12, 13, 14]
+
+<|user|>
+
+Give me the numbers of the titles that are relevant to the user's query. Below is the query and the titles. The query is wrapped in triple quotation marks.
+
+1. MAWK Manual Page
+2. AWK Language Specification
+3. AWK Regular Expression and Language Reference
+4. AWK Built-in Functions and I/O Operations
+5. AWK Programming Language Features
+6. mawk Documentation: Multi-line Records and Program Execution
+7. MAWK Manual Page
+8. Manual Page for cat Command
+9. dd Command Manual Page
+10. Manual Page for 'du' Command
+11. Manual Page for grep Command
+12. GNU Grep Command Options
+13. grep Command Options and Regular Expression Syntax
+14. Manual Page for GNU grep
+15. Manual Page for kill Command
+16. ln Command Manual Page
+17. nohup Command Manual Page
+18. Manual Page for PS Command
+19. PS Command Output Format Options
+20. PS Command Options and Output Modifiers
+21. PS Command Options and Format Specifiers
+22. PS Command Format Specifiers
+23. PS Command Output Format Options
+24. Manual Page for ps Command
+25. Man Page for sed (Stream Editor)
+26. Man Page for sort Command
+27. SSH Command Manual Page
+28. SSH Command Line Options
+29. SSH Command Options
+30. SSH Command Options and Authentication Methods
+31. SSH Authentication and Security Features
+32. SSH Escape Characters and Advanced Features
+33. SSH Manual Page Excerpt
+34. sudo and sudoedit Command Manual
+35. Key Features of sudo Command
+36. sudo Command Options and Execution Details
+37. Sudo Command Usage and Behavior
+38. sudo Man Page
+39. Man Page for 'tail' Command
+40. Manual Page for uniq Command
+
+Query
+
+'''
+What is the capital of Iceland?
+'''
+
+
+<|assistant|>
+
+After careful consideration, I have to conclude that none of the given titles are relevant to answering the query "What is the capital of Iceland?". The titles provided are all related to various Unix/Linux commands and programming languages, and none of them contain information about geography or Iceland's capital city.
+
+Therefore, the list of relevant title numbers is empty:
+
+[]
+
+<|user|>
+
+Give me the numbers of the titles that are relevant to the user's query. Below is the query and the titles. The query is wrapped in triple quotation marks.
+
+{{titles|safe}}
+
+Query
+
+'''
+{{query|safe}}
+'''

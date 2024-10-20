@@ -1,0 +1,20 @@
+[package]
+name = "ragit-api"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-std = "1.12.0"
+base64 = "0.22.1"
+clap = { version = "4.5.9", features = ["derive"] }
+futures = "0.3.30"
+h_time = "0.1.0"
+json = "0.12.4"
+ragit-fs = { path = "../fs" }
+rand = "0.8.5"
+regex = "1.10.5"
+reqwest = "0.12.5"
+serde = { version = "1.0.130", features = ["derive"] }
+serde_json = "*"
+tera = "1.19.1"
+tokio = { version = "1.38.0", features = ["full"] }
