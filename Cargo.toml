@@ -13,8 +13,8 @@ flate2 = "1.0.34"
 h_time = "0.1.0"
 json = "0.12.4"
 lazy_static = "1.5.0"
-ragit-api = { path = "./crates/api" }
-ragit-fs = { path = "./crates/fs" }
+ragit-api = { path = "./crates/api", version = "0.1.0" }
+ragit-fs = { path = "./crates/fs", version = "0.1.0" }
 rand = "0.8.5"
 regex = "1.10.6"
 rust-stemmers = "1.2.0"

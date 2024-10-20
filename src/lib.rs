@@ -28,4 +28,4 @@ pub use query::{
     multi_turn,
 };
 
-pub const VERSION: &str = "0.0.0";
+pub const VERSION: &str = "0.1.0";
