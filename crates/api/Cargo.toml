@@ -10,7 +10,7 @@ clap = { version = "4.5.9", features = ["derive"] }
 futures = "0.3.30"
 h_time = "0.1.0"
 json = "0.12.4"
-ragit-fs = { path = "../fs" }
+ragit-fs = { path = "../fs", version = "0.1.0" }
 rand = "0.8.5"
 regex = "1.10.5"
 reqwest = "0.12.5"
