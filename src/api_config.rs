@@ -87,16 +87,12 @@ impl ApiConfig {
 
                 match tracker.0.get(id) {
                     Some(record) => Ok(record.clone()),
-                    None => {
-                        // TODO: what here?
-                        todo!()
-                    },
+
+                    // It's not an error, it's just that this id was never used
+                    None => Ok(vec![]),
                 }
             },
-            None => {
-                // TODO: what here?
-                todo!()
-            },
+            None => Ok(vec![]),  // TODO: is this an error attempting to do this? I'm not sure
         }
     }
 }
