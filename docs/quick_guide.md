@@ -27,7 +27,7 @@ ai_tutorials/
 
 `.rag_index` is like `.git` of git repositories. It saves metadata and chunks. After `rag init`, the knowledge-base is empty. You have to add files to the staging using `rag add` command.
 
-Run `rag add *.txt`. Now you're ready to build the knowledge-base. Run `rag build` to start the work.
+Run `rag add *.txt`. Now you're ready to build the knowledge-base. Run `rag build` to start the work. The default model is `llama3.1-70b-groq` and you need `GROQ_API_KEY` to run. If you want to run gpt-4o-mini, run `rag config --set model gpt-4o-mini`. You can see the list of the models using `rag ls --models`.
 
 ```
 Starting index creation. Press Ctrl+C to pause the process. You can resume from where you left off (almost).
