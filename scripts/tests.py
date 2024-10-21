@@ -34,7 +34,7 @@ def count_chunks() -> int:
     first_line = chunks.split("\n")[0]
     return int(re.search(r"^(\d+)\schunks", first_line).group(1))
 
-def init_to_query(test_model: str):
+def end_to_end(test_model: str):
     goto_root()
     os.chdir("docs")
     md_files = []
@@ -256,12 +256,32 @@ def external_bases():
         tfidf_result = subprocess.run([*cargo_run, "tfidf", prefix], capture_output=True, text=True, check=True).stdout
         assert file in tfidf_result
 
+help_message = """
+Commands
+    e2e [model=dummy]           run `e2e` test
+
+    external_bases              run `external_bases` test
+
+    all [model=dummy]           run all tests
+"""
+
 if __name__ == "__main__":
-    test_model = "dummy" if len(sys.argv) < 2 else sys.argv[1]
+    command = sys.argv[1] if len(sys.argv) > 1 else None
+    test_model = sys.argv[2] if len(sys.argv) > 2 else "dummy"
 
     try:
-        init_to_query(test_model=test_model)
-        external_bases()
+        if command == "e2e":
+            end_to_end(test_model=test_model)
+
+        elif command == "external_bases":
+            external_bases()
+
+        elif command == "all":
+            end_to_end(test_model=test_model)
+            external_bases()
+
+        else:
+            print(help_message)
 
     finally:
         clean()
