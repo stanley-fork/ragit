@@ -28,4 +28,15 @@ pub use query::{
     multi_turn,
 };
 
-pub const VERSION: &str = "0.1.0";
+// My rules for version numbers
+// Let's say I'm working on 0.1.2
+//
+// |                             | Cargo.toml  | this constant  |
+// |-----------------------------|-------------|----------------|
+// | working on 0.1.2            | 0.1.2       | "0.1.2-dev"    |
+// | published version of 0.1.2  | 0.1.2       | "0.1.2"        |
+// | after publishing 0.1.2      | 0.1.3       | "0.1.3-dev"    |
+//
+// Feel free to use whatever rules for your branches. But please keep version numbers
+// distinguishable, so that chunks generated from your branches can easily be identified.
+pub const VERSION: &str = "0.1.1-dev";
