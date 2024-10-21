@@ -1,22 +1,17 @@
 # RAGIT
 
-RAGIT (rag-it) is a git-like software that turns your local files into a knowledge-base. The main goal of this project is to make knowledge-bases easy to share.
-
-It allows you to
-
-1. create and share knowledge-bases easily
-2. ask query on knowledge-bases
+RAGIT (rag-it) is a git-like software that turns your local files into a knowledge-base. The main goal of this project is to make knowledge-bases easy-to-create and easy-to-share.
 
 ## Why another RAG framework?
 
 RAGIT is very different from the other RAG frameworks. The differences make RAGIT suitable for mid-size data files (a few 100MBs I guess), but not for very big source.
 
 1. It adds title and summary to every chunks. It makes AIs very easy to rerank chunks.
-2. It DOES NOT use vector DB. Not using vector DB makes it difficult to scale to million files, but instead, it's VERY easy to share your knowledge-bases with others.
-3. It calculates tf-idf score on every chunks. It must be fast enough for hundreds of thousands of chunks.
+2. It uses tfidf scores instead of vector searches. It first asks an AI to generate keywords from a query, then run tfidf search with the keywords.
 
 ## More documents
 
+- [Build](./docs/build.md)
 - [Chunks](./docs/chunks.md)
 - [Commands](./docs/commands.md)
 - [Configuration](./docs/config.md)
