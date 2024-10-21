@@ -1,6 +1,6 @@
 import os
 import re
-import random
+from random import randint, random
 import shutil
 import subprocess
 from subprocess import TimeoutExpired
@@ -99,7 +99,7 @@ def init_to_query(test_model: str):
 
     # step 3: build: pause and resume
     try:
-        subprocess.run([*cargo_run, "build"], check=True, timeout=8.0 + random.randint(0, 8))
+        subprocess.run([*cargo_run, "build"], check=True, timeout=8.0 + randint(0, 8))
 
     except TimeoutExpired:
         pass
@@ -192,13 +192,13 @@ def init_to_query(test_model: str):
     subprocess.run([*cargo_run, "query", "What makes ragit special?"], check=True)
 
 def external_bases():
-    def rand_char() -> str:
-        if random.random() < 0.5:
-            return chr(random.randint(65, 90))
+    def rand_word() -> str:
+        if random() < 0.5:
+            return "".join([chr(randint(65, 90)) for _ in range(randint(4, 12))])
 
         else:
             # korean character
-            return chr(random.randint(44032, 55203))
+            return "".join([chr(randint(44032, 55203)) for _ in range(randint(4, 12))])
 
     goto_root()
     os.mkdir("tmp")
@@ -207,7 +207,7 @@ def external_bases():
     os.chdir("root")
     subprocess.run([*cargo_run, "init"], check=True)
     prefixes = {}
-    base_count = random.randint(3, 8)
+    base_count = randint(3, 8)
 
     for i in range(base_count):
         dir_name = f"base_{i}"
@@ -218,15 +218,15 @@ def external_bases():
         subprocess.run([*cargo_run, "config", "--set", "model", "dummy"], check=True)
         subprocess.run([*cargo_run, "config", "--set", "sleep_after_llm_call", "100"], check=True)
         subprocess.run([*cargo_run, "config", "--set", "chunk_size", "8000"], check=True)
-        file_count = random.randint(3, 8)
+        file_count = randint(3, 8)
 
         for j in range(file_count):
-            file_name = f"doc_{j}.txt"
+            file_name = f"base_{i}_doc_{j}.txt"
 
             with open(file_name, "w") as f:
-                long_doc = "".join([rand_char() for _ in range(80_000)])
+                long_doc = " ".join([rand_word() for _ in range(randint(2000, 8000))])
                 prefix = long_doc[:16]  # let's assume it's unique
-                prefixes[prefix] = (dir_name, file_name)
+                prefixes[prefix] = file_name
                 f.write(long_doc)
 
             subprocess.run([*cargo_run, "add", "--auto", file_name], check=True)
@@ -252,9 +252,8 @@ def external_bases():
         subprocess.run([*cargo_run, "merge", dir_name], check=True)
         subprocess.run([*cargo_run, "check", "--recursive"], check=True)
 
-    for prefix, (dir, file) in prefixes.items():
+    for prefix, file in prefixes.items():
         tfidf_result = subprocess.run([*cargo_run, "tfidf", prefix], capture_output=True, text=True, check=True).stdout
-        assert dir in tfidf_result
         assert file in tfidf_result
 
 if __name__ == "__main__":
