@@ -377,6 +377,10 @@ impl Index {
             self.save_to_file()?;
         }
 
+        if dashboard {
+            self.render_dashboard()?;
+        }
+
         Ok(())
     }
 
