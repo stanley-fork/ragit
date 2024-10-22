@@ -1,6 +1,7 @@
 use super::Index;
-use crate::index::get_file_hash;
+use crate::INDEX_DIR_NAME;
 use crate::error::Error;
+use crate::index::get_file_hash;
 
 // "force update" means `rag remove FILE` + `rag add FILE`
 #[derive(Copy, Clone)]
@@ -39,6 +40,11 @@ impl Index {
         path: String,  // normalized rel_path
         mode: AddMode,
     ) -> Result<AddResult, Error> {
+        // you cannot add a file that's inside `.rag_index`
+        if path.starts_with(INDEX_DIR_NAME) {  // TODO: `starts_with` is for strings, not for paths
+            return Ok(AddResult::Ignored);
+        }
+
         match mode {
             AddMode::Force => {
                 if self.staged_files.contains(&path) {

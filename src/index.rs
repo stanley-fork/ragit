@@ -318,7 +318,6 @@ impl Index {
         let prompt_hash = format!("{prompt_hash:064x}");
 
         while let Some(doc) = self.staged_files.pop() {
-            // TODO: reject a file if it's inside `.rag_index`
             let real_path = Index::get_data_path(
                 &self.root_dir,
                 &doc,
