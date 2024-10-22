@@ -224,7 +224,7 @@ async fn run() -> Result<(), Error> {
             for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
                 println!("--------------------------");
                 println!("score: {}, matched {}", tfidf.score, tfidf.category);
-                println!("file: {}", chunk.file);
+                println!("file: {}", chunk.render_source());
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }
@@ -247,7 +247,7 @@ async fn run() -> Result<(), Error> {
 
                     for chunk in chunks.iter() {
                         println!("----------");
-                        println!("{}th chunk of {}", chunk.index, chunk.file);
+                        println!("{}th chunk of {}", chunk.index, chunk.render_source());
                         println!("id: {}", chunk.uid);
                         println!("data len: {}", chunk.data);  // it's mapped above
                         println!("title: {}", chunk.title);

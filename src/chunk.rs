@@ -14,6 +14,7 @@ use ragit_api::{
 };
 use ragit_fs::{
     WriteMode,
+    join,
     normalize,
     read_bytes,
     set_ext,
@@ -59,6 +60,11 @@ pub struct Chunk {
     // unique identifier for chunks
     pub uid: Uid,
     pub build_info: BuildInfo,
+
+    // if it belongs to an external base, the name of the
+    // base is kept here
+    #[serde(skip)]
+    pub external_base: Option<String>,
 }
 
 const COMPRESS_PREFIX: u8 = b'c';
@@ -132,7 +138,16 @@ pub fn save_to_file(
 
 impl Chunk {
     pub fn render_source(&self) -> String {
-        self.file.to_string()
+        if let Some(external_base) = &self.external_base {
+            join(
+                external_base,
+                &self.file,
+            ).unwrap()
+        }
+
+        else {
+            self.file.to_string()
+        }
     }
 
     pub async fn create_chunk_from(
@@ -303,6 +318,7 @@ impl Chunk {
             index: file_index,
             uid: format!("{uid:064x}"),
             build_info,
+            external_base: None,
         })
     }
 
@@ -376,6 +392,7 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         title: String::new(),
         uid: Uid::new(),
         build_info: BuildInfo::dummy(),
+        external_base: None,
     }
 }
 

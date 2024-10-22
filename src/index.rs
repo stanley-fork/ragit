@@ -457,8 +457,9 @@ impl Index {
             let chunks = chunk::load_from_file(&chunk_file_real_path)?;
             visited_files.insert(chunk_file);
 
-            for chunk in chunks.into_iter() {
+            for mut chunk in chunks.into_iter() {
                 if uids.contains(&chunk.uid) {
+                    chunk.external_base = Some(root_dir.clone());
                     chunk_map.insert(chunk.uid.clone(), chunk);
                 }
             }
