@@ -94,7 +94,7 @@ async fn run() -> Result<(), Error> {
             }
 
             index.save_to_file()?;
-            println!("added {added} files, updated {updated} files, and {ignored} files were ignored");
+            println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
         Some("remove") => {
             if args.len() == 2 {

@@ -41,7 +41,7 @@ def count_chunks() -> int:
 def parse_add_output(args: list[str]) -> Tuple[int, int, int]:
     output = subprocess.run([*cargo_run, "add"] + args, capture_output=True, text=True, check=True).stdout
     first_line = output.split("\n")[0]
-    added, updated, ignored = re.search(r"added\s(\d+)\sfiles\,\supdated\s(\d+)\sfiles\,\sand\s(\d+)\sfiles\swere\signored", first_line).groups()
+    added, updated, ignored = re.search(r"(\d+)\sadded\sfiles\,\s(\d+)\supdated\sfiles\,\s(\d+)\signored\sfiles", first_line).groups()
     return int(added), int(updated), int(ignored)
 
 def end_to_end(test_model: str):
