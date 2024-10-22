@@ -1,6 +1,7 @@
 use super::Index;
 use crate::error::Error;
 use json::JsonValue;
+use ragit_api::{JsonType, get_type};
 use ragit_fs::read_string;
 use std::collections::HashMap;
 
@@ -19,7 +20,12 @@ impl Index {
                     Some(v) => { return Ok(v.clone()) },
                     _ => {},
                 },
-                _ => { /* TODO: Error? */ },
+                _ => {
+                    return Err(Error::JsonTypeError {
+                        expected: JsonType::Object,
+                        got: get_type(&j),
+                    });
+                },
             }
         }
 
