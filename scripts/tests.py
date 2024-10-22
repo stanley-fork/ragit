@@ -296,7 +296,7 @@ def add():
 
 help_message = """
 Commands
-    e2e [model=dummy]           run `e2e` test
+    end_to_end [model=dummy]    run `end_to_end` test
 
     external_bases              run `external_bases` test
 
@@ -311,7 +311,7 @@ if __name__ == "__main__":
     test_model = sys.argv[2] if len(sys.argv) > 2 else "dummy"
 
     try:
-        if command == "e2e":
+        if command == "end_to_end":
             end_to_end(test_model=test_model)
 
         elif command == "external_bases":
