@@ -38,8 +38,12 @@ def count_chunks() -> int:
     first_line = chunks.split("\n")[0]
     return int(re.search(r"^(\d+)\schunks", first_line).group(1))
 
-def parse_add_output(args: list[str]) -> Tuple[int, int, int]:
+def parse_add_output(args: list[str], rag_check=True) -> Tuple[int, int, int]:
     output = subprocess.run([*cargo_run, "add"] + args, capture_output=True, text=True, check=True).stdout
+
+    if rag_check:
+        subprocess.run([*cargo_run, "check", "--recursive"], check=True)
+
     first_line = output.split("\n")[0]
     added, updated, ignored = re.search(r"(\d+)\sadded\sfiles\,\s(\d+)\supdated\sfiles\,\s(\d+)\signored\sfiles", first_line).groups()
     return int(added), int(updated), int(ignored)
@@ -267,11 +271,13 @@ def external_bases():
     os.chdir("../..")
     shutil.rmtree("tmp")
 
-def add():
+def add_and_remove():
     goto_root()
     os.mkdir("tmp")
     os.chdir("tmp")
     subprocess.run([*cargo_run, "init"], check=True)
+    subprocess.run([*cargo_run, "config", "--set", "model", "dummy"], check=True)
+    subprocess.run([*cargo_run, "config", "--set", "sleep_after_llm_call", "0"], check=True)
 
     # step 0: you cannot build knowledge-base of `.rag_index`
     added, updated, ignored = parse_add_output([".rag_index/index.json"])
@@ -297,7 +303,36 @@ def add():
     added, updated, ignored = parse_add_output(["--force", *all_files])
     assert (added, updated, ignored) == (0, 5, 0)
 
-    # TODO: add more tests
+    # step 2: add files after `rag build`
+    subprocess.run([*cargo_run, "build", "--dashboard"], check=True)
+    added, updated, ignored = parse_add_output(["--auto", *all_files])
+    assert (added, updated, ignored) == (0, 0, 5)
+
+    added, updated, ignored = parse_add_output(["--force", *all_files])
+    assert (added, updated, ignored) == (0, 5, 0)
+
+    added, updated, ignored = parse_add_output(["--ignore", *all_files])
+    assert (added, updated, ignored) == (0, 0, 5)
+
+    # step 3: add files after `rag build` and file modification
+    subprocess.run([*cargo_run, "build", "--dashboard"], check=True)
+    write_string("3.txt", "100")
+    added, updated, ignored = parse_add_output(["--auto", *all_files])
+    assert (added, updated, ignored) == (0, 1, 4)
+
+    added, updated, ignored = parse_add_output(["--force", *all_files])
+    assert (added, updated, ignored) == (0, 5, 0)
+
+    write_string("5.txt", "5")
+    all_files.append("5.txt")
+
+    added, updated, ignored = parse_add_output(["--ignore", *all_files])
+    assert (added, updated, ignored) == (1, 0, 5)
+
+    # TODO: remove file and see the outputs
+
+    os.chdir("..")
+    shutil.rmtree("tmp")
 
 help_message = """
 Commands
@@ -305,7 +340,7 @@ Commands
 
     external_bases              run `external_bases` test
 
-    add                         run `add` test
+    add_and_remove              run `add_and_remove` test
 
     all [model=dummy]           run all tests
 """
@@ -322,13 +357,13 @@ if __name__ == "__main__":
         elif command == "external_bases":
             external_bases()
 
-        elif command == "add":
-            add()
+        elif command == "add_and_remove":
+            add_and_remove()
 
         elif command == "all":
             end_to_end(test_model=test_model)
             external_bases()
-            add()
+            add_and_remove()
 
         else:
             print(help_message)
