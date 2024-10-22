@@ -3,7 +3,7 @@ use crate::QueryConfig;
 use crate::api_config::ApiConfigRaw;
 use crate::error::Error;
 use json::JsonValue;
-use ragit_api::get_type;
+use ragit_api::{JsonType, get_type};
 use ragit_fs::{
     WriteMode,
     read_string,
@@ -80,7 +80,12 @@ impl Index {
                         continue;
                     },
                 },
-                _ => { /* TODO: error? */ },
+                _ => {
+                    return Err(Error::JsonTypeError {
+                        expected: JsonType::Object,
+                        got: get_type(&j),
+                    });
+                },
             }
         }
 
