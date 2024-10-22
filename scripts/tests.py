@@ -20,19 +20,29 @@ def clean():
     if os.path.exists("tmp"):
         shutil.rmtree("tmp")
 
+def write_string(path: str, content: str):
+    with open(path, "w") as f:
+        f.write(content)
+
 # recommend you run it without `--release` flag: the code has tons of `debug_assert!`s
 cargo_run = ["cargo", "run", "--"]
 
 def count_files() -> Tuple[int, int, int]:
     files = subprocess.run([*cargo_run, "ls", "--files"], capture_output=True, text=True, check=True).stdout
     first_line = files.split("\n")[0]
-    total, staged, processed = re.search(r"(\d+)\stotal\sfiles,\s(\d+)\sstaged\sfiles,\s(\d+)\sprocessed\sfiles", first_line).groups()
+    total, staged, processed = re.search(r"(\d+)\stotal\sfiles\,\s(\d+)\sstaged\sfiles\,\s(\d+)\sprocessed\sfiles", first_line).groups()
     return int(total), int(staged), int(processed)
 
 def count_chunks() -> int:
     chunks = subprocess.run([*cargo_run, "ls", "--chunks"], capture_output=True, text=True, check=True).stdout
     first_line = chunks.split("\n")[0]
     return int(re.search(r"^(\d+)\schunks", first_line).group(1))
+
+def parse_add_output(args: list[str]) -> Tuple[int, int, int]:
+    output = subprocess.run([*cargo_run, "add"] + args, capture_output=True, text=True, check=True).stdout
+    first_line = output.split("\n")[0]
+    added, updated, ignored = re.search(r"added\s(\d+)\sfiles\,\supdated\s(\d+)\sfiles\,\sand\s(\d+)\sfiles\swere\signored", first_line).groups()
+    return int(added), int(updated), int(ignored)
 
 def end_to_end(test_model: str):
     goto_root()
@@ -222,12 +232,10 @@ def external_bases():
 
         for j in range(file_count):
             file_name = f"base_{i}_doc_{j}.txt"
-
-            with open(file_name, "w") as f:
-                long_doc = " ".join([rand_word() for _ in range(randint(2000, 8000))])
-                prefix = long_doc[:16]  # let's assume it's unique
-                prefixes[prefix] = file_name
-                f.write(long_doc)
+            long_doc = " ".join([rand_word() for _ in range(randint(2000, 8000))])
+            prefix = long_doc[:16]  # let's assume it's unique
+            prefixes[prefix] = file_name
+            write_string(file_name, long_doc)
 
             subprocess.run([*cargo_run, "add", "--auto", file_name], check=True)
             subprocess.run([*cargo_run, "check"], check=True)
@@ -256,15 +264,48 @@ def external_bases():
         tfidf_result = subprocess.run([*cargo_run, "tfidf", prefix], capture_output=True, text=True, check=True).stdout
         assert file in tfidf_result
 
+    os.chdir("../..")
+    shutil.rmtree("tmp")
+
+def add():
+    goto_root()
+    os.mkdir("tmp")
+    os.chdir("tmp")
+    subprocess.run([*cargo_run, "init"], check=True)
+    all_files = []
+
+    # step 1: add files to a fresh knowledge-base
+    for i in range(5):
+        all_files.append(f"{i}.txt")
+        write_string(f"{i}.txt", str(i))
+
+    added, updated, ignored = parse_add_output(["--auto", *all_files])
+    assert (added, updated, ignored) == (5, 0, 0)
+
+    # step 1.1: --auto, --force and --ignore on the same files
+    added, updated, ignored = parse_add_output(["--auto", *all_files])
+    assert (added, updated, ignored) == (0, 0, 5)
+
+    added, updated, ignored = parse_add_output(["--ignore", *all_files])
+    assert (added, updated, ignored) == (0, 0, 5)
+
+    added, updated, ignored = parse_add_output(["--force", *all_files])
+    assert (added, updated, ignored) == (0, 5, 0)
+
+    # TODO: add more tests
+
 help_message = """
 Commands
     e2e [model=dummy]           run `e2e` test
 
     external_bases              run `external_bases` test
 
+    add                         run `add` test
+
     all [model=dummy]           run all tests
 """
 
+# TODO: tests in parallel? then I have to rename `tmp` to `tmp_1`, `tmp_2`, ...
 if __name__ == "__main__":
     command = sys.argv[1] if len(sys.argv) > 1 else None
     test_model = sys.argv[2] if len(sys.argv) > 2 else "dummy"
@@ -276,9 +317,13 @@ if __name__ == "__main__":
         elif command == "external_bases":
             external_bases()
 
+        elif command == "add":
+            add()
+
         elif command == "all":
             end_to_end(test_model=test_model)
             external_bases()
+            add()
 
         else:
             print(help_message)
