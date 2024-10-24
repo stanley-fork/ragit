@@ -8,13 +8,15 @@ use ragit_fs::{
     read_bytes,
 };
 use sha3::{Digest, Sha3_256};
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 mod csv;
+mod image;
 mod markdown;
 mod plain_text;
 
 pub use csv::CsvReader;
+pub use image::normalize_image;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
 
@@ -47,6 +49,7 @@ pub struct FileReader {  // of a single file
     inner: Box<dyn FileReaderImpl>,
     buffer: VecDeque<AtomicToken>,
     curr_buffer_size: usize,
+    pub images: HashMap<String, Vec<u8>>,
     config: Config,
 
     // index IN a file, not OF a file
@@ -70,6 +73,7 @@ impl FileReader {
             inner,
             buffer: VecDeque::new(),
             curr_buffer_size: 0,
+            images: HashMap::new(),
             config,
             file_index: 0,
         })
@@ -144,6 +148,13 @@ impl FileReader {
             pdl,
             build_info,
         ).await;
+
+        for token in tokens.into_iter() {
+            if let AtomicToken::Image(Image { key, bytes, image_type }) = token {
+                let bytes = normalize_image(bytes, image_type)?;
+                self.images.insert(key, bytes);
+            }
+        }
 
         if let Some(ms) = api_config.sleep_after_llm_call {
             tokio::time::sleep(std::time::Duration::from_millis(ms)).await;

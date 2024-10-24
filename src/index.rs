@@ -35,6 +35,7 @@ use file::{FileReader, get_file_hash};
 use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
+pub const IMAGE_DIR_NAME: &str = "images";
 pub const INDEX_FILE_NAME: &str = "index.json";
 pub const LOG_DIR_NAME: &str = "logs";
 
@@ -95,6 +96,10 @@ impl Index {
         create_dir_all(&Index::get_rag_path(
             &root_dir,
             &CHUNK_DIR_NAME.to_string(),
+        ))?;
+        create_dir_all(&Index::get_rag_path(
+            &root_dir,
+            &IMAGE_DIR_NAME.to_string(),
         ))?;
         create_dir_all(&Index::get_rag_path(
             &root_dir,
@@ -371,6 +376,14 @@ impl Index {
                 self.save_to_file()?;
             }
 
+            for (key, bytes) in fd.images.iter() {
+                write_bytes(
+                    &Index::get_image_path(&self.root_dir, key),
+                    &bytes,
+                    WriteMode::CreateOrTruncate,
+                )?;
+            }
+
             self.processed_files.insert(doc.clone(), get_file_hash(&real_path)?);
             self.curr_processing_file = None;
             self.save_to_file()?;
@@ -585,6 +598,21 @@ impl Index {
                     &join(
                         &CHUNK_DIR_NAME.to_string(),
                         chunk_name,
+                    ).unwrap(),
+                ).unwrap(),
+            ).unwrap(),
+        ).unwrap()
+    }
+
+    fn get_image_path(root_dir: &Path, image_key: &str) -> Path {
+        normalize(
+            &join(
+                root_dir,
+                &join(
+                    &INDEX_DIR_NAME.to_string(),
+                    &join(
+                        &IMAGE_DIR_NAME.to_string(),
+                        &set_ext(image_key, "png").unwrap(),
                     ).unwrap(),
                 ).unwrap(),
             ).unwrap(),
