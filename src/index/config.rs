@@ -20,6 +20,12 @@ pub struct Config {
     pub max_summary_len: usize,
     pub chunks_per_json: usize,
 
+    // If it's set, `rag build` panics if there's any error with a file.
+    // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
+    // If it cannot follow a link of an image in a markdown file, it would die.
+    // You don't need this option unless you're debugging ragit itself.
+    pub strict_file_reader: bool,
+
     // if the `.chunks` file is bigger than this (in bytes),
     // the file is compressed
     pub compression_threshold: u64,
@@ -37,6 +43,7 @@ impl Default for Config {
             min_summary_len: 200,
             max_summary_len: 1000,
             chunks_per_json: 64,
+            strict_file_reader: false,
             compression_threshold: 65536,
             compression_level: 3,
         }

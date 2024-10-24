@@ -21,7 +21,7 @@ pub use plain_text::PlainTextReader;
 pub type Path = String;
 
 pub trait FileReaderImpl {
-    fn new(path: &str) -> Result<Self, Error> where Self: Sized;
+    fn new(path: &str, config: &Config) -> Result<Self, Error> where Self: Sized;
     fn pop_all_tokens(&mut self) -> Result<Vec<AtomicToken>, Error>;
 
     /// It reads `path` and load more tokens to memory. If the file is small enough,
@@ -56,13 +56,13 @@ pub struct FileReader {  // of a single file
 impl FileReader {
     pub fn new(rel_path: Path, real_path: Path, config: Config) -> Result<Self, Error> {
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
-            "md" => Box::new(MarkdownReader::new(&real_path)?) as Box<dyn FileReaderImpl>,
-            // "csv" => Box::new(CsvReader::new(&real_path)?),
-            // "pdf" => Box::new(PdfReader::new(&real_path)?),
-            // "py" | "rs" => Box::new(CodeReader::new(&real_path)?),
+            "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
+            // "csv" => Box::new(CsvReader::new(&real_path, &config)?),
+            // "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
+            // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),
 
             // all the unknown extensions are treated as plain texts
-            _ => Box::new(PlainTextReader::new(&real_path)?),
+            _ => Box::new(PlainTextReader::new(&real_path, &config)?),
         };
 
         Ok(FileReader {

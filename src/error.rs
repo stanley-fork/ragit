@@ -1,6 +1,7 @@
 use crate::chunk::Uid;
 pub use ragit_api::{Error as ApiError, JsonType, get_type};
 use ragit_fs::FileError;
+use std::string::FromUtf8Error;
 
 pub type Path = String;
 
@@ -18,6 +19,10 @@ pub enum Error {
     NoSuchChunk { uid: Uid },
     NoSuchFile { file: String },
 
+    // If you're implementing a new FileReaderImpl, and don't know which variant to use,
+    // just use this one.
+    FileReaderError(String),
+
     // TODO: more enum variants for this type?
     BrokenIndex(String),
 
@@ -29,6 +34,7 @@ pub enum Error {
 
     FileError(FileError),
     StdIoError(std::io::Error),
+    Utf8Error(FromUtf8Error),
 
     // I'm too lazy to add all the variants of ragit_api::Error
     ApiError(ApiError),
@@ -55,6 +61,12 @@ impl From<FileError> for Error {
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Error {
         Error::StdIoError(e)
+    }
+}
+
+impl From<FromUtf8Error> for Error {
+    fn from(e: FromUtf8Error) -> Error {
+        Error::Utf8Error(e)
     }
 }
 

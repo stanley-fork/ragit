@@ -1,5 +1,6 @@
 use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
+use crate::index::Config;
 
 /*
 # TODO
@@ -32,7 +33,7 @@ a,"""bb",c
 pub struct CsvReader {}
 
 impl FileReaderImpl for CsvReader {
-    fn new(path: &str) -> Result<Self, Error> {
+    fn new(path: &str, config: &Config) -> Result<Self, Error> {
         todo!()
     }
 

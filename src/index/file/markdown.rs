@@ -1,5 +1,6 @@
 use super::{AtomicToken, FileReaderImpl, Image};
 use crate::error::Error;
+use crate::index::Config;
 use ragit_api::ImageType;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use regex::Regex;
@@ -12,18 +13,20 @@ pub struct MarkdownReader {
     lines: BufReader<std::fs::File>,
     tokens: Vec<AtomicToken>,
     is_exhausted: bool,
+    strict_mode: bool,
     curr_parse_state: ParseState,
     link_reference_definitions: HashMap<String, String>,
 }
 
 impl FileReaderImpl for MarkdownReader {
-    fn new(path: &str) -> Result<Self, Error> {
+    fn new(path: &str, config: &Config) -> Result<Self, Error> {
         match std::fs::File::open(path) {
             Ok(f) => Ok(MarkdownReader {
                 path: path.to_string(),
                 lines: BufReader::new(f),
                 tokens: vec![],
                 is_exhausted: false,
+                strict_mode: config.strict_file_reader,
                 curr_parse_state: ParseState::Paragraph,
                 link_reference_definitions: HashMap::new(),
             }),
@@ -118,7 +121,10 @@ impl MarkdownReader {
                         StringOrImage::ImageRef { desc, r#ref } => match self.link_reference_definitions.get(&r#ref) {
                             Some(url) => (desc, url.to_string()),
                             _ => {
-                                // TODO: impl strict-file-reader
+                                if self.strict_mode {
+                                    return Err(Error::FileReaderError(format!("Cannot find image link reference: {ref:?}")));
+                                }
+
                                 let fallback = format!("![{desc}][{ref}]");
                                 self.tokens.push(AtomicToken::String {
                                     char_len: fallback.chars().count(),
@@ -136,8 +142,19 @@ impl MarkdownReader {
                         }
                     }
 
-                    // TODO: impl strict-file-reader
-                    let bytes = read_bytes(&url)?;
+                    let bytes = match read_bytes(&url) {
+                        Ok(bytes) => bytes,
+                        Err(e) => if self.strict_mode {
+                            return Err(e.into());
+                        } else {
+                            let fallback = format!("![{desc}](url)");
+                            self.tokens.push(AtomicToken::String {
+                                char_len: fallback.chars().count(),
+                                data: fallback,
+                            });
+                            continue;
+                        },
+                    };
                     let mut hasher = Sha3_256::new();
                     hasher.update(&bytes);
 

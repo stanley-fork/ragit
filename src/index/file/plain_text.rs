@@ -1,5 +1,6 @@
 use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
+use crate::index::Config;
 use ragit_fs::FileError;
 use std::io::Read;
 
@@ -7,15 +8,17 @@ pub struct PlainTextReader {
     bytes: std::io::Bytes<std::fs::File>,
     tokens: Vec<AtomicToken>,
     is_exhausted: bool,
+    strict_mode: bool,
 }
 
 impl FileReaderImpl for PlainTextReader {
-    fn new(path: &str) -> Result<Self, Error> {
+    fn new(path: &str, config: &Config) -> Result<Self, Error> {
         match std::fs::File::open(path) {
             Ok(f) => Ok(PlainTextReader {
                 bytes: f.bytes(),
                 tokens: vec![],
                 is_exhausted: false,
+                strict_mode: config.strict_file_reader,
             }),
             Err(e) => Err(FileError::from_std(e, path).into()),
         }
@@ -36,11 +39,15 @@ impl FileReaderImpl for PlainTextReader {
             if let Some(byte) = self.bytes.next() {
                 let byte = byte?;
 
-                // TODO: if it's not valid utf8, raise error vs ignore -> make it configurable
                 if tmp_buffer.len() > 200 && (byte < 128 || byte >= 192)  // avoid utf-8 error
                     || tmp_buffer.len() >= 256  // in case there's no whitespace at all
                     || byte.is_ascii_whitespace() {
-                    let s = String::from_utf8_lossy(&tmp_buffer).to_string();
+                    let s = if self.strict_mode {
+                        String::from_utf8(tmp_buffer)?
+                    } else {
+                        String::from_utf8_lossy(&tmp_buffer).to_string()
+                    };
+
                     self.tokens.push(AtomicToken::String {
                         char_len: s.chars().count(),
                         data: s,
@@ -58,7 +65,12 @@ impl FileReaderImpl for PlainTextReader {
         }
 
         if !tmp_buffer.is_empty() {
-            let s = String::from_utf8_lossy(&tmp_buffer).to_string();
+            let s = if self.strict_mode {
+                String::from_utf8(tmp_buffer)?
+            } else {
+                String::from_utf8_lossy(&tmp_buffer).to_string()
+            };
+
             self.tokens.push(AtomicToken::String {
                 char_len: s.chars().count(),
                 data: s,
