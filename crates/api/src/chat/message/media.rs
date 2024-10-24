@@ -110,3 +110,14 @@ impl MediaMessageBuilder {
         Ok(content)
     }
 }
+
+impl From<ImageType> for image::ImageFormat {
+    fn from(image_type: ImageType) -> Self {
+        match image_type {
+            ImageType::Jpeg => image::ImageFormat::Jpeg,
+            ImageType::Png => image::ImageFormat::Png,
+            ImageType::Gif => image::ImageFormat::Gif,
+            ImageType::Webp => image::ImageFormat::WebP,
+        }
+    }
+}

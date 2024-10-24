@@ -33,6 +33,9 @@ pub enum Error {
     /// see <https://docs.rs/serde_json/latest/serde_json/struct.Error.html>
     JsonSerdeError(serde_json::Error),
 
+    /// see <https://docs.rs/image/latest/image/error/enum.ImageError.html>
+    ImageError(image::ImageError),
+
     FileError(FileError),
     StdIoError(std::io::Error),
     Utf8Error(FromUtf8Error),
@@ -50,6 +53,12 @@ impl From<json::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Error {
         Error::JsonSerdeError(e)
+    }
+}
+
+impl From<image::ImageError> for Error {
+    fn from(e: image::ImageError) -> Error {
+        Error::ImageError(e)
     }
 }
 
