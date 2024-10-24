@@ -56,7 +56,7 @@ pub struct FileReader {  // of a single file
 impl FileReader {
     pub fn new(rel_path: Path, real_path: Path, config: Config) -> Result<Self, Error> {
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
-            // "md" => Box::new(MarkdownReader::new(&real_path)?) as Box<dyn FileReaderImpl>,
+            "md" => Box::new(MarkdownReader::new(&real_path)?) as Box<dyn FileReaderImpl>,
             // "csv" => Box::new(CsvReader::new(&real_path)?),
             // "pdf" => Box::new(PdfReader::new(&real_path)?),
             // "py" | "rs" => Box::new(CodeReader::new(&real_path)?),
