@@ -88,7 +88,7 @@ if __name__ == "__main__":
             git_url = "https://github.com/docker/docs/",
             docs_at = "./docs/content/manuals",
             repo_name = "docs",
-            file_ext = [".md"],
+            file_ext = [".md", ".png", ".webp"],
             result_tmp = "./sample/manuals",
             result_at = "./sample/docker",
         )
@@ -98,7 +98,7 @@ if __name__ == "__main__":
             git_url = "https://github.com/kubernetes/website",
             docs_at = "./website/content/en/docs",
             repo_name = "website",
-            file_ext = [".md"],
+            file_ext = [".md", ".png"],
             result_tmp = "./sample/docs",
             result_at = "./sample/kubernetes",
         )
