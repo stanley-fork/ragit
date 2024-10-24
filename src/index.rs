@@ -14,6 +14,7 @@ use ragit_fs::{
     is_dir,
     join,
     normalize,
+    read_bytes,
     read_string,
     set_ext,
     write_bytes,
@@ -927,6 +928,10 @@ impl Index {
 
     fn count_external_chunks(&self) -> usize {
         self.external_indexes.iter().map(|index| index.chunk_count).sum()
+    }
+
+    pub fn load_image_by_key(&self, key: &str) -> Result<Vec<u8>, Error> {
+        Ok(read_bytes(&Index::get_image_path(&self.root_dir, key))?)
     }
 }
 

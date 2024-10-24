@@ -1,4 +1,7 @@
 use super::Chunk;
+use crate::error::Error;
+use crate::index::Index;
+use ragit_api::encode_base64;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -13,15 +16,20 @@ impl RenderableChunk {
     }
 }
 
-impl From<Chunk> for RenderableChunk {
-    fn from(c: Chunk) -> Self {
-        RenderableChunk {
-            source: c.render_source(),
+impl Chunk {
+    pub fn into_renderable(self, index: &Index) -> Result<RenderableChunk, Error> {
+        let mut data = self.data.clone();
 
-            // TODO: render images
-            // NOTE: `RenderableChunk.data` goes directly into pdl, so just insert
-            //       `<|image_raw(png/...)|>`
-            data: c.data,
+        for image in self.images.iter() {
+            data = data.replace(
+                &format!("img_{image}"),
+                &format!("<|raw_media(png:{})|>", encode_base64(&index.load_image_by_key(image)?)),
+            );
         }
+
+        Ok(RenderableChunk {
+            source: self.render_source(),
+            data,
+        })
     }
 }

@@ -38,3 +38,4 @@ pub use crate::json_type::{
     get_type,
 };
 pub use crate::record::RecordAt;
+pub use crate::utils::{decode_base64, encode_base64};

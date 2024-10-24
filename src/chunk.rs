@@ -331,7 +331,7 @@ impl Chunk {
 }
 
 // TODO: merging chunks is not tested yet
-pub fn merge_and_convert_chunks(chunks: Vec<Chunk>) -> Vec<RenderableChunk> {
+pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
 
@@ -351,11 +351,17 @@ pub fn merge_and_convert_chunks(chunks: Vec<Chunk>) -> Vec<RenderableChunk> {
             let post = curr_chunks.remove(candidate).unwrap();
             curr_chunks.insert((candidate.0.clone(), candidate.1), merge_chunks(pre, post));
 
-            return merge_and_convert_chunks(curr_chunks.into_values().collect());
+            return merge_and_convert_chunks(index, curr_chunks.into_values().collect());
         }
     }
 
-    curr_chunks.into_iter().map(|(_, c)| c.into()).collect()
+    let mut result = Vec::with_capacity(curr_chunks.len());
+
+    for (_, chunk) in curr_chunks.into_iter() {
+        result.push(chunk.into_renderable(index)?);
+    }
+
+    Ok(result)
 }
 
 fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {

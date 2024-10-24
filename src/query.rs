@@ -71,7 +71,7 @@ pub async fn single_turn(
     else {
         answer_query_with_chunks(
             query,
-            merge_and_convert_chunks(chunks),
+            merge_and_convert_chunks(index, chunks)?,
             &index.api_config,
             &index.get_prompt("answer_query")?,
         ).await
