@@ -91,7 +91,7 @@ impl MessageContent {
                             Some(s) if s.is_string() => {
                                 let bytes = decode_base64(s.as_str().unwrap())?;
                                 let image_type = match source.get("media_type") {
-                                    Some(s) if s.is_string() => ImageType::from_media_type(s.as_str().unwrap()).ok_or(Error::InvalidMediaType(s.as_str().unwrap().to_string()))?,
+                                    Some(s) if s.is_string() => ImageType::from_media_type(s.as_str().unwrap())?,
                                     Some(wrong_type) => {
                                         return Err(Error::JsonTypeError {
                                             expected: JsonType::String,
@@ -142,18 +142,11 @@ impl fmt::Display for MessageContent {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         match self {
             MessageContent::String(s) => write!(fmt, "{s}"),
-            // TODO: base64 pdl format
             MessageContent::Image { image_type, bytes } => write!(
                 fmt,
-                "Image(type: {}, bytes: {})",
-                image_type.get_media_type(),
-                if bytes.len() < 32 { format!("{bytes:?}") } else {
-                    format!(
-                        "[{} ... {} more bytes]",
-                        bytes[..16].iter().map(|b| b.to_string()).collect::<Vec<String>>().join(", "),
-                        bytes.len() - 16,
-                    )
-                },
+                "<|raw_media({}:{})|>",
+                image_type.to_extension(),
+                encode_base64(bytes),
             ),
         }
     }
@@ -216,7 +209,6 @@ impl Message {
         result
     }
 
-    // TODO: read images
     pub fn from_json(j: &JsonValue) -> Result<Self, Error> {
         if let JsonValue::Object(j) = j {
             let role = match j.get("role") {
@@ -288,7 +280,7 @@ pub fn messages_from_pdl(
     let mut result = vec![];
     let mut buffer = vec![];
     let message_start = Regex::new(r"^<\|([a-zA-Z]+)\|>$").unwrap();
-    let pdl_token = Regex::new(r"(.*)<\|([a-zA-Z0-9_\(\)\.\/\,\= ]+)\|>(.*)").unwrap();
+    let pdl_token = Regex::new(r"(.*)<\|([a-zA-Z0-9_()./,=+: ]+)\|>(.*)").unwrap();
     let mut curr_role = Role::System;
 
     for line in rendered.lines() {
@@ -337,18 +329,36 @@ fn parse_content(content: &str, pdl_token_re: &Regex) -> Result<Vec<MessageConte
         let token = c.get(2).unwrap().as_str();
         let postfix = c.get(3).unwrap().as_str();
 
-        let path = match Regex::new(r"\s*media\s*\((.*)\)").unwrap().captures(token) {
-            Some(c) => c.get(1).unwrap().as_str().to_string(),
-            None => {
-                return Err(Error::InvalidPdlToken(token.to_string()));
-            },
-        };
+        let media_re = Regex::new(r"\s*media\s*\((.*)\)").unwrap();
+        let raw_media_re = Regex::new(r"\s*raw\_media\s*\(([a-z]+):([0-9A-Za-z+/]+)\)").unwrap();
 
-        Ok(vec![
-            parse_content(prefix, pdl_token_re)?,
-            MediaMessageBuilder { paths: vec![path], prompt: None }.build()?,
-            parse_content(postfix, pdl_token_re)?,
-        ].concat())
+        if let Some(cap) = raw_media_re.captures(token) {
+            let image_type = ImageType::from_extension(&cap[1])?;
+            let bytes = decode_base64(&cap[2])?;
+
+            Ok(vec![
+                parse_content(prefix, pdl_token_re)?,
+                vec![MessageContent::Image {
+                    image_type,
+                    bytes,
+                }],
+                parse_content(postfix, pdl_token_re)?,
+            ].concat())
+        }
+
+        else if let Some(cap) = media_re.captures(token) {
+            let path = cap[1].to_string();
+
+            Ok(vec![
+                parse_content(prefix, pdl_token_re)?,
+                MediaMessageBuilder { paths: vec![path], prompt: None }.build()?,
+                parse_content(postfix, pdl_token_re)?,
+            ].concat())
+        }
+
+        else {
+            return Err(Error::InvalidPdlToken(token.to_string()));
+        }
     }
 
     else {

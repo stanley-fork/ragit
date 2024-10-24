@@ -23,27 +23,27 @@ impl ImageType {
         }
     }
 
-    pub fn from_media_type(s: &str) -> Option<Self> {
+    pub fn from_media_type(s: &str) -> Result<Self, Error> {
         match s.to_ascii_lowercase() {
-            s if s == "image/jpeg" || s == "image/jpg" => Some(ImageType::Jpeg),
-            s if s == "image/png" => Some(ImageType::Png),
-            s if s == "image/gif" => Some(ImageType::Gif),
-            s if s == "image/webp" => Some(ImageType::Webp),
-            _ => None,
+            s if s == "image/jpeg" || s == "image/jpg" => Ok(ImageType::Jpeg),
+            s if s == "image/png" => Ok(ImageType::Png),
+            s if s == "image/gif" => Ok(ImageType::Gif),
+            s if s == "image/webp" => Ok(ImageType::Webp),
+            _ => Err(Error::InvalidImageType(s.to_string())),
         }
     }
 
-    pub fn from_extension(ext: &str) -> Option<Self> {
+    pub fn from_extension(ext: &str) -> Result<Self, Error> {
         match ext.to_ascii_lowercase() {
-            ext if ext == "png" => Some(ImageType::Png),
-            ext if ext == "jpeg" || ext == "jpg" => Some(ImageType::Jpeg),
-            ext if ext == "gif" => Some(ImageType::Gif),
-            ext if ext == "webp" => Some(ImageType::Webp),
-            _ => None,
+            ext if ext == "png" => Ok(ImageType::Png),
+            ext if ext == "jpeg" || ext == "jpg" => Ok(ImageType::Jpeg),
+            ext if ext == "gif" => Ok(ImageType::Gif),
+            ext if ext == "webp" => Ok(ImageType::Webp),
+            _ => Err(Error::InvalidImageType(ext.to_string())),
         }
     }
 
-    pub fn infer_from_path(path: &str) -> Option<Self> {
+    pub fn infer_from_path(path: &str) -> Result<Self, Error> {
         let ext_re = Regex::new(r".+\.([^.]+)$").unwrap();
 
         if let Some(ext) = ext_re.captures(path) {
@@ -51,7 +51,7 @@ impl ImageType {
         }
 
         else {
-            None
+            Err(Error::InvalidImageType(path.to_string()))
         }
     }
 
@@ -82,7 +82,7 @@ impl MediaMessageBuilder {
         for path in self.paths.iter() {
             match extension(path)? {
                 Some(ext) => match ext.to_ascii_lowercase() {
-                    ext if ImageType::from_extension(&ext).is_some() => {
+                    ext if ImageType::from_extension(&ext).is_ok() => {
                         let bytes = read_bytes(path)?;
 
                         // TODO: auto-resize

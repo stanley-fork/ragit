@@ -14,6 +14,7 @@ pub enum Error {
     IndexAlreadyExists(Path),
     InvalidChunkPrefix(u8),
     InvalidConfigKey(String),
+    InvalidImageType(String),
     PromptMissing(String),
     IndexNotFound,
     NoSuchChunk { uid: Uid },
@@ -77,6 +78,7 @@ impl From<ApiError> for Error {
             ApiError::JsonError(e) => Error::JsonError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),
+            ApiError::InvalidImageType(e) => Error::InvalidImageType(e),
             e => Error::ApiError(e),
         }
     }

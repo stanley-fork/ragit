@@ -12,7 +12,7 @@ pub enum Error {
     InvalidRole(String),
     InvalidModelKind(String),
     InvalidPdlToken(String),
-    InvalidMediaType(String),
+    InvalidImageType(String),
 
     /// If you see this error, there must be a bug in this library
     NoTry,
