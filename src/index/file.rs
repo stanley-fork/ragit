@@ -10,13 +10,13 @@ use ragit_fs::{
 use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, VecDeque};
 
-mod csv;
 mod image;
+mod line_reader;
 mod markdown;
 mod plain_text;
 
-pub use csv::CsvReader;
 pub use image::normalize_image;
+pub use line_reader::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
 
@@ -60,7 +60,12 @@ impl FileReader {
     pub fn new(rel_path: Path, real_path: Path, config: Config) -> Result<Self, Error> {
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
-            // "csv" => Box::new(CsvReader::new(&real_path, &config)?),
+            
+            // a newline character isn't always a row-separator in csv, but that's okay
+            // because LLM reads the file, not *parse* the file.
+            "csv" => Box::new(LineReader::new(&real_path, &config)?.set_header_length(1)),
+            "jsonl" => Box::new(LineReader::new(&real_path, &config)?.set_header_length(0)),
+
             // "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
             // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),
 
