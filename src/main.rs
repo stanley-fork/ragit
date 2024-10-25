@@ -96,7 +96,7 @@ async fn run() -> Result<(), Error> {
             index.save_to_file()?;
             println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
-        Some("remove") => {
+        Some("remove") | Some("rm") => {
             if args.len() == 2 {
                 panic!("<PATH> is not provided.");
             }
@@ -229,67 +229,61 @@ async fn run() -> Result<(), Error> {
                 println!("summary: {}", chunk.summary);
             }
         },
-        Some("ls") => {
+        Some("ls-chunks") => {
             let index = Index::load(root_dir?, true)?;
-
-            match args.get(2) {
-                Some(flag) if flag == "--chunks" => {
-                    println!("{} chunks", index.chunk_count);
-                    let chunks = index.list_chunks(
-                        &|_| true,  // no filter
-                        &|mut chunk: Chunk| {
-                            // it's too big
-                            chunk.data = format!("{}", chunk.len());
-                            chunk
-                        },
-                        &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
-                    )?;
-
-                    for chunk in chunks.iter() {
-                        println!("----------");
-                        println!("{}th chunk of {}", chunk.index, chunk.render_source());
-                        println!("id: {}", chunk.uid);
-                        println!("data len: {}", chunk.data);  // it's mapped above
-                        println!("title: {}", chunk.title);
-                        println!("summary: {}", chunk.summary);
-                    }
+            println!("{} chunks", index.chunk_count);
+            let chunks = index.list_chunks(
+                &|_| true,  // no filter
+                &|mut chunk: Chunk| {
+                    // it's too big
+                    chunk.data = format!("{}", chunk.len());
+                    chunk
                 },
-                Some(flag) if flag == "--files" => {
-                    println!(
-                        "{} total files, {} staged files, {} processed files",
-                        index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-                        index.staged_files.len(),
-                        index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-                    );
-                    let files = index.list_files(
-                        &|_| true,  // no filter
-                        &|f| f,  // no map
-                        &|f| f.name.to_string(),
-                    );
+                &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
+            )?;
 
-                    for file in files.iter() {
-                        println!("--------");
-                        println!("name: {}{}", file.name, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
+            for chunk in chunks.iter() {
+                println!("----------");
+                println!("{}th chunk of {}", chunk.index, chunk.render_source());
+                println!("id: {}", chunk.uid);
+                println!("data len: {}", chunk.data);  // it's mapped above
+                println!("title: {}", chunk.title);
+                println!("summary: {}", chunk.summary);
+            }
+        },
+        Some("ls-files") => {
+            let index = Index::load(root_dir?, true)?;
+            println!(
+                "{} total files, {} staged files, {} processed files",
+                index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                index.staged_files.len(),
+                index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+            );
+            let files = index.list_files(
+                &|_| true,  // no filter
+                &|f| f,  // no map
+                &|f| f.name.to_string(),
+            );
 
-                        if file.is_processed {
-                            println!("length: {}", file.length);
-                            println!("hash: {}", file.hash);
-                        }
-                    }
-                },
-                Some(flag) if flag == "--models" => {
-                    let models = index.list_models(
-                        &|model| model.name != "dummy",  // filter
-                        &|model| model,  // no map
-                        &|model| model.name.to_string(),
-                    );
+            for file in files.iter() {
+                println!("--------");
+                println!("name: {}{}", file.name, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
 
-                    for model in models.iter() {
-                        println!("{}", String::from_utf8_lossy(&serde_json::to_vec_pretty(model)?).to_string());
-                    }
-                },
-                Some(flag) => panic!("`{flag}` is an invalid flag"),
-                None => panic!("requires a flag"),
+                if file.is_processed {
+                    println!("length: {}", file.length);
+                    println!("hash: {}", file.hash);
+                }
+            }
+        },
+        Some("ls-models") => {
+            let models = index.list_models(
+                &|model| model.name != "dummy",  // filter
+                &|model| model,  // no map
+                &|model| model.name.to_string(),
+            );
+
+            for model in models.iter() {
+                println!("{}", String::from_utf8_lossy(&serde_json::to_vec_pretty(model)?).to_string());
             }
         },
         Some("gc") => {

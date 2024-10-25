@@ -90,7 +90,7 @@ playground
 
 You'll see an empty rag index. Now we have to download knowledge-bases from the web.
 
-TODO: I'm planning to implement `rag pull https://URL/TO/A/KNOWLEDGE/BASE`, but it's WIP. You can download knowledge-bases from the links below. Download and extract the files to make the dir tree looks like below.
+TODO: I'm planning to implement `rag clone https://URL/TO/A/KNOWLEDGE/BASE`, but it's WIP. You can download knowledge-bases from the links below. Download and extract the files to make the dir tree looks like below.
 
 - [docker](TODO)
 - [git](TODO)

@@ -39,6 +39,21 @@ You can interrupt a building at anytime. When interrupted, processed files so fa
 
 It checks if something's broken or corrupted. Normal users don't need this command. If you've added a new feature or are writing a test script, please run this command to see if your codes are correct.
 
+## clone
+
+- `rag clone URL/TO/ANOTHER/KNOWLEDGE/BASE`
+  - TODO: not implemented yet
+
+You can download knowledge-bases from the internet. It's not available yet, so I provide you links that you can download knowledge-bases created by me.
+
+- [docker](TODO)
+- [git](TODO)
+- [kubernetes](TODO)
+- [nix](TODO)
+- [postgresql](TODO)
+- [ragit](TODO)
+- [rustc-dev-guide](TODO)
+
 ## config
 
 - `rag config --set [key] [value]`
@@ -58,13 +73,26 @@ It checks if something's broken or corrupted. Normal users don't need this comma
 
 It does nothing if there's already a knowledge-base. If you want to re-init, run `rag reset --hard; rag init`.
 
-## ls
+## ls-chunks
 
-- `rag ls --chunks`
-  - It does not show external chunks.
-- `rag ls --files`
-  - It does not show external files.
-- `rag ls --models`
+- `rag ls-chunks [--name-only | --stat-only]`
+  - TODO: `--name-only` and `--stat-only` are not implemented yet.
+
+It shows the list of the chunks in this knowledge-base. It does not search external knowledge-bases.
+
+## ls-files
+
+- `rag ls-files [--name-only | --stat-only]`
+  - TODO: `--name-only` and `--stat-only` are not implemented yet.
+
+It shows the list of the files in this knowledge-base. It does not search external knowledge-bases.
+
+## ls-models
+
+- `rag ls-models [--name-only | --stat-only]`
+  - TODO: `--name-only` and `--stat-only` are not implemented yet.
+
+It shows the list of available AI models.
 
 ## merge
 
@@ -88,28 +116,15 @@ You can add metadata to a knowledge-base. Metadata is a json object, where all t
 
 TODO: I want values to have various types, but that's too trick to implement. For example, in most shells, `rag meta --set num 1` and `rag meta --set num "1"` are both integer and `rag meta --set num "\"1\""` is a string.
 
-## pull
-
-- `rag pull URL/TO/ANOTHER/KNOWLEDGE/BASE`
-  - TODO: not implemented yet
-
-You can download knowledge-bases from the internet. It's not available yet, so I provide you links that you can download knowledge-bases created by me.
-
-- [docker](TODO)
-- [git](TODO)
-- [kubernetes](TODO)
-- [nix](TODO)
-- [postgresql](TODO)
-- [ragit](TODO)
-- [rustc-dev-guide](TODO)
-
 ## query
 
 - `rag query [query]`
   - ex: `rag query "why is the sky blue?"`
 - `rag query --interactive`
 
-## remove
+## remove / rm
+
+`remove` and `rm` are alias.
 
 See also [chunks.md](./chunks.md#data-files).
 
