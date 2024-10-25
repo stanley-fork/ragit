@@ -28,13 +28,13 @@ def write_string(path: str, content: str):
 cargo_run = ["cargo", "run", "--"]
 
 def count_files() -> Tuple[int, int, int]:
-    files = subprocess.run([*cargo_run, "ls", "--files"], capture_output=True, text=True, check=True).stdout
+    files = subprocess.run([*cargo_run, "ls-files"], capture_output=True, text=True, check=True).stdout
     first_line = files.split("\n")[0]
     total, staged, processed = re.search(r"(\d+)\stotal\sfiles\,\s(\d+)\sstaged\sfiles\,\s(\d+)\sprocessed\sfiles", first_line).groups()
     return int(total), int(staged), int(processed)
 
 def count_chunks() -> int:
-    chunks = subprocess.run([*cargo_run, "ls", "--chunks"], capture_output=True, text=True, check=True).stdout
+    chunks = subprocess.run([*cargo_run, "ls-chunks"], capture_output=True, text=True, check=True).stdout
     first_line = chunks.split("\n")[0]
     return int(re.search(r"^(\d+)\schunks", first_line).group(1))
 
@@ -129,8 +129,8 @@ def end_to_end(test_model: str):
     subprocess.run([*cargo_run, "build"], check=True)
     subprocess.run([*cargo_run, "check", "--recursive"], check=True)
 
-    # step 4: ls --chunks
-    chunks = subprocess.run([*cargo_run, "ls", "--chunks"], capture_output=True, text=True, check=True).stdout
+    # step 4: ls-chunks
+    chunks = subprocess.run([*cargo_run, "ls-chunks"], capture_output=True, text=True, check=True).stdout
     chunk_uids = []
 
     for line in chunks.split("\n"):
