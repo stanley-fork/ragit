@@ -98,8 +98,8 @@ def end_to_end(test_model: str):
 
     assert file_count == len(md_files)
 
-    # step 2.1: remove all the files and add the files again
-    subprocess.run([*cargo_run, "remove", *md_files], check=True)
+    # step 2.1: rm all the files and add the files again
+    subprocess.run([*cargo_run, "rm", *md_files], check=True)
     subprocess.run([*cargo_run, "check", "--recursive"], check=True)
     file_count, _, _ = count_files()
 
@@ -152,8 +152,8 @@ def end_to_end(test_model: str):
 
     assert file_count_prev == len(md_files)
 
-    # step 7: remove
-    subprocess.run([*cargo_run, "remove", md_files[0]], check=True)
+    # step 7: rm
+    subprocess.run([*cargo_run, "rm", md_files[0]], check=True)
     subprocess.run([*cargo_run, "check", "--recursive"], check=True)
     file_count_next, _, _ = count_files()
     chunk_count_next = count_chunks()
@@ -271,7 +271,7 @@ def external_bases():
     os.chdir("../..")
     shutil.rmtree("tmp")
 
-def add_and_remove():
+def add_and_rm():
     goto_root()
     os.mkdir("tmp")
     os.chdir("tmp")
@@ -338,10 +338,10 @@ def add_and_remove():
     added, updated, ignored = parse_add_output(["--ignore", *all_files])
     assert (added, updated, ignored) == (1, 0, 5)
 
-    # step 4: remove and add files
-    subprocess.run([*cargo_run, "remove", "5.txt"], check=True)
+    # step 4: rm and add files
+    subprocess.run([*cargo_run, "rm", "5.txt"], check=True)
     subprocess.run([*cargo_run, "check", "--recursive"], check=True)
-    subprocess.run([*cargo_run, "remove", "3.txt"], check=True)
+    subprocess.run([*cargo_run, "rm", "3.txt"], check=True)
     subprocess.run([*cargo_run, "check", "--recursive"], check=True)
 
     total, staged, processed = count_files()
@@ -381,7 +381,7 @@ Commands
 
     external_bases              run `external_bases` test
 
-    add_and_remove              run `add_and_remove` test
+    add_and_rm              run `add_and_rm` test
 
     all [model=dummy]           run all tests
 """
@@ -398,13 +398,13 @@ if __name__ == "__main__":
         elif command == "external_bases":
             external_bases()
 
-        elif command == "add_and_remove":
-            add_and_remove()
+        elif command == "add_and_rm":
+            add_and_rm()
 
         elif command == "all":
             end_to_end(test_model=test_model)
             external_bases()
-            add_and_remove()
+            add_and_rm()
 
         else:
             print(help_message)
