@@ -276,7 +276,7 @@ async fn run() -> Result<(), Error> {
             }
         },
         Some("ls-models") => {
-            let models = index.list_models(
+            let models = Index::list_models(
                 &|model| model.name != "dummy",  // filter
                 &|model| model,  // no map
                 &|model| model.name.to_string(),

@@ -86,7 +86,6 @@ impl Index {
     }
 
     pub fn list_models<Filter, Map, Sort, Key: Ord>(
-        &self,
         // `filter` is applied before `map`
         filter: &Filter,
         map: &Map,
