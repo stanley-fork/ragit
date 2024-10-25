@@ -303,16 +303,25 @@ def add_and_remove():
     added, updated, ignored = parse_add_output(["--force", *all_files])
     assert (added, updated, ignored) == (0, 5, 0)
 
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (5, 5, 0)
+
     # step 2: add files after `rag build`
     subprocess.run([*cargo_run, "build", "--dashboard"], check=True)
     added, updated, ignored = parse_add_output(["--auto", *all_files])
     assert (added, updated, ignored) == (0, 0, 5)
+
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (5, 0, 5)
 
     added, updated, ignored = parse_add_output(["--force", *all_files])
     assert (added, updated, ignored) == (0, 5, 0)
 
     added, updated, ignored = parse_add_output(["--ignore", *all_files])
     assert (added, updated, ignored) == (0, 0, 5)
+
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (5, 5, 0)
 
     # step 3: add files after `rag build` and file modification
     subprocess.run([*cargo_run, "build", "--dashboard"], check=True)
@@ -329,7 +338,39 @@ def add_and_remove():
     added, updated, ignored = parse_add_output(["--ignore", *all_files])
     assert (added, updated, ignored) == (1, 0, 5)
 
-    # TODO: remove file and see the outputs
+    # step 4: remove and add files
+    subprocess.run([*cargo_run, "remove", "5.txt"], check=True)
+    subprocess.run([*cargo_run, "check", "--recursive"], check=True)
+    subprocess.run([*cargo_run, "remove", "3.txt"], check=True)
+    subprocess.run([*cargo_run, "check", "--recursive"], check=True)
+
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (4, 4, 0)
+
+    subprocess.run([*cargo_run, "build", "--dashboard"], check=True)
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (4, 0, 4)
+
+    added, updated, ignored = parse_add_output(["--ignore", *all_files])
+    assert (added, updated, ignored) == (2, 0, 4)
+
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (6, 2, 4)
+
+    # step 5: reset --soft
+    subprocess.run([*cargo_run, "reset", "--soft"], check=True)
+    subprocess.run([*cargo_run, "check", "--recursive"], check=True)
+
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (0, 0, 0)
+
+    added, updated, ignored = parse_add_output(["--auto", *all_files])
+    assert (added, updated, ignored) == (6, 0, 0)
+
+    subprocess.run([*cargo_run, "build", "--dashboard"], check=True)
+    subprocess.run([*cargo_run, "check", "--recursive"], check=True)
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (6, 0, 6)
 
     os.chdir("..")
     shutil.rmtree("tmp")
