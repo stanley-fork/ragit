@@ -500,7 +500,6 @@ impl Index {
         Ok(result)
     }
 
-    // TODO: it's very stupid impl; must be rewritten
     pub fn get_tfidf_by_chunk_uid(
         &self,
         uid: Uid,
@@ -508,16 +507,18 @@ impl Index {
         // for now, each chunk has 2 types of ProcessedDoc: "data" and "summary"
         key: String,
     ) -> Result<ProcessedDoc, Error> {
-        for tfidf_file in self.tfidf_files_real_path() {
-            let tfidfs = tfidf::load_from_file(&tfidf_file)?;
+        let (root_dir, chunk_file) = self.get_chunk_file_by_index(&uid)?;
+        let chunk_file_real_path = Index::get_chunk_path(&root_dir, &chunk_file);
+        let tfidf_file_real_path = set_ext(&chunk_file_real_path, "tfidf")?;
 
-            for processed_docs in tfidfs.iter() {
-                match processed_docs.get(&key) {
-                    Some(processed_doc) if processed_doc.chunk_uid.as_ref() == Some(&uid) => {
-                        return Ok(processed_doc.clone());
-                    },
-                    _ => {},
-                }
+        let tfidfs = tfidf::load_from_file(&tfidf_file_real_path)?;
+
+        for processed_docs in tfidfs.iter() {
+            match processed_docs.get(&key) {
+                Some(processed_doc) if processed_doc.chunk_uid.as_ref() == Some(&uid) => {
+                    return Ok(processed_doc.clone());
+                },
+                _ => {},
             }
         }
 
