@@ -25,6 +25,7 @@ A recommended way of reading/writing config is `rag config` command.
 // min_summary_len: 200,
 // max_summary_len: 1000,
 // chunks_per_json: 64,
+// strict_file_reader: false,
 // compression_threshold: 65536,
 // compression_level: 3,
 struct BuildConfig {
@@ -43,6 +44,12 @@ struct BuildConfig {
     min_summary_len: usize,
     max_summary_len: usize,
     chunks_per_json: usize,
+
+    // If it's set, `rag build` panics if there's any error with a file.
+    // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
+    // If it cannot follow a link of an image in a markdown file, it would die.
+    // You don't need this option unless you're debugging ragit itself.
+    strict_file_reader: bool,
 
     // if the `.chunks` file is bigger than this (in bytes),
     // the file is compressed
