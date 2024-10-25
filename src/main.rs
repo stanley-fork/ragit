@@ -306,6 +306,7 @@ async fn run() -> Result<(), Error> {
 
             else if args[2] == "--soft" {
                 index.reset_soft()?;
+                index.save_to_file()?;
             }
 
             else {

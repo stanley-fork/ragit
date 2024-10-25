@@ -1,6 +1,6 @@
 use super::Index;
 use crate::error::Error;
-use crate::index::{CHUNK_DIR_NAME, INDEX_DIR_NAME};
+use crate::index::{CHUNK_DIR_NAME, CHUNK_INDEX_DIR_NAME, INDEX_DIR_NAME};
 use ragit_fs::{create_dir_all, join, remove_dir_all};
 use std::collections::HashMap;
 
@@ -36,6 +36,23 @@ impl Index {
             )?,
         )?)?;
 
+        remove_dir_all(&join(
+            &self.root_dir,
+            &join(
+                &INDEX_DIR_NAME.to_string(),
+                &CHUNK_INDEX_DIR_NAME.to_string(),
+            )?,
+        )?)?;
+        create_dir_all(&join(
+            &self.root_dir,
+            &join(
+                &INDEX_DIR_NAME.to_string(),
+                &CHUNK_INDEX_DIR_NAME.to_string(),
+            )?,
+        )?)?;
+
+        // `Index` requires at least 1 chunk_file to run
+        self.create_new_chunk_file()?;
         Ok(())
     }
 }
