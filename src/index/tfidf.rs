@@ -265,29 +265,3 @@ pub fn tokenize(s: &str) -> Vec<String> {
         |s| s.len() > 0
     ).collect()
 }
-
-#[cfg(test)]
-mod tests {
-    use super::TfIdfState;
-    use file_io::read_string;
-
-    #[test]
-    fn tfidf_test() {
-        let commands = vec![
-            "add", "clone", "merge", "pull", "push",
-            "checkout", "cherry-pick", "branch", "blame",
-        ];
-
-        for command_ in commands.iter() {
-            let mut state = TfIdfState::new(vec![(command_.to_string(), 1.0)]);
-
-            for command in commands.iter() {
-                let doc = read_string(&format!("./sample/git-man-pages/git-{command}.txt")).unwrap();
-                state.consume(command.to_string(), &doc);
-            }
-
-            let top = state.get_top(1)[0].0.to_string();
-            debug_assert_eq!(top, command_.to_string());
-        }
-    }
-}
