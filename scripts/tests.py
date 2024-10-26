@@ -78,6 +78,7 @@ def end_to_end(test_model: str):
     assert subprocess.run([*cargo_run, "config", "--set", "sleep_after_llm_call", "this_is_not_a_number"]).stdout != 0
     assert "2000" in subprocess.run([*cargo_run, "config", "--get", "sleep_after_llm_call"], capture_output=True, text=True, check=True).stdout
     subprocess.run([*cargo_run, "config", "--set", "dump_log", "true"], check=True)
+    subprocess.run([*cargo_run, "config", "--set", "strict_file_reader", "true"], check=True)
     subprocess.run([*cargo_run, "check", "--recursive"], check=True)
 
     # step 1.1: the commands shall run anywhere inside the repo
@@ -232,6 +233,7 @@ def external_bases():
         subprocess.run([*cargo_run, "config", "--set", "model", "dummy"], check=True)
         subprocess.run([*cargo_run, "config", "--set", "sleep_after_llm_call", "100"], check=True)
         subprocess.run([*cargo_run, "config", "--set", "chunk_size", "8000"], check=True)
+        subprocess.run([*cargo_run, "config", "--set", "strict_file_reader", "true"], check=True)
         file_count = randint(3, 8)
 
         for j in range(file_count):
@@ -278,6 +280,7 @@ def add_and_rm():
     subprocess.run([*cargo_run, "init"], check=True)
     subprocess.run([*cargo_run, "config", "--set", "model", "dummy"], check=True)
     subprocess.run([*cargo_run, "config", "--set", "sleep_after_llm_call", "0"], check=True)
+    subprocess.run([*cargo_run, "config", "--set", "strict_file_reader", "true"], check=True)
 
     # step 0: you cannot build knowledge-base of `.rag_index`
     added, updated, ignored = parse_add_output([".rag_index/index.json"])
