@@ -364,6 +364,9 @@ async fn run() -> Result<(), Error> {
                 }
             }
         },
+        Some("version") => {
+            println!("ragit {}", ragit::VERSION);
+        },
         Some(invalid_command) => {
             panic!("{invalid_command:?} is an invalid command.");
         },
