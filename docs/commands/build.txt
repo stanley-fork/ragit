@@ -1,0 +1,19 @@
+rag-build(1)
+==========
+
+NAME
+----
+rag-build - Build knowledge-base from staged files
+
+SYNOPSIS
+--------
+[verse]
+'rag build' [--dashboard]
+
+DESCRIPTION
+-----------
+Run `rag help chunks` to read documents on chunks and files.
+
+This command reads files in the staging area and process them. Once it's processed, you can ask queries on them.
+You can interrupt a building at anytime. When interrupted, processed files so far are kept safely, but
+"curr_processing_file" and its chunks will be discarded.

@@ -17,13 +17,13 @@ pub enum AddMode {
     Ignore,
 }
 
-impl From<&String> for AddMode {
-    fn from(s: &String) -> Self {
-        match s {
-            s if s == "--force" => AddMode::Force,
-            s if s == "--auto" => AddMode::Auto,
-            s if s == "--ignore" => AddMode::Ignore,
-            s => panic!("invalid flag for `add` command: {s:?}"),
+impl AddMode {
+    pub fn parse_flag(flag: &str) -> Option<Self> {
+        match flag {
+            "--force" => Some(AddMode::Force),
+            "--auto" => Some(AddMode::Auto),
+            "--ignore" => Some(AddMode::Ignore),
+            _ => None,
         }
     }
 }

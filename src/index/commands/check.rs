@@ -6,6 +6,7 @@ use ragit_fs::{basename, set_ext};
 use std::collections::HashSet;
 
 impl Index {
+    // TODO: check images
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
         let mut chunk_count = 0;
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());

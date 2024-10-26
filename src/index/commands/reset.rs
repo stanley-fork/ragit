@@ -5,9 +5,9 @@ use ragit_fs::{create_dir_all, join, remove_dir_all};
 use std::collections::HashMap;
 
 impl Index {
-    pub fn reset_hard(&self) -> Result<(), Error> {
+    pub fn reset_hard(root_dir: &str) -> Result<(), Error> {
         remove_dir_all(&join(
-            &self.root_dir,
+            &root_dir,
             &INDEX_DIR_NAME.to_string(),
         )?)?;
 

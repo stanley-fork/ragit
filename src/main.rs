@@ -17,9 +17,18 @@ use ragit_fs::{
 use std::env;
 use std::io::Write;
 
+mod cli;
+use cli::{
+    ArgCount,
+    ArgParser,
+    ArgType,
+};
+
 #[tokio::main]
 async fn main() {
-    match run().await {
+    let args = env::args().collect::<Vec<_>>();
+
+    match run(args).await {
         Ok(()) => {},
         Err(e) => {
             // TODO: suggest similar names for some errors
@@ -53,108 +62,316 @@ async fn main() {
     }
 }
 
-async fn run() -> Result<(), Error> {
-    let args = env::args().collect::<Vec<_>>();
+// It shall not panic.
+async fn run(args: Vec<String>) -> Result<(), Error> {
     let root_dir = find_root().map_err(|_| Error::IndexNotFound);
 
-    // TODO: nicer cli parsing, error messages and so many more stuffs
     match args.get(1).map(|arg| arg.as_str()) {
-        Some("init") => {
-            let path = if let Some(path) = args.get(2) { path.to_string() } else { String::from(".") };
-
-            match Index::new(path) {
-                Ok(_) => { println!("initialized"); },
-                Err(Error::IndexAlreadyExists(_)) => { println!("There already is a knowledge-base here."); },
-                Err(e) => { panic!("{e:?}") },
-            }
-        },
-        Some("build") => {
-            let mut index = Index::load(root_dir?, false)?;
-            index.build_knowledge_base(args.contains(&String::from("--dashboard"))).await?;
-        },
         Some("add") => {
+            let parsed_args = ArgParser::new().flag_with_default(&["--ignore", "--auto", "--force"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/add.txt"));
+                return Ok(());
+            }
+
             let mut index = Index::load(root_dir?, false)?;
+            let add_mode = AddMode::parse_flag(&parsed_args.get_flag(0).unwrap()).unwrap();
+            let dry_run = parsed_args.get_flag(1).is_some();
+
+            if dry_run {
+                return Err(Error::NotImplemented(String::from("rag add --dry-run")));
+            }
+
+            let files = parsed_args.get_args();
+
             let (mut added, mut updated, mut ignored) = (0, 0, 0);
 
-            let (flag, files) = if args[2].starts_with("--") {
-                (AddMode::from(&args[2]), args[3..].iter())
-            } else {
-                (AddMode::Ignore, args[2..].iter())
-            };
-
-            for path in files {
+            for path in files.iter() {
                 let rel_path = Index::get_rel_path(&index.root_dir, path);
 
-                match index.add_file(rel_path, flag) {
-                    Ok(AddResult::Added) => { added += 1; },
-                    Ok(AddResult::Updated) => { updated += 1; },
-                    Ok(AddResult::Ignored) => { ignored += 1; },
-                    Err(e) => { panic!("{e:?}"); },
+                match index.add_file(rel_path, add_mode)? {
+                    AddResult::Added => { added += 1; },
+                    AddResult::Updated => { updated += 1; },
+                    AddResult::Ignored => { ignored += 1; },
                 }
             }
 
             index.save_to_file()?;
             println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
-        Some("remove") | Some("rm") => {
-            if args.len() == 2 {
-                panic!("<PATH> is not provided.");
+        Some("build") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--dashboard"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/build.txt"));
+                return Ok(());
             }
 
             let mut index = Index::load(root_dir?, false)?;
-
-            let remove_count = if args[2] == "--auto" {
-                index.remove_auto()?.len()
-            }
-
-            else {
-                for path in args[2..].iter() {
-                    let rel_path = Index::get_rel_path(&index.root_dir, path);
-                    index.remove_file(rel_path)?;
-                }
-
-                args.len() - 2
-            };
-
-            index.save_to_file()?;
-            println!("removed {remove_count} files from index");
+            let dashboard = parsed_args.get_flag(0).is_some();
+            index.build_knowledge_base(dashboard).await?;
         },
-        Some("merge") => {
-            let mut index = Index::load(root_dir?, false)?;
-            index.merge(&args[2])?;
-            index.save_to_file()?;
+        Some("check") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/check.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, true)?;
+            let recursive = parsed_args.get_flag(0).is_some();
+            index.check(recursive)?;
+            println!("everything is fine!");
         },
         Some("config") => {
+            let parsed_args = ArgParser::new().flag(&["--set", "--get", "--get-all"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/config.txt"));
+                return Ok(());
+            }
+
             let mut index = Index::load(root_dir?, false)?;
 
-            match args.get(2) {
-                Some(arg) if arg == "--set" => {
-                    let previous_value = index.set_config_by_key(args[3].clone(), args[4].clone())?;
+            match parsed_args.get_flag(0).unwrap().as_str() {
+                "--set" => {
+                    let args = parsed_args.get_args_exact(2)?;
+                    let previous_value = index.set_config_by_key(args[0].clone(), args[1].clone())?;
 
                     match previous_value {
                         Some(v) => {
-                            println!("set `{}`: `{}` -> `{}`", args[3], v, args[4]);
+                            println!("set `{}`: `{}` -> `{}`", args[0].clone(), v, args[1].clone());
                         },
                         None => {
-                            println!("set `{}`: `{}`", args[3], args[4]);
+                            println!("set `{}`: `{}`", args[0].clone(), args[1].clone());
                         },
                     }
                 },
-                Some(arg) if arg == "--get" => {
-                    println!("{}", index.get_config_by_key(args[3].clone())?.dump());
+                "--get" => {
+                    let args = parsed_args.get_args_exact(1)?;
+                    println!("{}", index.get_config_by_key(args[0].clone())?.dump());
                 },
-                Some(arg) if arg == "--get-all" => {
+                "--get-all" => {
+                    parsed_args.get_args_exact(0)?;  // make sure that there's no dangling args
                     println!("{}", index.get_all()?.pretty(4));
                 },
-                Some(arg) => panic!("`{arg}` is not a valid flag"),
-                None => panic!("please provide a flag: `--set`, `--get` or `--get-all`"),
+                _ => unreachable!(),
+            }
+        },
+        Some("gc") => {
+            let parsed_args = ArgParser::new().flag(&["--logs"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/gc.txt"));
+                return Ok(());
+            }
+
+            match parsed_args.get_flag(0).unwrap().as_str() {
+                "--logs" => {
+                    let index = Index::load(root_dir?, true)?;
+                    let removed = index.gc_logs()?;
+                    println!("removed {removed} log files");
+                },
+                _ => unreachable!(),
+            }
+        },
+        Some("help") => {
+            let parsed_args = ArgParser::new().args(ArgType::Command, ArgCount::Leq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/help.txt"));
+                return Ok(());
+            }
+
+            match parsed_args.get_args().get(0).map(|arg| arg.as_str()) {
+                Some("chunks") => {
+                    println!("{}", include_str!("../docs/chunks.md"));
+                },
+                Some("quick-guide") => {
+                    println!("{}", include_str!("../docs/quick_guide.md"));
+                },
+                Some(command) => {
+                    let mut new_args = args.clone();
+                    new_args[1] = command.to_string();
+                    new_args[2] = String::from("--help");
+
+                    // TODO: I didn't know that Rust does not allow recursions with async functions
+                    // return run(new_args).await;
+                },
+                None => {
+                    println!("{}", include_str!("../docs/commands/general.txt"));
+                },
+            }
+        },
+        Some("init") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/init.txt"));
+                return Ok(());
+            }
+
+            match Index::new(String::from(".")) {
+                Ok(_) => { println!("initialized"); },
+                Err(Error::IndexAlreadyExists(_)) => { println!("There already is a knowledge-base here."); },
+                Err(e) => { return Err(e); },
+            }
+        },
+        Some("ls-chunks") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--stat-only"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ls-chunks.txt"));
+                return Ok(());
+            }
+            // TODO: impl `--name-only` and `--stat-only`
+
+            let index = Index::load(root_dir?, true)?;
+            println!("{} chunks", index.chunk_count);
+            let chunks = index.list_chunks(
+                &|_| true,  // no filter
+                &|mut chunk: Chunk| {
+                    // it's too big
+                    chunk.data = format!("{}", chunk.len());
+                    chunk
+                },
+                &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
+            )?;
+
+            for chunk in chunks.iter() {
+                println!("----------");
+                println!("{}th chunk of {}", chunk.index, chunk.render_source());
+                println!("id: {}", chunk.uid);
+                println!("data len: {}", chunk.data);  // it's mapped above
+                println!("title: {}", chunk.title);
+                println!("summary: {}", chunk.summary);
+            }
+        },
+        Some("ls-files") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--stat-only"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ls-files.txt"));
+                return Ok(());
+            }
+            // TODO: impl `--name-only` and `--stat-only`
+
+            let index = Index::load(root_dir?, true)?;
+            println!(
+                "{} total files, {} staged files, {} processed files",
+                index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                index.staged_files.len(),
+                index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+            );
+            let files = index.list_files(
+                &|_| true,  // no filter
+                &|f| f,  // no map
+                &|f| f.name.to_string(),
+            );
+
+            for file in files.iter() {
+                println!("--------");
+                println!("name: {}{}", file.name, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
+
+                if file.is_processed {
+                    println!("length: {}", file.length);
+                    println!("hash: {}", file.hash);
+                }
+            }
+        },
+        Some("ls-models") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--stat-only"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ls-models.txt"));
+                return Ok(());
+            }
+            // TODO: impl `--name-only` and `--stat-only`
+
+            let models = Index::list_models(
+                &|model| model.name != "dummy",  // filter
+                &|model| model,  // no map
+                &|model| model.name.to_string(),
+            );
+            println!("{} models", models.len());
+
+            for model in models.iter() {
+                println!("{}", String::from_utf8_lossy(&serde_json::to_vec_pretty(model)?).to_string());
+            }
+        },
+        Some("merge") => {
+            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/merge.txt"));
+                return Ok(());
+            }
+
+            let mut index = Index::load(root_dir?, false)?;
+            let bases = parsed_args.get_args();
+
+            for base in bases.iter() {
+                index.merge(base)?;
+            }
+
+            index.save_to_file()?;
+        },
+        Some("meta") => {
+            let parsed_args = ArgParser::new().flag(&["--get", "--get-all", "--set", "--remove", "--remove-all"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/meta.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, true)?;
+            let flag = parsed_args.get_flag(0).unwrap();
+
+            match flag.as_str() {
+                "--get" => {
+                    let key = &parsed_args.get_args_exact(1)?[0];
+
+                    if let Some(value) = index.meta_get(key.to_string())? {
+                        println!("{value}");
+                    }
+                },
+                "--get-all" => {
+                    parsed_args.get_args_exact(0)?;
+                    let all = index.meta_get_all()?;
+                    println!("{}", json::JsonValue::from(all).pretty(4));
+                },
+                "--set" => {
+                    let key_value = parsed_args.get_args_exact(2)?;
+
+                    index.meta_set(
+                        key_value[0].clone(),
+                        key_value[1].clone(),
+                    )?;
+                    println!("metadata set");  // TODO: show change
+                },
+                "--remove" => {
+                    let key = &parsed_args.get_args_exact(1)?[0];
+
+                    index.meta_remove(key.to_string())?;
+                    println!("removed `{key}`");
+                },
+                "--remove-all" => {
+                    parsed_args.get_args_exact(0)?;
+                    index.meta_remove_all()?;
+                    println!("metadata removed");
+                },
+                _ => unreachable!(),
             }
         },
         Some("query") => {
+            let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Exact(1)).parse(&args[2..])?;
             let index = Index::load(root_dir?, true)?;
+            let arg = &parsed_args.get_args()[0];
 
-            match args.get(2) {
-                Some(arg) if arg == "-i" || arg == "--interactive" => {
+            match arg.as_str() {
+                "-i" | "--interactive" => {
                     let mut conversation = vec![];
 
                     loop {
@@ -180,35 +397,84 @@ async fn run() -> Result<(), Error> {
                         conversation.push(result);
                     }
                 },
-                Some(query) => {
+                query => {
                     let result = single_turn(
                         query,
                         &index,
                     ).await?;
                     println!("{result}");
                 },
-                None => panic!("<QUERY> is not provided."),
+            }
+        },
+        Some("remove") | Some("rm") => {
+            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/remove.txt"));
+                return Ok(());
+            }
+
+            let mut index = Index::load(root_dir?, false)?;
+            let files = parsed_args.get_args();
+
+            let remove_count = if files.len() == 1 && files[0] == "--auto" {
+                index.remove_auto()?.len()
+            }
+
+            else {
+                for file in files.iter() {
+                    let rel_path = Index::get_rel_path(&index.root_dir, file);
+                    index.remove_file(rel_path)?;
+                }
+
+                files.len()
+            };
+
+            index.save_to_file()?;
+            println!("removed {remove_count} files from index");
+        },
+        Some("reset") => {
+            let parsed_args = ArgParser::new().flag(&["--soft", "--hard"]).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/reset.txt"));
+                return Ok(());
+            }
+
+            let soft = parsed_args.get_flag(0).unwrap() == "--soft";
+
+            if soft {
+                let mut index = Index::load(root_dir?, false)?;
+                index.reset_soft()?;
+                index.save_to_file()?;
+            }
+
+            else {
+                Index::reset_hard(&root_dir?)?;
             }
         },
         Some("tfidf") => {
-            let index = Index::load(root_dir?, true)?;
+            let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
 
-            match args.get(2) {
-                Some(flag) if flag == "--show" => {
-                    let processed_doc_data = index.get_tfidf_by_chunk_uid(args[3].clone(), String::from("data"))?;
-                    let processed_doc_summary = index.get_tfidf_by_chunk_uid(args[3].clone(), String::from("summary"))?;
-
-                    println!("--- data ---");
-                    println!("{}", processed_doc_data.render());
-                    println!("--- summary ---");
-                    println!("{}", processed_doc_summary.render());
-                    return Ok(());
-                },
-                Some(_) => {},
-                None => panic!("Please enter keywords"),
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/tfidf.txt"));
+                return Ok(());
             }
 
-            let keywords = Keywords::from_raw(args[2..].to_vec());
+            let index = Index::load(root_dir?, true)?;
+
+            if let Some("--show") = args.get(2).map(|arg| arg.as_str()) {
+                let processed_doc_data = index.get_tfidf_by_chunk_uid(args[3].clone(), String::from("data"))?;
+                let processed_doc_summary = index.get_tfidf_by_chunk_uid(args[3].clone(), String::from("summary"))?;
+
+                println!("--- data ---");
+                println!("{}", processed_doc_data.render());
+                println!("--- summary ---");
+                println!("{}", processed_doc_summary.render());
+                return Ok(());
+            }
+
+            let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();
             let tfidf_results = index.run_tfidf(
                 keywords,
@@ -217,7 +483,7 @@ async fn run() -> Result<(), Error> {
             let uids = tfidf_results.iter().map(|r| r.id.clone()).collect::<Vec<_>>();
             let chunks = index.get_chunks_by_uid(&uids)?;
 
-            println!("search keywords: {:?}", args[2..].to_vec());
+            println!("search keywords: {:?}", parsed_args.get_args());
             println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
             println!("found {} results", chunks.len());
 
@@ -229,146 +495,18 @@ async fn run() -> Result<(), Error> {
                 println!("summary: {}", chunk.summary);
             }
         },
-        Some("ls-chunks") => {
-            let index = Index::load(root_dir?, true)?;
-            println!("{} chunks", index.chunk_count);
-            let chunks = index.list_chunks(
-                &|_| true,  // no filter
-                &|mut chunk: Chunk| {
-                    // it's too big
-                    chunk.data = format!("{}", chunk.len());
-                    chunk
-                },
-                &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
-            )?;
-
-            for chunk in chunks.iter() {
-                println!("----------");
-                println!("{}th chunk of {}", chunk.index, chunk.render_source());
-                println!("id: {}", chunk.uid);
-                println!("data len: {}", chunk.data);  // it's mapped above
-                println!("title: {}", chunk.title);
-                println!("summary: {}", chunk.summary);
-            }
-        },
-        Some("ls-files") => {
-            let index = Index::load(root_dir?, true)?;
-            println!(
-                "{} total files, {} staged files, {} processed files",
-                index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-                index.staged_files.len(),
-                index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-            );
-            let files = index.list_files(
-                &|_| true,  // no filter
-                &|f| f,  // no map
-                &|f| f.name.to_string(),
-            );
-
-            for file in files.iter() {
-                println!("--------");
-                println!("name: {}{}", file.name, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
-
-                if file.is_processed {
-                    println!("length: {}", file.length);
-                    println!("hash: {}", file.hash);
-                }
-            }
-        },
-        Some("ls-models") => {
-            let models = Index::list_models(
-                &|model| model.name != "dummy",  // filter
-                &|model| model,  // no map
-                &|model| model.name.to_string(),
-            );
-
-            for model in models.iter() {
-                println!("{}", String::from_utf8_lossy(&serde_json::to_vec_pretty(model)?).to_string());
-            }
-        },
-        Some("gc") => {
-            let index = Index::load(root_dir?, true)?;
-            index.gc_logs()?;
-            println!("logs removed");
-        },
-        Some("reset") => {
-            let mut index = Index::load(root_dir?, false)?;
-
-            if args[2] == "--hard" {
-                index.reset_hard()?;
-            }
-
-            else if args[2] == "--soft" {
-                index.reset_soft()?;
-                index.save_to_file()?;
-            }
-
-            else {
-                panic!("{:?} is an invalid flag for `reset` command", args[2])
-            }
-        },
-        Some("check") => {
-            let index = Index::load(root_dir?, true)?;
-            index.check(args.contains(&String::from("--recursive")))?;
-            println!("everything is fine!");
-        },
-        Some("meta") => {
-            let index = Index::load(root_dir?, true)?;
-            let key = args.get(3);
-            let value = args.get(4);
-
-            match args.get(2).map(|arg| arg.as_str()) {
-                Some("--get") => {
-                    if key.is_none() {
-                        panic!("`key` not given");
-                    }
-
-                    if let Some(value) = index.meta_get(key.unwrap().to_string())? {
-                        println!("{value}");
-                    }
-                },
-                Some("--get-all") => {
-                    let all = index.meta_get_all()?;
-                    println!("{}", json::JsonValue::from(all).pretty(4));
-                },
-                Some("--set") => {
-                    if key.is_none() {
-                        panic!("`key` not given");
-                    }
-
-                    if value.is_none() {
-                        panic!("`value` not given");
-                    }
-
-                    index.meta_set(
-                        key.unwrap().to_string(),
-                        value.unwrap().to_string(),
-                    )?;
-                    println!("metadata set");
-                },
-                Some("--remove") => {
-                    if key.is_none() {
-                        panic!("`key` not given");
-                    }
-
-                    index.meta_remove(key.unwrap().to_string())?;
-                    println!("`{}` removed", key.unwrap());
-                },
-                Some("--remove-all") => {
-                    index.meta_remove_all()?;
-                    println!("metadata removed");
-                },
-                f => {
-                    let invalid_flag = f.map(|f| f.to_string()).unwrap_or(String::new());
-                    panic!("{invalid_flag:?} is an invalid flag for `meta` command.");
-                }
-            }
-        },
         Some("version") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/version.txt"));
+                return Ok(());
+            }
+
             println!("ragit {}", ragit::VERSION);
         },
         Some(invalid_command) => {
-            panic!("{invalid_command:?} is an invalid command.");
+            // TODO: print help message
         },
         None => {
             // TODO: print help message

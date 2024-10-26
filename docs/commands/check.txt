@@ -1,0 +1,17 @@
+rag-check(1)
+==========
+
+NAME
+----
+rag-check - Check whether there's a corruption in a knowledge-base
+
+SYNOPSIS
+--------
+[verse]
+'rag check' [--recursive]
+
+DESCRIPTION
+-----------
+This command checks whether there's a bug in ragit. If you're just using ragit, you have
+nothing to do with this command. If you have implemented a new feature to ragit, and want
+to test that, use this command.

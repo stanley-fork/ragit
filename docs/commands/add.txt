@@ -1,0 +1,26 @@
+rag-add(1)
+==========
+
+NAME
+----
+rag-add - Add files to the staging area
+
+SYNOPSIS
+--------
+[verse]
+'rag add' [--auto | --force | --ignore] [--dry-run] <files>...
+
+DESCRIPTION
+-----------
+Run `rag help chunks` to read documents on chunks and files.
+
+This command adds files to the staging area. Then you have to run `rag build`
+to generate chunks from the files in the staging area. If a file is already staged,
+nothing happens.
+
+`--auto`, `--force` and `--ignore` options decide what to do when a file you're
+adding is already processed. With `--auto` option, it checks whether the file has
+been modified since the chunks were generated. If it's modified, it removes the chunks
+and moves the file back to the staging area. Otherwise nothing happens. With `--force`
+option, it always removes the chunks and moves the file back to the staging area. And
+with `--ignore` option, nothing happens. The default option is `--ignore`.
