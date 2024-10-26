@@ -2,9 +2,10 @@ use super::{AtomicToken, Config, FileReaderImpl};
 use crate::error::Error;
 use ragit_fs::FileError;
 use std::io::{BufRead, BufReader};
+use std::fs::File;
 
 pub struct LineReader {
-    lines: BufReader<std::fs::File>,
+    lines: BufReader<File>,
     tokens: Vec<AtomicToken>,
     is_exhausted: bool,
 
@@ -17,7 +18,7 @@ pub struct LineReader {
 
 impl FileReaderImpl for LineReader {
     fn new(path: &str, _config: &Config) -> Result<Self, Error> {
-        match std::fs::File::open(path) {
+        match File::open(path) {
             Ok(f) => Ok(LineReader {
                 lines: BufReader::new(f),
                 tokens: vec![],

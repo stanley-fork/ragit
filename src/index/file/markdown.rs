@@ -6,11 +6,12 @@ use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use regex::Regex;
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 pub struct MarkdownReader {
     path: String,
-    lines: BufReader<std::fs::File>,
+    lines: BufReader<File>,
     tokens: Vec<AtomicToken>,
     is_exhausted: bool,
     strict_mode: bool,
@@ -20,7 +21,7 @@ pub struct MarkdownReader {
 
 impl FileReaderImpl for MarkdownReader {
     fn new(path: &str, config: &Config) -> Result<Self, Error> {
-        match std::fs::File::open(path) {
+        match File::open(path) {
             Ok(f) => Ok(MarkdownReader {
                 path: path.to_string(),
                 lines: BufReader::new(f),

@@ -2,10 +2,11 @@ use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
 use crate::index::Config;
 use ragit_fs::FileError;
-use std::io::Read;
+use std::fs::File;
+use std::io::{Bytes, Read};
 
 pub struct PlainTextReader {
-    bytes: std::io::Bytes<std::fs::File>,
+    bytes: Bytes<File>,
     tokens: Vec<AtomicToken>,
     is_exhausted: bool,
     strict_mode: bool,
@@ -13,7 +14,7 @@ pub struct PlainTextReader {
 
 impl FileReaderImpl for PlainTextReader {
     fn new(path: &str, config: &Config) -> Result<Self, Error> {
-        match std::fs::File::open(path) {
+        match File::open(path) {
             Ok(f) => Ok(PlainTextReader {
                 bytes: f.bytes(),
                 tokens: vec![],
