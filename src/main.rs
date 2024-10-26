@@ -189,6 +189,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Some("chunks") => {
                     println!("{}", include_str!("../docs/chunks.md"));
                 },
+                Some("config-reference") => {
+                    println!("{}", include_str!("../docs/config.md"));
+                },
                 Some("quick-guide") => {
                     println!("{}", include_str!("../docs/quick_guide.md"));
                 },

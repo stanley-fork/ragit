@@ -20,6 +20,7 @@ pub enum Error {
     NoSuchChunk { uid: Uid },
     NoSuchFile { file: String },
     NotImplemented(String),
+    CliError(String),  // TODO: spans?
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.
