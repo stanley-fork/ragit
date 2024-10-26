@@ -24,3 +24,5 @@ been modified since the chunks were generated. If it's modified, it removes the 
 and moves the file back to the staging area. Otherwise nothing happens. With `--force`
 option, it always removes the chunks and moves the file back to the staging area. And
 with `--ignore` option, nothing happens. The default option is `--ignore`.
+
+NOTE: `dry-run` is not implemented yet.

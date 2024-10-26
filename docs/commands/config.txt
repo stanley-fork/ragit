@@ -1,0 +1,19 @@
+rag-config(1)
+==========
+
+NAME
+----
+rag-config - Get and set options
+
+SYNOPSIS
+--------
+[verse]
+'rag config' --get <key>
+'rag config' --get-all
+'rag config' --set <key> <value>
+
+DESCRIPTION
+-----------
+Run `rag help config-reference` to read documents on configs.
+
+This command gets/sets options.

@@ -1,0 +1,15 @@
+rag-gc(1)
+==========
+
+NAME
+----
+rag-gc - Clean up unnecessary files
+
+SYNOPSIS
+--------
+[verse]
+'rag gc' --logs
+
+DESCRIPTION
+-----------
+`rag gc --logs` removes all the logs in `.rag_index/logs`.

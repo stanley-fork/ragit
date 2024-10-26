@@ -141,10 +141,6 @@ when there's a query Q
 
 ---
 
-There are some commands that does not require a knowledge-base, like `rag ls --models`, but fails when a knowledge-base is not found
-
----
-
 unique identifiers
 
 1. chunk
@@ -189,3 +185,24 @@ server <-> client
 It makes servers very easy to implement: it only needs 2 api: file_list and file
 
 what if there's a partial update? what if one wants to pull only the updated chunks?
+
+---
+
+tf-idf on images -> needs more clever ways
+
+---
+
+improve markdown reader -> rustc-dev-guide has `` `#![crate_type]` ``
+
+---
+
+api for `rag clone`
+
+```
+ROOT/{kb-id}/chunk/{chunk-file}
+ROOT/{kb-id}/chunk-list
+ROOT/{kb-id}/image-list
+ROOT/{kb-id}/image/{image-file}
+ROOT/{kb-id}/json/{json-file}
+ROOT/{kb-id}/prompt/{prompt-file}
+```
