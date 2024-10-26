@@ -381,7 +381,7 @@ Commands
 
     external_bases              run `external_bases` test
 
-    add_and_rm              run `add_and_rm` test
+    add_and_rm                  run `add_and_rm` test
 
     all [model=dummy]           run all tests
 """
