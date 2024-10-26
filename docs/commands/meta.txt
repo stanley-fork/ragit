@@ -1,0 +1,19 @@
+rag-meta(1)
+==========
+
+NAME
+----
+rag-meta - Get and set metadata
+
+SYNOPSIS
+--------
+[verse]
+'rag meta' --get <key>
+'rag meta' --get-all
+'rag meta' --set <key> <value>
+'rag meta' --remove <key>
+'rag meta' --remove-all <key>
+
+DESCRIPTION
+-----------
+It's like `rag config`, but it allows you to use any key.

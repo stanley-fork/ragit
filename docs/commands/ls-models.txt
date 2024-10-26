@@ -1,0 +1,14 @@
+rag-ls-models(1)
+==========
+
+NAME
+----
+rag-ls-models - Show information about models
+
+SYNOPSIS
+--------
+[verse]
+'rag ls-models' [--name-only | --stat-only]
+
+DESCRIPTION
+-----------

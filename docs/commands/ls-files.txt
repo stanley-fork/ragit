@@ -1,0 +1,14 @@
+rag-ls-files(1)
+==========
+
+NAME
+----
+rag-ls-files - Show information about files
+
+SYNOPSIS
+--------
+[verse]
+'rag ls-files' [--name-only | --stat-only]
+
+DESCRIPTION
+-----------

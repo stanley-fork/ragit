@@ -1,0 +1,15 @@
+rag-tfidf(1)
+==========
+
+NAME
+----
+rag-tfidf - Simulate tfidf search
+
+SYNOPSIS
+--------
+[verse]
+'rag tfidf' --show <chunk-uid>
+'rag tfidf' <keywords>
+
+DESCRIPTION
+-----------

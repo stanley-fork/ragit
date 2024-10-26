@@ -1,0 +1,14 @@
+rag-init(1)
+==========
+
+NAME
+----
+rag-init - Create an empty knowledge-base
+
+SYNOPSIS
+--------
+[verse]
+'rag init'
+
+DESCRIPTION
+-----------
