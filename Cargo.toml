@@ -10,6 +10,7 @@ name = "rag"
 path = "src/main.rs"
 
 [dependencies]
+async-recursion = "1.1.1"
 clearscreen = "3.0.0"
 flate2 = "1.0.34"
 h_time = "0.1.0"

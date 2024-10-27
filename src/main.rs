@@ -1,3 +1,4 @@
+use async_recursion::async_recursion;
 use ragit::{
     AddMode,
     AddResult,
@@ -52,6 +53,9 @@ async fn main() {
                         println!("{e:?}");
                     },
                 },
+                Error::CliError(e) => {
+                    println!("cli error: {e}");
+                },
                 e => {
                     println!("{e:?}");
                 },
@@ -62,7 +66,7 @@ async fn main() {
     }
 }
 
-// It shall not panic.
+#[async_recursion(?Send)]
 async fn run(args: Vec<String>) -> Result<(), Error> {
     let root_dir = find_root().map_err(|_| Error::IndexNotFound);
 
@@ -199,9 +203,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let mut new_args = args.clone();
                     new_args[1] = command.to_string();
                     new_args[2] = String::from("--help");
-
-                    // TODO: I didn't know that Rust does not allow recursions with async functions
-                    // return run(new_args).await;
+                    return run(new_args).await;
                 },
                 None => {
                     println!("{}", include_str!("../docs/commands/general.txt"));
