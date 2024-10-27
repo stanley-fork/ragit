@@ -47,8 +47,84 @@ impl ArgParser {
         self
     }
 
+    // --flag1 --flag2 args
+    // see which group each flag belongs to and parse args
     pub fn parse(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
-        todo!()
+        let mut args = vec![];
+        let mut flags = vec![None; self.flags.len()];
+
+        if raw_args.get(0).map(|arg| arg.as_str()) == Some("--help") {
+            return Ok(ParsedArgs {
+                args: vec![],
+                flags: vec![],
+                show_help: true,
+            });
+        }
+
+        let mut is_reading_flag = true;
+
+        for raw_arg in raw_args.iter() {
+            if !raw_arg.starts_with("--") {
+                is_reading_flag = false;
+            }
+
+            if is_reading_flag {
+                for (flag_index, flag) in self.flags.iter().enumerate() {
+                    if flag.values.contains(raw_arg) {
+                        if flags[flag_index].is_none() {
+                            flags[flag_index] = Some(raw_arg.to_string());
+                        }
+
+                        else {
+                            return Err(Error::CliError(format!("conflicting flags: {} vs {raw_arg}", flags[flag_index].clone().unwrap())));
+                        }
+                    }
+                }
+            }
+
+            else {
+                if let Some((arg_type, _)) = &self.args {
+                    args.push(arg_type.parse(raw_arg)?);
+                }
+
+                else {
+                    return Err(Error::CliError(format!("unexpected argument: {raw_arg:?}")));
+                }
+            }
+        }
+
+        for i in 0..flags.len() {
+            if flags[i].is_none() {
+                if let Some(j) = self.flags[i].default {
+                    flags[i] = Some(self.flags[i].values[j].clone());
+                }
+
+                else if !self.flags[i].optional {
+                    return Err(Error::CliError(format!("missing flag: {}", self.flags[i].values.join(" | "))));
+                }
+            }
+        }
+
+        if let Some((_, arg_count)) = &self.args {
+            match arg_count {
+                ArgCount::Geq(n) if args.len() < *n => {
+                    return Err(Error::CliError(format!("expected at least {n} arguments, got only {} arguments", args.len())));
+                },
+                ArgCount::Leq(n) if args.len() > *n => {
+                    return Err(Error::CliError(format!("expected at most {n} arguments, got {} arguments", args.len())));
+                },
+                ArgCount::Exact(n) if args.len() != *n => {
+                    return Err(Error::CliError(format!("expected {n} arguments, got {} arguments", args.len())));
+                },
+                _ => {},
+            }
+        }
+
+        Ok(ParsedArgs {
+            args,
+            flags,
+            show_help: false,
+        })
     }
 }
 
@@ -62,6 +138,13 @@ pub enum ArgType {
     String,
     Path,
     Command,
+}
+
+impl ArgType {
+    pub fn parse(&self, arg: &str) -> Result<String, Error> {
+        // for now, there's no parsing error
+        Ok(arg.to_string())
+    }
 }
 
 pub struct Flag {
