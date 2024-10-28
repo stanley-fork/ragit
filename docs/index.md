@@ -9,6 +9,7 @@ RAGIT is very different from the other RAG frameworks. The differences make RAGI
 1. It adds a title and summary to every chunks. The summaries make AIs very easy to rerank chunks.
 2. It uses tfidf scores instead of vector searches. It first asks an AI to generate keywords from a query, then runs tfidf search with the keywords.
 3. It supports markdown files with images (experimental).
+4. It supports multi-turn queries (experimental).
 
 ## More documents
 
