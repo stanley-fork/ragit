@@ -38,7 +38,7 @@ impl Index {
             for processed_doc in tfidfs.iter() {
                 match &processed_doc.chunk_uid {
                     Some(uid) => {
-                        chunks_in_tfidf.insert(processed_doc.chunk_uid.clone().unwrap());
+                        chunks_in_tfidf.insert(uid.clone());
                     },
                     None => {
                         return Err(Error::BrokenIndex(format!(
