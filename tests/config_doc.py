@@ -1,8 +1,10 @@
+# TODO: It's not a test file. It must be in another directory.
+
 import re
 from typing import Optional
 
 def init():
-    from tests import goto_root
+    from utils import goto_root
     goto_root()
 
 # It's NOT a complete parser. Its regices might have to be adjusted when the code changes

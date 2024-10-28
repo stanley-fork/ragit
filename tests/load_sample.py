@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 def init():
-    from tests import goto_root
+    from utils import goto_root
     goto_root()
 
     if "sample" not in os.listdir():
