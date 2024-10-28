@@ -26,12 +26,10 @@ pub struct TfIdfState<DocId> {
     docs: Vec<DocId>,
 }
 
-pub struct TfIdfResult<DocId> {
+#[derive(Clone)]
+pub struct TfIdfResult<DocId: Clone> {
     pub id: DocId,
     pub score: f32,
-
-    // `Index` runs tfidf on data and summary, so this value is "data" | "summary"
-    pub category: String,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -42,7 +40,7 @@ pub struct ProcessedDoc {
 }
 
 // tfidf files are always compressed
-pub fn load_from_file(path: &str) -> Result<Vec<HashMap<String, ProcessedDoc>>, Error> {
+pub fn load_from_file(path: &str) -> Result<Vec<ProcessedDoc>, Error> {
     let content = read_bytes(path)?;
     let mut decompressed = vec![];
     let mut gz = GzDecoder::new(&content[..]);
@@ -53,13 +51,7 @@ pub fn load_from_file(path: &str) -> Result<Vec<HashMap<String, ProcessedDoc>>, 
 
 pub fn save_to_file(path: &str, chunks: &[Chunk]) -> Result<(), Error> {
     let tfidf = chunks.iter().map(
-        |chunk| {
-            let mut result = HashMap::new();
-            result.insert(String::from("data"), ProcessedDoc::new(chunk.uid.clone(), &chunk.data));
-            result.insert(String::from("summary"), ProcessedDoc::new(chunk.uid.clone(), &chunk.summary));
-
-            result
-        }
+        |chunk| ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack())
     ).collect::<Vec<_>>();
     let result = serde_json::to_vec(&tfidf)?;
     let mut compressed = vec![];
@@ -76,22 +68,17 @@ pub fn save_to_file(path: &str, chunks: &[Chunk]) -> Result<(), Error> {
 pub fn consume_tfidf_file(
     path: Path,  // real path
     ignored_chunks: &[Uid],
-    tfidf_data: &mut TfIdfState<Uid>,
-    tfidf_summary: &mut TfIdfState<Uid>,
+    tfidf_state: &mut TfIdfState<Uid>,
 ) -> Result<(), Error> {
     let processed_docs = load_from_file(&path)?;
 
     // processed_docs returned from `load_from_file` must have uids
     for processed_doc in processed_docs.iter() {
-        let data_doc = processed_doc.get("data").unwrap();
-        let summary_doc = processed_doc.get("summary").unwrap();
-
-        if ignored_chunks.contains(data_doc.chunk_uid.as_ref().unwrap()) {
+        if ignored_chunks.contains(processed_doc.chunk_uid.as_ref().unwrap()) {
             continue;
         }
 
-        tfidf_data.consume(data_doc.chunk_uid.clone().unwrap(), &data_doc);
-        tfidf_summary.consume(summary_doc.chunk_uid.clone().unwrap(), &summary_doc);
+        tfidf_state.consume(processed_doc.chunk_uid.clone().unwrap(), &processed_doc);
     }
 
     Ok(())
@@ -208,7 +195,7 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         self.docs.push(doc_id);
     }
 
-    pub fn get_top(&self, max_len: usize) -> Vec<(DocId, f32)> {
+    pub fn get_top(&self, max_len: usize) -> Vec<TfIdfResult<DocId>> {
         let mut tfidfs: HashMap<DocId, f32> = HashMap::new();
 
         for (keyword, weight) in self.keywords.iter() {
@@ -236,8 +223,8 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
             }
         }
 
-        let mut tfidfs: Vec<_> = tfidfs.into_iter().collect();
-        tfidfs.sort_by(|(_, a), (_, b)| b.partial_cmp(a).unwrap());  // rev sort
+        let mut tfidfs: Vec<_> = tfidfs.into_iter().map(|(id, score)| TfIdfResult { id, score }).collect();
+        tfidfs.sort_by(|TfIdfResult { score: a, .. }, TfIdfResult { score: b, .. }| b.partial_cmp(a).unwrap());  // rev sort
 
         if tfidfs.len() > max_len {
             tfidfs[..max_len].to_vec()
@@ -264,4 +251,24 @@ pub fn tokenize(s: &str) -> Vec<String> {
     ).filter(
         |s| s.len() > 0
     ).collect()
+}
+
+impl Chunk {
+    pub fn into_tfidf_haystack(&self) -> String {
+        // very naive heuristic
+        // 1. `self.title` is very important, so it's included twice
+        // 2. `self.file` might have an information.
+        // 3. `self.summary` has constraints that are not in `self.data`.
+        //     - It has explanations on images
+        //     - It's always English
+        // 4. TODO: process images in `self.data` so that images are tfidf-able
+        format!(
+            "{}{}{}{}{}",
+            self.file,
+            self.title,
+            self.title,
+            self.summary,
+            self.data,
+        )
+    }
 }

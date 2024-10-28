@@ -469,8 +469,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, true)?;
 
             if let Some("--show") = args.get(2).map(|arg| arg.as_str()) {
-                let processed_doc_data = index.get_tfidf_by_chunk_uid(args[3].clone(), String::from("data"))?;
-                let processed_doc_summary = index.get_tfidf_by_chunk_uid(args[3].clone(), String::from("summary"))?;
+                let processed_doc_data = index.get_tfidf_by_chunk_uid(args[3].clone())?;
+                let processed_doc_summary = index.get_tfidf_by_chunk_uid(args[3].clone())?;
 
                 println!("--- data ---");
                 println!("{}", processed_doc_data.render());
@@ -494,7 +494,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
                 println!("--------------------------");
-                println!("score: {}, matched {}", tfidf.score, tfidf.category);
+                println!("score: {}", tfidf.score);
                 println!("file: {}", chunk.render_source());
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);

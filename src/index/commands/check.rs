@@ -1,5 +1,5 @@
 use super::Index;
-use crate::chunk::{self, Uid};
+use crate::chunk;
 use crate::error::Error;
 use crate::index::{CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf};
 use json::JsonValue;
@@ -35,37 +35,16 @@ impl Index {
                 )));
             }
 
-            // TODO: body of this for loop will be refactored after refactoring tfidf file structures
-            for processed_docs in tfidfs.iter() {
-                let mut curr_chunk_uid: Option<Uid> = None;
-
-                if processed_docs.len() == 0 {
-                    return Err(Error::BrokenIndex(format!(
-                        "processed_docs.len() == 0",
-                    )));
-                }
-
-                for processed_doc in processed_docs.values() {
-                    if processed_doc.chunk_uid.is_none() {
+            for processed_doc in tfidfs.iter() {
+                match &processed_doc.chunk_uid {
+                    Some(uid) => {
+                        chunks_in_tfidf.insert(processed_doc.chunk_uid.clone().unwrap());
+                    },
+                    None => {
                         return Err(Error::BrokenIndex(format!(
-                            "procssed_doc.chunk_uid.is_none()",
+                            "processed_doc.chunk_uid.is_none()",
                         )));
-                    }
-
-                    match &curr_chunk_uid {
-                        Some(uid) => {
-                            if processed_doc.chunk_uid.clone().unwrap() != uid.clone() {
-                                return Err(Error::BrokenIndex(format!(
-                                    "processed_doc.chunk_uid.unwrap() = {:?}\nuid={uid:?}",
-                                    processed_doc.chunk_uid.clone().unwrap(),
-                                )));
-                            }
-                        },
-                        None => {
-                            curr_chunk_uid = Some(processed_doc.chunk_uid.clone().unwrap());
-                            chunks_in_tfidf.insert(processed_doc.chunk_uid.clone().unwrap());
-                        },
-                    }
+                    },
                 }
             }
 

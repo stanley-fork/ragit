@@ -405,16 +405,13 @@ impl Index {
         // 2. for now, no code does something with this value
         ignored_chunks: Vec<Uid>,
     ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
-        // TODO: tfidf on titles?
-        let mut tfidf_data = TfIdfState::new(&keywords);
-        let mut tfidf_summary = TfIdfState::new(&keywords);
+        let mut tfidf_state = TfIdfState::new(&keywords);
 
         for tfidf_file in self.tfidf_files_real_path() {
             consume_tfidf_file(
                 tfidf_file,
                 &ignored_chunks,
-                &mut tfidf_data,
-                &mut tfidf_summary,
+                &mut tfidf_state,
             )?;
         }
 
@@ -423,38 +420,12 @@ impl Index {
                 consume_tfidf_file(
                     tfidf_file,
                     &ignored_chunks,
-                    &mut tfidf_data,
-                    &mut tfidf_summary,
+                    &mut tfidf_state,
                 )?;
             }
         }
 
-        let mut top_docs = tfidf_data.get_top(self.query_config.max_summaries).into_iter().map(
-            |(id, score)| TfIdfResult {
-                id,
-                score,
-                category: String::from("data"),
-            }
-        ).collect::<Vec<_>>();
-
-        // sometimes, tfidf_data wouldn't return any result
-        // ex) when the raw data is not in English, or has lots of images
-        // but the summaries are always in English, so you can always tfidf on summaries
-        for doc in tfidf_summary.get_top(self.query_config.max_summaries) {
-            if top_docs.len() >= self.query_config.max_summaries {
-                break;
-            }
-
-            if !top_docs.iter().any(|TfIdfResult { id, .. }| id == &doc.0) {
-                top_docs.push(TfIdfResult {
-                    id: doc.0.clone(),
-                    score: doc.1,
-                    category: String::from("summary"),
-                });
-            }
-        }
-
-        Ok(top_docs)
+        Ok(tfidf_state.get_top(self.query_config.max_summaries))
     }
 
     // input and output has the same order
@@ -503,9 +474,6 @@ impl Index {
     pub fn get_tfidf_by_chunk_uid(
         &self,
         uid: Uid,
-
-        // for now, each chunk has 2 types of ProcessedDoc: "data" and "summary"
-        key: String,
     ) -> Result<ProcessedDoc, Error> {
         let (root_dir, chunk_file) = self.get_chunk_file_by_index(&uid)?;
         let chunk_file_real_path = Index::get_chunk_path(&root_dir, &chunk_file);
@@ -513,12 +481,9 @@ impl Index {
 
         let tfidfs = tfidf::load_from_file(&tfidf_file_real_path)?;
 
-        for processed_docs in tfidfs.iter() {
-            match processed_docs.get(&key) {
-                Some(processed_doc) if processed_doc.chunk_uid.as_ref() == Some(&uid) => {
-                    return Ok(processed_doc.clone());
-                },
-                _ => {},
+        for processed_doc in tfidfs.iter() {
+            if processed_doc.chunk_uid.as_ref() == Some(&uid) {
+                return Ok(processed_doc.clone());
             }
         }
 
