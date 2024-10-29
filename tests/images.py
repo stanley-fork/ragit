@@ -1,3 +1,4 @@
+import shutil
 from utils import (
     cargo_run,
     goto_root,
@@ -16,6 +17,10 @@ sample_markdown = '''
 
 `![image](sample3.png) -> this is not an image`, `![image](sample4.png)` -> this is not an image
 
+![sample5] -> this is an image
+
+[sample5]: sample5.jpg
+
 '''
 
 def images():
@@ -30,8 +35,10 @@ def images():
     cargo_run(["add", "sample.md"])
     cargo_run(["check"])
 
-    # TODO: error messages should use `eprintln!` instead of `println!`
     stderr = cargo_run(["build"], stderr=True, check=False)
     assert "sample2.png" in stderr   # "sample2.png not found" is expected
 
-    # TODO: more steps
+    shutil.copyfile("../tests/images/empty.png", "sample2.png")
+    shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
+    cargo_run(["build"])
+    cargo_run(["check"])
