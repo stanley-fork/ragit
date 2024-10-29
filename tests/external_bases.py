@@ -34,7 +34,7 @@ def external_bases():
         cargo_run(["init"])
         cargo_run(["check"])
         cargo_run(["config", "--set", "model", "dummy"])
-        cargo_run(["config", "--set", "sleep_after_llm_call", "100"])
+        cargo_run(["config", "--set", "sleep_after_llm_call", "200"])
         cargo_run(["config", "--set", "chunk_size", "8000"])
         cargo_run(["config", "--set", "strict_file_reader", "true"])
         file_count = randint(3, 8)
@@ -50,7 +50,7 @@ def external_bases():
             cargo_run(["check"])
 
         try:
-            cargo_run(["build"], timeout=0.5)
+            cargo_run(["build"], timeout=1.0)
 
         except TimeoutExpired:
             pass
@@ -58,6 +58,7 @@ def external_bases():
         else:
             raise Exception("The build should have timed out")
 
+        cargo_run(["check", "--auto-recover"])
         cargo_run(["config", "--set", "sleep_after_llm_call", "0"])
         cargo_run(["check"])
         cargo_run(["build"])

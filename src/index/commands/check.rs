@@ -4,7 +4,7 @@ use crate::error::Error;
 use crate::index::{CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
-use ragit_fs::{basename, file_name, read_bytes, read_dir, read_string, set_ext};
+use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_ext};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
@@ -56,15 +56,15 @@ impl Index {
                 )));
             }
 
-            let chunk_file_basename = basename(&chunk_file)?;
+            let chunk_file_name = file_name(&chunk_file)?;
             chunk_count += chunks.len();
 
-            match self.chunk_files.get(&chunk_file_basename) {
+            match self.chunk_files.get(&chunk_file_name) {
                 Some(n) => {
                     if *n != chunks.len() {  // Check C
                         return Err(Error::BrokenIndex(format!(
                             "self.chunk_files.get({:?}) = Some({n})\nchunks.len() = {}",
-                            chunk_file_basename,
+                            chunk_file_name,
                             chunks.len(),
                         )));
                     }
@@ -72,7 +72,7 @@ impl Index {
                 None => {  // Check C
                     return Err(Error::BrokenIndex(format!(
                         "self.chunk_files.get({:?}) = None",
-                        chunk_file_basename,
+                        chunk_file_name,
                     )));
                 },
             }
@@ -89,9 +89,9 @@ impl Index {
                     )));
                 }
 
-                if chunk_file_basename != chunk_file_by_index {  // Check B
+                if chunk_file_name != chunk_file_by_index {  // Check B
                     return Err(Error::BrokenIndex(format!(
-                        "chunk_file_basename = {chunk_file_basename:?}\nself.get_chunk_file_by_index({:?})? = {chunk_file_by_index}",
+                        "chunk_file_name = {chunk_file_name:?}\nself.get_chunk_file_by_index({:?})? = {chunk_file_by_index}",
                         chunk.uid,
                     )));
                 }
@@ -131,7 +131,7 @@ impl Index {
                         match chunk_file.as_str() {
                             Some(chunk_file) => match chunk_index.get(uid) {
                                 Some(chunk_file_) if chunk_file != chunk_file_ => {  // Check F
-                                    return Err(Error::BrokenIndex(format!("chunk_index.get({uid:?}) = {chunk_file:?}\nchunk_file = {chunk_file:?}")));
+                                    return Err(Error::BrokenIndex(format!("chunk_index.get({uid:?}) = {chunk_file_:?}\nchunk_file = {chunk_file:?}")));
                                 },
                                 None => {  // Check F
                                     return Err(Error::BrokenIndex(format!("chunk_index.get({uid:?}) = None")));

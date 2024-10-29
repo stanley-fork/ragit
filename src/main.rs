@@ -117,17 +117,29 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.build_knowledge_base(dashboard).await?;
         },
         Some("check") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).optional_flag(&["--auto-recover"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/check.txt"));
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, true)?;
+            let mut index = Index::load(root_dir?, true)?;
             let recursive = parsed_args.get_flag(0).is_some();
-            index.check(recursive)?;
-            println!("everything is fine!");
+            let auto_recover = parsed_args.get_flag(1).is_some();
+
+            match index.check(recursive) {
+                Ok(()) => {
+                    println!("everything is fine!");
+                },
+                Err(e) => if auto_recover {
+                    index.auto_recover()?;
+                    index.save_to_file()?;
+                    println!("auto-recovered from a corrupted knowledge-base");
+                } else {
+                    return Err(e);
+                },
+            }
         },
         Some("config") => {
             let parsed_args = ArgParser::new().flag(&["--set", "--get", "--get-all"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;

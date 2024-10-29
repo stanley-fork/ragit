@@ -11,6 +11,7 @@ use ragit_fs::{
     create_dir_all,
     diff,
     exists,
+    file_name,
     is_dir,
     join,
     normalize,
@@ -246,17 +247,17 @@ impl Index {
         }
     }
 
-    fn chunk_files(&self) -> impl std::iter::Iterator<Item = &Path> {
-        self.chunk_files.keys()
+    fn chunk_files(&self) -> Vec<Path> {
+        self.chunk_files.keys().map(|chunk_file| set_ext(chunk_file, "chunks").unwrap()).collect()
     }
 
     // Rust doesn't allow me to return `.keys().map()` as `impl Iter<Item = Path>`
     fn chunk_files_real_path(&self) -> Vec<Path> {
-        self.chunk_files.keys().map(|chunk_file| Index::get_chunk_path(&self.root_dir, chunk_file)).collect()
+        self.chunk_files.keys().map(|chunk_file| Index::get_chunk_path(&self.root_dir, &set_ext(chunk_file, "chunks").unwrap())).collect()
     }
 
     fn tfidf_files(&self) -> Vec<Path> {
-        self.chunk_files().map(|chunk| set_ext(chunk, "tfidf").unwrap()).collect()
+        self.chunk_files().iter().map(|chunk| set_ext(chunk, "tfidf").unwrap()).collect()
     }
 
     fn tfidf_files_real_path(&self) -> Vec<Path> {
@@ -269,6 +270,10 @@ impl Index {
         if let Some(file) = self.curr_processing_file.clone() {
             self.remove_file(file.clone())?;
             self.staged_files.push(file);
+
+            if let Err(_) = self.check(false) {
+                self.auto_recover()?;
+            }
         }
 
         Ok(())
@@ -281,7 +286,7 @@ impl Index {
     fn get_curr_processing_chunks_path(&self) -> Path {
         for (path, count) in self.chunk_files.iter() {
             if *count < self.config.chunks_per_json {
-                return path.to_string();
+                return set_ext(path, "chunks").unwrap();
             }
         }
 
@@ -300,7 +305,7 @@ impl Index {
             self.config.compression_threshold,
             self.config.compression_level,
         )?;
-        self.chunk_files.insert(rel_path, 0);
+        self.chunk_files.insert(file_name(&rel_path)?, 0);
 
         Ok(())
     }
@@ -360,7 +365,7 @@ impl Index {
                 self.add_chunk_index(&new_chunk.uid, &chunk_path)?;
                 chunks.push(new_chunk);
                 self.chunk_count += 1;
-                self.chunk_files.insert(chunk_path.clone(), chunks.len());
+                self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
 
                 chunk::save_to_file(
                     &Index::get_chunk_path(&self.root_dir, &chunk_path),
@@ -436,7 +441,7 @@ impl Index {
 
         for uid in uids.iter() {
             let (root_dir, chunk_file) = self.get_chunk_file_by_index(uid)?;
-            let chunk_file_real_path = Index::get_chunk_path(&root_dir, &chunk_file);
+            let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_ext(&chunk_file, "chunks")?);
 
             if visited_files.contains(&chunk_file) {
                 continue;
@@ -476,7 +481,7 @@ impl Index {
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
         let (root_dir, chunk_file) = self.get_chunk_file_by_index(&uid)?;
-        let chunk_file_real_path = Index::get_chunk_path(&root_dir, &chunk_file);
+        let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_ext(&chunk_file, "chunks")?);
         let tfidf_file_real_path = set_ext(&chunk_file_real_path, "tfidf")?;
 
         let tfidfs = tfidf::load_from_file(&tfidf_file_real_path)?;
@@ -750,12 +755,7 @@ impl Index {
     pub fn remove_chunks_by_file_name(&mut self, file: Path) -> Result<(), Error> {
         let mut total_chunk_count = 0;
 
-        // borrow checker issues
-        let chunk_files: Vec<_> = self.chunk_files().map(
-            |chunk| chunk.to_string()
-        ).collect();
-
-        for chunk_path in chunk_files.iter() {
+        for chunk_path in self.chunk_files() {
             let real_path = Index::get_chunk_path(
                 &self.root_dir,
                 &chunk_path,
@@ -784,7 +784,7 @@ impl Index {
                 self.config.compression_threshold,
                 self.config.compression_level,
             )?;
-            self.chunk_files.insert(chunk_path.to_string(), chunks.len());
+            self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
             total_chunk_count += chunks.len();
         }
 
@@ -831,7 +831,11 @@ impl Index {
         Err(Error::NoSuchChunk { uid: chunk_uid.clone() })
     }
 
-    pub fn add_chunk_index(&self, chunk_uid: &Uid, chunk_file_rel_path: &Path) -> Result<(), Error> {
+    pub fn add_chunk_index(
+        &self,
+        chunk_uid: &Uid,
+        chunk_file: &Path,  // can be real_path or rel_path. doesn't matter
+    ) -> Result<(), Error> {
         let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, chunk_uid);
 
         let mut index = if !exists(&chunk_index_file) {
@@ -853,7 +857,7 @@ impl Index {
             }
         };
 
-        index.insert(chunk_uid, chunk_file_rel_path.to_string().into());
+        index.insert(chunk_uid, file_name(chunk_file)?.into());
         write_string(
             &chunk_index_file,
             &JsonValue::Object(index).pretty(4),
