@@ -135,6 +135,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Err(e) => if auto_recover {
                     index.auto_recover()?;
                     index.save_to_file()?;
+                    index.check(recursive)?;
                     println!("auto-recovered from a corrupted knowledge-base");
                 } else {
                     return Err(e);
