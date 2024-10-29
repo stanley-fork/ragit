@@ -35,6 +35,7 @@ def cargo_run(
     timeout: Optional[float] = None,
     check: bool = True,
     stdout: bool = False,
+    stderr: bool = False,
 ):
     # recommend you run it without `--release` flag: the code has tons of `debug_assert!`s
     args = ["cargo", "run", "--"] + args
@@ -43,7 +44,7 @@ def cargo_run(
     kwargs["timeout"] = timeout
     kwargs["check"] = check
 
-    if stdout:
+    if stdout or stderr:
         kwargs["capture_output"] = True
         kwargs["text"] = True
 
@@ -51,6 +52,9 @@ def cargo_run(
 
     if stdout:
         return result.stdout
+
+    elif stderr:
+        return result.stderr
 
     else:
         return result.returncode

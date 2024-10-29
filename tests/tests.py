@@ -1,6 +1,7 @@
 from add_and_rm import add_and_rm
 from end_to_end import end_to_end
 from external_bases import external_bases
+from images import images
 import random
 import sys
 from utils import clean
@@ -30,6 +31,9 @@ if __name__ == "__main__":
 
         elif command == "add_and_rm":
             add_and_rm()
+
+        elif command == "images":
+            images()
 
         elif command == "all":
             end_to_end(test_model=test_model)
