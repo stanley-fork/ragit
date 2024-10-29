@@ -14,6 +14,8 @@ Commands
 
     add_and_rm                  run `add_and_rm` test
 
+    images                      run `images` test
+
     all [model=dummy]           run all tests
 """
 
@@ -39,6 +41,7 @@ if __name__ == "__main__":
             end_to_end(test_model=test_model)
             external_bases()
             add_and_rm()
+            images()
 
         else:
             print(help_message)
