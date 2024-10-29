@@ -35,14 +35,14 @@ async fn main() {
             // TODO: suggest similar names for some errors
             match e {
                 Error::IndexNotFound => {
-                    println!("`.rag_index` not found. Make sure that it's a valid ragit repo.");
+                    eprintln!("`.rag_index` not found. Make sure that it's a valid ragit repo.");
                 },
                 Error::InvalidConfigKey(s) => {
-                    println!("{s:?} is not a valid key for config.");
+                    eprintln!("{s:?} is not a valid key for config.");
                 },
                 Error::ApiError(g) => match g {
                     ragit_api::Error::InvalidModelKind(m) => {
-                        println!(
+                        eprintln!(
                             "{m:?} is not a valid name for a chat model. Valid names are\n{}",
                             ragit_api::ChatModel::all_kinds().iter().map(
                                 |model| model.to_human_friendly_name()
@@ -50,14 +50,14 @@ async fn main() {
                         );
                     },
                     e => {
-                        println!("{e:?}");
+                        eprintln!("{e:?}");
                     },
                 },
                 Error::CliError(e) => {
-                    println!("cli error: {e}");
+                    eprintln!("cli error: {e}");
                 },
                 e => {
-                    println!("{e:?}");
+                    eprintln!("{e:?}");
                 },
             }
 
