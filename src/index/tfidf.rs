@@ -263,7 +263,7 @@ impl Chunk {
         //     - It's always English
         // 4. TODO: process images in `self.data` so that images are tfidf-able
         format!(
-            "{}{}{}{}{}",
+            "{}\n{}\n{}\n{}\n{}",
             self.file,
             self.title,
             self.title,
