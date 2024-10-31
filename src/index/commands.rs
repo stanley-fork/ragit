@@ -5,13 +5,12 @@ mod add;
 mod auto_recover;
 mod build;
 mod check;
+mod config;
 mod gc;
-mod get;
 mod ls;
 mod merge;
 mod meta;
 mod remove;
 mod reset;
-mod set;
 
 pub use add::{AddMode, AddResult};
