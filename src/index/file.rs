@@ -60,7 +60,7 @@ impl FileReader {
     pub fn new(rel_path: Path, real_path: Path, config: Config) -> Result<Self, Error> {
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
-            
+
             // a newline character isn't always a row-separator in csv, but that's okay
             // because LLM reads the file, not *parse* the file.
             "csv" => Box::new(LineReader::new(&real_path, &config)?.set_header_length(1)),
@@ -232,7 +232,7 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
     result
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AtomicToken {
     String {
         data: String,
@@ -263,7 +263,7 @@ impl From<AtomicToken> for MessageContent {
 }
 
 // TODO: it's not good idea to derive `Debug` on that big bytes
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Image {
     pub key: String,  // unique ID
     pub image_type: ImageType,

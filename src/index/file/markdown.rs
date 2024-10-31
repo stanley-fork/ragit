@@ -450,4 +450,42 @@ fn get_matching_bracket_index(chars: &[char], mut index: usize) -> Option<usize>
     }
 }
 
-// TODO: tests
+#[cfg(test)]
+mod tests {
+    use super::super::{AtomicToken, FileReaderImpl};
+    use super::MarkdownReader;
+    use crate::index::Config;
+    use ragit_fs::{WriteMode, remove_file, write_string};
+
+    #[test]
+    fn markdown_test() {
+        let config_default = Config::default();
+        let mut config_strict = config_default.clone();
+        config_strict.strict_file_reader = true;
+        let md1 = "
+# Title
+
+This is a markdown file that has no image.
+
+![This is a broken image
+";
+        write_string("__tmp_test.md", md1, WriteMode::AlwaysCreate).unwrap();
+        let mut md_reader = MarkdownReader::new("__tmp_test.md", &config_strict).unwrap();
+
+        while md_reader.has_more_to_read() {
+            md_reader.load_tokens().unwrap();
+        }
+
+        let md1_tokens = md_reader.pop_all_tokens().unwrap();
+        assert_eq!(
+            md1_tokens.iter().map(
+                |token| match token {
+                    AtomicToken::String { data, .. } => data.to_string(),
+                    _ => panic!(),
+                }
+            ).collect::<Vec<_>>().concat(),
+            md1.to_string(),
+        );
+        remove_file("__tmp_test.md").unwrap();
+    }
+}
