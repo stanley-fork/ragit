@@ -1,7 +1,8 @@
 use super::Index;
+use crate::{ApiConfigRaw, QueryConfig};
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf};
+use crate::index::{CHUNK_INDEX_DIR_NAME, Config, IMAGE_DIR_NAME, tfidf};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
 use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_ext};
@@ -16,6 +17,7 @@ impl Index {
     /// Check F: Entries in `.rag_index/chunk_index/*.json` points to a valid chunk.
     /// Check G: Images in chunks are all in `.rag_index/images` and vice versa.
     /// Check H: Images in `.rag_index/images` are not corrupted.
+    /// Check I: Config files are not broken.
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
         let mut chunk_count = 0;
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());
@@ -188,23 +190,52 @@ impl Index {
         }
 
         if (self.processed_files.len() + self.curr_processing_file.is_some() as usize) != processed_files.len() {  // Check E
-            Err(Error::BrokenIndex(format!(
+            return Err(Error::BrokenIndex(format!(
                 "self.processed_files.len() = {}\nself.curr_processing_file = {:?}\nprocessed_files.len() = {}",
                 self.processed_files.len(),
                 self.curr_processing_file,
                 processed_files.len(),
-            )))
+            )));
         }
 
         else if chunk_count != self.chunk_count {  // Check D
-            Err(Error::BrokenIndex(format!(
+            return Err(Error::BrokenIndex(format!(
                 "chunk_count = {chunk_count}\nself.chunk_count = {}",
                 self.chunk_count,
-            )))
+            )));
         }
 
-        else {
-            Ok(())
+        // Check I
+        serde_json::from_str::<Config>(
+            &read_string(&self.get_build_config_path()?)?,
+        )?;
+        serde_json::from_str::<QueryConfig>(
+            &read_string(&self.get_query_config_path()?)?,
+        )?;
+        serde_json::from_str::<ApiConfigRaw>(
+            &read_string(&self.get_api_config_path()?)?,
+        )?;
+
+        // Extra check: It checks whether the keys in the config files are unique.
+        let mut keys = HashSet::new();
+
+        for path in [
+            self.get_build_config_path()?,
+            self.get_api_config_path()?,
+            self.get_query_config_path()?,
+        ] {
+            let j = read_string(&path)?;
+            let j = json::parse(&j)?;
+
+            for (key, _) in j.entries() {
+                if keys.contains(key) {
+                    return Err(Error::BrokenIndex(format!("Key conflict in config file {path:?}: {key:?}")));
+                }
+
+                keys.insert(key.to_string());
+            }
         }
+
+        Ok(())
     }
 }
