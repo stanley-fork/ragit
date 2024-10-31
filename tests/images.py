@@ -21,6 +21,16 @@ sample_markdown = '''
 
 [sample5]: sample5.jpg
 
+![this is an image][sample6]
+
+[sample6]: sample6.webp
+
+Let's see if ragit's chunk engine can handle sequences of images.
+
+![sample6]![sample6]![sample6]![sample6]
+
+![image](sample2.png)![image](sample2.png)![image](sample2.png)![image](sample2.png)
+
 '''
 
 def images():
@@ -37,8 +47,10 @@ def images():
 
     stderr = cargo_run(["build"], stderr=True, check=False)
     assert "sample2.png" in stderr   # "sample2.png not found" is expected
+    cargo_run(["check", "--auto-recovery"])
 
     shutil.copyfile("../tests/images/empty.png", "sample2.png")
     shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
+    shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
     cargo_run(["build"])
     cargo_run(["check"])
