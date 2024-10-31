@@ -17,7 +17,7 @@ use ragit_fs::{
     normalize,
     read_bytes,
     read_string,
-    set_ext,
+    set_extension,
     write_bytes,
     write_string,
 };
@@ -248,16 +248,16 @@ impl Index {
     }
 
     fn chunk_files(&self) -> Vec<Path> {
-        self.chunk_files.keys().map(|chunk_file| set_ext(chunk_file, "chunks").unwrap()).collect()
+        self.chunk_files.keys().map(|chunk_file| set_extension(chunk_file, "chunks").unwrap()).collect()
     }
 
     // Rust doesn't allow me to return `.keys().map()` as `impl Iter<Item = Path>`
     fn chunk_files_real_path(&self) -> Vec<Path> {
-        self.chunk_files.keys().map(|chunk_file| Index::get_chunk_path(&self.root_dir, &set_ext(chunk_file, "chunks").unwrap())).collect()
+        self.chunk_files.keys().map(|chunk_file| Index::get_chunk_path(&self.root_dir, &set_extension(chunk_file, "chunks").unwrap())).collect()
     }
 
     fn tfidf_files(&self) -> Vec<Path> {
-        self.chunk_files().iter().map(|chunk| set_ext(chunk, "tfidf").unwrap()).collect()
+        self.chunk_files().iter().map(|chunk| set_extension(chunk, "tfidf").unwrap()).collect()
     }
 
     fn tfidf_files_real_path(&self) -> Vec<Path> {
@@ -286,7 +286,7 @@ impl Index {
     fn get_curr_processing_chunks_path(&self) -> Path {
         for (path, count) in self.chunk_files.iter() {
             if *count < self.config.chunks_per_json {
-                return set_ext(path, "chunks").unwrap();
+                return set_extension(path, "chunks").unwrap();
             }
         }
 
@@ -441,7 +441,7 @@ impl Index {
 
         for uid in uids.iter() {
             let (root_dir, chunk_file) = self.get_chunk_file_by_index(uid)?;
-            let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_ext(&chunk_file, "chunks")?);
+            let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_extension(&chunk_file, "chunks")?);
 
             if visited_files.contains(&chunk_file) {
                 continue;
@@ -481,8 +481,8 @@ impl Index {
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
         let (root_dir, chunk_file) = self.get_chunk_file_by_index(&uid)?;
-        let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_ext(&chunk_file, "chunks")?);
-        let tfidf_file_real_path = set_ext(&chunk_file_real_path, "tfidf")?;
+        let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_extension(&chunk_file, "chunks")?);
+        let tfidf_file_real_path = set_extension(&chunk_file_real_path, "tfidf")?;
 
         let tfidfs = tfidf::load_from_file(&tfidf_file_real_path)?;
 
@@ -584,7 +584,7 @@ impl Index {
                     &INDEX_DIR_NAME.to_string(),
                     &join(
                         &IMAGE_DIR_NAME.to_string(),
-                        &set_ext(image_key, "png").unwrap(),
+                        &set_extension(image_key, "png").unwrap(),
                     ).unwrap(),
                 ).unwrap(),
             ).unwrap(),
@@ -693,7 +693,7 @@ impl Index {
                 &self.root_dir,
                 &join(
                     PROMPT_DIR,
-                    &set_ext(
+                    &set_extension(
                         prompt_name,
                         "pdl",
                     )?,
@@ -726,7 +726,7 @@ impl Index {
         for (prompt_name, prompt) in self.prompts.iter() {
             let prompt_path = join(
                 &prompt_real_dir,
-                &set_ext(
+                &set_extension(
                     prompt_name,
                     "pdl",
                 )?,

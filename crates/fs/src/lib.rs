@@ -151,7 +151,7 @@ pub fn join(path: &str, child: &str) -> Result<String, FileError> {
 }
 
 /// `a/b/c.d, e` -> `a/b/c.e`
-pub fn set_ext(path: &str, ext: &str) -> Result<String, FileError> {
+pub fn set_extension(path: &str, ext: &str) -> Result<String, FileError> {
     let mut path_buf = PathBuf::from_str(path).unwrap();  // Infallible
 
     if path_buf.set_extension(ext) {

@@ -5,7 +5,7 @@ use crate::error::Error;
 use crate::index::{CHUNK_INDEX_DIR_NAME, Config, IMAGE_DIR_NAME, tfidf};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
-use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_ext};
+use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_extension};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
@@ -26,7 +26,7 @@ impl Index {
 
         for chunk_file in self.chunk_files_real_path() {
             let chunks = chunk::load_from_file(&chunk_file)?;
-            let tfidfs = tfidf::load_from_file(&set_ext(&chunk_file, "tfidf")?)?;
+            let tfidfs = tfidf::load_from_file(&set_extension(&chunk_file, "tfidf")?)?;
             let mut chunks_in_tfidf = HashSet::with_capacity(tfidfs.len());
 
             if chunks.len() != tfidfs.len() {  // Check A

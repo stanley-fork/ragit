@@ -17,7 +17,7 @@ use ragit_fs::{
     join,
     normalize,
     read_bytes,
-    set_ext,
+    set_extension,
     write_bytes,
 };
 use regex::Regex;
@@ -102,7 +102,7 @@ pub fn save_to_file(
     compression_level: u32,
 ) -> Result<(), Error> {
     let mut result = serde_json::to_vec_pretty(chunks)?;
-    let tfidf_path = set_ext(path, "tfidf")?;
+    let tfidf_path = set_extension(path, "tfidf")?;
     tfidf::save_to_file(
         &tfidf_path,
         chunks,
