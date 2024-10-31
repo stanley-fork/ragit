@@ -264,69 +264,189 @@ fn has_unknown_link_reference(
     false
 }
 
-// NOTE: It's a quite dumb parser. It cannot handle some edge cases, but that won't be a problem in perspective of RAG.
 fn parse_markdown_images(line: &str) -> Result<Vec<StringOrImage>, Error> {
-    let image_re = Regex::new(r"(?s)^(.*?)!\[([^\[\]]+)\](.*)$").unwrap();
+    let chars = line.chars().collect::<Vec<_>>();
+    let mut index = 0;
+    let mut last_index = 0;
+    let mut result = vec![];
 
-    if let Some(cap) = image_re.captures(line) {
-        let pre = cap[1].to_string();
-        let label = cap[2].to_string();
-        let mut post = cap[3].to_string();
-        let mut result = vec![];
-
-        if !pre.is_empty() {
-            result.push(StringOrImage::String(pre));
-        }
-
-        let paren_re = Regex::new(r"(?s)^\(([^()]*)\)(.*)$").unwrap();
-        let bracket_re = Regex::new(r"(?s)^\[([^\[\]]*)\](.*)$").unwrap();
-
-        if let Some(cap) = paren_re.captures(&post) {
-            result.push(StringOrImage::ImageUrl {
-                desc: label,
-                url: cap[1].trim().to_string(),
-            });
-            post = cap[2].to_string();
-        }
-
-        else if let Some(cap) = bracket_re.captures(&post) {
-            let r#ref = normalize_link_label(&cap[1]);
-
-            if r#ref.is_empty() {
-                result.push(StringOrImage::ImageRef {
-                    desc: String::new(),
-                    r#ref: normalize_link_label(&label),
-                });
-            }
-
-            else {
-                result.push(StringOrImage::ImageRef {
-                    desc: label,
-                    r#ref,
-                });
-            }
-
-            post = cap[2].to_string();
+    while index < chars.len() {
+        if is_code_span_start(&chars, index) {
+            index = march_until_code_span_end(&chars, index);
         }
 
         else {
-            result.push(StringOrImage::ImageRef {
-                desc: String::new(),
-                r#ref: normalize_link_label(&label),
-            });
-        }
+            match try_parse_image(&chars, index) {
+                Some(image) => {
+                    if last_index < index {
+                        result.push(StringOrImage::String(chars[last_index..index].iter().collect()));
+                    }
 
-        if !post.is_empty() {
-            result = vec![
-                result.clone(),
-                parse_markdown_images(&post)?,
-            ].concat();
+                    index = march_until_image_end(&chars, index);
+                    last_index = index;
+                    result.push(image);
+                },
+                None => {
+                    index = march_until_important_char(&chars, index);
+                },
+            }
         }
-
-        Ok(result)
     }
 
-    else {
-        Ok(vec![StringOrImage::String(line.to_string())])
+    if last_index < index {
+        result.push(StringOrImage::String(chars[last_index..index].iter().collect()));
+    }
+
+    Ok(result)
+}
+
+fn is_code_span_start(chars: &[char], index: usize) -> bool {
+    matches!(chars.get(index), Some('`')) && chars.len() > index + 1 && chars[index..].iter().any(|c| *c != '`')
+}
+
+// It assumes that `is_code_span_start(chars, index)` is true.
+// It returns the index of the first character after the code span. -> one that comes after '`'
+// If the code span does not end (probably a markdown syntax error), it returns the index of the last character.
+fn march_until_code_span_end(chars: &[char], index: usize) -> usize {
+    let mut backtick_count = 0;
+    let chars = &chars[index..];
+
+    for (i, c) in chars.iter().enumerate() {
+        if *c != '`' {
+            backtick_count = i;
+            break;
+        }
+    }
+
+    debug_assert!(backtick_count != 0);
+
+    for i in 1..(chars.len() - backtick_count) {
+        if &chars[i..(i + backtick_count)] == &vec!['`'; backtick_count] {
+            return index + i + backtick_count;
+        }
+    }
+
+    return chars.len() - 1;
+}
+
+fn try_parse_image(chars: &[char], index: usize) -> Option<StringOrImage> {
+    match chars.get(index) {
+        Some('!') => match chars.get(index + 1) {
+            Some('[') => {},
+            _ => {
+                return None;
+            },
+        },
+        _ => {
+            return None;
+        },
+    }
+
+    let (bracket_content, index) = match get_matching_bracket_index(chars, index + 1) {
+        Some(new_index) => (chars[index + 2..new_index].iter().collect::<String>(), new_index),
+        None => {
+            return None;
+        },
+    };
+
+    match chars.get(index + 1) {
+        Some('[') => match get_matching_bracket_index(chars, index + 1) {
+            Some(new_index) => {
+                let r#ref = normalize_link_label(&chars[index + 2..new_index].iter().collect::<String>());
+
+                if r#ref.is_empty() {
+                    return None;
+                }
+
+                return Some(StringOrImage::ImageRef { desc: bracket_content, r#ref });
+            },
+            None => {},
+        },
+        Some('(') => match get_matching_bracket_index(chars, index + 1) {
+            Some(new_index) => {
+                return Some(StringOrImage::ImageUrl {
+                    desc: bracket_content,
+                    url: chars[index + 2..new_index].iter().collect::<String>(),
+                });
+            },
+            None => {},
+        },
+        _ => {},
+    }
+
+    let r#ref = normalize_link_label(&bracket_content);
+
+    if r#ref.is_empty() {
+        return None;
+    }
+
+    Some(StringOrImage::ImageRef { desc: String::new(), r#ref })
+}
+
+// It assumes that `try_parse_image(chars, index).is_some()`.
+fn march_until_image_end(chars: &[char], index: usize) -> usize {
+    let index = get_matching_bracket_index(chars, index + 1).unwrap();
+
+    match chars.get(index + 1) {
+        Some('[' | '(') => match get_matching_bracket_index(chars, index + 1) {
+            Some(index) => index,
+            None => index + 1,
+        },
+        _ => index + 1,
     }
 }
+
+fn march_until_important_char(chars: &[char], index: usize) -> usize {
+    for i in index.. {
+        match chars.get(i) {
+            Some(c) if *c == '`' || *c == '!' => {
+                return i;
+            },
+            None => {
+                return i;
+            },
+            _ => {},
+        }
+    }
+
+    unreachable!()
+}
+
+fn get_matching_bracket_index(chars: &[char], mut index: usize) -> Option<usize> {
+    let end = match chars.get(index) {
+        Some('[') => ']',
+        Some('(') => ')',
+        Some('{') => '}',
+        _ => {
+            return None;
+        },
+    };
+    index += 1;
+
+    loop {
+        match chars.get(index) {
+            Some(c) if *c == end => {
+                return Some(index);
+            },
+            Some('(' | '[' | '{') => match get_matching_bracket_index(chars, index) {
+                Some(new_index) => {
+                    index = new_index + 1;
+                },
+                _ => {
+                    return None;
+                },
+            },
+            Some(')' | ']' | '}') => {
+                return None;
+            },
+            None => {
+                return None;
+            },
+            _ => {
+                index += 1;
+            },
+        }
+    }
+}
+
+// TODO: tests
