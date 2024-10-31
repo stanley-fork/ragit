@@ -287,6 +287,7 @@ fn parse_markdown_images(line: &str) -> Result<Vec<StringOrImage>, Error> {
                     result.push(image);
                 },
                 None => {
+                    index += 1;
                     index = march_until_important_char(&chars, index);
                 },
             }
