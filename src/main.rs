@@ -172,7 +172,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 "--get-all" => {
                     parsed_args.get_args_exact(0)?;  // make sure that there's no dangling args
-                    println!("{}", index.get_all()?.pretty(4));
+                    let mut kv = index.get_all()?;
+                    kv.sort_by_key(|(k, _)| k.to_string());
+
+                    println!("{}", '{');
+
+                    for (k, v) in kv.iter() {
+                        println!("    {k:?}: {},", v.dump());
+                    }
+
+                    println!("{}", '}');
                 },
                 _ => unreachable!(),
             }
