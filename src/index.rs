@@ -14,6 +14,8 @@ use ragit_fs::{
     file_name,
     is_dir,
     join,
+    join3,
+    join4,
     normalize,
     read_bytes,
     read_string,
@@ -533,12 +535,10 @@ impl Index {
     // every path in index.json are relative path to root_dir
     fn get_rag_path(root_dir: &Path, rel_path: &Path) -> Path {
         normalize(
-            &join(
+            &join3(
                 root_dir,
-                &join(
-                    &INDEX_DIR_NAME.to_string(),
-                    rel_path,
-                ).unwrap(),
+                &INDEX_DIR_NAME.to_string(),
+                rel_path,
             ).unwrap(),
         ).unwrap()
     }
@@ -563,45 +563,33 @@ impl Index {
 
     fn get_chunk_path(root_dir: &Path, chunk_name: &Path) -> Path {
         normalize(
-            &join(
+            &join4(
                 root_dir,
-                &join(
-                    &INDEX_DIR_NAME.to_string(),
-                    &join(
-                        &CHUNK_DIR_NAME.to_string(),
-                        chunk_name,
-                    ).unwrap(),
-                ).unwrap(),
+                &INDEX_DIR_NAME.to_string(),
+                &CHUNK_DIR_NAME.to_string(),
+                chunk_name,
             ).unwrap(),
         ).unwrap()
     }
 
     fn get_image_path(root_dir: &Path, image_key: &str) -> Path {
         normalize(
-            &join(
+            &join4(
                 root_dir,
-                &join(
-                    &INDEX_DIR_NAME.to_string(),
-                    &join(
-                        &IMAGE_DIR_NAME.to_string(),
-                        &set_extension(image_key, "png").unwrap(),
-                    ).unwrap(),
-                ).unwrap(),
+                &INDEX_DIR_NAME.to_string(),
+                &IMAGE_DIR_NAME.to_string(),
+                &set_extension(image_key, "png").unwrap(),
             ).unwrap(),
         ).unwrap()
     }
 
     fn get_chunk_index_path(root_dir: &Path, chunk_uid: &Uid) -> Path {
         normalize(
-            &join(
+            &join4(
                 root_dir,
-                &join(
-                    &INDEX_DIR_NAME.to_string(),
-                    &join(
-                        &CHUNK_INDEX_DIR_NAME.to_string(),
-                        &format!("{}.json", chunk_uid.get(0..2).unwrap()),
-                    ).unwrap(),
-                ).unwrap(),
+                &INDEX_DIR_NAME.to_string(),
+                &CHUNK_INDEX_DIR_NAME.to_string(),
+                &format!("{}.json", chunk_uid.get(0..2).unwrap()),
             ).unwrap(),
         ).unwrap()
     }

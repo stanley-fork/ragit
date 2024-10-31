@@ -2,7 +2,7 @@ use super::Index;
 use crate::chunk;
 use crate::error::Error;
 use crate::index::{CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME};
-use ragit_fs::{file_name, join, read_dir, remove_file};
+use ragit_fs::{file_name, join3, read_dir, remove_file};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
@@ -47,12 +47,10 @@ impl Index {
             }
         }
 
-        for chunk_index_file in read_dir(&join(
+        for chunk_index_file in read_dir(&join3(
             &self.root_dir,
-            &join(
-                &INDEX_DIR_NAME.to_string(),
-                &CHUNK_INDEX_DIR_NAME.to_string(),
-            )?,
+            &INDEX_DIR_NAME.to_string(),
+            &CHUNK_INDEX_DIR_NAME.to_string(),
         )?)? {
             remove_file(&chunk_index_file)?;
         }
@@ -61,12 +59,10 @@ impl Index {
             self.add_chunk_index(chunk_uid, chunk_index)?;
         }
 
-        for image_file in read_dir(&join(
+        for image_file in read_dir(&join3(
             &self.root_dir,
-            &join(
-                &INDEX_DIR_NAME.to_string(),
-                &IMAGE_DIR_NAME.to_string(),
-            )?,
+            &INDEX_DIR_NAME.to_string(),
+            &IMAGE_DIR_NAME.to_string(),
         )?)? {
             if !images.contains(&file_name(&image_file)?) {
                 remove_file(&image_file)?;
