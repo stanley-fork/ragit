@@ -184,7 +184,7 @@ struct CodeFence {
     indent: usize,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum StringOrImage {
     String(String),
     ImageUrl { desc: String, url: String },    // ![desc](url)
@@ -390,7 +390,7 @@ fn march_until_image_end(chars: &[char], index: usize) -> usize {
 
     match chars.get(index + 1) {
         Some('[' | '(') => match get_matching_bracket_index(chars, index + 1) {
-            Some(index) => index,
+            Some(index) => index + 1,
             None => index + 1,
         },
         _ => index + 1,

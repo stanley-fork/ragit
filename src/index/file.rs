@@ -9,6 +9,7 @@ use ragit_fs::{
 };
 use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, VecDeque};
+use std::fmt;
 
 mod image;
 mod line_reader;
@@ -214,6 +215,7 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
                         char_len: s.chars().count(),
                         data: s,
                     });
+                    buffer = vec![];
                 }
 
                 result.push(token);
@@ -262,12 +264,20 @@ impl From<AtomicToken> for MessageContent {
     }
 }
 
-// TODO: it's not good idea to derive `Debug` on that big bytes
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Image {
     pub key: String,  // unique ID
     pub image_type: ImageType,
     pub bytes: Vec<u8>,
+}
+
+impl fmt::Debug for Image {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        fmt.debug_struct("Image")
+            .field("key", &self.key)
+            .field("image_type", &self.image_type)
+            .finish()
+    }
 }
 
 pub fn get_file_hash(path: &Path) -> Result<String, Error> {
