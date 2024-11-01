@@ -364,24 +364,28 @@ impl Index {
 
                 let chunk_path = self.get_curr_processing_chunks_path();
                 let new_chunk = fd.generate_chunk(&self.api_config, &prompt, build_info.clone()).await?;
-                self.add_chunk_index(&new_chunk.uid, &chunk_path)?;
-                chunks.push(new_chunk);
-                self.chunk_count += 1;
-                self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
 
-                chunk::save_to_file(
-                    &Index::get_chunk_path(&self.root_dir, &chunk_path),
-                    &chunks,
-                    self.config.compression_threshold,
-                    self.config.compression_level,
-                )?;
+                // prevents adding duplicate chunks
+                if let Err(Error::NoSuchChunk { .. }) = self.get_chunk_file_by_index(&new_chunk.uid) {
+                    self.add_chunk_index(&new_chunk.uid, &chunk_path)?;
+                    chunks.push(new_chunk);
+                    self.chunk_count += 1;
+                    self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
 
-                if chunks.len() >= self.config.chunks_per_json {
-                    self.create_new_chunk_file()?;
-                    chunks = self.load_curr_processing_chunks()?;
+                    chunk::save_to_file(
+                        &Index::get_chunk_path(&self.root_dir, &chunk_path),
+                        &chunks,
+                        self.config.compression_threshold,
+                        self.config.compression_level,
+                    )?;
+
+                    if chunks.len() >= self.config.chunks_per_json {
+                        self.create_new_chunk_file()?;
+                        chunks = self.load_curr_processing_chunks()?;
+                    }
+
+                    self.save_to_file()?;
                 }
-
-                self.save_to_file()?;
             }
 
             for (key, bytes) in fd.images.iter() {
