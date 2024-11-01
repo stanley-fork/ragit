@@ -374,9 +374,9 @@ fn parse_content(content: &str, pdl_token_re: &Regex) -> Result<Vec<MessageConte
 
 #[cfg(test)]
 mod tests {
-    use super::messages_from_file;
+    use super::{MessageContent, messages_from_file};
     use crate::{Message, Role};
-    use file_io::{WriteMode, write_string};
+    use ragit_fs::{WriteMode, write_string};
 
     #[test]
     fn messages_from_file_test() {
@@ -403,13 +403,15 @@ Write me a sudoku-solver.
             vec![
                 Message {
                     role: Role::System,
-                    content: String::from("You're a code helper."),
-                    name: None,
+                    content: vec![
+                        MessageContent::String(String::from("You're a code helper.")),
+                    ],
                 },
                 Message {
                     role: Role::User,
-                    content: String::from("Write me a sudoku-solver."),
-                    name: None,
+                    content: vec![
+                        MessageContent::String(String::from("Write me a sudoku-solver.")),
+                    ],
                 },
             ],
         );
