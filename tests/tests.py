@@ -1,4 +1,5 @@
 from add_and_rm import add_and_rm
+from cargo_tests import cargo_tests
 from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
@@ -15,6 +16,8 @@ Commands
     add_and_rm                  run `add_and_rm` test
 
     images                      run `images` test
+
+    cargo_tests                 run `cargo test` on all the crates
 
     all [model=dummy]           run all tests
 """
@@ -37,11 +40,15 @@ if __name__ == "__main__":
         elif command == "images":
             images()
 
+        elif command == "cargo_tests":
+            cargo_tests()
+
         elif command == "all":
             end_to_end(test_model=test_model)
             external_bases()
             add_and_rm()
             images()
+            cargo_tests()
 
         else:
             print(help_message)
