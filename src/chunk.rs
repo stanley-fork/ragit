@@ -301,13 +301,8 @@ impl Chunk {
             response = request.send().await?;
             response_text = response.get_message(0).unwrap();
         };
-        let mut hasher = Sha3_256::new();
-        hasher.update(data.as_bytes());
-        hasher.update(title.as_bytes());
-        hasher.update(summary.as_bytes());
-        let uid = hasher.finalize();
 
-        Ok(Chunk {
+        let mut result = Chunk {
             data,
             images,
             char_len,
@@ -316,10 +311,16 @@ impl Chunk {
             summary,
             file: normalize(&file)?,
             index: file_index,
-            uid: format!("{uid:064x}"),
+            uid: String::new(),
             build_info,
             external_base: None,
-        })
+        };
+        let chunk_haystack = result.into_tfidf_haystack();
+        let mut hasher = Sha3_256::new();
+        hasher.update(chunk_haystack.as_bytes());
+        result.uid = format!("{:064x}", hasher.finalize());
+
+        Ok(result)
     }
 
     pub fn len(&self) -> usize {

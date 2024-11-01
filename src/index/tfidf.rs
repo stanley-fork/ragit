@@ -254,6 +254,7 @@ pub fn tokenize(s: &str) -> Vec<String> {
 }
 
 impl Chunk {
+    // chunk's uid is also built from this haystack
     pub fn into_tfidf_haystack(&self) -> String {
         // very naive heuristic
         // 1. `self.title` is very important, so it's included twice
