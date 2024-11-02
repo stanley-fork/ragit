@@ -37,8 +37,7 @@ def cargo_run(
     stdout: bool = False,
     stderr: bool = False,
 ):
-    # recommend you run it without `--release` flag: the code has tons of `debug_assert!`s
-    args = ["cargo", "run", "--"] + args
+    args = ["cargo", "run", "--release", "--"] + args
     kwargs = {}
 
     kwargs["timeout"] = timeout
