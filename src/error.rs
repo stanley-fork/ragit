@@ -22,6 +22,7 @@ pub enum Error {
     NotImplemented(String),
     CliError(String),  // TODO: spans?
     BrokenHash(String),
+    BrokenPrompt(String),
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.
