@@ -6,6 +6,7 @@ use ragit_fs::{file_name, join3, read_dir, remove_file};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
+    /// This is `auto-recover` of `rag check --auto-recover`.
     pub fn auto_recover(&mut self) -> Result<(), Error> {
         let curr_processing_file = self.curr_processing_file.clone();
         self.curr_processing_file = None;

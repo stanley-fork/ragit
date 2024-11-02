@@ -6,10 +6,6 @@ use ragit_api::{JsonType, get_type};
 use ragit_fs::{WriteMode, read_string, write_string};
 use std::collections::HashMap;
 
-// TODO: refactor names
-//       { meta_get, meta_get_all, meta_set, meta_remove, meta_remove_all }
-//       { get_config_by_key, get_all, set_config_by_key }
-//       -> 2 different set of names for similar features
 impl Index {
     pub fn get_config_by_key(&self, key: String) -> Result<JsonValue, Error> {
         for path in [
@@ -39,7 +35,7 @@ impl Index {
 
     /// It returns `Vec` instead of `HashMap` or `Json` since `Vec` is easier to sort by key.
     /// It does not sort the keys. It's your responsibility to do that.
-    pub fn get_all(&self) -> Result<Vec<(String, JsonValue)>, Error> {
+    pub fn get_all_configs(&self) -> Result<Vec<(String, JsonValue)>, Error> {
         let mut result = vec![];
 
         for path in [
@@ -57,7 +53,9 @@ impl Index {
 
         Ok(result)
     }
-    pub fn set_config_by_key(&mut self, key: String, value: String) -> Result<Option<String>, Error> {  // returns the previous value, if exists
+
+    /// It returns the previous value, if exists.
+    pub fn set_config_by_key(&mut self, key: String, value: String) -> Result<Option<String>, Error> {
         // if `set_config_by_key` fails, it has to revert the json files before returning error
         let mut tmp_json_cache = HashMap::new();
 

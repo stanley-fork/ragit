@@ -270,13 +270,8 @@ impl Index {
     // garbage chunks: when an indexing is interrupted, chunks of unfinished file belongs to nowhere
     // in order to prevent creating the chunks again, it has to remove all those chunks
     fn remove_garbage_files(&mut self) -> Result<(), Error> {
-        if let Some(file) = self.curr_processing_file.clone() {
-            self.remove_file(file.clone())?;
-            self.staged_files.push(file);
-
-            if let Err(_) = self.check(false) {
-                self.auto_recover()?;
-            }
+        if self.curr_processing_file.is_some() && self.check(false).is_err() {
+            self.auto_recover()?;
         }
 
         Ok(())
@@ -550,7 +545,7 @@ impl Index {
         ).unwrap()
     }
 
-    pub fn get_data_path(root_dir: &Path, rel_path: &Path) -> Path {
+    pub(crate) fn get_data_path(root_dir: &Path, rel_path: &Path) -> Path {
         normalize(
             &join(
                 root_dir,
@@ -559,7 +554,7 @@ impl Index {
         ).unwrap()
     }
 
-    pub fn get_rel_path(root_dir: &Path, real_path: &Path) -> Path {
+    pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Path {
         normalize(
             &diff(
                 real_path,
@@ -631,7 +626,7 @@ impl Index {
         ))
     }
 
-    pub fn init_api_config(&self, raw: &ApiConfigRaw) -> Result<ApiConfig, Error> {
+    pub(crate) fn init_api_config(&self, raw: &ApiConfigRaw) -> Result<ApiConfig, Error> {
         let dump_log_at = if raw.dump_log {
             let path = Index::get_rag_path(
                 &self.root_dir,
@@ -682,7 +677,8 @@ impl Index {
         })
     }
 
-    pub fn load_prompts(&mut self) -> Result<(), Error> {
+    // TODO: there must be an API function that modifies prompts
+    pub(crate) fn load_prompts(&mut self) -> Result<(), Error> {
         for prompt_name in PROMPTS.keys() {
             let prompt_path = Index::get_rag_path(
                 &self.root_dir,
@@ -708,7 +704,7 @@ impl Index {
         Ok(())
     }
 
-    pub fn save_prompts(&self) -> Result<(), Error> {
+    pub(crate) fn save_prompts(&self) -> Result<(), Error> {
         let prompt_real_dir = Index::get_rag_path(
             &self.root_dir,
             &PROMPT_DIR.to_string(),
@@ -744,10 +740,7 @@ impl Index {
         }
     }
 
-    // NOTE: it's still naive that it iterates all the chunk_files.
-    //       creating a map between files and chunks would be better,
-    //       but I'm worried that would be a premature optimization
-    pub fn remove_chunks_by_file_name(&mut self, file: Path) -> Result<(), Error> {
+    pub fn remove_chunks_by_file_name(&mut self, file: Path /* rel_path */ ) -> Result<(), Error> {
         let mut total_chunk_count = 0;
 
         for chunk_path in self.chunk_files() {
@@ -801,7 +794,7 @@ impl Index {
     }
 
     // It returns `(external_index's root_dir, rel_chunk_path)` because the chunk might be at an external knowledge-base
-    pub fn get_chunk_file_by_index(&self, chunk_uid: &Uid) -> Result<(Path, Path), Error> {
+    pub(crate) fn get_chunk_file_by_index(&self, chunk_uid: &Uid) -> Result<(Path, Path), Error> {
         for knowledge_base in iter::once(&self.root_dir).chain(self.external_indexes.iter().map(|index| &index.root_dir)) {
             let chunk_index_file = Index::get_chunk_index_path(knowledge_base, chunk_uid);
 
@@ -839,7 +832,7 @@ impl Index {
         Err(Error::NoSuchChunk { uid: chunk_uid.clone() })
     }
 
-    pub fn add_chunk_index(
+    pub(crate) fn add_chunk_index(
         &mut self,
         chunk_uid: &Uid,
         chunk_file: &Path,  // can be real_path or rel_path. doesn't matter
@@ -889,8 +882,7 @@ impl Index {
         Ok(())
     }
 
-    // TODO: is this the best choice to return error when there's no chunk with the given uid?
-    pub fn remove_chunk_index(&self, chunk_uid: &Uid) -> Result<(), Error> {
+    pub(crate) fn remove_chunk_index(&self, chunk_uid: &Uid) -> Result<(), Error> {
         let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, chunk_uid);
         let json_content = read_string(&chunk_index_file)?;
         let mut j = json::parse(&json_content)?;
@@ -973,9 +965,9 @@ impl Index {
     }
 }
 
-// it loads `.rag_llama_index.json`, modifies it and saves it
-// it's useful when the schema of the index has changed
-// make sure to backup files before running this!
+/// It loads `.rag_llama_index.json`, modifies it and saves it.
+/// It's useful when the schema of the index has changed.
+/// Make sure to backup files before running this!
 pub fn update_index_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(path: &str, f: &F) -> Result<(), Error> {
     let raw = read_string(path)?;
     let j = json::parse(&raw)?;

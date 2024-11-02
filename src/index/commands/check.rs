@@ -9,16 +9,16 @@ use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_extension};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
-    /// Check A: Every chunk file has a corresponding tfidf file, and the tfidf file has data for all the chunks in the chunk file.
-    /// Check B: `get_chunk_file_by_index(uid)` gives a correct result for all chunks.
-    /// Check C: `self.chunk_files` has the correct number of chunks for each chunk file.
-    /// Check D: `self.chunk_count` has the correct number.
-    /// Check E: `self.processed_files` is correct.
-    /// Check F: Entries in `.rag_index/chunk_index/*.json` points to a valid chunk.
-    /// Check G: Images in chunks are all in `.rag_index/images` and vice versa.
-    /// Check H: Images in `.rag_index/images` are not corrupted.
-    /// Check I: Config files are not broken.
-    /// Check J: A name of a chunk file is an xor of its chunks' uids. (TODO)
+    /// - Check A: Every chunk file has a corresponding tfidf file, and the tfidf file has data for all the chunks in the chunk file.
+    /// - Check B: `get_chunk_file_by_index(uid)` gives a correct result for all chunks.
+    /// - Check C: `self.chunk_files` has the correct number of chunks for each chunk file.
+    /// - Check D: `self.chunk_count` has the correct number.
+    /// - Check E: `self.processed_files` is correct.
+    /// - Check F: Entries in `.rag_index/chunk_index/*.json` points to a valid chunk.
+    /// - Check G: Images in chunks are all in `.rag_index/images` and vice versa.
+    /// - Check H: Images in `.rag_index/images` are not corrupted.
+    /// - Check I: Config files are not broken.
+    /// - Check J: A name of a chunk file is an xor of its chunks' uids. (TODO)
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
         let mut chunk_count = 0;
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());

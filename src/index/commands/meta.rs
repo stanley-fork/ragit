@@ -15,7 +15,7 @@ pub type Path = String;
 pub const METADATA_FILE_NAME: &str = "meta.json";
 
 impl Index {
-    pub fn meta_get(&self, key: String) -> Result<Option<String>, Error> {
+    pub fn get_meta_by_key(&self, key: String) -> Result<Option<String>, Error> {
         let meta_path = get_meta_path(&self.root_dir);
 
         if !exists(&meta_path) {
@@ -26,7 +26,7 @@ impl Index {
         Ok(meta.get(&key).map(|v| v.to_string()))
     }
 
-    pub fn meta_get_all(&self) -> Result<HashMap<String, String>, Error> {
+    pub fn get_all_meta(&self) -> Result<HashMap<String, String>, Error> {
         let meta_path = get_meta_path(&self.root_dir);
 
         if !exists(&meta_path) {
@@ -37,7 +37,7 @@ impl Index {
         Ok(meta)
     }
 
-    pub fn meta_set(&self, key: String, value: String) -> Result<(), Error> {
+    pub fn set_meta_by_key(&self, key: String, value: String) -> Result<(), Error> {
         let meta_path = get_meta_path(&self.root_dir);
 
         if !exists(&meta_path) {
@@ -49,7 +49,7 @@ impl Index {
         save_meta(&meta_path, meta)
     }
 
-    pub fn meta_remove(&self, key: String) -> Result<(), Error> {
+    pub fn remove_meta_by_key(&self, key: String) -> Result<(), Error> {
         let meta_path = get_meta_path(&self.root_dir);
 
         if !exists(&meta_path) {
@@ -61,7 +61,7 @@ impl Index {
         Ok(())
     }
 
-    pub fn meta_remove_all(&self) -> Result<(), Error> {
+    pub fn remove_all_meta(&self) -> Result<(), Error> {
         let meta_path = get_meta_path(&self.root_dir);
 
         if exists(&meta_path) {

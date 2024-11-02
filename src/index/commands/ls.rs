@@ -23,6 +23,7 @@ pub struct RenderableModel {
 }
 
 impl Index {
+    /// `rag ls-chunks`
     pub fn list_chunks<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`
@@ -49,6 +50,7 @@ impl Index {
         Ok(result)
     }
 
+    /// `rag ls-files`
     pub fn list_files<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`
@@ -85,6 +87,7 @@ impl Index {
         result
     }
 
+    /// `rag ls-models`
     pub fn list_models<Filter, Map, Sort, Key: Ord>(
         // `filter` is applied before `map`
         filter: &Filter,

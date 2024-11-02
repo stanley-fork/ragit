@@ -7,6 +7,7 @@ use ragit_fs::{
 };
 
 impl Index {
+    /// `rag gc --logs`
     pub fn gc_logs(&self) -> Result<usize, Error> {  // returns how many files it removed
         let logs_at = Index::get_rag_path(
             &self.root_dir,
@@ -21,4 +22,6 @@ impl Index {
 
         Ok(count)
     }
+
+    // TODO: `gc_images`
 }

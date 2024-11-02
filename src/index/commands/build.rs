@@ -3,6 +3,7 @@ use crate::error::Error;
 use ragit_api::record::Record;
 
 impl Index {
+    /// This is `dashboard` of `rag bulid --dashboard`. It clears the screen when called.
     pub fn render_dashboard(&self) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());

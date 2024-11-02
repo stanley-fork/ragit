@@ -92,9 +92,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let (mut added, mut updated, mut ignored) = (0, 0, 0);
 
             for path in files.iter() {
-                let rel_path = Index::get_rel_path(&index.root_dir, path);
-
-                match index.add_file(rel_path, add_mode)? {
+                match index.add_file(path, add_mode)? {
                     AddResult::Added => { added += 1; },
                     AddResult::Updated => { updated += 1; },
                     AddResult::Ignored => { ignored += 1; },
@@ -172,7 +170,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 "--get-all" => {
                     parsed_args.get_args_exact(0)?;  // make sure that there's no dangling args
-                    let mut kv = index.get_all()?;
+                    let mut kv = index.get_all_configs()?;
                     kv.sort_by_key(|(k, _)| k.to_string());
 
                     println!("{}", '{');
@@ -360,19 +358,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 "--get" => {
                     let key = &parsed_args.get_args_exact(1)?[0];
 
-                    if let Some(value) = index.meta_get(key.to_string())? {
+                    if let Some(value) = index.get_meta_by_key(key.to_string())? {
                         println!("{value}");
                     }
                 },
                 "--get-all" => {
                     parsed_args.get_args_exact(0)?;
-                    let all = index.meta_get_all()?;
+                    let all = index.get_all_meta()?;
                     println!("{}", json::JsonValue::from(all).pretty(4));
                 },
                 "--set" => {
                     let key_value = parsed_args.get_args_exact(2)?;
 
-                    index.meta_set(
+                    index.set_meta_by_key(
                         key_value[0].clone(),
                         key_value[1].clone(),
                     )?;
@@ -381,12 +379,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 "--remove" => {
                     let key = &parsed_args.get_args_exact(1)?[0];
 
-                    index.meta_remove(key.to_string())?;
+                    index.remove_meta_by_key(key.to_string())?;
                     println!("removed `{key}`");
                 },
                 "--remove-all" => {
                     parsed_args.get_args_exact(0)?;
-                    index.meta_remove_all()?;
+                    index.remove_all_meta()?;
                     println!("metadata removed");
                 },
                 _ => unreachable!(),
@@ -450,8 +448,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             else {
                 for file in files.iter() {
-                    let rel_path = Index::get_rel_path(&index.root_dir, file);
-                    index.remove_file(rel_path)?;
+                    index.remove_file(file.to_string())?;
                 }
 
                 files.len()
