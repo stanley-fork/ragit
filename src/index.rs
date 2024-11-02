@@ -37,7 +37,7 @@ pub mod tfidf;
 pub use commands::{AddMode, AddResult};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 use file::{FileReader, get_file_hash};
-use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
+pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
 pub const IMAGE_DIR_NAME: &str = "images";

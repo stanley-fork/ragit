@@ -32,7 +32,7 @@ pub struct TfIdfResult<DocId: Clone> {
     pub score: f32,
 }
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ProcessedDoc {
     pub chunk_uid: Option<Uid>,
     pub tokens: HashMap<String, usize>,
