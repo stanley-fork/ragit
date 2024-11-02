@@ -1,6 +1,6 @@
 use super::{AtomicToken, FileReaderImpl, Image};
 use crate::error::Error;
-use crate::index::Config;
+use crate::index::BuildConfig;
 use ragit_api::ImageType;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use regex::Regex;
@@ -20,7 +20,7 @@ pub struct MarkdownReader {
 }
 
 impl FileReaderImpl for MarkdownReader {
-    fn new(path: &str, config: &Config) -> Result<Self, Error> {
+    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => Ok(MarkdownReader {
                 path: path.to_string(),
@@ -454,12 +454,12 @@ fn get_matching_bracket_index(chars: &[char], mut index: usize) -> Option<usize>
 mod tests {
     use super::super::{AtomicToken, FileReaderImpl};
     use super::MarkdownReader;
-    use crate::index::Config;
+    use crate::index::BuildConfig;
     use ragit_fs::{WriteMode, remove_file, write_string};
 
     #[test]
     fn markdown_test() {
-        let config_default = Config::default();
+        let config_default = BuildConfig::default();
         let mut config_strict = config_default.clone();
         config_strict.strict_file_reader = true;
         let md1 = "

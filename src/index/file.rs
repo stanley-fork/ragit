@@ -1,4 +1,4 @@
-use super::Config;
+use super::BuildConfig;
 use crate::api_config::ApiConfig;
 use crate::chunk::{BuildInfo, Chunk};
 use crate::error::Error;
@@ -24,7 +24,7 @@ pub use plain_text::PlainTextReader;
 pub type Path = String;
 
 pub trait FileReaderImpl {
-    fn new(path: &str, config: &Config) -> Result<Self, Error> where Self: Sized;
+    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;
     fn pop_all_tokens(&mut self) -> Result<Vec<AtomicToken>, Error>;
 
     /// It reads `path` and load more tokens to memory. If the file is small enough,
@@ -51,14 +51,14 @@ pub struct FileReader {  // of a single file
     buffer: VecDeque<AtomicToken>,
     curr_buffer_size: usize,
     pub images: HashMap<String, Vec<u8>>,
-    config: Config,
+    config: BuildConfig,
 
     // index IN a file, not OF a file
     file_index: usize,
 }
 
 impl FileReader {
-    pub fn new(rel_path: Path, real_path: Path, config: Config) -> Result<Self, Error> {
+    pub fn new(rel_path: Path, real_path: Path, config: BuildConfig) -> Result<Self, Error> {
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
 

@@ -1,4 +1,4 @@
-use super::{Config, Index};
+use super::{BuildConfig, Index};
 use crate::{ApiConfigRaw, QueryConfig};
 use crate::error::Error;
 use json::JsonValue;
@@ -136,7 +136,7 @@ impl Index {
             return Err(Error::InvalidConfigKey(key));
         }
 
-        self.config = serde_json::from_str::<Config>(
+        self.build_config = serde_json::from_str::<BuildConfig>(
             &read_string(&self.get_build_config_path()?)?,
         )?;
         self.query_config = serde_json::from_str::<QueryConfig>(

@@ -53,7 +53,12 @@ impl Index {
                     }
 
                     // It also re-creates tfidf indexes
-                    chunk::save_to_file(&chunk_file, &new_chunks, self.config.compression_threshold, self.config.compression_level)?;
+                    chunk::save_to_file(
+                        &chunk_file,
+                        &new_chunks,
+                        self.build_config.compression_threshold,
+                        self.build_config.compression_level,
+                    )?;
                 },
                 Err(_) => {
                     chunk_files_to_remove.push(chunk_file);

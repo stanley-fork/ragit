@@ -17,12 +17,12 @@ pub use error::Error;
 pub use index::{
     AddMode,
     AddResult,
-    Config as BuildConfig,
+    BuildConfig,
     Index,
     update_index_schema,
 };
 pub use query::{
-    Config as QueryConfig,
+    QueryConfig,
     Keywords,
     single_turn,
     multi_turn,

@@ -2,7 +2,7 @@ use super::Index;
 use crate::{ApiConfigRaw, QueryConfig};
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{CHUNK_INDEX_DIR_NAME, Config, IMAGE_DIR_NAME, tfidf, xor_sha3};
+use crate::index::{BuildConfig, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf, xor_sha3};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
 use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_extension};
@@ -219,7 +219,7 @@ impl Index {
         }
 
         // Check I
-        serde_json::from_str::<Config>(
+        serde_json::from_str::<BuildConfig>(
             &read_string(&self.get_build_config_path()?)?,
         )?;
         serde_json::from_str::<QueryConfig>(

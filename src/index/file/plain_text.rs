@@ -1,6 +1,6 @@
 use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
-use crate::index::Config;
+use crate::index::BuildConfig;
 use ragit_fs::FileError;
 use std::fs::File;
 use std::io::{Bytes, Read};
@@ -13,7 +13,7 @@ pub struct PlainTextReader {
 }
 
 impl FileReaderImpl for PlainTextReader {
-    fn new(path: &str, config: &Config) -> Result<Self, Error> {
+    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => Ok(PlainTextReader {
                 bytes: f.bytes(),

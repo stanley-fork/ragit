@@ -1,4 +1,4 @@
-pub use super::{Config, Index};
+pub use super::{BuildConfig, Index};
 
 // functions in these modules are not supposed to call `Index::save_to_file`
 mod add;

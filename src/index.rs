@@ -4,7 +4,7 @@ use crate::chunk::{self, BuildInfo, Chunk, CHUNK_DIR_NAME, CHUNK_INDEX_DIR_NAME,
 use crate::error::{Error, JsonType, get_type};
 use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
-use crate::query::{Config as QueryConfig, Keywords, QUERY_CONFIG_FILE_NAME, extract_keywords};
+use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
 use json::JsonValue;
 use ragit_fs::{
     WriteMode,
@@ -35,7 +35,7 @@ pub mod file;
 pub mod tfidf;
 
 pub use commands::{AddMode, AddResult};
-pub use config::{Config, BUILD_CONFIG_FILE_NAME};
+pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 use file::{FileReader, get_file_hash};
 use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
 
@@ -72,7 +72,7 @@ pub struct Index {
     #[serde(skip)]
     pub root_dir: Path,
     #[serde(skip)]
-    pub config: Config,
+    pub build_config: BuildConfig,
     #[serde(skip)]
     pub query_config: QueryConfig,
     #[serde(skip)]
@@ -111,7 +111,7 @@ impl Index {
             &CHUNK_INDEX_DIR_NAME.to_string(),
         ))?;
 
-        let config = Config::default();
+        let build_config = BuildConfig::default();
         let query_config = QueryConfig::default();
         let api_config = ApiConfig::default();
         let api_config_raw = ApiConfigRaw::default();
@@ -122,7 +122,7 @@ impl Index {
             staged_files: vec![],
             processed_files: HashMap::new(),
             curr_processing_file: None,
-            config,
+            build_config,
             query_config,
             api_config_raw,
             api_config,
@@ -136,7 +136,7 @@ impl Index {
 
         write_bytes(
             &result.get_build_config_path()?,
-            &serde_json::to_vec_pretty(&result.config)?,
+            &serde_json::to_vec_pretty(&result.build_config)?,
             WriteMode::AlwaysCreate,
         )?;
         write_bytes(
@@ -165,7 +165,7 @@ impl Index {
 
         let mut result = serde_json::from_str::<Index>(&index_json)?;
         result.root_dir = root_dir;
-        result.config = serde_json::from_str::<Config>(
+        result.build_config = serde_json::from_str::<BuildConfig>(
             &read_string(&result.get_build_config_path()?)?,
         )?;
         result.query_config = serde_json::from_str::<QueryConfig>(
@@ -283,7 +283,7 @@ impl Index {
 
     fn get_curr_processing_chunks_path(&self) -> Path {
         for (path, count) in self.chunk_files.iter() {
-            if *count < self.config.chunks_per_json {
+            if *count < self.build_config.chunks_per_json {
                 return set_extension(path, "chunks").unwrap();
             }
         }
@@ -301,8 +301,8 @@ impl Index {
         chunk::save_to_file(
             &real_path,
             &[],
-            self.config.compression_threshold,
-            self.config.compression_level,
+            self.build_config.compression_threshold,
+            self.build_config.compression_level,
         )?;
         self.chunk_files.insert(format!("{:064x}", 0), 0);
 
@@ -336,7 +336,7 @@ impl Index {
             let mut fd = FileReader::new(
                 doc.clone(),
                 real_path.clone(),
-                self.config.clone(),
+                self.build_config.clone(),
             )?;
             self.curr_processing_file = Some(doc.clone());
             let build_info = BuildInfo::new(
@@ -372,11 +372,11 @@ impl Index {
                     chunk::save_to_file(
                         &Index::get_chunk_path(&self.root_dir, &chunk_path),
                         &chunks,
-                        self.config.compression_threshold,
-                        self.config.compression_level,
+                        self.build_config.compression_threshold,
+                        self.build_config.compression_level,
                     )?;
 
-                    if chunks.len() >= self.config.chunks_per_json {
+                    if chunks.len() >= self.build_config.chunks_per_json {
                         self.create_new_chunk_file()?;
                         chunks = self.load_curr_processing_chunks()?;
                     }
@@ -775,8 +775,8 @@ impl Index {
             chunk::save_to_file(
                 &real_path,
                 &chunks,
-                self.config.compression_threshold,
-                self.config.compression_level,
+                self.build_config.compression_threshold,
+                self.build_config.compression_level,
             )?;
             self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
             total_chunk_count += chunks.len();

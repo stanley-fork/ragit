@@ -1,6 +1,6 @@
 use crate::ApiConfig;
 use crate::error::Error;
-use crate::index::{Config as BuildConfig, Index, file::AtomicToken, tfidf};
+use crate::index::{BuildConfig, Index, file::AtomicToken, tfidf};
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use json::JsonValue;

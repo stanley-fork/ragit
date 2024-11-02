@@ -1,4 +1,4 @@
-use super::{AtomicToken, Config, FileReaderImpl};
+use super::{AtomicToken, BuildConfig, FileReaderImpl};
 use crate::error::Error;
 use ragit_fs::FileError;
 use std::io::{BufRead, BufReader};
@@ -17,7 +17,7 @@ pub struct LineReader {
 }
 
 impl FileReaderImpl for LineReader {
-    fn new(path: &str, _config: &Config) -> Result<Self, Error> {
+    fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => Ok(LineReader {
                 lines: BufReader::new(f),

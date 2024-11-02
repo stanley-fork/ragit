@@ -17,7 +17,7 @@ use regex::Regex;
 mod config;
 mod keyword;
 
-pub use config::{Config, QUERY_CONFIG_FILE_NAME};
+pub use config::{QueryConfig, QUERY_CONFIG_FILE_NAME};
 pub use keyword::{Keywords, extract_keywords};
 
 pub async fn retrieve_chunks(

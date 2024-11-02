@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 pub const BUILD_CONFIG_FILE_NAME: &str = "build.json";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Config {
+pub struct BuildConfig {
     // it's not a max_chunk_size, and it's impossible to make every chunk have the same size because
     // 1. an image cannot be splitted
     // 2. different files cannot be merged
@@ -34,9 +34,9 @@ pub struct Config {
     pub compression_level: u32,
 }
 
-impl Default for Config {
+impl Default for BuildConfig {
     fn default() -> Self {
-        Config {
+        BuildConfig {
             chunk_size: 4_000,
             slide_len: 1_000,
             image_size: 2_000,

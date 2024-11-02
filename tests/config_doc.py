@@ -79,13 +79,13 @@ def main():
 
     build_config = extract_struct(
         build_config_file,
-        "Config",
+        "BuildConfig",
         "BuildConfig",
         True,
     )
     build_defaults = extract_default_values(
         build_config_file,
-        "Config",
+        "BuildConfig",
         True,
         "// ",
     )
@@ -95,13 +95,13 @@ def main():
 
     query_config = extract_struct(
         query_config_file,
-        "Config",
+        "QueryConfig",
         "QueryConfig",
         True,
     )
     query_defaults = extract_default_values(
         query_config_file,
-        "Config",
+        "QueryConfig",
         True,
         "// ",
     )
