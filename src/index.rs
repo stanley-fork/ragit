@@ -344,6 +344,7 @@ impl Index {
                 prompt_hash.clone(),
                 self.api_config.model.to_human_friendly_name().to_string(),
             );
+            let mut previous_summary = None;
 
             while fd.can_generate_chunk() {
                 if !dashboard {
@@ -360,7 +361,13 @@ impl Index {
                 }
 
                 let chunk_path = self.get_curr_processing_chunks_path();
-                let new_chunk = fd.generate_chunk(&self.api_config, &prompt, build_info.clone()).await?;
+                let new_chunk = fd.generate_chunk(
+                    &self.api_config,
+                    &prompt,
+                    build_info.clone(),
+                    previous_summary.clone(),
+                ).await?;
+                previous_summary = Some(new_chunk.summary.clone());
                 let new_chunk_uid = new_chunk.uid.clone();
 
                 // prevents adding duplicate chunks

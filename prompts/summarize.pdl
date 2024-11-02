@@ -1,6 +1,6 @@
 <|system|>
 
-Your job is to title and summarize a chunk of text. The chunk is taken from a long, arbitrary document and is cut at an arbitrary point.
+Your job is to title and summarize a chunk of text. The chunk is taken from a long, arbitrary document and is cut at an arbitrary point.{% if previous_summary %} You'll be given a chunk and a summary of a previous chunk.{% endif %}
 
 Give me your response in a json object, which has 2 fields: "title" and "summary". Both have string types.
 
@@ -8,4 +8,4 @@ Make sure to always use English, no matter what language the chunk uses.
 
 <|user|>
 
-{{chunk|safe}}
+NOTE: due to a current limit of pdl implementation, the rust code directly injects the summary and the chunk, instead of using tera templates

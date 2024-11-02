@@ -158,9 +158,11 @@ impl Chunk {
         api_config: &ApiConfig,
         pdl: &str,
         build_info: BuildInfo,
+        previous_summary: Option<String>,
     ) -> Result<Self, Error> {
         let mut dummy_context = tera::Context::new();
         dummy_context.insert("chunk", "placeholder");
+        dummy_context.insert("previous_summary", &previous_summary.is_some());
 
         let mut prompt = messages_from_pdl(
             pdl.to_string(),
@@ -172,9 +174,17 @@ impl Chunk {
                 return Err(Error::BrokenPrompt(String::from("The last turn of a prompt must be of <|user|>.")));
             }
 
-            let content = tokens.iter().map(
+            let mut content = if let Some(previous_summary) = previous_summary {
+                vec![MessageContent::String(format!("Previous Summary: {previous_summary}\n\nChunk: "))]
+            } else {
+                vec![]
+            };
+
+            for chunk_content in tokens.iter().map(
                 |content| MessageContent::from(content.clone())
-            ).collect::<Vec<MessageContent>>();
+            ) {
+                content.push(chunk_content);
+            }
 
             message.content = content;
         }

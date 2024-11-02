@@ -94,6 +94,7 @@ impl FileReader {
         api_config: &ApiConfig,
         pdl: &str,
         build_info: BuildInfo,
+        previous_summary: Option<String>,
     ) -> Result<Chunk, Error> {
         self.fill_buffer_until_chunks(2)?;
 
@@ -153,6 +154,7 @@ impl FileReader {
             api_config,
             pdl,
             build_info,
+            previous_summary,
         ).await;
 
         for token in tokens.into_iter() {
