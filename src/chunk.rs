@@ -168,7 +168,10 @@ impl Chunk {
         )?;
 
         if let Some(message) = prompt.last_mut() {
-            debug_assert_eq!(message.role, Role::User);
+            if message.role != Role::User {
+                return Err(Error::BrokenPrompt(String::from("The last turn of a prompt must be of <|user|>.")));
+            }
+
             let content = tokens.iter().map(
                 |content| MessageContent::from(content.clone())
             ).collect::<Vec<MessageContent>>();
@@ -177,7 +180,7 @@ impl Chunk {
         }
 
         else {
-            unreachable!()
+            return Err(Error::BrokenPrompt(String::from("Got an empty prompt.")));
         }
 
         let mut request = ChatRequest {
@@ -338,8 +341,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
 
     for chunk in chunks.into_iter() {
         merge_candidates.insert((chunk.file.clone(), chunk.index + 1));
-        let _d = curr_chunks.insert((chunk.file.clone(), chunk.index), chunk).is_none();
-        debug_assert!(_d);
+        assert!(curr_chunks.insert((chunk.file.clone(), chunk.index), chunk).is_none());
     }
 
     // it has to merge from left to right
@@ -366,8 +368,8 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
 }
 
 fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
-    debug_assert_eq!(pre.file, post.file);
-    debug_assert_eq!(pre.index + 1, post.index);
+    assert_eq!(pre.file, post.file);
+    assert_eq!(pre.index + 1, post.index);
     let Chunk {
         data: data_pre,
         images: images_pre,

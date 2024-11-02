@@ -319,7 +319,7 @@ fn march_until_code_span_end(chars: &[char], index: usize) -> usize {
         }
     }
 
-    debug_assert!(backtick_count != 0);
+    assert!(backtick_count != 0);
 
     for i in 1..(chars.len() - backtick_count) {
         if &chars[i..(i + backtick_count)] == &vec!['`'; backtick_count] {
