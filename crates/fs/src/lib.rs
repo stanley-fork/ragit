@@ -210,6 +210,10 @@ pub fn create_dir_all(path: &str) -> Result<(), FileError> {
     fs::create_dir_all(path).map_err(|e| FileError::from_std(e, path))
 }
 
+pub fn rename(from: &str, to: &str) -> Result<(), FileError> {
+    fs::rename(from, to).map_err(|e| FileError::from_std(e, from))
+}
+
 // it only returns the hash value of the modified time
 pub fn last_modified(path: &str) -> Result<u64, FileError> {
     match fs::metadata(path) {

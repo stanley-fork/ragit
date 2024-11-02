@@ -19,6 +19,7 @@ use ragit_fs::{
     normalize,
     read_bytes,
     read_string,
+    rename,
     set_extension,
     write_bytes,
     write_string,
@@ -296,10 +297,11 @@ impl Index {
     }
 
     fn create_new_chunk_file(&mut self) -> Result<(), Error> {
-        let rel_path = create_chunk_file_name();
         let real_path = Index::get_chunk_path(
             &self.root_dir,
-            &rel_path,
+
+            // hack: a name of a chunk file is xor of its chunks' uids, so an empty chunk file must be 0
+            &format!("{:064x}.chunks", 0),
         );
         chunk::save_to_file(
             &real_path,
@@ -307,7 +309,7 @@ impl Index {
             self.config.compression_threshold,
             self.config.compression_level,
         )?;
-        self.chunk_files.insert(file_name(&rel_path)?, 0);
+        self.chunk_files.insert(format!("{:064x}", 0), 0);
 
         Ok(())
     }
@@ -364,10 +366,10 @@ impl Index {
 
                 let chunk_path = self.get_curr_processing_chunks_path();
                 let new_chunk = fd.generate_chunk(&self.api_config, &prompt, build_info.clone()).await?;
+                let new_chunk_uid = new_chunk.uid.clone();
 
                 // prevents adding duplicate chunks
-                if let Err(Error::NoSuchChunk { .. }) = self.get_chunk_file_by_index(&new_chunk.uid) {
-                    self.add_chunk_index(&new_chunk.uid, &chunk_path)?;
+                if let Err(Error::NoSuchChunk { .. }) = self.get_chunk_file_by_index(&new_chunk_uid) {
                     chunks.push(new_chunk);
                     self.chunk_count += 1;
                     self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
@@ -384,6 +386,7 @@ impl Index {
                         chunks = self.load_curr_processing_chunks()?;
                     }
 
+                    self.add_chunk_index(&new_chunk_uid, &chunk_path, true)?;
                     self.save_to_file()?;
                 }
             }
@@ -754,11 +757,17 @@ impl Index {
             );
             let mut chunks = chunk::load_from_file(&real_path)?;
             let mut chunks_to_remove = vec![];
+            let old_chunk_file_name = file_name(&chunk_path)?;
+            let mut new_chunk_file_name = file_name(&chunk_path)?;
 
             for chunk in chunks.iter() {
                 if chunk.file == file {
                     chunks_to_remove.push(chunk.uid.clone());
                     self.remove_chunk_index(&chunk.uid)?;
+                    new_chunk_file_name = xor_sha3(
+                        &chunk.uid,
+                        &new_chunk_file_name,
+                    )?;
                 }
             }
 
@@ -778,6 +787,13 @@ impl Index {
             )?;
             self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
             total_chunk_count += chunks.len();
+
+            // a name of a chunk file is an xor of its chunks
+            // so a chunk file has to be renamed when a chunk is added/removed
+            self.rename_chunk_file(
+                &old_chunk_file_name,
+                &new_chunk_file_name,
+            )?;
         }
 
         self.chunk_count = total_chunk_count;
@@ -824,11 +840,13 @@ impl Index {
     }
 
     pub fn add_chunk_index(
-        &self,
+        &mut self,
         chunk_uid: &Uid,
         chunk_file: &Path,  // can be real_path or rel_path. doesn't matter
+        update_chunk_file_name: bool,
     ) -> Result<(), Error> {
         let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, chunk_uid);
+        let chunk_file_name = file_name(chunk_file)?;
 
         let mut index = if !exists(&chunk_index_file) {
             json::object::Object::new()
@@ -849,12 +867,24 @@ impl Index {
             }
         };
 
-        index.insert(chunk_uid, file_name(chunk_file)?.into());
+        index.insert(chunk_uid, chunk_file_name.clone().into());
         write_string(
             &chunk_index_file,
             &JsonValue::Object(index).pretty(4),
             WriteMode::CreateOrTruncate,
         )?;
+
+        // a name of a chunk file is an xor of its chunks
+        // so a chunk file has to be renamed when a chunk is added/removed
+        if update_chunk_file_name {
+            self.rename_chunk_file(
+                &chunk_file_name,
+                &xor_sha3(
+                    &chunk_file_name,
+                    &chunk_uid,
+                )?,
+            )?;
+        }
 
         Ok(())
     }
@@ -888,6 +918,52 @@ impl Index {
         Ok(())
     }
 
+    fn rename_chunk_file(
+        &mut self,
+        old_name: &str,
+        new_name: &str,
+    ) -> Result<(), Error> {
+        let old_real_path = Index::get_chunk_path(
+            &self.root_dir,
+            &set_extension(&old_name, "chunks")?,
+        );
+        let chunks = chunk::load_from_file(&old_real_path)?;
+
+        for chunk in chunks.iter() {
+            let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, &chunk.uid);
+            let json_content = read_string(&chunk_index_file)?;
+            let j = json::parse(&json_content)?;
+            let mut index = match j {
+                JsonValue::Object(obj) => obj,
+                _ => {
+                    return Err(Error::JsonTypeError {
+                        expected: JsonType::Object,
+                        got: get_type(&j),
+                    });
+                },
+            };
+            index.insert(&chunk.uid, new_name.into());
+            write_string(
+                &chunk_index_file,
+                &JsonValue::Object(index).pretty(4),
+                WriteMode::CreateOrTruncate,
+            )?;
+        }
+
+        self.chunk_files.remove(&old_name.to_string());
+        self.chunk_files.insert(new_name.to_string(), chunks.len());
+        let new_real_path = Index::get_chunk_path(
+            &self.root_dir,
+            &set_extension(&new_name, "chunks")?,
+        );
+        rename(&old_real_path, &new_real_path)?;
+        rename(
+            &set_extension(&old_real_path, "tfidf")?,
+            &set_extension(&new_real_path, "tfidf")?,
+        )?;
+        Ok(())
+    }
+
     fn count_external_chunks(&self) -> usize {
         self.external_indexes.iter().map(|index| index.chunk_count).sum()
     }
@@ -913,7 +989,47 @@ pub fn update_index_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(path: &
     Ok(())
 }
 
-// I want to make sure that each chunk file has a unique name. The ideal way is to hash the file, but I need more brainstorming for that.
-fn create_chunk_file_name() -> String {
-    format!("{:032x}.chunks", rand::random::<u128>())
+fn xor_sha3(
+    hash1: &str,
+    hash2: &str,
+) -> Result<String, Error> {
+    if hash1.len() != 64 {
+        return Err(Error::BrokenHash(hash1.to_string()));
+    }
+
+    if hash2.len() != 64 {
+        return Err(Error::BrokenHash(hash2.to_string()));
+    }
+
+    let mut strings = Vec::with_capacity(8);
+
+    for i in 0..8 {
+        match (
+            hash1.get((i * 8)..(i * 8 + 8)),
+            hash2.get((i * 8)..(i * 8 + 8)),
+        ) {
+            (Some(h1), Some(h2)) => match (
+                u32::from_str_radix(h1, 16),
+                u32::from_str_radix(h2, 16),
+            ) {
+                (Ok(n1), Ok(n2)) => {
+                    strings.push(format!("{:08x}", n1 ^ n2));
+                },
+                (Err(_), _) => {
+                    return Err(Error::BrokenHash(hash1.to_string()));
+                },
+                (_, Err(_)) => {
+                    return Err(Error::BrokenHash(hash2.to_string()));
+                },
+            },
+            (None, _) => {
+                return Err(Error::BrokenHash(hash1.to_string()));
+            },
+            (_, None) => {
+                return Err(Error::BrokenHash(hash2.to_string()));
+            },
+        }
+    }
+
+    Ok(strings.concat())
 }

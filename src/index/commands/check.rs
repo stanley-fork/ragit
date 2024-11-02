@@ -2,7 +2,7 @@ use super::Index;
 use crate::{ApiConfigRaw, QueryConfig};
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{CHUNK_INDEX_DIR_NAME, Config, IMAGE_DIR_NAME, tfidf};
+use crate::index::{CHUNK_INDEX_DIR_NAME, Config, IMAGE_DIR_NAME, tfidf, xor_sha3};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
 use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_extension};
@@ -18,6 +18,7 @@ impl Index {
     /// Check G: Images in chunks are all in `.rag_index/images` and vice versa.
     /// Check H: Images in `.rag_index/images` are not corrupted.
     /// Check I: Config files are not broken.
+    /// Check J: A name of a chunk file is an xor of its chunks' uids. (TODO)
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
         let mut chunk_count = 0;
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());
@@ -79,10 +80,16 @@ impl Index {
                 },
             }
 
+            let mut xor_uids = format!("{:064x}", 0);
+
             for chunk in chunks.iter() {
                 processed_files.insert(chunk.file.clone());
                 let (root_dir, chunk_file_by_index) = self.get_chunk_file_by_index(&chunk.uid)?;
                 chunk_index.insert(chunk.uid.clone(), chunk_file_by_index.clone());
+                xor_uids = xor_sha3(
+                    &xor_uids,
+                    &chunk.uid,
+                )?;
 
                 if root_dir != self.root_dir {  // Check B
                     return Err(Error::BrokenIndex(format!(
@@ -108,6 +115,12 @@ impl Index {
                 for image in chunk.images.iter() {
                     images.insert(image.to_string(), false);
                 }
+            }
+
+            if chunk_file_name != xor_uids {  // Check J
+                return Err(Error::BrokenIndex(format!(
+                    "chunk_file_name = {chunk_file_name:?}\nxor_uids = {xor_uids:?}",
+                )));
             }
         }
 

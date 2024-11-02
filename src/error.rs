@@ -21,6 +21,7 @@ pub enum Error {
     NoSuchFile { file: String },
     NotImplemented(String),
     CliError(String),  // TODO: spans?
+    BrokenHash(String),
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.

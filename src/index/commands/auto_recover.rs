@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME};
+use crate::index::{CHUNK_DIR_NAME, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME};
 use ragit_fs::{file_name, join3, read_dir, remove_file};
 use std::collections::{HashMap, HashSet};
 
@@ -19,7 +19,11 @@ impl Index {
         // It removes unused images
         let mut images = HashSet::new();
 
-        for chunk_file in self.chunk_files_real_path() {
+        for chunk_file in read_dir(&join3(
+            &self.root_dir,
+            &INDEX_DIR_NAME.to_string(),
+            &CHUNK_DIR_NAME.to_string(),
+        )?)? {
             match chunk::load_from_file(&chunk_file) {
                 Ok(chunks) => {
                     let mut new_chunks = Vec::with_capacity(chunks.len());
@@ -65,7 +69,7 @@ impl Index {
         }
 
         for (chunk_uid, chunk_index) in chunk_index_map.iter() {
-            self.add_chunk_index(chunk_uid, chunk_index)?;
+            self.add_chunk_index(chunk_uid, chunk_index, false)?;
         }
 
         for image_file in read_dir(&join3(
