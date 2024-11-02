@@ -1,11 +1,13 @@
 import os
 import shutil
+import random
 from random import randint
 import re
 from subprocess import TimeoutExpired
 from utils import cargo_run, count_chunks, count_files, goto_root
 
 def end_to_end(test_model: str):
+    random.seed(0)
     goto_root()
     os.chdir("docs")
     md_files = []

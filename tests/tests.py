@@ -25,7 +25,6 @@ Commands
 if __name__ == "__main__":
     command = sys.argv[1] if len(sys.argv) > 1 else None
     test_model = sys.argv[2] if len(sys.argv) > 2 else "dummy"
-    random.seed(0)
 
     try:
         if command == "end_to_end":

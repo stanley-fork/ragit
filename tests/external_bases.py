@@ -11,6 +11,7 @@ from utils import (
 )
 
 def external_bases():
+    random.seed(0)
     def rand_word() -> str:
         if random() < 0.5:
             return "".join([chr(randint(65, 90)) for _ in range(randint(4, 12))])
