@@ -158,13 +158,7 @@ impl Index {
         root_dir: Path,
         read_only: bool,
     ) -> Result<Self, Error> {
-        let index_json = read_string(&Index::get_rag_path(
-            &root_dir,
-            &INDEX_FILE_NAME.to_string(),
-        ))?;
-
-        let mut result = serde_json::from_str::<Index>(&index_json)?;
-        result.root_dir = root_dir;
+        let mut result = Index::load_minimum(root_dir)?;
         result.build_config = serde_json::from_str::<BuildConfig>(
             &read_string(&result.get_build_config_path()?)?,
         )?;
@@ -189,6 +183,19 @@ impl Index {
 
         result.load_prompts()?;
         result.load_external_indexes()?;
+        Ok(result)
+    }
+
+    /// It only loads `index.json`. No config files, no prompt files, and it doesn't care whether chunk files are broken or not.
+    /// It's for `rag check --auto-recover`: it only loads minimum data and the auto-recover function will load or fix the others.
+    pub fn load_minimum(root_dir: Path) -> Result<Self, Error> {
+        let index_json = read_string(&Index::get_rag_path(
+            &root_dir,
+            &INDEX_FILE_NAME.to_string(),
+        ))?;
+
+        let mut result = serde_json::from_str::<Index>(&index_json)?;
+        result.root_dir = root_dir;
         Ok(result)
     }
 

@@ -122,15 +122,26 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, true)?;
+            let root_dir = root_dir?;
             let recursive = parsed_args.get_flag(0).is_some();
             let auto_recover = parsed_args.get_flag(1).is_some();
 
-            match index.check(recursive) {
-                Ok(()) => {
-                    println!("everything is fine!");
+            match Index::load(root_dir.clone(), true) {
+                Ok(mut index) => match index.check(recursive) {
+                    Ok(()) => {
+                        println!("everything is fine!");
+                    },
+                    Err(e) => if auto_recover {
+                        index.auto_recover()?;
+                        index.save_to_file()?;
+                        index.check(recursive)?;
+                        println!("auto-recovered from a corrupted knowledge-base");
+                    } else {
+                        return Err(e);
+                    },
                 },
                 Err(e) => if auto_recover {
+                    let mut index = Index::load_minimum(root_dir)?;
                     index.auto_recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;

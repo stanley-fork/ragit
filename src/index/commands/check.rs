@@ -225,9 +225,10 @@ impl Index {
         serde_json::from_str::<QueryConfig>(
             &read_string(&self.get_query_config_path()?)?,
         )?;
-        serde_json::from_str::<ApiConfigRaw>(
+        let api_config_raw = serde_json::from_str::<ApiConfigRaw>(
             &read_string(&self.get_api_config_path()?)?,
         )?;
+        self.init_api_config(&api_config_raw)?;
 
         // Extra check: It checks whether the keys in the config files are unique.
         let mut keys = HashSet::new();

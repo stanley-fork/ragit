@@ -1,15 +1,34 @@
 use super::Index;
-use crate::chunk;
+use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
 use crate::error::Error;
-use crate::index::{CHUNK_DIR_NAME, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME};
-use ragit_fs::{file_name, join3, read_dir, remove_file};
+use crate::index::{
+    CHUNK_DIR_NAME,
+    CHUNK_INDEX_DIR_NAME,
+    IMAGE_DIR_NAME,
+    INDEX_DIR_NAME,
+};
+use ragit_fs::{
+    WriteMode,
+    file_name,
+    join3,
+    read_dir,
+    read_string,
+    remove_file,
+    write_bytes,
+};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
     /// This is `auto-recover` of `rag check --auto-recover`.
+    ///
+    /// - Recover A: If `self.curr_processing_file` exists, remove all the chunks related to it and add the file to the staging area.
+    ///   - `self.curr_processing_file` exists if previous `rag build` was interrupted.
+    /// - Recover B: Create chunk_index files from scratch by reading the actual chunk files.
+    /// - Recover C: Replace config json files with their default values if broken.
+    /// - Recover D: Count chunks.
     pub fn auto_recover(&mut self) -> Result<(), Error> {
         let curr_processing_file = self.curr_processing_file.clone();
-        self.curr_processing_file = None;
+        self.curr_processing_file = None;  // Recover A
         let mut chunk_files_to_remove = vec![];
 
         // It's re-created from scratch
@@ -74,6 +93,7 @@ impl Index {
             remove_file(&chunk_index_file)?;
         }
 
+        // Recover B
         for (chunk_uid, chunk_index) in chunk_index_map.iter() {
             self.add_chunk_index(chunk_uid, chunk_index, false)?;
         }
@@ -88,6 +108,50 @@ impl Index {
             }
         }
 
+        // Recover C
+        let reset_build_config = match read_string(&self.get_build_config_path()?) {
+            Ok(j) => serde_json::from_str::<BuildConfig>(&j).is_err(),
+            _ => true,
+        };
+
+        if reset_build_config {
+            write_bytes(
+                &self.get_build_config_path()?,
+                &serde_json::to_vec_pretty(&BuildConfig::default())?,
+                WriteMode::CreateOrTruncate,
+            )?;
+        }
+
+        let reset_query_config = match read_string(&self.get_query_config_path()?) {
+            Ok(j) => serde_json::from_str::<QueryConfig>(&j).is_err(),
+            _ => true,
+        };
+
+        if reset_query_config {
+            write_bytes(
+                &self.get_query_config_path()?,
+                &serde_json::to_vec_pretty(&QueryConfig::default())?,
+                WriteMode::CreateOrTruncate,
+            )?;
+        }
+
+        let reset_api_config = match read_string(&self.get_api_config_path()?) {
+            Ok(j) => match serde_json::from_str::<ApiConfigRaw>(&j) {
+                Ok(api_config_raw) => self.init_api_config(&api_config_raw).is_err(),
+                _ => true,
+            },
+            _ => true,
+        };
+
+        if reset_api_config {
+            write_bytes(
+                &self.get_api_config_path()?,
+                &serde_json::to_vec_pretty(&ApiConfigRaw::default())?,
+                WriteMode::CreateOrTruncate,
+            )?;
+        }
+
+        // Recover D
         self.chunk_files = chunk_files;
         self.chunk_count = chunk_count;
 
@@ -95,7 +159,7 @@ impl Index {
             self.create_new_chunk_file()?;
         }
 
-        if let Some(curr_processing_file) = curr_processing_file {
+        if let Some(curr_processing_file) = curr_processing_file {  // Recover A
             self.staged_files.push(curr_processing_file);
         }
 
