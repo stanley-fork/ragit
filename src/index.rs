@@ -81,6 +81,26 @@ pub struct Index {
     prompts: HashMap<String, String>,
 }
 
+/// 1. If you want to do something with chunks, use `LoadMode::QuickCheck`.
+/// 2. If you have nothing to do with chunks, use `LoadMode::OnlyJson`.
+/// 3. If something's broken and you don't want it to crash, use `LoadMode::Minimum`. It can still crash, though.
+/// 4. If you want to be very sure that nothing's broken and you don't care about init-time, use `LoadMode::Check`.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum LoadMode {
+    /// It only loads `index.json`. It doesn't care whether config files prompt files, or chunk files are broken.
+    Minimum,
+
+    /// It loads json files, but doesn't care whether the chunk files are broken.
+    OnlyJson,
+
+    /// It checks and auto-recovers if `self.curr_processing_file` is not None. If the value is not None,
+    /// a previous build was interrupted and something could be broken.
+    QuickCheck,
+
+    /// It always checks and auto-recovers. You should be very careful, `check` and `auto-recover` are very expensive.
+    Check,
+}
+
 impl Index {
     /// It works like git. `root_dir` is the root of the repo. And it creates dir `.rag_index`, like `.git`.
     /// It reads the files in the repo and creates index.
@@ -156,9 +176,14 @@ impl Index {
 
     pub fn load(
         root_dir: Path,
-        read_only: bool,
+        load_mode: LoadMode,
     ) -> Result<Self, Error> {
         let mut result = Index::load_minimum(root_dir)?;
+
+        if load_mode == LoadMode::Minimum {
+            return Ok(result);
+        }
+
         result.build_config = serde_json::from_str::<BuildConfig>(
             &read_string(&result.get_build_config_path()?)?,
         )?;
@@ -169,26 +194,27 @@ impl Index {
             &read_string(&result.get_api_config_path()?)?,
         )?;
         result.api_config = result.init_api_config(&result.api_config_raw)?;
-
-        if result.ragit_version != crate::VERSION {
-            // TODO
-            // 1. show warning message
-            // 2. impl auto-version-migration
-        }
-
-        if !read_only {
-            result.remove_garbage_files()?;
-            result.save_to_file()?;
-        }
-
         result.load_prompts()?;
-        result.load_external_indexes()?;
-        Ok(result)
+        result.load_external_indexes(load_mode)?;
+
+        match load_mode {
+            LoadMode::QuickCheck if result.curr_processing_file.is_some() && result.check(false).is_err() => {
+                result.auto_recover()?;
+                result.save_to_file()?;
+                Ok(result)
+            },
+            LoadMode::Check if result.check(false).is_err() => {
+                result.auto_recover()?;
+                result.save_to_file()?;
+                Ok(result)
+            },
+            _ => Ok(result),
+        }
     }
 
     /// It only loads `index.json`. No config files, no prompt files, and it doesn't care whether chunk files are broken or not.
     /// It's for `rag check --auto-recover`: it only loads minimum data and the auto-recover function will load or fix the others.
-    pub fn load_minimum(root_dir: Path) -> Result<Self, Error> {
+    fn load_minimum(root_dir: Path) -> Result<Self, Error> {
         let index_json = read_string(&Index::get_rag_path(
             &root_dir,
             &INDEX_FILE_NAME.to_string(),
@@ -196,6 +222,13 @@ impl Index {
 
         let mut result = serde_json::from_str::<Index>(&index_json)?;
         result.root_dir = root_dir;
+
+        if result.ragit_version != crate::VERSION {
+            // TODO
+            // 1. show warning message
+            // 2. impl auto-version-migration
+        }
+
         Ok(result)
     }
 
@@ -208,8 +241,8 @@ impl Index {
         )?;
 
         if exists(&index_dir) {
-            // `load_or_init` cannot be done in read-only mode, because read-only `init` doesn't make sense
-            Index::load(root_dir, false)
+            // `load_or_init` cannot be done in only-json mode, because only-json `init` doesn't make sense
+            Index::load(root_dir, LoadMode::QuickCheck)
         }
 
         else {
@@ -272,16 +305,6 @@ impl Index {
 
     fn tfidf_files_real_path(&self) -> Vec<Path> {
         self.tfidf_files().iter().map(|rel_path| Index::get_chunk_path(&self.root_dir, rel_path)).collect()
-    }
-
-    // garbage chunks: when an indexing is interrupted, chunks of unfinished file belongs to nowhere
-    // in order to prevent creating the chunks again, it has to remove all those chunks
-    fn remove_garbage_files(&mut self) -> Result<(), Error> {
-        if self.curr_processing_file.is_some() && self.check(false).is_err() {
-            self.auto_recover()?;
-        }
-
-        Ok(())
     }
 
     fn load_curr_processing_chunks(&self) -> Result<Vec<Chunk>, Error> {

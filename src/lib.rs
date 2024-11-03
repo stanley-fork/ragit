@@ -19,6 +19,7 @@ pub use index::{
     AddResult,
     BuildConfig,
     Index,
+    LoadMode,
     ProcessedDoc,
     update_index_schema,
 };

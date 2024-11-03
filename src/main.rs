@@ -7,6 +7,7 @@ use ragit::{
     Index,
     INDEX_DIR_NAME,
     Keywords,
+    LoadMode,
     multi_turn,
     single_turn,
 };
@@ -79,7 +80,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, false)?;
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let add_mode = AddMode::parse_flag(&parsed_args.get_flag(0).unwrap()).unwrap();
             let dry_run = parsed_args.get_flag(1).is_some();
 
@@ -110,7 +111,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, false)?;
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let dashboard = parsed_args.get_flag(0).is_some();
             index.build_knowledge_base(dashboard).await?;
         },
@@ -126,7 +127,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let recursive = parsed_args.get_flag(0).is_some();
             let auto_recover = parsed_args.get_flag(1).is_some();
 
-            match Index::load(root_dir.clone(), true) {
+            match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
                 Ok(mut index) => match index.check(recursive) {
                     Ok(()) => {
                         println!("everything is fine!");
@@ -141,7 +142,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     },
                 },
                 Err(e) => if auto_recover {
-                    let mut index = Index::load_minimum(root_dir)?;
+                    let mut index = Index::load(root_dir, LoadMode::Minimum)?;
                     index.auto_recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;
@@ -159,7 +160,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, false)?;
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
             match parsed_args.get_flag(0).unwrap().as_str() {
                 "--set" => {
@@ -205,7 +206,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             match parsed_args.get_flag(0).unwrap().as_str() {
                 "--logs" => {
-                    let index = Index::load(root_dir?, true)?;
+                    let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_logs()?;
                     println!("removed {removed} log files");
                 },
@@ -264,7 +265,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
             // TODO: impl `--name-only` and `--stat-only`
 
-            let index = Index::load(root_dir?, true)?;
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             println!("{} chunks", index.chunk_count);
             let chunks = index.list_chunks(
                 &|_| true,  // no filter
@@ -294,7 +295,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
             // TODO: impl `--name-only` and `--stat-only`
 
-            let index = Index::load(root_dir?, true)?;
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             println!(
                 "{} total files, {} staged files, {} processed files",
                 index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
@@ -345,7 +346,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, false)?;
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let bases = parsed_args.get_args();
 
             for base in bases.iter() {
@@ -362,7 +363,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, true)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let flag = parsed_args.get_flag(0).unwrap();
 
             match flag.as_str() {
@@ -403,7 +404,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("query") => {
             let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Exact(1)).parse(&args[2..])?;
-            let index = Index::load(root_dir?, true)?;
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let arg = &parsed_args.get_args()[0];
 
             match arg.as_str() {
@@ -450,7 +451,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, false)?;
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let files = parsed_args.get_args();
 
             let remove_count = if files.len() == 1 && files[0] == "--auto" {
@@ -479,7 +480,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let soft = parsed_args.get_flag(0).unwrap() == "--soft";
 
             if soft {
-                let mut index = Index::load(root_dir?, false)?;
+                let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                 index.reset_soft()?;
                 index.save_to_file()?;
             }
@@ -496,7 +497,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, true)?;
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
 
             if let Some("--show") = args.get(2).map(|arg| arg.as_str()) {
                 let processed_doc_data = index.get_tfidf_by_chunk_uid(args[3].clone())?;

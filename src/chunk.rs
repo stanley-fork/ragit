@@ -1,6 +1,7 @@
 use crate::ApiConfig;
 use crate::error::Error;
-use crate::index::{BuildConfig, Index, file::AtomicToken, tfidf};
+use crate::index::{BuildConfig, Index, LoadMode, tfidf};
+use crate::index::file::AtomicToken;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use json::JsonValue;
@@ -436,7 +437,7 @@ pub fn update_chunk_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(
     f: &F,
 ) -> Result<(), Error> {
     for dir in index_dirs.iter() {
-        let index = Index::load(dir.to_string(), true)?;
+        let index = Index::load(dir.to_string(), LoadMode::Minimum)?;
         index.map_chunk_jsons(f)?;
     }
 
