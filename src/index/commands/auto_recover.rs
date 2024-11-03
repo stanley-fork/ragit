@@ -19,13 +19,17 @@ use ragit_fs::{
 use std::collections::{HashMap, HashSet};
 
 impl Index {
-    /// This is `auto-recover` of `rag check --auto-recover`.
+    /// This is `auto-recover` of `rag check --auto-recover`. It tries its best to make the index usable.
+    /// It may remove some chunks if necessary information is missing.
     ///
     /// - Recover A: If `self.curr_processing_file` exists, remove all the chunks related to it and add the file to the staging area.
     ///   - `self.curr_processing_file` exists if previous `rag build` was interrupted.
     /// - Recover B: Create chunk_index files from scratch by reading the actual chunk files.
     /// - Recover C: Replace config json files with their default values if broken.
-    /// - Recover D: Count chunks.
+    /// - Recover D: Count `self.chunk_count`.
+    /// - Recover E: If chunks are missing, it updates `self.processed_files`.
+    ///   - It can remove entries in `self.processed_files`, but cannot add ones.
+    ///   - In order to add an entry, it needs an actual file, which are missing if the knowledge-base was cloned from remote.
     pub fn auto_recover(&mut self) -> Result<(), Error> {
         let curr_processing_file = self.curr_processing_file.clone();
         self.curr_processing_file = None;  // Recover A
@@ -35,6 +39,7 @@ impl Index {
         let mut chunk_index_map = HashMap::new();
         let mut chunk_files = HashMap::new();
         let mut chunk_count = 0;
+        let mut processed_files = HashSet::new();
 
         // It removes unused images
         let mut images = HashSet::new();
@@ -67,6 +72,7 @@ impl Index {
                             images.insert(image.to_string());
                         }
 
+                        processed_files.insert(chunk.file.clone());
                         new_chunks.push(chunk);
                         chunk_count += 1;
                     }
@@ -159,8 +165,29 @@ impl Index {
             self.create_new_chunk_file()?;
         }
 
-        if let Some(curr_processing_file) = curr_processing_file {  // Recover A
+        // Recover A
+        if let Some(curr_processing_file) = curr_processing_file {
             self.staged_files.push(curr_processing_file);
+        }
+
+        // Recover E
+        for processed_file in processed_files.iter() {
+            // It cannot add a new file to `self.processed_files`. See the comments above.
+            if !self.processed_files.contains_key(processed_file) {
+                return Err(Error::BrokenIndex(format!("!self.processed_files.contains_key({processed_file:?})")));
+            }
+        }
+
+        let mut files_to_remove = vec![];
+
+        for processed_file in self.processed_files.keys() {
+            if !processed_files.contains(processed_file) {
+                files_to_remove.push(processed_file.to_string());
+            }
+        }
+
+        for file in files_to_remove.iter() {
+            self.processed_files.remove(file);
         }
 
         Ok(())

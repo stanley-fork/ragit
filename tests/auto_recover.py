@@ -49,7 +49,7 @@ def auto_recover():
     cargo_run(["check"])
 
     # step 2.3: remove chunk_index file and recover
-    os.chdir(".rag_index/chunks_index")
+    os.chdir(".rag_index/chunk_index")
     assert len((chunk_index_files := [file for file in os.listdir() if file.endswith("json")])) > 0
 
     for chunk_index_file in chunk_index_files:
