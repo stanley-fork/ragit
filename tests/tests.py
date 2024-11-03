@@ -1,9 +1,9 @@
 from add_and_rm import add_and_rm
+from auto_recover import auto_recover
 from cargo_tests import cargo_tests
 from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
-import random
 import sys
 from utils import clean
 
@@ -14,6 +14,8 @@ Commands
     external_bases              run `external_bases` test
 
     add_and_rm                  run `add_and_rm` test
+
+    auto_recover                run `auto_recover` test
 
     images                      run `images` test
 
@@ -36,6 +38,9 @@ if __name__ == "__main__":
         elif command == "add_and_rm":
             add_and_rm()
 
+        elif command == "auto_recover":
+            auto_recover()
+
         elif command == "images":
             images()
 
@@ -46,6 +51,7 @@ if __name__ == "__main__":
             end_to_end(test_model=test_model)
             external_bases()
             add_and_rm()
+            auto_recover()
             images()
             cargo_tests()
 
