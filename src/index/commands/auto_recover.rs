@@ -188,6 +188,10 @@ impl Index {
 
         for file in files_to_remove.iter() {
             self.processed_files.remove(file);
+
+            if !self.staged_files.contains(file) {
+                self.staged_files.push(file.to_string());
+            }
         }
 
         Ok(())
