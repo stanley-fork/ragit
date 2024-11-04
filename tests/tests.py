@@ -4,6 +4,7 @@ from cargo_tests import cargo_tests
 from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
+from images2 import images2
 import os
 import sys
 from utils import clean, goto_root
@@ -19,6 +20,8 @@ Commands
     auto_recover                run `auto_recover` test
 
     images                      run `images` test
+
+    images2 [model]             run `images2` test
 
     cargo_tests                 run `cargo test` on all the crates
 
@@ -49,6 +52,13 @@ if __name__ == "__main__":
         elif command == "images":
             images()
 
+        elif command == "images2":
+            if test_model is None:
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            images2(test_model=test_model)
+
         elif command == "cargo_tests":
             cargo_tests()
 
@@ -70,6 +80,7 @@ if __name__ == "__main__":
                 ("add_and_rm", add_and_rm),
                 ("auto_recover", auto_recover),
                 ("images", images),
+                ("images2", lambda: images(test_model="claude-3-5-sonnet")),  # TODO: run with all multi-modal models
                 ("cargo_tests", cargo_tests),
             ]
 
