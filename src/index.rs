@@ -6,6 +6,15 @@ use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
 use json::JsonValue;
+use ragit_api::{
+    ChatRequest,
+    Message,
+    MessageContent,
+    RecordAt,
+    Role,
+    encode_base64,
+    messages_from_pdl,
+};
 use ragit_fs::{
     WriteMode,
     create_dir_all,
@@ -19,11 +28,13 @@ use ragit_fs::{
     normalize,
     read_bytes,
     read_string,
+    remove_file,
     rename,
     set_extension,
     write_bytes,
     write_string,
 };
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, HashSet};
@@ -423,12 +434,15 @@ impl Index {
                 }
             }
 
+            // It might write the same image file multiple times (not a big deal),
+            // but does not `add_image_description` on the same image multiple times
             for (key, bytes) in fd.images.iter() {
                 write_bytes(
-                    &Index::get_image_path(&self.root_dir, key),
+                    &Index::get_image_path(&self.root_dir, key, "png"),
                     &bytes,
                     WriteMode::CreateOrTruncate,
                 )?;
+                self.add_image_description(key).await?;
             }
 
             self.processed_files.insert(doc.clone(), get_file_hash(&real_path)?);
@@ -439,6 +453,116 @@ impl Index {
         if dashboard {
             self.render_dashboard()?;
         }
+
+        Ok(())
+    }
+
+    async fn add_image_description(&mut self, key: &str) -> Result<(), Error> {
+        let description_path = Index::get_image_path(&self.root_dir, key, "json");
+        let image_path = Index::get_image_path(&self.root_dir, key, "png");
+        let image_bytes = read_bytes(&image_path)?;
+        let image_bytes = encode_base64(&image_bytes);
+
+        if let Ok(j) = read_string(&description_path) {
+            if json::parse(&j).is_ok() {
+                return Ok(());
+            }
+
+            else {
+                remove_file(&description_path)?;
+            }
+        }
+
+        let mut context = tera::Context::new();
+        context.insert("image_type", "png");
+        context.insert("image_bytes", &image_bytes);
+        let pdl = self.get_prompt("describe_image")?;
+        let messages = messages_from_pdl(
+            pdl.to_string(),
+            context,
+        )?;
+        let mut mistakes = 0;
+
+        let mut request = ChatRequest {
+            messages,
+            api_key: self.api_config.api_key.clone(),
+            model: self.api_config.model,
+            frequency_penalty: None,
+            max_tokens: None,
+            max_retry: self.api_config.max_retry,
+            sleep_between_retries: self.api_config.sleep_between_retries,
+            timeout: self.api_config.timeout,
+            temperature: None,
+            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
+                |path| RecordAt { path, id: String::from("describe_image") }
+            ),
+            dump_pdl_at: self.api_config.create_pdl_path("describe_image"),
+        };
+        let mut response = request.send().await?;
+        let mut response_text = response.get_message(0).unwrap();
+        let json_regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
+
+        let result = loop {
+            let error_message;
+
+            if let Some(cap) = json_regex.captures(&response_text) {
+                let json_text = cap[1].to_string();
+
+                match json::parse(&json_text) {
+                    Ok(j) => match j {
+                        JsonValue::Object(ref obj) if obj.len() == 2 => match (
+                            obj.get("extracted_text"), obj.get("explanation"),
+                        ) {
+                            (Some(extracted), Some(explanation)) => match (extracted.as_str(), explanation.as_str()) {
+                                (Some(_), Some(_)) => {
+                                    break j.clone();
+                                },
+                                _ => {
+                                    error_message = String::from("Please make sure that both values of the object are string.");
+                                },
+                            },
+                            _ => {
+                                error_message = String::from("Give me a json object with 2 keys: \"extracted_text\" and \"explanation\". Make sure that both are string.");
+                            },
+                        },
+                        _ => {
+                            error_message = String::from("Give me a json object with 2 keys: \"extracted_text\" and \"explanation\". Make sure that both are string.");
+                        },
+                    },
+                    _ => {
+                        error_message = String::from("I cannot parse your output. It seems like your output is not a valid json. Please give me a valid json.");
+                    },
+                }
+            }
+
+            else {
+                error_message = String::from("I cannot find curly braces in your response. Please give me a valid json output.");
+            }
+
+            mistakes += 1;
+
+            // if a model is too stupid, it cannot create title and summary
+            if mistakes > 5 {
+                break vec![("extracted_text", ""), ("explanation", "")].into_iter().collect::<HashMap<&str, &str>>().into();
+            }
+
+            request.messages.push(Message {
+                role: Role::Assistant,
+                content: MessageContent::simple_message(response_text.to_string()),
+            });
+            request.messages.push(Message {
+                role: Role::User,
+                content: MessageContent::simple_message(error_message),
+            });
+            response = request.send().await?;
+            response_text = response.get_message(0).unwrap();
+        };
+
+        write_string(
+            &description_path,
+            &result.pretty(4),
+            WriteMode::AlwaysCreate,
+        )?;
 
         Ok(())
     }
@@ -611,13 +735,13 @@ impl Index {
         ).unwrap()
     }
 
-    fn get_image_path(root_dir: &Path, image_key: &str) -> Path {
+    fn get_image_path(root_dir: &Path, image_key: &str, extension: &str) -> Path {
         normalize(
             &join4(
                 root_dir,
                 &INDEX_DIR_NAME.to_string(),
                 &IMAGE_DIR_NAME.to_string(),
-                &set_extension(image_key, "png").unwrap(),
+                &set_extension(image_key, extension).unwrap(),
             ).unwrap(),
         ).unwrap()
     }
@@ -998,7 +1122,7 @@ impl Index {
     }
 
     pub fn load_image_by_key(&self, key: &str) -> Result<Vec<u8>, Error> {
-        Ok(read_bytes(&Index::get_image_path(&self.root_dir, key))?)
+        Ok(read_bytes(&Index::get_image_path(&self.root_dir, key, "png"))?)
     }
 }
 

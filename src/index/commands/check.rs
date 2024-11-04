@@ -5,7 +5,7 @@ use crate::error::Error;
 use crate::index::{BuildConfig, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf, xor_sha3};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
-use ragit_fs::{file_name, read_bytes, read_dir, read_string, set_extension};
+use ragit_fs::{extension, file_name, read_bytes, read_dir, read_string, set_extension};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
@@ -175,7 +175,12 @@ impl Index {
             &self.root_dir,
             &IMAGE_DIR_NAME.to_string(),
         ))? {
+            if extension(&image_file)?.unwrap_or(String::new()) == "json" {
+                continue;
+            }
+
             let image_file_hash = file_name(&image_file)?;
+
             match images.get_mut(&image_file_hash) {
                 Some(has_found) => { *has_found = true; },
                 None => {  // Check G

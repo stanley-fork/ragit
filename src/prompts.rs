@@ -11,6 +11,10 @@ lazy_static! {
             include_str!(".././prompts/answer_query.pdl").to_string(),
         );
         result.insert(
+            String::from("describe_image"),
+            include_str!(".././prompts/describe_image.pdl").to_string(),
+        );
+        result.insert(
             String::from("extract_keyword"),
             include_str!(".././prompts/extract_keyword.pdl").to_string(),
         );
