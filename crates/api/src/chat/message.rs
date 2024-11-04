@@ -330,7 +330,7 @@ fn parse_content(content: &str, pdl_token_re: &Regex) -> Result<Vec<MessageConte
         let postfix = c.get(3).unwrap().as_str();
 
         let media_re = Regex::new(r"\s*media\s*\((.*)\)").unwrap();
-        let raw_media_re = Regex::new(r"\s*raw\_media\s*\(([a-z]+):([0-9A-Za-z+/]+)\)").unwrap();
+        let raw_media_re = Regex::new(r"\s*raw\_media\s*\(([a-z]+):([0-9A-Za-z+/=]+)\)").unwrap();
 
         if let Some(cap) = raw_media_re.captures(token) {
             let image_type = ImageType::from_extension(&cap[1])?;

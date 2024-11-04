@@ -10,4 +10,4 @@ Make sure to give your response in a valid json format. The json is an object co
 
 <|user|>
 
-<|raw_media({{image_type}}:{{image_bytes}})|>
+<|raw_media({{image_type}}:{{image_bytes|safe}})|>

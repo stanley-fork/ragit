@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
@@ -5,12 +6,13 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 def images2(test_model: str):
     goto_root()
     mk_and_cd_tmp_dir()
-    write_string("sample.md", "This is a text editor: ![](sample.png)")
-    shutil.copyfile("../tests/images/hello_world.png", "sample.png")
+    write_string("sample.md", "This is a text on an wooden plank: ![](sample.webp)")
+    shutil.copyfile("../tests/images/hello_world.webp", "sample.webp")
 
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", test_model])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
+    cargo_run(["config", "--set", "dump_log", "true"])
     cargo_run(["add", "sample.md"])
     cargo_run(["check"])
     cargo_run(["build"])
@@ -19,7 +21,8 @@ def images2(test_model: str):
     assert len(json_files) == 1
 
     with open(json_files[0], "r") as f:
-        extracted_text = f['extracted_text'].lower()
+        j = json.load(f)
+        extracted_text = j['extracted_text'].lower()
 
     assert "hello" in extracted_text
     assert "world" in extracted_text
