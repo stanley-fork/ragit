@@ -32,7 +32,7 @@ impl MessageContent {
         }
     }
 
-    pub fn to_json(&self) -> JsonValue {
+    pub fn to_json(&self, api_provider: ApiProvider) -> JsonValue {
         match self {
             MessageContent::String(s) => {
                 let mut content = JsonValue::new_object();
@@ -41,17 +41,28 @@ impl MessageContent {
 
                 content
             },
-            MessageContent::Image { image_type, bytes } => {
-                let mut content = JsonValue::new_object();
-                content.insert("type", "image").unwrap();
+            MessageContent::Image { image_type, bytes } => match api_provider {
+                ApiProvider::Anthropic => {
+                    let mut content = JsonValue::new_object();
+                    content.insert("type", "image").unwrap();
 
-                let mut source = JsonValue::new_object();
-                source.insert("type", "base64").unwrap();
-                source.insert("media_type", image_type.get_media_type()).unwrap();
-                source.insert("data", encode_base64(bytes)).unwrap();
+                    let mut source = JsonValue::new_object();
+                    source.insert("type", "base64").unwrap();
+                    source.insert("media_type", image_type.get_media_type()).unwrap();
+                    source.insert("data", encode_base64(bytes)).unwrap();
 
-                content.insert("source", source).unwrap();
-                content
+                    content.insert("source", source).unwrap();
+                    content
+                },
+                _ => {  // assume the others are all openai-compatible
+                    let mut content = JsonValue::new_object();
+                    content.insert("type", "image_url").unwrap();
+
+                    let mut image_url = JsonValue::new_object();
+                    image_url.insert("url", format!("data:{};base64,{}", image_type.get_media_type(), encode_base64(bytes))).unwrap();
+                    content.insert("image_url", image_url).unwrap();
+                    content
+                },
             },
         }
     }
@@ -152,21 +163,15 @@ impl fmt::Display for MessageContent {
     }
 }
 
-impl Serialize for MessageContent {
-    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
-        s.serialize_str(&self.to_json().dump())
-    }
-}
-
 pub fn message_contents_to_string(contents: &[MessageContent]) -> String {
     contents.iter().map(
         |content| content.to_string()
     ).collect::<Vec<String>>().join("\n")
 }
 
-pub fn message_contents_to_json_array(contents: &[MessageContent]) -> JsonValue {
+pub fn message_contents_to_json_array(contents: &[MessageContent], api_provider: ApiProvider) -> JsonValue {
     JsonValue::Array(contents.iter().map(
-        |content| content.to_json()
+        |content| content.to_json(api_provider)
     ).collect())
 }
 
@@ -200,7 +205,7 @@ impl Message {
                 MessageContent::Image { .. } => unreachable!(),
             },
             (ApiProvider::Groq | ApiProvider::Anthropic | ApiProvider::Cohere | ApiProvider::OpenAi | ApiProvider::Ollama, _) => {
-                result.insert("content", message_contents_to_json_array(&self.content)).unwrap();
+                result.insert("content", message_contents_to_json_array(&self.content, api_provider)).unwrap();
             },
             (ApiProvider::Replicate, _) => panic!("no chat models for replicate"),
             (ApiProvider::Dummy, _) => unreachable!(),
