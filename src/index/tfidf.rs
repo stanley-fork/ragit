@@ -262,7 +262,8 @@ impl Chunk {
         // 3. `self.summary` has constraints that are not in `self.data`.
         //     - It has explanations on images
         //     - It's always English
-        // 4. TODO: process images in `self.data` so that images are tfidf-able
+        // 4. TODO: read images' json file and replace `img_abcdef` with the contents of the json file
+        //    TODO: add passes to `images2` test that checks whether the image-tfidf-data works
         format!(
             "{}\n{}\n{}\n{}\n{}",
             self.file,
