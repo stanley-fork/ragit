@@ -7,13 +7,16 @@ use crate::index::{
     IMAGE_DIR_NAME,
     INDEX_DIR_NAME,
 };
+use json::JsonValue;
 use ragit_fs::{
     WriteMode,
+    exists,
     file_name,
     join3,
     read_dir,
     read_string,
     remove_file,
+    set_extension,
     write_bytes,
 };
 use std::collections::{HashMap, HashSet};
@@ -104,14 +107,43 @@ impl Index {
             self.add_chunk_index(chunk_uid, chunk_index, false)?;
         }
 
+        let mut images_to_remove = vec![];
+
         for image_file in read_dir(&join3(
             &self.root_dir,
             &INDEX_DIR_NAME.to_string(),
             &IMAGE_DIR_NAME.to_string(),
         )?)? {
+            // 1. At least one chunk has this image.
             if !images.contains(&file_name(&image_file)?) {
-                remove_file(&image_file)?;
+                images_to_remove.push(image_file);
+                continue;
             }
+
+            // 2. Its description file is a valid json object.
+            match read_string(&set_extension(&image_file, "json")?) {
+                Ok(j) => match json::parse(&j) {
+                    Ok(JsonValue::Object(_)) => {},
+                    _ => {
+                        images_to_remove.push(image_file);
+                        continue;
+                    },
+                },
+                Err(_) => {
+                    images_to_remove.push(image_file);
+                    continue;
+                },
+            }
+
+            // 3. Both png file and json file exist.
+            if !exists(&set_extension(&image_file, "png")?) || !exists(&set_extension(&image_file, "json")?) {
+                images_to_remove.push(image_file);
+            }
+        }
+
+        for image_file in images_to_remove {
+            remove_file(&set_extension(&image_file, "png")?)?;
+            remove_file(&set_extension(&image_file, "json")?)?;
         }
 
         // Recover C

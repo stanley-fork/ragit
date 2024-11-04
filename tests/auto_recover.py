@@ -1,4 +1,5 @@
 import os
+import shutil
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
 def auto_recover():
@@ -61,3 +62,27 @@ def auto_recover():
     cargo_run(["add", "test.txt"])
     cargo_run(["build"])
     cargo_run(["check"])
+
+    # NOTE: It cannot auto-recover if you manually remove an image file.
+    #       It has to remove the chunks that contains the removed image, and the path is not implemented yet.
+    # step 3: remove image files
+    shutil.copyfile("../tests/images/empty.png", "sample.png")
+    write_string("image.md", "an image: ![](sample.png)")
+    cargo_run(["add", "image.md"])
+    cargo_run(["check"])
+    cargo_run(["build"])
+    cargo_run(["check"])
+
+    # step 3.1: remove image files
+    os.chdir(".rag_index/images")
+    assert len((image_files := [file for file in os.listdir() if file.endswith("png")])) == 1
+    os.remove(image_files[0])
+    os.chdir("../..")
+    assert cargo_run(["check"], check=False) != 0
+
+    # step 3.2: remove image-description files
+    os.chdir(".rag_index/images")
+    assert len((image_desc_files := [file for file in os.listdir() if file.endswith("json")])) == 1
+    os.remove(image_desc_files[0])
+    os.chdir("../..")
+    assert cargo_run(["check"], check=False) != 0

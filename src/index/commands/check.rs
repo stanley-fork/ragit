@@ -16,7 +16,7 @@ impl Index {
     /// - Check E: `self.processed_files` is correct.
     /// - Check F: Entries in `.rag_index/chunk_index/*.json` points to a valid chunk.
     /// - Check G: Images in chunks are all in `.rag_index/images` and vice versa.
-    /// - Check H: Images in `.rag_index/images` are not corrupted.
+    /// - Check H: Images in `.rag_index/images` are not corrupted. They all must have an attached json file.
     /// - Check I: Config files are not broken.
     /// - Check J: A name of a chunk file is an xor of its chunks' uids. (TODO)
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
@@ -180,6 +180,7 @@ impl Index {
             }
 
             let image_file_hash = file_name(&image_file)?;
+            let image_description_path = set_extension(&image_file, "json")?;
 
             match images.get_mut(&image_file_hash) {
                 Some(has_found) => { *has_found = true; },
@@ -193,6 +194,15 @@ impl Index {
                 &image_bytes,
                 image::ImageFormat::Png,
             )?;
+
+            let image_description = read_string(&image_description_path)?;
+
+            match json::parse(&image_description) {
+                Ok(JsonValue::Object(_)) => {},
+                _ => {  // Check H
+                    return Err(Error::BrokenIndex(format!("{image_description_path:?}'s schema is not what we have expected.")));
+                },
+            }
         }
 
         for (image_id, has_found) in images.iter() {  // Check G
