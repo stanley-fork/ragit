@@ -6,7 +6,9 @@ use std::str::FromStr;
 pub enum ModelKind {
     // TODO: llama 3 70B vs llama 3.1 70B
     //       Llama3170B sounds like 3.1T model
+    Llama90BGroq,
     Llama70BGroq,
+    Llama11BGroq,
     Llama8BGroq,
     Llama3BGroq,
     Llama1BGroq,
@@ -27,8 +29,10 @@ pub enum ModelKind {
     Dummy,
 }
 
-const ALL_MODELS: [ModelKind; 14] = [
+const ALL_MODELS: [ModelKind; 16] = [
+    ModelKind::Llama90BGroq,
     ModelKind::Llama70BGroq,
+    ModelKind::Llama11BGroq,
     ModelKind::Llama8BGroq,
     ModelKind::Gemma9BGroq,
     ModelKind::Llama3BGroq,
@@ -51,7 +55,9 @@ impl ModelKind {
 
     pub fn to_api_friendly_name(&self) -> &'static str {
         match self {
+            ModelKind::Llama90BGroq => "llama-3.2-90b-vision-preview",
             ModelKind::Llama70BGroq => "llama-3.1-70b-versatile",
+            ModelKind::Llama11BGroq => "llama-3.2-11b-vision-preview",
             ModelKind::Llama8BGroq => "llama-3.1-8b-instant",
             ModelKind::Gemma9BGroq => "gemma-9b-it",
             ModelKind::Llama3BGroq => "llama-3.2-3b-preview",
@@ -70,7 +76,9 @@ impl ModelKind {
 
     pub fn to_human_friendly_name(&self) -> &'static str {
         match self {
+            ModelKind::Llama90BGroq => "llama3.2-90b-groq",
             ModelKind::Llama70BGroq => "llama3.1-70b-groq",
+            ModelKind::Llama11BGroq => "llama3.2-11b-groq",
             ModelKind::Llama8BGroq => "llama3.1-8b-groq",
             ModelKind::Gemma9BGroq => "gemma-9b-groq",
             ModelKind::Llama3BGroq => "llama-3.2-3b-groq",
@@ -93,7 +101,9 @@ impl ModelKind {
 
     pub fn context_size(&self) -> usize {
         match self {
+            ModelKind::Llama90BGroq => 131072,
             ModelKind::Llama70BGroq => 131072,
+            ModelKind::Llama11BGroq => 131072,
             ModelKind::Llama8BGroq => 131072,
             ModelKind::Gemma9BGroq => 8192,
             ModelKind::Llama3BGroq => 131072,
@@ -112,7 +122,12 @@ impl ModelKind {
 
     pub fn can_read_images(&self) -> bool {
         match self {
+            // NOTE: Llama 90B and Llama 11B can read images,
+            //       but groq's api does not support images with system prompts
+            //       for now, all the prompts in ragit has system prompts
+            ModelKind::Llama90BGroq => false,
             ModelKind::Llama70BGroq => false,
+            ModelKind::Llama11BGroq => false,
             ModelKind::Llama8BGroq => false,
             ModelKind::Gemma9BGroq => false,
             ModelKind::Llama3BGroq => false,
@@ -129,18 +144,14 @@ impl ModelKind {
         }
     }
 
-    // NOTE: it's not used by ragit
-    // an approximation of upper bound of an AI output
-    pub fn output_token_length(&self) -> usize {
-        1024
-    }
-
     // when you want to set timeout, you can call this function as a default value
     // in milliseconds
     pub fn api_timeout(&self) -> u64 {
         match self {
             // groq LPUs are very fast 
+            ModelKind::Llama90BGroq => 12_000,
             ModelKind::Llama70BGroq => 12_000,
+            ModelKind::Llama11BGroq => 12_000,
             ModelKind::Llama8BGroq => 12_000,
             ModelKind::Gemma9BGroq => 12_000,
             ModelKind::Llama3BGroq => 12_000,
@@ -160,7 +171,9 @@ impl ModelKind {
     // TODO: there must be a config file for this, not hard-coding it
     pub fn dollars_per_1b_input_tokens(&self) -> u64 {
         match self {
+            ModelKind::Llama90BGroq => 900,
             ModelKind::Llama70BGroq => 590,
+            ModelKind::Llama11BGroq => 180,
             ModelKind::Llama8BGroq => 50,
             ModelKind::Gemma9BGroq => 200,
             ModelKind::Llama3BGroq => 60,
@@ -179,7 +192,9 @@ impl ModelKind {
 
     pub fn dollars_per_1b_output_tokens(&self) -> u64 {
         match self {
+            ModelKind::Llama90BGroq => 900,
             ModelKind::Llama70BGroq => 790,
+            ModelKind::Llama11BGroq => 180,
             ModelKind::Llama8BGroq => 80,
             ModelKind::Gemma9BGroq => 200,
             ModelKind::Llama3BGroq => 60,
@@ -198,7 +213,9 @@ impl ModelKind {
 
     pub fn get_api_provider(&self) -> ApiProvider {
         match self {
+            ModelKind::Llama90BGroq => ApiProvider::Groq,
             ModelKind::Llama70BGroq => ApiProvider::Groq,
+            ModelKind::Llama11BGroq => ApiProvider::Groq,
             ModelKind::Llama8BGroq => ApiProvider::Groq,
             ModelKind::Gemma9BGroq => ApiProvider::Groq,
             ModelKind::Llama3BGroq => ApiProvider::Groq,
