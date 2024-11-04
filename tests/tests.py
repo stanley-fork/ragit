@@ -25,9 +25,7 @@ Commands
 
     cargo_tests                 run `cargo test` on all the crates
 
-    all [model]                 run all tests
-                                It runs `end_to_end` twice. Once with `model = dummy`,
-                                and one more with the given model.
+    all                         run all tests
                                 It dumps the test result to `tests/results.json`.
 """
 
@@ -53,7 +51,7 @@ if __name__ == "__main__":
             images()
 
         elif command == "images2":
-            if test_model is None:
+            if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
                 sys.exit(1)
 
@@ -67,22 +65,23 @@ if __name__ == "__main__":
             import time
             import traceback
 
-            if test_model is None:
-                print("Please specify which model to run the tests with.")
-                sys.exit(1)
-
             has_error = False
             results = {}
             tests = [
-                ("end_to_end_dummy", lambda: end_to_end(test_model="dummy")),
-                ("end_to_end_real", lambda: end_to_end(test_model=test_model)),
+                ("end_to_end-dummy", lambda: end_to_end(test_model="dummy")),
                 ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
                 ("auto_recover", auto_recover),
                 ("images", images),
-                ("images2", lambda: images(test_model="claude-3-5-sonnet")),  # TODO: run with all multi-modal models
                 ("cargo_tests", cargo_tests),
             ]
+
+            for model in [
+                "gpt-4o-mini",
+                "claude-3-5-sonnet",
+            ]:
+                tests.append((f"end_to_end-{model}", lambda: end_to_end(test_model=model)))
+                tests.append((f"images2-{model}", lambda: images2(test_model=model)))
 
             for name, test in tests:
                 try:
