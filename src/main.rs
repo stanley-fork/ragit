@@ -507,13 +507,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
 
             if let Some("--show") = args.get(2).map(|arg| arg.as_str()) {
-                let processed_doc_data = index.get_tfidf_by_chunk_uid(args[3].clone())?;
-                let processed_doc_summary = index.get_tfidf_by_chunk_uid(args[3].clone())?;
-
-                println!("--- data ---");
-                println!("{}", processed_doc_data.render());
-                println!("--- summary ---");
-                println!("{}", processed_doc_summary.render());
+                let processed_doc = index.get_tfidf_by_chunk_uid(args[3].clone())?;
+                println!("{}", processed_doc.render());
                 return Ok(());
             }
 
