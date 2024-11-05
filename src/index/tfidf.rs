@@ -28,7 +28,6 @@ type Weight = f32;
 pub struct TfIdfState<DocId> {
     keywords: HashMap<Keyword, Weight>,
     tf: HashMap<(DocId, Keyword), f32>,
-    doc_count: usize,
     keyword_in_doc: HashMap<Keyword, usize>,
     docs: Vec<DocId>,
 }
@@ -175,7 +174,6 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         TfIdfState {
             keywords: keywords.tokenize(),
             tf: HashMap::new(),
-            doc_count: 0,
             keyword_in_doc: HashMap::new(),
             docs: vec![],
         }
@@ -186,7 +184,6 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         doc_id: DocId,
         processed_doc: &ProcessedDoc,
     ) {
-        self.doc_count += 1;
 
         for (keyword, _) in self.keywords.clone().iter() {
             if processed_doc.contains_key(keyword) {
@@ -209,7 +206,11 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         let mut tfidfs: HashMap<DocId, f32> = HashMap::new();
 
         for (keyword, weight) in self.keywords.iter() {
-            let idf = ((self.doc_count as f32 + 1.0) / (*self.keyword_in_doc.get(keyword).unwrap_or(&0) as f32 + 1.0)).log2();
+            let idf = if self.docs.len() > 1 {
+                ((self.docs.len() as f32 + 1.0) / (*self.keyword_in_doc.get(keyword).unwrap_or(&0) as f32 + 1.0)).log2()
+            } else {
+                1.0
+            };
 
             for doc in self.docs.iter() {
                 let tfidf = *self.tf.get(&(doc.clone(), keyword.to_string())).unwrap_or(&0.0) * idf;
