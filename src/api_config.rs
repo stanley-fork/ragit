@@ -1,3 +1,4 @@
+use chrono::offset::Local;
 use crate::error::Error;
 use ragit_api::{self as api, record::{Record, Tracker}};
 use ragit_fs::join;
@@ -62,19 +63,14 @@ pub struct ApiConfig {
 
 impl ApiConfig {
     pub fn create_pdl_path(&self, job: &str) -> Option<String> {
-        let now = h_time::Date::now();
+        let now = Local::now();
 
         self.dump_log_at.as_ref().map(
             |path| join(
                 path,
                 &format!(
-                    "{job}-{}_{:02}_{:02}-{:02}:{:02}:{:02}.pdl",
-                    now.year,
-                    now.month,
-                    now.m_day,
-                    now.hour,
-                    now.minute,
-                    now.second,
+                    "{job}-{}.pdl",
+                    now.to_rfc3339(),
                 ),
             ).unwrap()
         )

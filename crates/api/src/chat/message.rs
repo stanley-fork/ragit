@@ -6,7 +6,6 @@ use crate::utils::{decode_base64, encode_base64};
 use json::JsonValue;
 use ragit_fs::read_string;
 use regex::Regex;
-use serde::{Serialize, Serializer};
 use std::fmt;
 use std::str::FromStr;
 

@@ -1,9 +1,10 @@
+use chrono::DateTime;
+use chrono::offset::Local;
 use crate::{Error, Message};
 use crate::json_type::{
     JsonType,
     get_type,
 };
-use h_time::Date;
 use json::JsonValue;
 use ragit_fs::{
     WriteMode,
@@ -160,7 +161,7 @@ pub fn record_api_usage(
 ) -> Result<(), String> {
     let mut tracker = Tracker::load_from_file(&at.path).map_err(|e| format!("{e:?}"))?;
     let new_record = Record {
-        time: Date::now().to_i64().max(0) as u64,
+        time: Local::now().timestamp().max(0) as u64,
         input: input_count,
         output: output_count,
         input_weight,
@@ -190,7 +191,7 @@ pub fn record_api_usage(
 fn clean_up_records(records: &mut Vec<Record>) {
     // `records` is always sorted
     let mut new_records = vec![];
-    let old = Date::now().to_i64().max(1 << 41) as u64 - (1 << 41);
+    let old = Local::now().timestamp().max(1 << 41) as u64 - (1 << 41);
 
     for record in records.iter() {
         if record.time < old {
@@ -219,8 +220,8 @@ fn clean_up_records(records: &mut Vec<Record>) {
     *records = new_records;
 }
 
-pub fn get_user_usage_data_after(at: RecordAt, after: Date) -> Option<Vec<Record>> {
-    let after = after.to_i64().max(0) as u64;
+pub fn get_user_usage_data_after(at: RecordAt, after: DateTime<Local>) -> Option<Vec<Record>> {
+    let after = after.timestamp().max(0) as u64;
 
     match Tracker::load_from_file(&at.path) {
         Ok(tracker) => match tracker.0.get(&at.id) {
@@ -235,8 +236,8 @@ pub fn get_user_usage_data_after(at: RecordAt, after: Date) -> Option<Vec<Record
     }
 }
 
-pub fn get_usage_data_after(path: &str, after: Date) -> Option<Vec<Record>> {
-    let after = after.to_i64().max(0) as u64;
+pub fn get_usage_data_after(path: &str, after: DateTime<Local>) -> Option<Vec<Record>> {
+    let after = after.timestamp().max(0) as u64;
 
     match Tracker::load_from_file(path) {
         Ok(tracker) => {

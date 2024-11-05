@@ -7,12 +7,11 @@ last updated: 2024-11-05
 | async-recursion      | 1.1.1       |             |              | 1.1.1            |                     |                    |
 | async-std            |             | 1.13.0      |              | 1.13.0           | Apache-2.0 or MIT   |                    |
 | base64               |             | 0.22.1      |              | 0.22.1           | Apache-2.0 or MIT   |                    |
-| chrono               |             |             | 0.4.38       | 0.4.38           | Apache-2.0 or MIT   |                    |
+| chrono               | 0.4.38      | 0.4.38      | 0.4.38       | 0.4.38           | Apache-2.0 or MIT   |                    |
 | clearscreen          | 3.0.0       |             |              | 3.0.0            | Apache-2.0 or MIT   | TODO: remove this, clear line-by-line instead  |
 | clap                 |             | 4.5.20      |              | 4.5.20           | Apache-2.0 or MIT   | not necessary for ragit |
 | flate2               | 1.0.34      |             |              | 1.0.34           | Apache-2.0 or MIT   |                    |
 | futures              |             | 0.3.31      |              | 0.3.31           | Apache-2.0 or MIT   |                    |
-| h_time               | 0.1.0       | 0.1.0       |              | 0.1.0            | MIT                 | TODO: remove this  |
 | image                | 0.25.4      | 0.25.4      |              | 0.25.4           | Apache-2.0 or MIT   |                    |
 | json                 | 0.12.4      | 0.12.4      |              | 0.12.4           | Apache-2.0 or MIT   |                    |
 | lazy_static          | 1.5.0       |             |              | 1.5.0            | Apache-2.0 or MIT   |                    |
