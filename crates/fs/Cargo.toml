@@ -6,5 +6,5 @@ license = "MIT"
 description = "fs utilities for ragit"
 
 [dependencies]
-chrono = "0.4.37"
-pathdiff = "0.2.1"
+chrono = "0.4.38"
+pathdiff = "0.2.2"

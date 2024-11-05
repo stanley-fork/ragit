@@ -6,18 +6,18 @@ license = "MIT"
 description = "api utilities for ragit"
 
 [dependencies]
-async-std = "1.12.0"
+async-std = "1.13.0"
 base64 = "0.22.1"
-clap = { version = "4.5.9", features = ["derive"] }
+clap = { version = "4.5.20", features = ["derive"] }
 futures = "0.3.30"
 h_time = "0.1.0"
 image = "0.25.4"
 json = "0.12.4"
 ragit-fs = { path = "../fs", version = "0.1.0" }
 rand = "0.8.5"
-regex = "1.10.5"
-reqwest = "0.12.5"
-serde = { version = "1.0.130", features = ["derive"] }
+regex = "1.11.1"
+reqwest = "0.12.9"
+serde = { version = "1.0.214", features = ["derive"] }
 serde_json = "1.0.132"
-tera = "1.19.1"
-tokio = { version = "1.38.0", features = ["full"] }
+tera = "1.20.0"
+tokio = { version = "1.41.0", features = ["full"] }
