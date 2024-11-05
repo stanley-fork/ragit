@@ -1,11 +1,18 @@
 use crate::chunk::{Chunk, Uid};
 use crate::error::Error;
+use crate::index::Index;
 use crate::query::Keywords;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
+use json::JsonValue;
+use ragit_api::{
+    JsonType,
+    get_type,
+};
 use ragit_fs::{
     WriteMode,
     read_bytes,
+    read_string,
     write_bytes,
 };
 use rust_stemmers::{Algorithm, Stemmer};
@@ -40,7 +47,7 @@ pub struct ProcessedDoc {
 }
 
 // tfidf files are always compressed
-pub fn load_from_file(path: &str) -> Result<Vec<ProcessedDoc>, Error> {
+pub fn load_from_file(path: &Path) -> Result<Vec<ProcessedDoc>, Error> {
     let content = read_bytes(path)?;
     let mut decompressed = vec![];
     let mut gz = GzDecoder::new(&content[..]);
@@ -49,10 +56,13 @@ pub fn load_from_file(path: &str) -> Result<Vec<ProcessedDoc>, Error> {
     Ok(serde_json::from_slice(&decompressed)?)
 }
 
-pub fn save_to_file(path: &str, chunks: &[Chunk]) -> Result<(), Error> {
-    let tfidf = chunks.iter().map(
-        |chunk| ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack())
-    ).collect::<Vec<_>>();
+pub fn save_to_file(path: &Path, chunks: &[Chunk], root_dir: &Path) -> Result<(), Error> {
+    let mut tfidf = Vec::with_capacity(chunks.len());
+
+    for chunk in chunks.iter() {
+        tfidf.push(ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack(root_dir)?));
+    }
+
     let result = serde_json::to_vec(&tfidf)?;
     let mut compressed = vec![];
     let mut gz = GzEncoder::new(&result[..], Compression::best());
@@ -254,23 +264,54 @@ pub fn tokenize(s: &str) -> Vec<String> {
 }
 
 impl Chunk {
+    // very naive heuristic
+    // 1. `self.title` is very important, so it's included twice
+    // 2. `self.file` might have an information.
+    // 3. `self.summary` has constraints that are not in `self.data`.
+    //     - It has explanations on images
+    //     - It's always English
+    // 4. Images have to be replaced with its description.
+    //
     // chunk's uid is also built from this haystack
-    pub fn into_tfidf_haystack(&self) -> String {
-        // very naive heuristic
-        // 1. `self.title` is very important, so it's included twice
-        // 2. `self.file` might have an information.
-        // 3. `self.summary` has constraints that are not in `self.data`.
-        //     - It has explanations on images
-        //     - It's always English
-        // 4. TODO: read images' json file and replace `img_abcdef` with the contents of the json file
-        //    TODO: add passes to `images2` test that checks whether the image-tfidf-data works
-        format!(
+    pub fn into_tfidf_haystack(&self, root_dir: &Path) -> Result<String, Error> {
+        let mut data = self.data.clone();
+
+        for image in self.images.iter() {
+            let description_at = Index::get_image_path(
+                root_dir,
+                image,
+                "json",
+            );
+            let j = read_string(&description_at)?;
+
+            let rep_text = match json::parse(&j)? {
+                JsonValue::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
+                    (Some(e1), Some(e2)) => format!("<img>{e1}{e2}</img>"),
+                    _ => {
+                        return Err(Error::BrokenIndex(format!("schema error at {image}.json")));
+                    },
+                },
+                j => {
+                    return Err(Error::JsonTypeError {
+                        expected: JsonType::Object,
+                        got: get_type(&j),
+                    });
+                },
+            };
+
+            data = data.replace(
+                &format!("img_{image}"),
+                &rep_text,
+            );
+        }
+
+        Ok(format!(
             "{}\n{}\n{}\n{}\n{}",
             self.file,
             self.title,
             self.title,
             self.summary,
-            self.data,
-        )
+            data,
+        ))
     }
 }

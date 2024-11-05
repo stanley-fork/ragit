@@ -86,6 +86,7 @@ impl Index {
                         &new_chunks,
                         self.build_config.compression_threshold,
                         self.build_config.compression_level,
+                        &self.root_dir,
                     )?;
                 },
                 Err(_) => {

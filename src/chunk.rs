@@ -35,6 +35,7 @@ pub use renderable::RenderableChunk;
 
 // I wanted it to be u128, but serde_json does not support u128
 pub type Uid = String;
+pub type Path = String;
 pub const CHUNK_DIR_NAME: &str = "chunks";
 pub const CHUNK_INDEX_DIR_NAME: &str = "chunk_index";
 
@@ -95,18 +96,20 @@ pub fn load_from_file(path: &str) -> Result<Vec<Chunk>, Error> {
 }
 
 pub fn save_to_file(
-    path: &str,
+    path: &Path,
     chunks: &[Chunk],
 
     // if the result json is bigger than threshold (in bytes), the file is compressed
     compression_threshold: u64,
     compression_level: u32,
+    root_dir: &Path,
 ) -> Result<(), Error> {
     let mut result = serde_json::to_vec_pretty(chunks)?;
     let tfidf_path = set_extension(path, "tfidf")?;
     tfidf::save_to_file(
         &tfidf_path,
         chunks,
+        root_dir,
     )?;
 
     if result.len() as u64 > compression_threshold {
@@ -329,9 +332,9 @@ impl Chunk {
             build_info,
             external_base: None,
         };
-        let chunk_haystack = result.into_tfidf_haystack();
+        let uid_pile = format!("{}{}{}", result.data, result.title, result.summary);
         let mut hasher = Sha3_256::new();
-        hasher.update(chunk_haystack.as_bytes());
+        hasher.update(uid_pile.as_bytes());
         result.uid = format!("{:064x}", hasher.finalize());
 
         Ok(result)

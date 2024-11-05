@@ -1,7 +1,7 @@
 use super::BuildConfig;
-use crate::api_config::ApiConfig;
 use crate::chunk::{BuildInfo, Chunk};
 use crate::error::Error;
+use crate::index::Index;
 use ragit_api::{ImageType, MessageContent};
 use ragit_fs::{
     extension,
@@ -91,7 +91,7 @@ impl FileReader {
 
     pub async fn generate_chunk(
         &mut self,
-        api_config: &ApiConfig,
+        index: &Index,
         pdl: &str,
         build_info: BuildInfo,
         previous_summary: Option<String>,
@@ -151,7 +151,7 @@ impl FileReader {
             &self.config,
             self.rel_path.clone(),
             self.file_index,
-            api_config,
+            &index.api_config,
             pdl,
             build_info,
             previous_summary,
@@ -164,7 +164,7 @@ impl FileReader {
             }
         }
 
-        if let Some(ms) = api_config.sleep_after_llm_call {
+        if let Some(ms) = index.api_config.sleep_after_llm_call {
             tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
         }
 
