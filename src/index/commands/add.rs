@@ -4,7 +4,7 @@ use crate::error::Error;
 use crate::index::get_file_hash;
 
 /// "force update" means `rag remove FILE` + `rag add FILE`
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum AddMode {
     /// If the file is already in the index, it force updates file.
     Force,
@@ -28,6 +28,7 @@ impl AddMode {
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum AddResult {
     Added,
     Ignored,

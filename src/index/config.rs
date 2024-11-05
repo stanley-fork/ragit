@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub const BUILD_CONFIG_FILE_NAME: &str = "build.json";
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BuildConfig {
     // it's not a max_chunk_size, and it's impossible to make every chunk have the same size because
     // 1. an image cannot be splitted

@@ -13,6 +13,7 @@ use ragit_api::{
 use regex::Regex;
 use std::collections::HashMap;
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct Keywords {
     // important keywords and less important keywords
     keywords: Vec<String>,

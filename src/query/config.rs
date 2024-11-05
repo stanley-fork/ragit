@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 pub const QUERY_CONFIG_FILE_NAME: &str = "query.json";
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct QueryConfig {
     // if there are more than this amount of chunks, it runs tf-idf to select chunks
     pub max_titles: usize,

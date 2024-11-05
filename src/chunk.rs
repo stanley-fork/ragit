@@ -39,7 +39,7 @@ pub type Path = String;
 pub const CHUNK_DIR_NAME: &str = "chunks";
 pub const CHUNK_INDEX_DIR_NAME: &str = "chunk_index";
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Chunk {
     pub data: String,
 

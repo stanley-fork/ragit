@@ -59,7 +59,7 @@ pub type Path = String;
 pub type FileHash = String;
 
 // all the `Path` are normalized relative paths
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Index {
     ragit_version: String,
     pub chunk_count: usize,

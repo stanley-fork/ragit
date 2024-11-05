@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 pub type Path = String;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ExternalIndex {
     path: Path,  // normalized rel_path
 }
