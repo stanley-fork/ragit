@@ -7,6 +7,7 @@ from images import images
 from images2 import images2
 import os
 import sys
+from tfidf import tfidf
 from utils import clean, goto_root
 
 help_message = """
@@ -22,6 +23,8 @@ Commands
     images                      run `images` test
 
     images2 [model]             run `images2` test
+
+    tfidf                       run `tfidf` test
 
     cargo_tests                 run `cargo test` on all the crates
 
@@ -56,6 +59,9 @@ if __name__ == "__main__":
                 sys.exit(1)
 
             images2(test_model=test_model)
+
+        elif command == "tfidf":
+            tfidf()
 
         elif command == "cargo_tests":
             cargo_tests()
