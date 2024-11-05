@@ -1,3 +1,4 @@
+use chrono::offset::Local;
 use crate::ApiConfig;
 use crate::error::Error;
 use crate::index::{BuildConfig, Index, LoadMode, tfidf};
@@ -62,6 +63,7 @@ pub struct Chunk {
     // unique identifier for chunks
     pub uid: Uid,
     pub build_info: BuildInfo,
+    pub timestamp: i64,
 
     // if it belongs to an external base, the name of the
     // base is kept here
@@ -330,6 +332,7 @@ impl Chunk {
             index: file_index,
             uid: String::new(),
             build_info,
+            timestamp: Local::now().timestamp(),
             external_base: None,
         };
         let uid_pile = format!("{}{}{}", result.data, result.title, result.summary);
@@ -409,6 +412,7 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         image_count: 0,  // TODO: count images
         file,
         index,
+        timestamp: Local::now().timestamp(),
 
         // TODO: is it okay to leave these fields empty?
         summary: String::new(),
