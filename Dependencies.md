@@ -7,6 +7,7 @@ last updated: 2024-11-05
 | async-recursion      | 1.1.1       |             |              | 1.1.1            |                     |                    |
 | async-std            |             | 1.13.0      |              | 1.13.0           | Apache-2.0 or MIT   |                    |
 | base64               |             | 0.22.1      |              | 0.22.1           | Apache-2.0 or MIT   |                    |
+| charabia             | 0.9.1       |             |              | 0.9.1            | MIT                 |                    |
 | chrono               | 0.4.38      | 0.4.38      | 0.4.38       | 0.4.38           | Apache-2.0 or MIT   |                    |
 | clearscreen          | 3.0.0       |             |              | 3.0.0            | Apache-2.0 or MIT   | TODO: remove this, clear line-by-line instead  |
 | clap                 |             | 4.5.20      |              | 4.5.20           | Apache-2.0 or MIT   | not necessary for ragit |

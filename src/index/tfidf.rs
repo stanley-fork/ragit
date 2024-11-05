@@ -1,3 +1,4 @@
+use charabia::{Language, TokenizerBuilder};
 use crate::chunk::{Chunk, Uid};
 use crate::error::Error;
 use crate::index::Index;
@@ -245,23 +246,49 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
     }
 }
 
+// Decisions and their reasons
+// 1. It tries to make tokens as fine as possible. e.g. ["gpt", "4o", "mini"] instead of ["gpt-4o-mini"].
+//    It makes sense because ragit's reranking is very strong.
+//    As long as we can place the desired chunk in a top 10 list, it doesn't matter whether the chunk is at 1st place or 9th place.
+// 2. Tokens are write-once, read-forever. It's okay for tokenizer to be expensive.
 pub fn tokenize(s: &str) -> Vec<String> {
-    let stemmer = Stemmer::create(Algorithm::English);  // TODO: configurable?
-    s.to_ascii_lowercase().split(
-        |c| match c {
-            '\n' | '\t' | '\r'
-            | ' ' | '!' | '"' | '\''
-            | '(' | ')' | ',' | '-'
-            | '.' | '/' | ':' | ';'
-            | '[' | ']' | '_' | '`'
-            | '{' | '}' => true,
-            _ => false,
+    let stemmer = Stemmer::create(Algorithm::English);
+
+    // cjk are very easy to detect
+    let mut cjk_tokenizer = TokenizerBuilder::default();
+    let cjk_tokenizer = cjk_tokenizer.allow_list(
+        &[
+            Language::Cmn,
+            Language::Jpn,
+            Language::Kor,
+        ],
+    ).build();
+
+    let eng_tokens = s.to_ascii_lowercase().split(
+        |c| if c <= '~' {
+            match c {
+                '0'..='9'
+                | 'A'..='Z'
+                | 'a'..='z' => false,
+                _ => true,
+            }
+        } else {
+            false
         }
     ).map(
         move |s| stemmer.stem(s).to_string()
     ).filter(
         |s| s.len() > 0
-    ).collect()
+    ).collect::<Vec<_>>();
+    let mut ecjk_tokens = Vec::with_capacity(eng_tokens.len());
+
+    for eng_token in eng_tokens.iter() {
+        for cjk_token in cjk_tokenizer.tokenize(eng_token) {
+            ecjk_tokens.push(cjk_token.lemma().to_string());
+        }
+    }
+
+    ecjk_tokens
 }
 
 impl Chunk {
@@ -272,8 +299,6 @@ impl Chunk {
     //     - It has explanations on images
     //     - It's always English
     // 4. Images have to be replaced with its description.
-    //
-    // chunk's uid is also built from this haystack
     pub fn into_tfidf_haystack(&self, root_dir: &Path) -> Result<String, Error> {
         let mut data = self.data.clone();
 

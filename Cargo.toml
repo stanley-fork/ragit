@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 async-recursion = "1.1.1"
+charabia = { version = "0.9.1", features = ["chinese", "japanese", "korean"] }
 chrono = "0.4.38"
 clearscreen = "3.0.0"
 flate2 = "1.0.34"
