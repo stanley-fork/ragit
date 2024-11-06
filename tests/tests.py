@@ -86,8 +86,8 @@ if __name__ == "__main__":
                 "gpt-4o-mini",
                 "claude-3-5-sonnet",
             ]:
-                tests.append((f"end_to_end-{model}", lambda: end_to_end(test_model=model)))
-                tests.append((f"images2-{model}", lambda: images2(test_model=model)))
+                tests.append((f"end_to_end {model}", lambda: end_to_end(test_model=model)))
+                tests.append((f"images2 {model}", lambda: images2(test_model=model)))
 
             for name, test in tests:
                 try:
