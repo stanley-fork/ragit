@@ -5,26 +5,55 @@ from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
 from images2 import images2
+from ragit_api import ragit_api
+from tfidf import tfidf
+
 import os
 import sys
-from tfidf import tfidf
 from utils import clean, goto_root
 
 help_message = """
 Commands
     end_to_end [model=dummy]    run `end_to_end` test
+                                It simulates a basic workflow of ragit: init,
+                                add, build and query. It runs on a real dataset:
+                                the documents of ragit.
 
     external_bases              run `external_bases` test
+                                It creates bunch of knowledge-bases and run
+                                `rag merge` on them. It also checks whether
+                                `rag tfidf` can successfully retrieve a chunk
+                                from multiple knowledge-bases.
 
     add_and_rm                  run `add_and_rm` test
+                                It runs tons of `rag add` and `rag rm` with
+                                different options.
 
     auto_recover                run `auto_recover` test
+                                It checks whether 1) `rag check` fails on a broken
+                                knowledge-base and 2) `rag check --auto-recover` can
+                                fix a broken knowledge-base.
 
     images                      run `images` test
+                                It creates a markdown file with images and check
+                                whether the markdown reader can parse the file
+                                correctly.
 
     images2 [model]             run `images2` test
+                                It tests whether models can generate image-description
+                                files correctly.
+                                NOTE: It uses the vision capability of the model.
+                                      Make sure that the model has one.
 
     tfidf                       run `tfidf` test
+                                It creates bunch of lorem-ipsum files and see if
+                                `rag tfidf` can retrieve files correctly. It also tests
+                                tfidf searches on cjk strings.
+
+    ragit_api                   run `ragit_api` test
+                                It asks "what's your name" to all the models in
+                                `ragit_api`. It returns Ok if all the api calls
+                                are successful.
 
     cargo_tests                 run `cargo test` on all the crates
 
@@ -63,6 +92,9 @@ if __name__ == "__main__":
         elif command == "tfidf":
             tfidf()
 
+        elif command == "ragit_api":
+            ragit_api()
+
         elif command == "cargo_tests":
             cargo_tests()
 
@@ -74,20 +106,18 @@ if __name__ == "__main__":
             has_error = False
             results = {}
             tests = [
-                ("end_to_end-dummy", lambda: end_to_end(test_model="dummy")),
                 ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
                 ("auto_recover", auto_recover),
                 ("images", images),
                 ("cargo_tests", cargo_tests),
-            ]
+                ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
+                ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
+                ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
 
-            for model in [
-                "gpt-4o-mini",
-                "claude-3-5-sonnet",
-            ]:
-                tests.append((f"end_to_end {model}", lambda: end_to_end(test_model=model)))
-                tests.append((f"images2 {model}", lambda: images2(test_model=model)))
+                # TODO: replace it with haiku when haiku's vision becomes available
+                ("images2 claude-3.5-sonnet", lambda: images2(test_model="claude-3.5-sonnet")),
+            ]
 
             for name, test in tests:
                 try:

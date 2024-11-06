@@ -10,7 +10,7 @@ last updated: 2024-11-05
 | charabia             | 0.9.1       |             |              | 0.9.1            | MIT                 |                    |
 | chrono               | 0.4.38      | 0.4.38      | 0.4.38       | 0.4.38           | Apache-2.0 or MIT   |                    |
 | clearscreen          | 3.0.0       |             |              | 3.0.0            | Apache-2.0 or MIT   | TODO: remove this, clear line-by-line instead  |
-| clap                 |             | 4.5.20      |              | 4.5.20           | Apache-2.0 or MIT   | not necessary for ragit |
+| clap                 |             | 4.5.20      |              | 4.5.20           | Apache-2.0 or MIT   |                    |
 | flate2               | 1.0.34      |             |              | 1.0.34           | Apache-2.0 or MIT   |                    |
 | futures              |             | 0.3.31      |              | 0.3.31           | Apache-2.0 or MIT   |                    |
 | image                | 0.25.4      | 0.25.4      |              | 0.25.4           | Apache-2.0 or MIT   |                    |
