@@ -1,6 +1,6 @@
 use super::{ModelKind, Response};
 use async_std::task;
-use crate::{ApiProvider, Error, Message};
+use crate::{ApiProvider, Error, Message, Role};
 use crate::record::{
     RecordAt,
     dump_pdl,
@@ -91,12 +91,23 @@ impl Request {
             ApiProvider::Anthropic => {
                 let mut result = JsonValue::new_object();
                 result.insert("model", self.model.to_api_friendly_name()).unwrap();
-                result.insert("system", self.messages[0].content[0].unwrap_str()).unwrap();
-
                 let mut messages = JsonValue::new_array();
+                let mut system_prompt = vec![];
 
-                for message in self.messages[1..].iter() {
-                    messages.push(message.to_json(ApiProvider::Anthropic)).unwrap();
+                for message in self.messages.iter() {
+                    if message.role == Role::System {
+                        system_prompt.push(message.content[0].unwrap_str());
+                    }
+
+                    else {
+                        messages.push(message.to_json(ApiProvider::Anthropic)).unwrap();
+                    }
+                }
+
+                let system_prompt = system_prompt.concat();
+
+                if !system_prompt.is_empty() {
+                    result.insert("system", system_prompt).unwrap();
                 }
 
                 result.insert("messages", messages).unwrap();
