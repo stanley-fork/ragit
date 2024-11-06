@@ -50,10 +50,10 @@ Commands
                                 `rag tfidf` can retrieve files correctly. It also tests
                                 tfidf searches on cjk strings.
 
-    ragit_api                   run `ragit_api` test
-                                It asks "what's your name" to all the models in
-                                `ragit_api`. It returns Ok if all the api calls
-                                are successful.
+    ragit_api [model]           run `ragit_api` test
+                                It asks "what's your name" to the model. It returns OK
+                                if the api call was successful. It doesn't care about the
+                                content of the model's response.
 
     cargo_tests                 run `cargo test` on all the crates
 
@@ -93,7 +93,11 @@ if __name__ == "__main__":
             tfidf()
 
         elif command == "ragit_api":
-            ragit_api()
+            if test_model is None:
+                print("Please specify which model to run the tests with.")
+                sys.exit(1)
+
+            ragit_api(test_model=test_model)
 
         elif command == "cargo_tests":
             cargo_tests()
@@ -117,6 +121,11 @@ if __name__ == "__main__":
 
                 # TODO: replace it with haiku when haiku's vision becomes available
                 ("images2 claude-3.5-sonnet", lambda: images2(test_model="claude-3.5-sonnet")),
+
+                # NOTE: dummy, openai and anthropic models are already tested above
+                ("ragit_api llama3.2-11b-groq", lambda: ragit_api(test_model="llama3.2-11b-groq")),
+                ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
+                ("ragit_api phi-3-14b-ollama", lambda: ragit_api(test_model="phi-3-14b-ollama")),
             ]
 
             for name, test in tests:
