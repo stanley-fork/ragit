@@ -24,6 +24,9 @@
 - GET `ROOT/{user-name}/{repo-name}/image-desc/{image-name}`
   - 200: application/json
   - 404
+- GET `ROOT/{user-name}/{repo-name}/meta`
+  - 200: application/json
+  - 404
 */
 
 use crate::methods::*;
@@ -87,6 +90,12 @@ async fn main() {
         .and(warp::path::param::<String>())
         .map(get_image_desc);
 
+    let get_meta_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("meta"))
+        .map(get_meta);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
@@ -98,6 +107,7 @@ async fn main() {
             .or(get_image_list_handler)
             .or(get_image_handler)
             .or(get_image_desc_handler)
+            .or(get_meta_handler)
             .or(not_found_handler)
     ).run(([0, 0, 0, 0], 41127)).await;  // TODO: configurable port number
 }

@@ -12,6 +12,7 @@ pub use get::{
     get_image_desc,
     get_image_list,
     get_index,
+    get_meta,
     get_prompt,
 };
 

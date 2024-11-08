@@ -5,6 +5,7 @@ mod add;
 mod auto_recover;
 mod build;
 mod check;
+mod clone;
 mod config;
 mod gc;
 mod ls;
@@ -14,3 +15,4 @@ mod remove;
 mod reset;
 
 pub use add::{AddMode, AddResult};
+pub use meta::METADATA_FILE_NAME;

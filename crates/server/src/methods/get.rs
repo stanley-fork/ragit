@@ -1,5 +1,6 @@
 use crate::utils::get_rag_path;
 use ragit_fs::{
+    exists,
     extension,
     file_name,
     join,
@@ -173,4 +174,21 @@ pub fn get_image_desc(user: String, repo: String, image: String) -> Box<dyn Repl
             StatusCode::from_u16(404).unwrap(),
         )),
     }
+}
+
+// NOTE: a `.rag_index` may or may not have `meta.json`
+pub fn get_meta(user: String, repo: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+
+    if !exists(&rag_path) {
+        return Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap()));
+    }
+
+    let meta_path = join(&rag_path, "meta.json").unwrap();
+    let meta_json = read_string(&meta_path).unwrap_or(String::from("{}"));
+    Box::new(with_header(
+        meta_json,
+        "Content-Type",
+        "application/json",
+    ))
 }

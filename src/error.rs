@@ -23,6 +23,10 @@ pub enum Error {
     CliError(String),  // TODO: spans?
     BrokenHash(String),
     BrokenPrompt(String),
+    CloneRequestError {
+        code: u16,
+        url: String,
+    },
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.
@@ -30,6 +34,9 @@ pub enum Error {
 
     // TODO: more enum variants for this type?
     BrokenIndex(String),
+
+    /// see <https://docs.rs/reqwest/latest/reqwest/struct.Error.html>
+    ReqwestError(reqwest::Error),
 
     /// see <https://docs.rs/json/latest/json/enum.Error.html>
     JsonError(json::Error),
@@ -39,6 +46,9 @@ pub enum Error {
 
     /// see <https://docs.rs/image/latest/image/error/enum.ImageError.html>
     ImageError(image::ImageError),
+
+    /// see <https://docs.rs/url/latest/url/enum.ParseError.html>
+    UrlParseError(url::ParseError),
 
     FileError(FileError),
     StdIoError(std::io::Error),
@@ -51,6 +61,12 @@ pub enum Error {
 impl From<json::Error> for Error {
     fn from(e: json::Error) -> Error {
         Error::JsonError(e)
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(e: reqwest::Error) -> Error {
+        Error::ReqwestError(e)
     }
 }
 
@@ -84,10 +100,17 @@ impl From<FromUtf8Error> for Error {
     }
 }
 
+impl From<url::ParseError> for Error {
+    fn from(e: url::ParseError) -> Error {
+        Error::UrlParseError(e)
+    }
+}
+
 impl From<ApiError> for Error {
     fn from(e: ApiError) -> Self {
         match e {
             ApiError::JsonTypeError { expected, got } => Error::JsonTypeError { expected, got },
+            ApiError::ReqwestError(e) => Error::ReqwestError(e),
             ApiError::JsonError(e) => Error::JsonError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),

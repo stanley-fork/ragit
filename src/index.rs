@@ -44,7 +44,7 @@ mod config;
 pub mod file;
 pub mod tfidf;
 
-pub use commands::{AddMode, AddResult};
+pub use commands::{AddMode, AddResult, METADATA_FILE_NAME};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, get_file_hash};
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, UpdateTfidf, consume_tfidf_file};
