@@ -1,0 +1,18 @@
+rag-clone(1)
+==========
+
+NAME
+----
+rag-clone - Clone a knowledge-base into a new directory
+
+SYNOPSIS
+--------
+[verse]
+'rag clone' <remote url> [<directory>]
+
+DESCRIPTION
+-----------
+Like `git clone`, it clones a knowledge-base and copies it to a newly created directory.
+
+`rag clone` is for cloning query-only knowledge-bases. You cannot clone a half-built knowledge-base
+and continue building it.

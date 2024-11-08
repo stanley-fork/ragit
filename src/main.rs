@@ -159,6 +159,21 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
             }
         },
+        Some("clone") => {
+            let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/clone.txt"));
+                return Ok(());
+            }
+
+            let args = parsed_args.get_args();
+            Index::clone(
+                args[0].clone(),
+                args.get(1).map(|s| s.to_string()),
+            ).await?;
+            return Ok(());
+        },
         Some("config") => {
             let parsed_args = ArgParser::new().flag(&["--set", "--get", "--get-all"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
 
@@ -549,6 +564,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             println!("ragit {}", ragit::VERSION);
         },
+        // TODO: suggest similar names
         Some(invalid_command) => {
             println!("{invalid_command:?} is an invalid command.");
         },
