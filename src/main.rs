@@ -411,6 +411,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("query") => {
             let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Exact(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/query.txt"));
+                return Ok(());
+            }
+
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let arg = &parsed_args.get_args()[0];
 
@@ -544,10 +550,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             println!("ragit {}", ragit::VERSION);
         },
         Some(invalid_command) => {
-            // TODO: print help message
+            println!("{invalid_command:?} is an invalid command.");
         },
         None => {
-            // TODO: print help message
+            println!("Run `rag help` to get help.");
         },
     }
 

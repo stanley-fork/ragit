@@ -1,0 +1,16 @@
+rag-query(1)
+==========
+
+NAME
+----
+rag-query - Query on knowledge-bases
+
+SYNOPSIS
+--------
+[verse]
+'rag query' <query>
+'rag query' --interactive
+
+DESCRIPTION
+-----------
+Ask AI about the knowledge-base.
