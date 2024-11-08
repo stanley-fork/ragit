@@ -2,10 +2,20 @@ use super::Index;
 use crate::{ApiConfigRaw, QueryConfig};
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{BuildConfig, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf, xor_sha3};
+use crate::index::{BuildConfig, CHUNK_DIR_NAME, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME, tfidf, xor_sha3};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
-use ragit_fs::{exists, extension, file_name, read_bytes, read_dir, read_string, set_extension};
+use ragit_fs::{
+    basename,
+    exists,
+    extension,
+    file_name,
+    join3,
+    read_bytes,
+    read_dir,
+    read_string,
+    set_extension,
+};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
@@ -25,6 +35,20 @@ impl Index {
         let mut chunk_index = HashMap::with_capacity(self.chunk_count);  // HashMap<uid, chunk_index>
         let mut images = HashMap::new();  // HashMap<image_id, has_found>
 
+        for chunk_file in read_dir(&join3(
+            &self.root_dir,
+            &INDEX_DIR_NAME,
+            &CHUNK_DIR_NAME,
+        )?)? {
+            if extension(&chunk_file)?.unwrap_or(String::new()) != "chunks" {
+                continue;
+            }
+
+            if !self.chunk_files.contains_key(&file_name(&chunk_file)?) {
+                return Err(Error::BrokenIndex(format!("`{chunk_file}` exists, but is not included in `index.json`")));
+            }
+        }
+
         for chunk_file in self.chunk_files_real_path() {
             let chunks = chunk::load_from_file(&chunk_file)?;
             let tfidf_path = set_extension(&chunk_file, "tfidf")?;
@@ -38,31 +62,33 @@ impl Index {
             if let Some(tfidfs) = &tfidfs {
                 if chunks.len() != tfidfs.len() {  // Check A
                     return Err(Error::BrokenIndex(format!(
-                        "chunks.len() = {}\ntfidfs.len() = {}",
+                        "There are {} chunks in `{}`, but {} processed_docs in `{}`.",
                         chunks.len(),
+                        basename(&chunk_file).unwrap(),
                         tfidfs.len(),
+                        basename(&tfidf_path).unwrap(),
                     )));
                 }
 
                 for processed_doc in tfidfs.iter() {
                     match &processed_doc.chunk_uid {
                         Some(uid) => {
-                            chunks_in_tfidf.insert(uid.clone());
+                            let new = chunks_in_tfidf.insert(uid.clone());
+
+                            if !new {
+                                return Err(Error::BrokenIndex(format!(
+                                    "There are more than one processed_doc whose chunk_uid is {uid} in `{}`.",
+                                    basename(&tfidf_path).unwrap(),
+                                )));
+                            }
                         },
                         None => {
                             return Err(Error::BrokenIndex(format!(
-                                "processed_doc.chunk_uid.is_none()",
+                                "There's a processed_doc whose chunk_uid is None in `{}`.",
+                                basename(&tfidf_path).unwrap(),
                             )));
                         },
                     }
-                }
-
-                if chunks_in_tfidf.len() != chunks.len() {  // Check A
-                    return Err(Error::BrokenIndex(format!(
-                        "chunks_in_tfidf.len() = {}\nchunks.len() = {}",
-                        chunks_in_tfidf.len(),
-                        chunks.len(),
-                    )));
                 }
             }
 
@@ -73,15 +99,15 @@ impl Index {
                 Some(n) => {
                     if *n != chunks.len() {  // Check C
                         return Err(Error::BrokenIndex(format!(
-                            "self.chunk_files.get({:?}) = Some({n})\nchunks.len() = {}",
-                            chunk_file_name,
+                            "`index.json` says there are {n} chunks in `{}`, but there actually are {} chunks in the file.",
+                            basename(&chunk_file).unwrap(),
                             chunks.len(),
                         )));
                     }
                 },
                 None => {  // Check C
                     return Err(Error::BrokenIndex(format!(
-                        "self.chunk_files.get({:?}) = None",
+                        "self.chunk_files does not include {:?}.",
                         chunk_file_name,
                     )));
                 },
@@ -100,21 +126,23 @@ impl Index {
 
                 if root_dir != self.root_dir {  // Check B
                     return Err(Error::BrokenIndex(format!(
-                        "root_dir = {root_dir}\nself.root_dir = {}",
+                        "`self.root_dir` is `{}`, but chunk {} says its root_dir is `{root_dir}`.",
                         self.root_dir,
+                        chunk.uid,
                     )));
                 }
 
                 if chunk_file_name != chunk_file_by_index {  // Check B
                     return Err(Error::BrokenIndex(format!(
-                        "chunk_file_name = {chunk_file_name:?}\nself.get_chunk_file_by_index({:?})? = {chunk_file_by_index}",
+                        "chunk_index file says {} belongs to `{chunk_file_by_index}`, but it actually belongs to `{}`",
                         chunk.uid,
+                        basename(&chunk_file_name).unwrap(),
                     )));
                 }
 
                 if tfidfs.is_some() && !chunks_in_tfidf.contains(&chunk.uid) {  // Check A
                     return Err(Error::BrokenIndex(format!(
-                        "!chunks_in_tfidf.contains({:?})",
+                        "chunk_file {chunk_file_name} has a tfidf index, but there's no processed_doc for chunk {}.",
                         chunk.uid,
                     )));
                 }
@@ -126,7 +154,7 @@ impl Index {
 
             if chunk_file_name != xor_uids {  // Check J
                 return Err(Error::BrokenIndex(format!(
-                    "chunk_file_name = {chunk_file_name:?}\nxor_uids = {xor_uids:?}",
+                    "chunk_file {chunk_file_name}'s xor-ed value is {xor_uids}",
                 )));
             }
         }
@@ -134,8 +162,7 @@ impl Index {
         for file in processed_files.iter() {
             if !self.processed_files.contains_key(file) && self.curr_processing_file != Some(file.to_string()) {  // Check E
                 return Err(Error::BrokenIndex(format!(
-                    "!self.processed_files.contains_key({file:?}) && {:?} != Some({file:?})",
-                    self.curr_processing_file,
+                    "There's a chunk of {file:?}, but we cannot find the file in self.processed_files and self.curr_processing_file.",
                 )));
             }
         }
@@ -153,10 +180,14 @@ impl Index {
                         match chunk_file.as_str() {
                             Some(chunk_file) => match chunk_index.get(uid) {
                                 Some(chunk_file_) if chunk_file != chunk_file_ => {  // Check F
-                                    return Err(Error::BrokenIndex(format!("chunk_index.get({uid:?}) = {chunk_file_:?}\nchunk_file = {chunk_file:?}")));
+                                    return Err(Error::BrokenIndex(format!(
+                                        "A chunk_index is outdated: the index says {uid} belongs to {chunk_file}, but it actually belongs to {chunk_file_}",
+                                    )));
                                 },
                                 None => {  // Check F
-                                    return Err(Error::BrokenIndex(format!("chunk_index.get({uid:?}) = None")));
+                                    return Err(Error::BrokenIndex(format!(
+                                        "A chunk_index is outdated: the index says {uid} belongs to {chunk_file}, but such chunk does not exist.",
+                                    )));
                                 },
                                 _ => {},
                             },
