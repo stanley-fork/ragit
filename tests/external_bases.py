@@ -1,5 +1,5 @@
 import os
-from random import random, randint, seed as rand_seed
+from random import randint, seed as rand_seed
 from subprocess import TimeoutExpired
 from utils import (
     cargo_run,
@@ -7,19 +7,12 @@ from utils import (
     count_files,
     goto_root,
     mk_and_cd_tmp_dir,
+    rand_word,
     write_string,
 )
 
 def external_bases():
     rand_seed(0)
-    def rand_word() -> str:
-        if random() < 0.5:
-            return "".join([chr(randint(65, 90)) for _ in range(randint(4, 12))])
-
-        else:
-            # korean character
-            return "".join([chr(randint(44032, 55203)) for _ in range(randint(4, 12))])
-
     goto_root()
     mk_and_cd_tmp_dir()
     os.mkdir("root")

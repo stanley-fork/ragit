@@ -5,6 +5,7 @@ from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
 from images2 import images2
+from many_chunks import many_chunks
 from ragit_api import ragit_api
 from tfidf import tfidf
 
@@ -33,6 +34,10 @@ Commands
                                 It checks whether 1) `rag check` fails on a broken
                                 knowledge-base and 2) `rag check --auto-recover` can
                                 fix a broken knowledge-base.
+
+    many_chunks                 run `many_chunks` test
+                                It creates a lot of small files and see if ragit can
+                                handle the files correctly.
 
     images                      run `images` test
                                 It creates a markdown file with images and check
@@ -79,6 +84,9 @@ if __name__ == "__main__":
         elif command == "auto_recover":
             auto_recover()
 
+        elif command == "many_chunks":
+            many_chunks()
+
         elif command == "images":
             images()
 
@@ -113,8 +121,10 @@ if __name__ == "__main__":
                 ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
                 ("auto_recover", auto_recover),
+                ("many_chunks", many_chunks),
                 ("images", images),
                 ("cargo_tests", cargo_tests),
+                ("tfidf", tfidf),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),

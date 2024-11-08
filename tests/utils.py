@@ -1,5 +1,5 @@
 import os
-from random import randint
+from random import randint, random
 import re
 import shutil
 import subprocess
@@ -78,3 +78,11 @@ def parse_add_output(args: list[str], rag_check=True) -> Tuple[int, int, int]:
     first_line = output.split("\n")[0]
     added, updated, ignored = re.search(r"(\d+)\sadded\sfiles\,\s(\d+)\supdated\sfiles\,\s(\d+)\signored\sfiles", first_line).groups()
     return int(added), int(updated), int(ignored)
+
+def rand_word() -> str:
+    if random() < 0.5:
+        return "".join([chr(randint(65, 90)) for _ in range(randint(8, 16))])
+
+    else:
+        # korean character
+        return "".join([chr(randint(44032, 55203)) for _ in range(randint(8, 16))])
