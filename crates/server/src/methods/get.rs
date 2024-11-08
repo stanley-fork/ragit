@@ -81,7 +81,7 @@ pub fn get_chunk_file_list(user: String, repo: String) -> Box<dyn Reply> {
 
     match read_dir(&chunk_file_path) {
         Ok(chunk_files) => Box::new(json(
-            &chunk_files.iter().filter_map(|chunk_file| file_name(chunk_file).ok()).collect::<Vec<String>>(),
+            &chunk_files.iter().filter(|chunk_file| extension(chunk_file) == Ok(Some(String::from("chunks")))).filter_map(|chunk_file| file_name(chunk_file).ok()).collect::<Vec<String>>(),
         )),
         Err(_) => Box::new(with_status(
             String::new(),
