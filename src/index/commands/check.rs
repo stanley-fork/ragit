@@ -5,11 +5,11 @@ use crate::error::Error;
 use crate::index::{BuildConfig, CHUNK_INDEX_DIR_NAME, IMAGE_DIR_NAME, tfidf, xor_sha3};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
-use ragit_fs::{extension, file_name, read_bytes, read_dir, read_string, set_extension};
+use ragit_fs::{exists, extension, file_name, read_bytes, read_dir, read_string, set_extension};
 use std::collections::{HashMap, HashSet};
 
 impl Index {
-    /// - Check A: Every chunk file has a corresponding tfidf file, and the tfidf file has data for all the chunks in the chunk file.
+    /// - Check A: For each chunk file, a tfidf file either 1) not exist at all or 2) complete
     /// - Check B: `get_chunk_file_by_index(uid)` gives a correct result for all chunks.
     /// - Check C: `self.chunk_files` has the correct number of chunks for each chunk file.
     /// - Check D: `self.chunk_count` has the correct number.
@@ -27,36 +27,43 @@ impl Index {
 
         for chunk_file in self.chunk_files_real_path() {
             let chunks = chunk::load_from_file(&chunk_file)?;
-            let tfidfs = tfidf::load_from_file(&set_extension(&chunk_file, "tfidf")?)?;
-            let mut chunks_in_tfidf = HashSet::with_capacity(tfidfs.len());
+            let tfidf_path = set_extension(&chunk_file, "tfidf")?;
+            let tfidfs = if exists(&tfidf_path) {
+                Some(tfidf::load_from_file(&tfidf_path)?)
+            } else {
+                None
+            };
+            let mut chunks_in_tfidf = HashSet::new();
 
-            if chunks.len() != tfidfs.len() {  // Check A
-                return Err(Error::BrokenIndex(format!(
-                    "chunks.len() = {}\ntfidfs.len() = {}",
-                    chunks.len(),
-                    tfidfs.len(),
-                )));
-            }
-
-            for processed_doc in tfidfs.iter() {
-                match &processed_doc.chunk_uid {
-                    Some(uid) => {
-                        chunks_in_tfidf.insert(uid.clone());
-                    },
-                    None => {
-                        return Err(Error::BrokenIndex(format!(
-                            "processed_doc.chunk_uid.is_none()",
-                        )));
-                    },
+            if let Some(tfidfs) = &tfidfs {
+                if chunks.len() != tfidfs.len() {  // Check A
+                    return Err(Error::BrokenIndex(format!(
+                        "chunks.len() = {}\ntfidfs.len() = {}",
+                        chunks.len(),
+                        tfidfs.len(),
+                    )));
                 }
-            }
 
-            if chunks_in_tfidf.len() != chunks.len() {  // Check A
-                return Err(Error::BrokenIndex(format!(
-                    "chunks_in_tfidf.len() = {}\nchunks.len() = {}",
-                    chunks_in_tfidf.len(),
-                    chunks.len(),
-                )));
+                for processed_doc in tfidfs.iter() {
+                    match &processed_doc.chunk_uid {
+                        Some(uid) => {
+                            chunks_in_tfidf.insert(uid.clone());
+                        },
+                        None => {
+                            return Err(Error::BrokenIndex(format!(
+                                "processed_doc.chunk_uid.is_none()",
+                            )));
+                        },
+                    }
+                }
+
+                if chunks_in_tfidf.len() != chunks.len() {  // Check A
+                    return Err(Error::BrokenIndex(format!(
+                        "chunks_in_tfidf.len() = {}\nchunks.len() = {}",
+                        chunks_in_tfidf.len(),
+                        chunks.len(),
+                    )));
+                }
             }
 
             let chunk_file_name = file_name(&chunk_file)?;
@@ -105,7 +112,7 @@ impl Index {
                     )));
                 }
 
-                if !chunks_in_tfidf.contains(&chunk.uid) {  // Check A
+                if tfidfs.is_some() && !chunks_in_tfidf.contains(&chunk.uid) {  // Check A
                     return Err(Error::BrokenIndex(format!(
                         "!chunks_in_tfidf.contains({:?})",
                         chunk.uid,

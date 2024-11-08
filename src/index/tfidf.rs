@@ -341,3 +341,9 @@ impl Chunk {
         ))
     }
 }
+
+pub enum UpdateTfidf {
+    Generate,
+    Remove,
+    Nop,
+}

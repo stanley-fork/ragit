@@ -1,7 +1,7 @@
 use chrono::offset::Local;
 use crate::ApiConfig;
 use crate::error::Error;
-use crate::index::{BuildConfig, Index, LoadMode, tfidf};
+use crate::index::{BuildConfig, Index, LoadMode, UpdateTfidf, tfidf};
 use crate::index::file::AtomicToken;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
@@ -16,9 +16,11 @@ use ragit_api::{
 };
 use ragit_fs::{
     WriteMode,
+    exists,
     join,
     normalize,
     read_bytes,
+    remove_file,
     set_extension,
     write_bytes,
 };
@@ -105,14 +107,26 @@ pub fn save_to_file(
     compression_threshold: u64,
     compression_level: u32,
     root_dir: &Path,
+    update_tfidf: UpdateTfidf,
 ) -> Result<(), Error> {
     let mut result = serde_json::to_vec_pretty(chunks)?;
     let tfidf_path = set_extension(path, "tfidf")?;
-    tfidf::save_to_file(
-        &tfidf_path,
-        chunks,
-        root_dir,
-    )?;
+
+    match update_tfidf {
+        UpdateTfidf::Generate => {
+            tfidf::save_to_file(
+                &tfidf_path,
+                chunks,
+                root_dir,
+            )?;
+        },
+        UpdateTfidf::Remove => {
+            if exists(&tfidf_path) {
+                remove_file(&tfidf_path)?;
+            }
+        },
+        UpdateTfidf::Nop => {},
+    }
 
     if result.len() as u64 > compression_threshold {
         let mut compressed = vec![];

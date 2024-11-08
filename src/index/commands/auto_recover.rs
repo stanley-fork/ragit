@@ -6,6 +6,7 @@ use crate::index::{
     CHUNK_INDEX_DIR_NAME,
     IMAGE_DIR_NAME,
     INDEX_DIR_NAME,
+    UpdateTfidf,
 };
 use json::JsonValue;
 use ragit_fs::{
@@ -87,6 +88,7 @@ impl Index {
                         self.build_config.compression_threshold,
                         self.build_config.compression_level,
                         &self.root_dir,
+                        UpdateTfidf::Generate,
                     )?;
                 },
                 Err(_) => {

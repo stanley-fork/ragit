@@ -47,7 +47,7 @@ pub mod tfidf;
 pub use commands::{AddMode, AddResult};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, get_file_hash};
-pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
+pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, UpdateTfidf, consume_tfidf_file};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
 pub const IMAGE_DIR_NAME: &str = "images";
@@ -344,6 +344,7 @@ impl Index {
             self.build_config.compression_threshold,
             self.build_config.compression_level,
             &self.root_dir,
+            UpdateTfidf::Nop,
         )?;
         self.chunk_files.insert(format!("{:064x}", 0), 0);
 
@@ -469,6 +470,7 @@ impl Index {
         ignored_chunks: Vec<Uid>,
     ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
         let mut tfidf_state = TfIdfState::new(&keywords);
+        self.generate_tfidfs()?;
 
         for tfidf_file in self.tfidf_files_real_path() {
             consume_tfidf_file(
@@ -479,6 +481,8 @@ impl Index {
         }
 
         for external_index in self.external_indexes.iter() {
+            external_index.generate_tfidfs()?;
+
             for tfidf_file in external_index.tfidf_files_real_path() {
                 consume_tfidf_file(
                     tfidf_file,
@@ -538,6 +542,7 @@ impl Index {
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
+        self.generate_tfidfs()?;
         let (root_dir, chunk_file) = self.get_chunk_file_by_index(&uid)?;
         let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_extension(&chunk_file, "chunks")?);
         let tfidf_file_real_path = set_extension(&chunk_file_real_path, "tfidf")?;
@@ -832,6 +837,7 @@ impl Index {
                 self.build_config.compression_threshold,
                 self.build_config.compression_level,
                 &self.root_dir,
+                UpdateTfidf::Remove,
             )?;
             self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
             total_chunk_count += chunks.len();
@@ -1004,10 +1010,15 @@ impl Index {
             &set_extension(&new_name, "chunks")?,
         );
         rename(&old_real_path, &new_real_path)?;
-        rename(
-            &set_extension(&old_real_path, "tfidf")?,
-            &set_extension(&new_real_path, "tfidf")?,
-        )?;
+        let old_tfidf_path = set_extension(&old_real_path, "tfidf")?;
+
+        if exists(&old_tfidf_path) {
+            rename(
+                &old_tfidf_path,
+                &set_extension(&new_real_path, "tfidf")?,
+            )?;
+        }
+
         Ok(())
     }
 
@@ -1017,6 +1028,32 @@ impl Index {
 
     pub fn load_image_by_key(&self, key: &str) -> Result<Vec<u8>, Error> {
         Ok(read_bytes(&Index::get_image_path(&self.root_dir, key, "png"))?)
+    }
+
+    // tfidf files are kinda lazily-loaded.
+    // 1. In order to run tfidf queries, all the tfidf files must be complete.
+    //    - Each chunk must have its ProcessedDoc.
+    // 2. A tfidf file either 1) not exist at all or 2) is complete.
+    // 3. `self.build()` generates most tfidf files, but some would be missing due to performance reasons.
+    // 4. It generates missing tfidf files, if exist.
+    fn generate_tfidfs(&self) -> Result<(), Error> {
+        for chunk_file in self.chunk_files_real_path() {
+            let tfidf_file = set_extension(&chunk_file, "tfidf")?;
+
+            if !exists(&tfidf_file) {
+                let chunks = chunk::load_from_file(&chunk_file)?;
+                chunk::save_to_file(
+                    &chunk_file,
+                    &chunks,
+                    self.build_config.compression_threshold,
+                    self.build_config.compression_level,
+                    &self.root_dir,
+                    UpdateTfidf::Generate,
+                )?;
+            }
+        }
+
+        Ok(())
     }
 }
 

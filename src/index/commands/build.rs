@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{BuildInfo, FileReader, get_file_hash};
+use crate::index::{BuildInfo, FileReader, UpdateTfidf, get_file_hash};
 use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
@@ -92,17 +92,29 @@ impl Index {
                         self.add_image_description(key).await?;
                     }
 
-                    chunk::save_to_file(
-                        &Index::get_chunk_path(&self.root_dir, &chunk_path),
-                        &chunks,
-                        self.build_config.compression_threshold,
-                        self.build_config.compression_level,
-                        &self.root_dir,
-                    )?;
-
                     if chunks.len() >= self.build_config.chunks_per_json {
+                        chunk::save_to_file(
+                            &Index::get_chunk_path(&self.root_dir, &chunk_path),
+                            &chunks,
+                            self.build_config.compression_threshold,
+                            self.build_config.compression_level,
+                            &self.root_dir,
+                            UpdateTfidf::Generate,
+                        )?;
+
                         self.create_new_chunk_file()?;
                         chunks = self.load_curr_processing_chunks()?;
+                    }
+
+                    else {
+                        chunk::save_to_file(
+                            &Index::get_chunk_path(&self.root_dir, &chunk_path),
+                            &chunks,
+                            self.build_config.compression_threshold,
+                            self.build_config.compression_level,
+                            &self.root_dir,
+                            UpdateTfidf::Remove,
+                        )?;
                     }
 
                     self.add_chunk_index(&new_chunk_uid, &chunk_path, true)?;

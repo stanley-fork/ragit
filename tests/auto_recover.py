@@ -38,10 +38,11 @@ def auto_recover():
     cargo_run(["build"])
     cargo_run(["check"])
 
-    # step 2.2: remove `.tfidf` file and recover
+    # step 2.2: corrupt `.tfidf` file and recover
+    cargo_run(["tfidf", "123"])  # make sure that the tfidf file is created
     os.chdir(".rag_index/chunks")
     assert len((tfidf_files := [file for file in os.listdir() if file.endswith("tfidf")])) == 1
-    os.remove(tfidf_files[0])
+    write_string(tfidf_files[0], "corrupted")
     os.chdir("../..")
     assert cargo_run(["check"], check=False) != 0
     cargo_run(["check", "--auto-recover"])
