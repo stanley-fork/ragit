@@ -134,8 +134,22 @@ impl Index {
     }
 }
 
+// TODO: it's too naive
 fn infer_repo_name_from_url(url: &str) -> String {
-    todo!()
+    // This function doesn't need any error-handling
+    // because if any of these fail, `Index::clone_worker()`
+    // would also fail and there's an error handler for
+    // `Index::clone_worker()`.
+    match Url::parse(url) {
+        Ok(url) => match url.path_segments() {
+            Some(paths) => match paths.last() {
+                Some(name) => name.to_string(),
+                _ => String::from("_"),
+            },
+            _ => String::from("_"),
+        },
+        _ => String::from("_"),
+    }
 }
 
 async fn request_json_file(url: &str) -> Result<JsonValue, Error> {
