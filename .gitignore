@@ -1,5 +1,5 @@
 /sample
 Cargo.lock
-*/.ragit
+**/.ragit
 __pycache__
 target
