@@ -1,0 +1,14 @@
+rag-version(1)
+==============
+
+NAME
+----
+rag-version - Display version information about ragit
+
+SYNOPSIS
+--------
+[verse]
+'git version'
+
+DESCRIPTION
+-----------
