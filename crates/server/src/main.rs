@@ -30,6 +30,11 @@
 */
 
 use crate::methods::*;
+use ragit_fs::{
+    initialize_log_file,
+    set_log_file_path,
+    write_log,
+};
 use warp::Filter;
 
 mod methods;
@@ -37,6 +42,9 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
+    set_log_file_path(Some("ragit-server-logs".to_string()));
+    initialize_log_file("ragit-server-logs", true).unwrap();
+
     let get_index_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -109,5 +117,20 @@ async fn main() {
             .or(get_image_desc_handler)
             .or(get_meta_handler)
             .or(not_found_handler)
+            .with(warp::log::custom(
+                |info| {
+                    let headers = info.request_headers();
+
+                    write_log(
+                        "ragit-server",
+                        &format!(
+                            "{:4} {:16} {:4} {headers:?}",
+                            info.method().as_str(),
+                            info.path(),
+                            info.status().as_u16(),
+                        ),
+                    );
+                }
+            ))
     ).run(([0, 0, 0, 0], 41127)).await;  // TODO: configurable port number
 }
