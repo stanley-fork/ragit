@@ -16,7 +16,7 @@ There's another special stage. You can see the term `curr_processing_file` in th
 
 ## Chunk Files
 
-You can see the term `chunk_file` in the source code. Chunks have to be stored somewhere in the disk. It's not a good idea to create a file for each chunk. So, multiple chunks are stored in a file, in a json format. We call the files `chunk_file`. You can find chunk files in `.rag_index/chunks` directory. There, you'll find two different files with the same name but different extensions: `.chunks` and `.tfidf`. `.chunks` file stores the actual data, and `.tfidf` stores index for tfidf scores. Both files must have the same chunks, in the same order.
+You can see the term `chunk_file` in the source code. Chunks have to be stored somewhere in the disk. It's not a good idea to create a file for each chunk. So, multiple chunks are stored in a file, in a json format. We call the files `chunk_file`. You can find chunk files in `.ragit/chunks` directory. There, you'll find two different files with the same name but different extensions: `.chunks` and `.tfidf`. `.chunks` file stores the actual data, and `.tfidf` stores index for tfidf scores. Both files must have the same chunks, in the same order.
 
 `.tfidf` files are always compressed, and `.chunks` files are compressed depending on its size. You can configure the size threshold and compression level.
 
@@ -26,4 +26,4 @@ TODO: there must be a nicer ui for chunks
 
 If you're not a contributor, you don't have to worry what chunk index is.
 
-You can see the term `chunk_index` in the source code. Chunk index is used for optimizations. It makes it easier to find which chunk_file a chunk belongs to using a uid. You'll see the index files in `.rag_index/chunk_index`. There you'll see a scary list of files with short-names. Each file is a `chunk_uid -> chunk_file` map. For example, if a uid of a chunk is "abcdefg", you have to read "ab.json" in the chunk_index directory. In the json file, there must be an entry `"abcdefg": chunk_file_it_belongs_to`.
+You can see the term `chunk_index` in the source code. Chunk index is used for optimizations. It makes it easier to find which chunk_file a chunk belongs to using a uid. You'll see the index files in `.ragit/chunk_index`. There you'll see a scary list of files with short-names. Each file is a `chunk_uid -> chunk_file` map. For example, if a uid of a chunk is "abcdefg", you have to read "ab.json" in the chunk_index directory. In the json file, there must be an entry `"abcdefg": chunk_file_it_belongs_to`.

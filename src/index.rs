@@ -112,7 +112,7 @@ pub enum LoadMode {
 }
 
 impl Index {
-    /// It works like git. `root_dir` is the root of the repo. And it creates dir `.rag_index`, like `.git`.
+    /// It works like git. `root_dir` is the root of the repo. And it creates dir `.ragit/`, like `.git/`.
     /// It reads the files in the repo and creates index.
     pub fn new(
         root_dir: Path,

@@ -36,7 +36,7 @@ async fn main() {
             // TODO: suggest similar names for some errors
             match e {
                 Error::IndexNotFound => {
-                    eprintln!("`.rag_index` not found. Make sure that it's a valid ragit repo.");
+                    eprintln!("`.ragit/` not found. Make sure that it's a valid ragit repo.");
                 },
                 Error::InvalidConfigKey(s) => {
                     eprintln!("{s:?} is not a valid key for config.");
@@ -560,7 +560,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
     Ok(())
 }
 
-// it starts from "." and goes up until it finds ".rag_index"
+// it starts from "." and goes up until it finds ".ragit"
 // you can run git commands anywhere inside a repo, and I want ragit to be like that
 fn find_root() -> Result<String, Error> {
     let mut curr = String::from(".");

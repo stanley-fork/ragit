@@ -19,7 +19,7 @@ Ragit uses pdl file format to manage prompts. Pdl is a plain-text format that co
 
 You'll find pdl files in 2 places: your local ragit repo and ragit's git repo.
 
-1. If you have initialized a ragit repo, you'll find pdl files in `./rag_index/prompts`. Modify the files and run `rag build` or `rag query` to see how LLM behaves differently. Make sure to `rag config --set dump_log true` so that you can see the conversations.
+1. If you have initialized a ragit repo, you'll find pdl files in `./.ragit/prompts`. Modify the files and run `rag build` or `rag query` to see how LLM behaves differently. Make sure to `rag config --set dump_log true` so that you can see the conversations.
 2. You can also find `prompts/` in ragit's git repo. This is the default value for prompts. If your local tests on your new prompts are satisfiable, please commit the new prompts.
 
 ## Hard one: modify the source code
@@ -30,4 +30,4 @@ TODO: write document
 
 ## Testing prompt
 
-Once you have modified prompts, you have to test it. The best way is to see how it actually works with real queries. By enabling `dump_log` option, you can see how LLMs interact with your new prompt. You'll find the logs at `.rag_index/logs`.
+Once you have modified prompts, you have to test it. The best way is to see how it actually works with real queries. By enabling `dump_log` option, you can see how LLMs interact with your new prompt. You'll find the logs at `.ragit/logs`.

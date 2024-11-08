@@ -1,6 +1,6 @@
 # Configuration
 
-Ragit is highly configurable. The config files can be found at `.rag_index/configs`, but I don't recommend you modifying it manually. You cannot run any ragit command if there's an error with config files. I have plans to fix this, but for now, just don't do that.
+Ragit is highly configurable. The config files can be found at `.ragit/configs`, but I don't recommend you modifying it manually. You cannot run any ragit command if there's an error with config files. I have plans to fix this, but for now, just don't do that.
 
 ## `config` command
 

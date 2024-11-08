@@ -14,7 +14,7 @@ Run `cd ai_tutorial; rag init`. You'll see a new dir created like below.
 
 ```
 ai_tutorials/
- ├ .rag_index/
+ ├ .ragit/
  │  ├ chunks/
  │  ├ configs/
  │  ├ prompts/
@@ -25,7 +25,7 @@ ai_tutorials/
  ╰ ... and many more txt files
 ```
 
-`.rag_index` is like `.git` of git repositories. It saves metadata and chunks. After `rag init`, the knowledge-base is empty. You have to add files to the staging using `rag add` command.
+`.ragit/` is like `.git/` of git repositories. It saves metadata and chunks. After `rag init`, the knowledge-base is empty. You have to add files to the staging using `rag add` command.
 
 Run `rag add *.txt`. Now you're ready to build the knowledge-base. Run `rag build` to start the work. The default model is `llama3.1-70b-groq` and you need `GROQ_API_KEY` to run. If you want to run gpt-4o-mini, run `rag config --set model gpt-4o-mini`. You can see the list of the models using `rag ls-models`.
 
@@ -45,7 +45,7 @@ You can press Ctrl+C to pause the process. You can resume from where you left of
 
 ```
 ai_tutorials/
- ├ .rag_index/
+ ├ .ragit/
  │  ├ chunks/
  │  │  ╰ ... a lot of files ...
  │  ├ configs/
@@ -57,7 +57,7 @@ ai_tutorials/
  ╰ ... and many more txt files
 ```
 
-After it's built, you'll see many data files in the `.rag_index` directory. You can ask queries on the knowledge-base now. Here are brief explanations on data files:
+After it's built, you'll see many data files in the `.ragit/` directory. You can ask queries on the knowledge-base now. Here are brief explanations on data files:
 
 1. `/chunks` directory
 2. `/configs` directory
@@ -81,7 +81,7 @@ Before downloading knowledge-bases, we have to init a rag index. Run `rag init`.
 
 ```
 playground
- ╰ .rag_index
+ ╰ .ragit
     ├ chunks/
     ├ configs/
     ├ prompts/
@@ -102,19 +102,19 @@ TODO: I'm planning to implement `rag clone https://URL/TO/A/KNOWLEDGE/BASE`, but
 
 ```
 playground
- ├ .rag_index
+ ├ .ragit
  │  ├ chunks/
  │  ├ configs/
  │  ├ prompts/
  │  ╰ index.json
  ├ git
- │  ╰ .rag_index
+ │  ╰ .ragit
  │     ├ chunks/
  │     ├ configs/
  │     ├ prompts/
  │     ╰ index.json
  ╰ rustc-dev-guide
-    ╰ .rag_index
+    ╰ .ragit
        ├ chunks/
        ├ configs/
        ├ prompts/

@@ -14,9 +14,9 @@ impl Index {
     /// - Check C: `self.chunk_files` has the correct number of chunks for each chunk file.
     /// - Check D: `self.chunk_count` has the correct number.
     /// - Check E: `self.processed_files` is correct.
-    /// - Check F: Entries in `.rag_index/chunk_index/*.json` points to a valid chunk.
-    /// - Check G: Images in chunks are all in `.rag_index/images` and vice versa.
-    /// - Check H: Images in `.rag_index/images` are not corrupted. They all must have an attached json file.
+    /// - Check F: Entries in `.ragit/chunk_index/*.json` points to a valid chunk.
+    /// - Check G: Images in chunks are all in `.ragit/images` and vice versa.
+    /// - Check H: Images in `.ragit/images` are not corrupted. They all must have an attached json file.
     /// - Check I: Config files are not broken.
     /// - Check J: A name of a chunk file is an xor of its chunks' uids. (TODO)
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
@@ -214,7 +214,7 @@ impl Index {
 
         for (image_id, has_found) in images.iter() {  // Check G
             if !*has_found {
-                return Err(Error::BrokenIndex(format!("{image_id:?} not found in `.rag_index/images/`")));
+                return Err(Error::BrokenIndex(format!("{image_id:?} not found in `.ragit/images/`")));
             }
         }
 

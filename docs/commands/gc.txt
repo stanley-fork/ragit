@@ -12,4 +12,4 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-`rag gc --logs` removes all the logs in `.rag_index/logs`.
+`rag gc --logs` removes all the logs in `.ragit/logs`.

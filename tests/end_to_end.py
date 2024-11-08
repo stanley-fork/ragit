@@ -17,7 +17,7 @@ def end_to_end(test_model: str):
 
         md_files.append(file)
 
-    if ".rag_index" in os.listdir():
+    if ".ragit" in os.listdir():
         cargo_run(["reset", "--hard"])
 
     assert len(md_files) > 2  # `rag build` has to take at least 5 seconds
@@ -162,7 +162,7 @@ def end_to_end(test_model: str):
     assert chunk_count == chunk_count_new
 
     # step 10: break the knowledge-base and run auto-recover
-    os.chdir(".rag_index/chunk_index")
+    os.chdir(".ragit/chunk_index")
     assert len(os.listdir()) > 0
 
     for file in os.listdir():

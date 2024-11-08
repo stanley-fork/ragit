@@ -176,7 +176,7 @@ pub fn get_image_desc(user: String, repo: String, image: String) -> Box<dyn Repl
     }
 }
 
-// NOTE: a `.rag_index` may or may not have `meta.json`
+// NOTE: a `.ragit/` may or may not have `meta.json`
 pub fn get_meta(user: String, repo: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
 

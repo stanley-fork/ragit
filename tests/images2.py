@@ -17,7 +17,7 @@ def images2(test_model: str):
     cargo_run(["add", "sample.md", "sample2.md"])
     cargo_run(["check"])
     cargo_run(["build"])
-    os.chdir(".rag_index/images")
+    os.chdir(".ragit/images")
     json_files = [f for f in os.listdir() if f.endswith(".json")]
     assert len(json_files) == 1
 

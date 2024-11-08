@@ -12,7 +12,7 @@ def auto_recover():
     cargo_run(["config", "--set", "model", "dummy"])
 
     # step 1: recover from broken config files
-    os.chdir(".rag_index/configs")
+    os.chdir(".ragit/configs")
     os.remove("query.json")
     os.chdir("../..")
     assert cargo_run(["check"], check=False) != 0
@@ -28,7 +28,7 @@ def auto_recover():
     cargo_run(["check"])
 
     # step 2.1: remove `.chunks` file and recover
-    os.chdir(".rag_index/chunks")
+    os.chdir(".ragit/chunks")
     assert len((chunk_files := [file for file in os.listdir() if file.endswith("chunks")])) == 1
     os.remove(chunk_files[0])
     os.chdir("../..")
@@ -40,7 +40,7 @@ def auto_recover():
 
     # step 2.2: corrupt `.tfidf` file and recover
     cargo_run(["tfidf", "123"])  # make sure that the tfidf file is created
-    os.chdir(".rag_index/chunks")
+    os.chdir(".ragit/chunks")
     assert len((tfidf_files := [file for file in os.listdir() if file.endswith("tfidf")])) == 1
     write_string(tfidf_files[0], "corrupted")
     os.chdir("../..")
@@ -51,7 +51,7 @@ def auto_recover():
     cargo_run(["check"])
 
     # step 2.3: remove chunk_index file and recover
-    os.chdir(".rag_index/chunk_index")
+    os.chdir(".ragit/chunk_index")
     assert len((chunk_index_files := [file for file in os.listdir() if file.endswith("json")])) > 0
 
     for chunk_index_file in chunk_index_files:
@@ -75,14 +75,14 @@ def auto_recover():
     cargo_run(["check"])
 
     # step 3.1: remove image files
-    os.chdir(".rag_index/images")
+    os.chdir(".ragit/images")
     assert len((image_files := [file for file in os.listdir() if file.endswith("png")])) == 1
     os.remove(image_files[0])
     os.chdir("../..")
     assert cargo_run(["check"], check=False) != 0
 
     # step 3.2: remove image-description files
-    os.chdir(".rag_index/images")
+    os.chdir(".ragit/images")
     assert len((image_desc_files := [file for file in os.listdir() if file.endswith("json")])) == 1
     os.remove(image_desc_files[0])
     os.chdir("../..")

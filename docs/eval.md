@@ -2,7 +2,7 @@
 
 ## logs
 
-The most straight-forward way is to see the logs. First, run `rag config --set dump_log true` to enable logs. After that, run `rag query` command and check out `.rag_index/logs` dir.
+The most straight-forward way is to see the logs. First, run `rag config --set dump_log true` to enable logs. After that, run `rag query` command and check out `.ragit/logs` dir.
 
 ## token usage
 

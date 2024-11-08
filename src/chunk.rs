@@ -48,7 +48,7 @@ pub struct Chunk {
 
     // it's both key and path of an image
     // for ex, if "abcdef" is in `images`,
-    // replace "img_abcdef" in `data` with `.rag_index/images/abcdef.png`
+    // replace "img_abcdef" in `data` with `.ragit/images/abcdef.png`
     pub images: Vec<String>,
     pub char_len: usize,
 

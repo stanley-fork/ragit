@@ -6,7 +6,7 @@ mod index;
 mod prompts;
 mod query;
 
-pub const INDEX_DIR_NAME: &str = ".rag_index";
+pub const INDEX_DIR_NAME: &str = ".ragit";
 
 pub use api_config::{ApiConfig, ApiConfigRaw};
 pub use chunk::{

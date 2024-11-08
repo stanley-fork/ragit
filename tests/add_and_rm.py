@@ -17,8 +17,8 @@ def add_and_rm():
     cargo_run(["config", "--set", "sleep_after_llm_call", "0"])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
 
-    # step 0: you cannot build knowledge-base of `.rag_index`
-    added, updated, ignored = parse_add_output([".rag_index/index.json"])
+    # step 0: you cannot build knowledge-base of `.ragit/`
+    added, updated, ignored = parse_add_output([".ragit/index.json"])
     assert (added, updated, ignored) == (0, 0, 1)
 
     all_files = []
