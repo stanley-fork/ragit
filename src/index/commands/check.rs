@@ -44,7 +44,7 @@ impl Index {
                 continue;
             }
 
-            if !self.chunk_files.contains_key(&file_name(&chunk_file)?) {
+            if !self.chunk_files.contains_key(&file_name(&chunk_file)?) {  // Check C
                 return Err(Error::BrokenIndex(format!("`{chunk_file}` exists, but is not included in `index.json`")));
             }
         }

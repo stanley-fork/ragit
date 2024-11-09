@@ -58,6 +58,10 @@ impl Index {
                     let mut new_chunks = Vec::with_capacity(chunks.len());
                     let chunk_file_name = file_name(&chunk_file)?;
 
+                    if chunks.is_empty() {
+                        chunk_files.insert(chunk_file.clone(), 0);
+                    }
+
                     for chunk in chunks.into_iter() {
                         if let Some(file) = &curr_processing_file {
                             if &chunk.file == file {
