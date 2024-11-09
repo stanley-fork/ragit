@@ -1,6 +1,7 @@
 from add_and_rm import add_and_rm
 from auto_recover import auto_recover
 from cargo_tests import cargo_tests
+from clone import clone
 from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
@@ -34,6 +35,9 @@ Commands
                                 It checks whether 1) `rag check` fails on a broken
                                 knowledge-base and 2) `rag check --auto-recover` can
                                 fix a broken knowledge-base.
+
+    clone                       run `clone` test
+                                It creates a knowledge-base, pushes, clones and checks it.
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -84,6 +88,9 @@ if __name__ == "__main__":
         elif command == "auto_recover":
             auto_recover()
 
+        elif command == "clone":
+            clone()
+
         elif command == "many_chunks":
             many_chunks()
 
@@ -121,6 +128,7 @@ if __name__ == "__main__":
                 ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
                 ("auto_recover", auto_recover),
+                ("clone", clone),
                 ("many_chunks", many_chunks),
                 ("images", images),
                 ("cargo_tests", cargo_tests),

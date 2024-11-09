@@ -51,6 +51,40 @@ impl Index {
             &index_json,
             WriteMode::CreateOrTruncate,
         )?;
+
+        let image_list_url = url.join("image-list")?;
+        let image_list = request_json_file(image_list_url.as_str()).await?;
+        let image_list = parse_vec_string(&image_list)?;
+
+        for image_key in image_list.iter() {
+            let image_url = url.join(&format!("image/{image_key}"))?;
+            let image_desc_url = url.join(&format!("image-desc/{image_key}"))?;
+            let image = request_binary_file(image_url.as_str()).await?;
+            let image_desc = request_binary_file(image_desc_url.as_str()).await?;
+
+            let image_path = join4(
+                &repo_name,
+                &INDEX_DIR_NAME,
+                &IMAGE_DIR_NAME,
+                &set_extension(
+                    image_key,
+                    "png",
+                )?,
+            )?;
+            let image_desc_path = set_extension(&image_path, "json")?;
+
+            write_bytes(
+                &image_path,
+                &image,
+                WriteMode::AlwaysCreate,
+            )?;
+            write_bytes(
+                &image_desc_path,
+                &image_desc,
+                WriteMode::AlwaysCreate,
+            )?;
+        }
+
         let chunk_file_list_url = url.join("chunk-file-list")?;
         let chunk_file_list = request_json_file(chunk_file_list_url.as_str()).await?;
         let chunk_file_list = parse_vec_string(&chunk_file_list)?;
@@ -90,39 +124,6 @@ impl Index {
                 9,
                 &repo_name,
                 UpdateTfidf::Generate,
-            )?;
-        }
-
-        let image_list_url = url.join("image-list")?;
-        let image_list = request_json_file(image_list_url.as_str()).await?;
-        let image_list = parse_vec_string(&image_list)?;
-
-        for image_key in image_list.iter() {
-            let image_url = url.join(&format!("image/{image_key}"))?;
-            let image_desc_url = url.join(&format!("image-desc/{image_key}"))?;
-            let image = request_binary_file(image_url.as_str()).await?;
-            let image_desc = request_binary_file(image_desc_url.as_str()).await?;
-
-            let image_path = join4(
-                &repo_name,
-                &INDEX_DIR_NAME,
-                &IMAGE_DIR_NAME,
-                &set_extension(
-                    image_key,
-                    "png",
-                )?,
-            )?;
-            let image_desc_path = set_extension(&image_path, "json")?;
-
-            write_bytes(
-                &image_path,
-                &image,
-                WriteMode::AlwaysCreate,
-            )?;
-            write_bytes(
-                &image_desc_path,
-                &image_desc,
-                WriteMode::AlwaysCreate,
             )?;
         }
 

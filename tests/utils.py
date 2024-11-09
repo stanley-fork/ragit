@@ -20,6 +20,11 @@ def clean():
         if os.path.isdir(d) and d.startswith("__tmp_"):
             shutil.rmtree(d)
 
+    os.chdir("crates/server")
+
+    if os.path.exists("data/test-user"):
+        shutil.rmtree("data/test-user")
+
 def mk_and_cd_tmp_dir():
     # let's avoid name collision
     dir_name = f"__tmp_{randint(0, 1 << 64):x}"
