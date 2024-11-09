@@ -41,7 +41,7 @@ Creating index... staged files: 559, processed files: 13, processed: chunks: 55
 
 `rag build` takes very long time and money (if you're using proprietary api). It creates chunks and add title and summary to each chunk, using AI.
 
-You can press Ctrl+C to pause the process. You can resume from where you left off by running `rag build` again. (more on [commands.md](./commands.md#build))
+You can press Ctrl+C to pause the process. You can resume from where you left off by running `rag build` again. (more on [a dedicated document](./commands/build.txt))
 
 ```
 ai_tutorials/
