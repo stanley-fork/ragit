@@ -37,7 +37,7 @@ impl Index {
         }
 
         let url = Url::parse(&url)?;
-        Index::new(repo_name.clone())?;
+        let mut index = Index::new(repo_name.clone())?;
 
         let index_url = url.join("index/")?;
         let index_json = request_binary_file(index_url.as_str()).await?;
@@ -74,6 +74,15 @@ impl Index {
                 WriteMode::AlwaysCreate,
             )?;
             let chunks = chunk::load_from_file(&chunk_file_path)?;
+
+            for chunk in chunks.iter() {
+                index.add_chunk_index(
+                    &chunk.uid,
+                    chunk_file,
+                    false,
+                )?;
+            }
+
             chunk::save_to_file(
                 &chunk_file_path,
                 &chunks,

@@ -146,7 +146,7 @@ impl Index {
         let api_config = ApiConfig::default();
         let api_config_raw = ApiConfigRaw::default();
 
-        let mut result = Index {
+        let result = Index {
             ragit_version: crate::VERSION.to_string(),
             chunk_count: 0,
             staged_files: vec![],
@@ -162,7 +162,6 @@ impl Index {
             external_index_info: vec![],
             external_indexes: vec![],
         };
-        result.create_new_chunk_file()?;
 
         write_bytes(
             &result.get_build_config_path()?,
@@ -317,14 +316,18 @@ impl Index {
         self.tfidf_files().iter().map(|rel_path| Index::get_chunk_path(&self.root_dir, rel_path)).collect()
     }
 
-    fn load_curr_processing_chunks(&self) -> Result<Vec<Chunk>, Error> {
-        chunk::load_from_file(&Index::get_chunk_path(&self.root_dir, &self.get_curr_processing_chunks_path()))
+    fn load_curr_processing_chunks(&mut self) -> Result<Vec<Chunk>, Error> {
+        chunk::load_from_file(&Index::get_chunk_path(&self.root_dir.clone(), &self.get_curr_processing_chunks_path()?))
     }
 
-    fn get_curr_processing_chunks_path(&self) -> Path {
+    fn get_curr_processing_chunks_path(&mut self) -> Result<Path, Error> {
+        if self.chunk_files.is_empty() {
+            self.create_new_chunk_file()?;
+        }
+
         for (path, count) in self.chunk_files.iter() {
             if *count < self.build_config.chunks_per_json {
-                return set_extension(path, "chunks").unwrap();
+                return Ok(set_extension(path, "chunks").unwrap());
             }
         }
 

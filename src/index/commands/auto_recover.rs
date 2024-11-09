@@ -196,10 +196,6 @@ impl Index {
         self.chunk_files = chunk_files;
         self.chunk_count = chunk_count;
 
-        if self.chunk_count == 0 {
-            self.create_new_chunk_file()?;
-        }
-
         // Recover A
         if let Some(curr_processing_file) = curr_processing_file {
             self.staged_files.push(curr_processing_file);

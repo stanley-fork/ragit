@@ -62,7 +62,7 @@ impl Index {
                     self.render_dashboard()?;
                 }
 
-                let chunk_path = self.get_curr_processing_chunks_path();
+                let chunk_path = self.get_curr_processing_chunks_path()?;
                 let new_chunk = fd.generate_chunk(
                     &self,
                     &prompt,

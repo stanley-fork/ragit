@@ -43,8 +43,6 @@ impl Index {
             &CHUNK_INDEX_DIR_NAME.to_string(),
         )?)?;
 
-        // `Index` requires at least 1 chunk_file to run
-        self.create_new_chunk_file()?;
         Ok(())
     }
 }
