@@ -260,7 +260,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     return run(new_args).await;
                 },
                 None => {
-                    println!("{}", include_str!("../docs/commands/general.txt"));
+                    println!("{}", include_str!("../docs/commands/help.txt"));
                 },
             }
         },
@@ -566,7 +566,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         // TODO: suggest similar names
         Some(invalid_command) => {
-            println!("{invalid_command:?} is an invalid command.");
+            println!("{invalid_command:?} is an invalid command. Run `rag help` to get help.");
         },
         None => {
             println!("Run `rag help` to get help.");
