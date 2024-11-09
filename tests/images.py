@@ -47,7 +47,7 @@ def images():
 
     stderr = cargo_run(["build"], stderr=True, check=False)
     assert "sample2.png" in stderr   # "sample2.png not found" is expected
-    cargo_run(["check", "--auto-recovery"])
+    cargo_run(["check", "--auto-recover"])
 
     shutil.copyfile("../tests/images/empty.png", "sample2.png")
     shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
