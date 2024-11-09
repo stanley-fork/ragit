@@ -28,7 +28,7 @@ impl Index {
     /// - Check G: Images in chunks are all in `.ragit/images` and vice versa.
     /// - Check H: Images in `.ragit/images` are not corrupted. They all must have an attached json file.
     /// - Check I: Config files are not broken.
-    /// - Check J: A name of a chunk file is an xor of its chunks' uids. (TODO)
+    /// - Check J: A name of a chunk file is an xor of its chunks' uids.
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
         let mut chunk_count = 0;
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());
