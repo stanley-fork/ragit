@@ -15,6 +15,14 @@ use ragit_fs::{
 };
 use reqwest::Url;
 
+struct CloneState {
+    url: String,
+    image_total: usize,
+    image_count: usize,
+    chunk_total: usize,
+    chunk_count: usize,
+}
+
 impl Index {
     pub async fn clone(url: String, repo_name: Option<String>) -> Result<(), Error> {
         let repo_name = repo_name.unwrap_or_else(|| infer_repo_name_from_url(&url));
@@ -29,9 +37,16 @@ impl Index {
         }
     }
 
-    // TODO: dashboard
     // TODO: configs, prompts
     async fn clone_worker(mut url: String, repo_name: String) -> Result<(), Error> {
+        let mut state = CloneState {
+            url: url.clone(),
+            image_total: 0,
+            image_count: 0,
+            chunk_total: 0,
+            chunk_count: 0,
+        };
+
         if !url.ends_with("/") {
             url = format!("{url}/");
         }
@@ -55,12 +70,21 @@ impl Index {
         let image_list_url = url.join("image-list")?;
         let image_list = request_json_file(image_list_url.as_str()).await?;
         let image_list = parse_vec_string(&image_list)?;
+        state.image_total = image_list.len();
+
+        let chunk_file_list_url = url.join("chunk-file-list")?;
+        let chunk_file_list = request_json_file(chunk_file_list_url.as_str()).await?;
+        let chunk_file_list = parse_vec_string(&chunk_file_list)?;
+        state.chunk_total = chunk_file_list.len();
+        Index::render_clone_dashboard(&state);
 
         for image_key in image_list.iter() {
             let image_url = url.join(&format!("image/{image_key}"))?;
             let image_desc_url = url.join(&format!("image-desc/{image_key}"))?;
             let image = request_binary_file(image_url.as_str()).await?;
             let image_desc = request_binary_file(image_desc_url.as_str()).await?;
+            state.image_count += 1;
+            Index::render_clone_dashboard(&state);
 
             let image_path = join4(
                 &repo_name,
@@ -85,10 +109,6 @@ impl Index {
             )?;
         }
 
-        let chunk_file_list_url = url.join("chunk-file-list")?;
-        let chunk_file_list = request_json_file(chunk_file_list_url.as_str()).await?;
-        let chunk_file_list = parse_vec_string(&chunk_file_list)?;
-
         for chunk_file in chunk_file_list.iter() {
             let chunk_file_url = url.join(&format!("chunk-file/{chunk_file}"))?;
             let chunk_file_data = request_binary_file(chunk_file_url.as_str()).await?;
@@ -101,6 +121,8 @@ impl Index {
                     "chunks",
                 )?,
             )?;
+            state.chunk_count += 1;
+            Index::render_clone_dashboard(&state);
 
             write_bytes(
                 &chunk_file_path,
@@ -141,6 +163,14 @@ impl Index {
         )?;
 
         Ok(())
+    }
+
+    // TODO: erase lines instead of the entire screen
+    fn render_clone_dashboard(state: &CloneState) {
+        clearscreen::clear().expect("failed to clear screen");
+        println!("cloning {}...", state.url);
+        println!("chunks: {}/{}", state.chunk_count, state.chunk_total);
+        println!("images: {}/{}", state.image_count, state.image_total);
     }
 }
 

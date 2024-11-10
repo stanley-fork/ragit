@@ -13,7 +13,7 @@ use sha3::{Digest, Sha3_256};
 impl Index {
     pub async fn build(&mut self) -> Result<(), Error> {
         let mut chunks = self.load_curr_processing_chunks()?;
-        self.render_dashboard()?;
+        self.render_build_dashboard()?;
 
         let prompt = self.get_prompt("summarize")?;
         let mut hasher = Sha3_256::new();
@@ -41,7 +41,7 @@ impl Index {
             let mut previous_summary = None;
 
             while fd.can_generate_chunk() {
-                self.render_dashboard()?;
+                self.render_build_dashboard()?;
                 let chunk_path = self.get_curr_processing_chunks_path()?;
                 let new_chunk = fd.generate_chunk(
                     &self,
@@ -107,12 +107,12 @@ impl Index {
             self.save_to_file()?;
         }
 
-        self.render_dashboard()?;
+        self.render_build_dashboard()?;
         Ok(())
     }
 
     // TODO: erase lines instead of the entire screen
-    fn render_dashboard(&self) -> Result<(), Error> {
+    fn render_build_dashboard(&self) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
         println!("chunks: {}, chunk files: {}", self.chunk_count, self.chunk_files.len());
