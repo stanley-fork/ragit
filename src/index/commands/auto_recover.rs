@@ -7,6 +7,7 @@ use crate::index::{
     IMAGE_DIR_NAME,
     INDEX_DIR_NAME,
     UpdateTfidf,
+    xor_sha3,
 };
 use json::JsonValue;
 use ragit_fs::{
@@ -38,6 +39,7 @@ impl Index {
         let curr_processing_file = self.curr_processing_file.clone();
         self.curr_processing_file = None;  // Recover A
         let mut chunk_files_to_remove = vec![];
+        let mut chunk_files_to_rename = vec![];
 
         // It's re-created from scratch
         let mut chunk_index_map = HashMap::new();
@@ -55,12 +57,10 @@ impl Index {
         )?)? {
             match chunk::load_from_file(&chunk_file) {
                 Ok(chunks) => {
+                    let mut xor_uids = format!("{:064x}", 0);
                     let mut new_chunks = Vec::with_capacity(chunks.len());
                     let chunk_file_name = file_name(&chunk_file)?;
-
-                    if chunks.is_empty() {
-                        chunk_files.insert(chunk_file_name.clone(), 0);
-                    }
+                    chunk_files.insert(chunk_file_name.clone(), 0);
 
                     for chunk in chunks.into_iter() {
                         if let Some(file) = &curr_processing_file {
@@ -70,6 +70,10 @@ impl Index {
                         }
 
                         chunk_index_map.insert(chunk.uid.clone(), chunk_file_name.clone());
+                        xor_uids = xor_sha3(
+                            &xor_uids,
+                            &chunk.uid,
+                        )?;
 
                         match chunk_files.get_mut(&chunk_file_name) {
                             Some(n) => { *n += 1; },
@@ -94,6 +98,10 @@ impl Index {
                         &self.root_dir,
                         UpdateTfidf::Generate,
                     )?;
+
+                    if chunk_file_name != xor_uids {
+                        chunk_files_to_rename.push((chunk_file_name, xor_uids));
+                    }
                 },
                 Err(_) => {
                     chunk_files_to_remove.push(chunk_file);
@@ -199,6 +207,10 @@ impl Index {
         // Recover D
         self.chunk_files = chunk_files;
         self.chunk_count = chunk_count;
+
+        for (old_name, new_name) in chunk_files_to_rename.iter() {
+            self.rename_chunk_file(old_name, new_name)?;
+        }
 
         // Recover A
         if let Some(curr_processing_file) = curr_processing_file {
