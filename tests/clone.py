@@ -32,4 +32,5 @@ def clone():
     cargo_run(["clone", "http://127.0.0.1:41127/test-user/repo1"])
     os.chdir("repo1")
     cargo_run(["check"])
+    assert "sample2.txt" in cargo_run(["tfidf", "개발자"], stdout=True)
     server_process.kill()
