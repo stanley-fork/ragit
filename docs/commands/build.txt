@@ -8,7 +8,7 @@ rag-build - Build knowledge-base from staged files
 SYNOPSIS
 --------
 [verse]
-'rag build' [--dashboard]
+'rag build'
 
 DESCRIPTION
 -----------

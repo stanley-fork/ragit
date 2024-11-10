@@ -45,7 +45,7 @@ def add_and_rm():
     assert (total, staged, processed) == (5, 5, 0)
 
     # step 2: add files after `rag build`
-    cargo_run(["build", "--dashboard"])
+    cargo_run(["build"])
     added, updated, ignored = parse_add_output(["--auto", *all_files])
     assert (added, updated, ignored) == (0, 0, 5)
 
@@ -62,7 +62,7 @@ def add_and_rm():
     assert (total, staged, processed) == (5, 5, 0)
 
     # step 3: add files after `rag build` and file modification
-    cargo_run(["build", "--dashboard"])
+    cargo_run(["build"])
     write_string("3.txt", "100")
     added, updated, ignored = parse_add_output(["--auto", *all_files])
     assert (added, updated, ignored) == (0, 1, 4)
@@ -85,7 +85,7 @@ def add_and_rm():
     total, staged, processed = count_files()
     assert (total, staged, processed) == (4, 4, 0)
 
-    cargo_run(["build", "--dashboard"])
+    cargo_run(["build"])
     total, staged, processed = count_files()
     assert (total, staged, processed) == (4, 0, 4)
 
@@ -105,7 +105,7 @@ def add_and_rm():
     added, updated, ignored = parse_add_output(["--auto", *all_files])
     assert (added, updated, ignored) == (6, 0, 0)
 
-    cargo_run(["build", "--dashboard"])
+    cargo_run(["build"])
     cargo_run(["check", "--recursive"])
     total, staged, processed = count_files()
     assert (total, staged, processed) == (6, 0, 6)

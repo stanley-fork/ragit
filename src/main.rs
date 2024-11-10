@@ -104,7 +104,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
         Some("build") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--dashboard"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/build.txt"));
@@ -112,8 +112,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            let dashboard = parsed_args.get_flag(0).is_some();
-            index.build(dashboard).await?;
+            index.build().await?;
         },
         Some("check") => {
             let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).optional_flag(&["--auto-recover"]).parse(&args[2..])?;

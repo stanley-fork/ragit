@@ -30,13 +30,11 @@ ai_tutorials/
 Run `rag add *.txt`. Now you're ready to build the knowledge-base. Run `rag build` to start the work. The default model is `llama3.1-70b-groq` and you need `GROQ_API_KEY` to run. If you want to run gpt-4o-mini, run `rag config --set model gpt-4o-mini`. You can see the list of the models using `rag ls-models`.
 
 ```
-Starting index creation. Press Ctrl+C to pause the process. You can resume from where you left off (almost).
-Run `rag build --dashboard` for detailed information.
-staged files: {}, processed files: {}, processed chunks: {}
-Creating index... staged files: 560, processed files: 12, processed: chunks: 52
-Creating index... staged files: 560, processed files: 12, processed: chunks: 53
-Creating index... staged files: 560, processed files: 12, processed: chunks: 54
-Creating index... staged files: 559, processed files: 13, processed: chunks: 55
+staged files: 5, processed files: 3
+chunks: 3, chunk files: 1
+curr processing file: ai_tutorial_1.txt
+model: gpt-4o-mini
+input tokens: 2081 (0.000$), output tokens: 327 (0.000$)
 ```
 
 `rag build` takes very long time and money (if you're using proprietary api). It creates chunks and add title and summary to each chunk, using AI.

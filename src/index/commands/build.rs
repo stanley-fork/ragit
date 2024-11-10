@@ -11,17 +11,9 @@ use ragit_fs::{
 use sha3::{Digest, Sha3_256};
 
 impl Index {
-    pub async fn build(&mut self, dashboard: bool) -> Result<(), Error> {
+    pub async fn build(&mut self) -> Result<(), Error> {
         let mut chunks = self.load_curr_processing_chunks()?;
-
-        if !dashboard {
-            // TODO: more flexible println, for example, respecting `--verbose` or `--quiet`
-            println!("Starting index creation. Press Ctrl+C to pause the process. You can resume from where you left off (almost).\nRun `rag build --dashboard` for detailed information.");
-        }
-
-        else {
-            self.render_dashboard()?;
-        }
+        self.render_dashboard()?;
 
         let prompt = self.get_prompt("summarize")?;
         let mut hasher = Sha3_256::new();
@@ -49,19 +41,7 @@ impl Index {
             let mut previous_summary = None;
 
             while fd.can_generate_chunk() {
-                if !dashboard {
-                    println!(
-                        "Creating index... staged files: {}, processed files: {}, processed chunks: {}",
-                        self.staged_files.len() + if self.curr_processing_file.is_some() { 1 } else { 0 },
-                        self.processed_files.len(),
-                        self.chunk_count,
-                    );
-                }
-
-                else {
-                    self.render_dashboard()?;
-                }
-
+                self.render_dashboard()?;
                 let chunk_path = self.get_curr_processing_chunks_path()?;
                 let new_chunk = fd.generate_chunk(
                     &self,
@@ -127,15 +107,12 @@ impl Index {
             self.save_to_file()?;
         }
 
-        if dashboard {
-            self.render_dashboard()?;
-        }
-
+        self.render_dashboard()?;
         Ok(())
     }
 
-    /// This is `dashboard` of `rag bulid --dashboard`. It clears the screen when called.
-    pub fn render_dashboard(&self) -> Result<(), Error> {
+    // TODO: erase lines instead of the entire screen
+    fn render_dashboard(&self) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
         println!("chunks: {}, chunk files: {}", self.chunk_count, self.chunk_files.len());
