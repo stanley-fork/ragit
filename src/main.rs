@@ -424,7 +424,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("query") => {
-            let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Exact(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--interactive", "-i"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/query.txt"));
@@ -432,42 +432,40 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            let arg = &parsed_args.get_args()[0];
 
-            match arg.as_str() {
-                "-i" | "--interactive" => {
-                    let mut conversation = vec![];
+            if parsed_args.get_flag(0).is_some() {
+                let mut conversation = vec![];
 
-                    loop {
-                        let mut curr_input = String::new();
-                        print!(">>> ");
-                        std::io::stdout().flush()?;
-                        std::io::stdin().read_line(&mut curr_input)?;
-                        conversation.push(curr_input);
+                loop {
+                    let mut curr_input = String::new();
+                    print!(">>> ");
+                    std::io::stdout().flush()?;
+                    std::io::stdin().read_line(&mut curr_input)?;
+                    conversation.push(curr_input);
 
-                        let result = if conversation.len() == 1 {
-                            single_turn(
-                                &conversation[0],
-                                &index,
-                            ).await?
-                        } else {
-                            multi_turn(
-                                conversation.clone(),
-                                &index,
-                            ).await?
-                        };
+                    let result = if conversation.len() == 1 {
+                        single_turn(
+                            &conversation[0],
+                            &index,
+                        ).await?
+                    } else {
+                        multi_turn(
+                            conversation.clone(),
+                            &index,
+                        ).await?
+                    };
 
-                        println!("{result}");
-                        conversation.push(result);
-                    }
-                },
-                query => {
-                    let result = single_turn(
-                        query,
-                        &index,
-                    ).await?;
                     println!("{result}");
-                },
+                    conversation.push(result);
+                }
+            }
+
+            else {
+                let result = single_turn(
+                    &parsed_args.get_args_exact(1)?[0],
+                    &index,
+                ).await?;
+                println!("{result}");
             }
         },
         Some("remove") | Some("rm") => {
@@ -517,7 +515,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("tfidf") => {
-            let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--show"]).args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
@@ -526,7 +524,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
 
-            if let Some("--show") = args.get(2).map(|arg| arg.as_str()) {
+            if parsed_args.get_flag(0).is_some() {
                 let processed_doc = index.get_tfidf_by_chunk_uid(args[3].clone())?;
                 println!("{}", processed_doc.render());
                 return Ok(());
