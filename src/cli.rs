@@ -63,7 +63,7 @@ impl ArgParser {
 
         let mut is_reading_flag = true;
 
-        for raw_arg in raw_args.iter() {
+        'raw_arg_loop: for raw_arg in raw_args.iter() {
             if !raw_arg.starts_with("--") {
                 is_reading_flag = false;
             }
@@ -73,6 +73,7 @@ impl ArgParser {
                     if flag.values.contains(raw_arg) {
                         if flags[flag_index].is_none() {
                             flags[flag_index] = Some(raw_arg.to_string());
+                            continue 'raw_arg_loop;
                         }
 
                         else {
@@ -80,6 +81,8 @@ impl ArgParser {
                         }
                     }
                 }
+
+                return Err(Error::CliError(format!("unknown flag: {raw_arg}")));
             }
 
             else {
