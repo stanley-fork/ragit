@@ -59,7 +59,7 @@ impl Index {
                     let chunk_file_name = file_name(&chunk_file)?;
 
                     if chunks.is_empty() {
-                        chunk_files.insert(chunk_file.clone(), 0);
+                        chunk_files.insert(chunk_file_name.clone(), 0);
                     }
 
                     for chunk in chunks.into_iter() {
