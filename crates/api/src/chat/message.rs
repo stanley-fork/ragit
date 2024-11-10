@@ -361,7 +361,7 @@ fn parse_content(content: &str, pdl_token_re: &Regex) -> Result<Vec<MessageConte
         }
 
         else {
-            return Err(Error::InvalidPdlToken(token.to_string()));
+            Ok(vec![MessageContent::String(content.to_string())])
         }
     }
 
