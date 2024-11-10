@@ -1,7 +1,14 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{CHUNK_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME, METADATA_FILE_NAME, UpdateTfidf};
+use crate::index::{
+    CHUNK_DIR_NAME,
+    IMAGE_DIR_NAME,
+    INDEX_DIR_NAME,
+    LoadMode,
+    METADATA_FILE_NAME,
+    UpdateTfidf,
+};
 use json::JsonValue;
 use ragit_api::{JsonType, get_type};
 use ragit_fs::{
@@ -161,6 +168,9 @@ impl Index {
             &meta_json,
             WriteMode::AlwaysCreate,
         )?;
+        let mut index = Index::load(repo_name, LoadMode::OnlyJson)?;
+        index.repo_url = Some(url.to_string());
+        index.save_to_file()?;
 
         Ok(())
     }

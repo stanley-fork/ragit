@@ -66,6 +66,7 @@ pub struct Index {
     pub processed_files: HashMap<Path, FileHash>,
     pub curr_processing_file: Option<Path>,
     chunk_files: HashMap<Path, usize>,  // number of chunks in a file
+    repo_url: Option<String>,
 
     // the json file only stores links to the external knowledge-bases,
     // but the code actually loads all the externals
@@ -158,6 +159,7 @@ impl Index {
             api_config,
             root_dir,
             chunk_files: HashMap::new(),
+            repo_url: None,
             prompts: PROMPTS.clone(),
             external_index_info: vec![],
             external_indexes: vec![],
