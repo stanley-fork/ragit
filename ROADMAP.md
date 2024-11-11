@@ -1,0 +1,23 @@
+- [ ] User Interface
+  - [ ] Cleaner and more consistent outputs
+    - [ ] `ls-models`, `ls-chunks`, `ls-files`
+    - [ ] `build`
+    - [ ] `clone`
+  - [ ] Better error messages
+  - [ ] Better help messages and documents
+- [ ] Search Optimization
+  - [ ] K-V database for an inverted index
+    - K: token, V: chunk_file
+  - [ ] Custom file format for chunk_index files
+- [ ] More user-friendly commands
+  - `rag ls-bases`
+  - chunk viewers
+  - more options for `ls-chunks` and `ls-files`
+- [ ] Pdf Reader
+  - pdf -> markdown, then markdown reader? I'm not sure...
+- [ ] Formatter
+- [ ] easy-to-share-ness
+  - [ ] `push` command
+- [ ] Prompt Engineering
+  - [ ] More friendly interface for prompt engineering
+- [ ] Make all the tests pass
