@@ -209,12 +209,12 @@ impl Index {
         result.load_external_indexes(load_mode)?;
 
         match load_mode {
-            LoadMode::QuickCheck if result.curr_processing_file.is_some() && result.check(false).is_err() => {
+            LoadMode::QuickCheck if result.curr_processing_file.is_some() => {
                 result.auto_recover()?;
                 result.save_to_file()?;
                 Ok(result)
             },
-            LoadMode::Check if result.check(false).is_err() => {
+            LoadMode::Check if result.curr_processing_file.is_some() || result.check(false).is_err() => {
                 result.auto_recover()?;
                 result.save_to_file()?;
                 Ok(result)
@@ -327,17 +327,15 @@ impl Index {
     }
 
     fn get_curr_processing_chunks_path(&mut self) -> Result<Path, Error> {
-        if self.chunk_files.is_empty() {
+        loop {
+            for (path, count) in self.chunk_files.iter() {
+                if *count < self.build_config.chunks_per_json {
+                    return Ok(set_extension(path, "chunks").unwrap());
+                }
+            }
+
             self.create_new_chunk_file()?;
         }
-
-        for (path, count) in self.chunk_files.iter() {
-            if *count < self.build_config.chunks_per_json {
-                return Ok(set_extension(path, "chunks").unwrap());
-            }
-        }
-
-        unreachable!()
     }
 
     fn create_new_chunk_file(&mut self) -> Result<(), Error> {
