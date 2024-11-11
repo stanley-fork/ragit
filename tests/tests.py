@@ -6,6 +6,7 @@ from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
 from images2 import images2
+from interrupts import interrupts
 from many_chunks import many_chunks
 from ragit_api import ragit_api
 from tfidf import tfidf
@@ -42,6 +43,10 @@ Commands
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
                                 handle the files correctly.
+
+    interrupts                  run `interrupts` test
+                                It's like `many_chunks` but interrupts `rag build` a lot
+                                of times.
 
     images                      run `images` test
                                 It creates a markdown file with images and check
@@ -94,6 +99,9 @@ if __name__ == "__main__":
         elif command == "many_chunks":
             many_chunks()
 
+        elif command == "interrupts":
+            interrupts()
+
         elif command == "images":
             images()
 
@@ -130,6 +138,7 @@ if __name__ == "__main__":
                 ("auto_recover", auto_recover),
                 ("clone", clone),
                 ("many_chunks", many_chunks),
+                ("interrupts", interrupts),
                 ("images", images),
                 ("cargo_tests", cargo_tests),
                 ("tfidf", tfidf),
