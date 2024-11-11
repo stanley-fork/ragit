@@ -514,6 +514,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Index::reset_hard(&root_dir?)?;
             }
         },
+        // TODO: I would like to introduce `-N=10` flag, which tells at most how many chunks to retrieve.
+        //       but the ArgParser doesn't support that kinda arguments
         Some("tfidf") => {
             let parsed_args = ArgParser::new().optional_flag(&["--show"]).args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
 
@@ -535,6 +537,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let tfidf_results = index.run_tfidf(
                 keywords,
                 vec![],
+                index.query_config.max_summaries,
             )?;
             let uids = tfidf_results.iter().map(|r| r.id.clone()).collect::<Vec<_>>();
             let chunks = index.get_chunks_by_uid(&uids)?;

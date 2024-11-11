@@ -281,7 +281,11 @@ impl Index {
     ) -> Result<Vec<Chunk>, Error> {
         if self.chunk_count + self.count_external_chunks() > self.query_config.max_titles {
             let keywords = extract_keywords(query, &self.api_config, &self.get_prompt("extract_keyword")?).await?;
-            let uids = self.run_tfidf(keywords, ignored_chunks)?.into_iter().map(|r| r.id).collect::<Vec<Uid>>();
+            let uids = self.run_tfidf(
+                keywords,
+                ignored_chunks,
+                self.query_config.max_summaries,
+            )?.into_iter().map(|r| r.id).collect::<Vec<Uid>>();
 
             self.get_chunks_by_uid(&uids)
         }
@@ -473,6 +477,7 @@ impl Index {
         // 1. why not HashSet<Uid>?
         // 2. for now, no code does something with this value
         ignored_chunks: Vec<Uid>,
+        chunk_count: usize,
     ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
         let mut tfidf_state = TfIdfState::new(&keywords);
         self.generate_tfidfs()?;
@@ -497,7 +502,7 @@ impl Index {
             }
         }
 
-        Ok(tfidf_state.get_top(self.query_config.max_summaries))
+        Ok(tfidf_state.get_top(chunk_count))
     }
 
     // input and output has the same order
