@@ -310,6 +310,7 @@ fn is_code_span_start(chars: &[char], index: usize) -> bool {
 // If the code span does not end (probably a markdown syntax error), it returns the index of the last character.
 fn march_until_code_span_end(chars: &[char], index: usize) -> usize {
     let mut backtick_count = 0;
+    let original_len = chars.len();
     let chars = &chars[index..];
 
     for (i, c) in chars.iter().enumerate() {
@@ -327,7 +328,7 @@ fn march_until_code_span_end(chars: &[char], index: usize) -> usize {
         }
     }
 
-    return chars.len() - 1;
+    return original_len - 1;
 }
 
 fn try_parse_image(chars: &[char], index: usize) -> Option<StringOrImage> {
