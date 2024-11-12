@@ -1,0 +1,7 @@
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/index/  200 {"accept": "*/*", "host": "127.0.0.1:41127"}
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/image-list  200 {"accept": "*/*", "host": "127.0.0.1:41127"}
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/chunk-file-list  200 {"accept": "*/*", "host": "127.0.0.1:41127"}
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/image/035ce737ee9474c48272f16b9b3507bdaa1812ac2e5c136ba281da0ffe41b6d5  200 {"accept": "*/*", "host": "127.0.0.1:41127"}
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/image-desc/035ce737ee9474c48272f16b9b3507bdaa1812ac2e5c136ba281da0ffe41b6d5  200 {"accept": "*/*", "host": "127.0.0.1:41127"}
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/chunk-file/29b547cfbe81ccc72634d73cda9b9338329a49a816f8251b41880ceef5fbf545  200 {"accept": "*/*", "host": "127.0.0.1:41127"}
+Tue, 12 Nov 2024 21:07:52 +0900 |                     ragit-server | GET  /test-user/repo1/meta  200 {"accept": "*/*", "host": "127.0.0.1:41127"}

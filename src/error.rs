@@ -24,7 +24,7 @@ pub enum Error {
     BrokenHash(String),
     BrokenPrompt(String),
     CloneRequestError {
-        code: u16,
+        code: Option<u16>,
         url: String,
     },
 

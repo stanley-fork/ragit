@@ -58,7 +58,11 @@ impl Index {
             url = format!("{url}/");
         }
 
-        let url = Url::parse(&url)?;
+        let mut url = Url::parse(&url)?;
+        url.set_port(Some(41127)).map_err(|_| Error::CloneRequestError {
+            code: None,
+            url: url.as_str().into(),
+        })?;
         let mut index = Index::new(repo_name.clone())?;
 
         let index_url = url.join("index/")?;
@@ -208,7 +212,7 @@ async fn request_json_file(url: &str) -> Result<JsonValue, Error> {
 
     if response.status().as_u16() != 200 {
         return Err(Error::CloneRequestError {
-            code: response.status().as_u16(),
+            code: Some(response.status().as_u16()),
             url: url.to_string(),
         });
     }
@@ -222,7 +226,7 @@ async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
 
     if response.status().as_u16() != 200 {
         return Err(Error::CloneRequestError {
-            code: response.status().as_u16(),
+            code: Some(response.status().as_u16()),
             url: url.to_string(),
         });
     }
