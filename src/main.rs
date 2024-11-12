@@ -217,6 +217,23 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 _ => unreachable!(),
             }
         },
+        Some("ext") => {
+            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ext.txt"));
+                return Ok(());
+            }
+
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let bases = parsed_args.get_args();
+
+            for base in bases.iter() {
+                index.ext(base)?;
+            }
+
+            index.save_to_file()?;
+        },
         Some("gc") => {
             let parsed_args = ArgParser::new().flag(&["--logs"]).parse(&args[2..])?;
 
@@ -358,23 +375,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             for model in models.iter() {
                 println!("{}", String::from_utf8_lossy(&serde_json::to_vec_pretty(model)?).to_string());
             }
-        },
-        Some("merge") => {
-            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
-
-            if parsed_args.show_help() {
-                println!("{}", include_str!("../docs/commands/merge.txt"));
-                return Ok(());
-            }
-
-            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
-            let bases = parsed_args.get_args();
-
-            for base in bases.iter() {
-                index.merge(base)?;
-            }
-
-            index.save_to_file()?;
         },
         Some("meta") => {
             let parsed_args = ArgParser::new().flag(&["--get", "--get-all", "--set", "--remove", "--remove-all"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;

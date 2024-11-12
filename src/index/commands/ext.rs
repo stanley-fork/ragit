@@ -5,7 +5,7 @@ use crate::index::{ExternalIndex, LoadMode};
 pub type Path = String;
 
 impl Index {
-    pub fn merge(&mut self, real_path: &Path) -> Result<(), Error> {
+    pub fn ext(&mut self, real_path: &Path) -> Result<(), Error> {
         let rel_path = Index::get_rel_path(
             &self.root_dir,
             real_path,

@@ -23,9 +23,8 @@ Commands
 
     external_bases              run `external_bases` test
                                 It creates bunch of knowledge-bases and run
-                                `rag merge` on them. It also checks whether
-                                `rag tfidf` can successfully retrieve a chunk
-                                from multiple knowledge-bases.
+                                `rag ext` on them. It also checks whether `rag tfidf`
+                                can successfully retrieve a chunk from multiple knowledge-bases.
 
     add_and_rm                  run `add_and_rm` test
                                 It runs tons of `rag add` and `rag rm` with

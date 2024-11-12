@@ -67,7 +67,7 @@ NOTE: You can ask queries on an incomplete knowledge-base, too.
 
 ## 2. (Optional) Pull Knowledge-Bases from web
 
-This is the key part. You can download knowledge-bases from the internet and merge multi of them to create a bigger knowledge-base. You can also share your knowledge-base with others.
+This is the key part. You can download knowledge-bases from the internet and extend your knowledge-base with those. You can also share your knowledge-base with others.
 
 First, let's make a fresh dir. Run `mkdir playground; cd playground`.
 
@@ -86,9 +86,7 @@ playground
     ╰ index.json
 ```
 
-You'll see an empty rag index. Now we have to download knowledge-bases from the web.
-
-TODO: I'm planning to implement `rag clone https://URL/TO/A/KNOWLEDGE/BASE`, but it's WIP. You can download knowledge-bases from the links below. Download and extract the files to make the dir tree looks like below.
+You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone http://TODO/TODO`
 
 - [docker](TODO)
 - [git](TODO)
@@ -119,7 +117,7 @@ playground
        ╰ index.json
 ```
 
-Now we have 1 empty knowledge-base and 2 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. In order to do that, we have to merge the 2 knowledge-bases into the empty one. Run `rag merge ./git` and `rag merge ./rustc-dev-guide`.
+Now we have 1 empty knowledge-base and 2 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag ext ./git` and `rag ext ./rustc-dev-guide`.
 
 ## 3. Change Configs
 

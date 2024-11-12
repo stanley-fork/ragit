@@ -1,0 +1,14 @@
+rag-ext(1)
+==========
+
+NAME
+----
+rag-ext - Extend a knowledge-base with an external knowledge-base
+
+SYNOPSIS
+--------
+[verse]
+'rag ext' <path>
+
+DESCRIPTION
+-----------
