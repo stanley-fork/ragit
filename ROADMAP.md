@@ -18,6 +18,12 @@
 - [ ] Formatter
 - [ ] easy-to-share-ness
   - [ ] `push` command
+  - [ ] ragit-hub
 - [ ] Prompt Engineering
   - [ ] More friendly interface for prompt engineering
 - [ ] Make all the tests pass
+- [ ] Faster `rag build`
+  - [ ] Parallel execution (in 1 machine)
+  - [ ] Run `rag build` on multiple machines, then run some kinda merge command to merge them into a single knowledge-base
+- [ ] Cheaper `rag build`
+  - [ ] Batch api for `rag build` (openai, anthropic)
