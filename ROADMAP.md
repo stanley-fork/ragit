@@ -27,3 +27,5 @@
   - [ ] Run `rag build` on multiple machines, then run some kinda merge command to merge them into a single knowledge-base
 - [ ] Cheaper `rag build`
   - [ ] Batch api for `rag build` (openai, anthropic)
+- [ ] ragit as a library
+  - [ ] Make `Index::single_turn` and `Index::multi_turn` return more metadata
