@@ -78,7 +78,7 @@ if __name__ == "__main__":
             git_url = "https://github.com/rust-lang/rustc-dev-guide/",
             docs_at = "./rustc-dev-guide/src",
             repo_name = "rustc-dev-guide",
-            file_ext = [".md"],
+            file_ext = [".md", ".png"],
             result_tmp = "./sample/src",
             result_at = "./sample/rustc-dev-guide",
         )
