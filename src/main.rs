@@ -127,7 +127,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let auto_recover = parsed_args.get_flag(1).is_some();
 
             match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
-                Ok(mut index) => if index.curr_processing_file.is_some() {
+                Ok(mut index) => if index.curr_processing_file.is_some() && auto_recover {
                     index.auto_recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;
