@@ -373,7 +373,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             println!("{} models", models.len());
 
             for model in models.iter() {
-                println!("{}", String::from_utf8_lossy(&serde_json::to_vec_pretty(model)?).to_string());
+                println!("--------");
+                println!("name: {}", model.name);
+                println!("api_provider: {}", model.api_provider);
+                println!("api_key_env_var: {}", model.api_key_env_var.as_ref().map(|k| k.to_string()).unwrap_or(String::new()));
+                println!("can_read_images: {}", model.can_read_images);
+                println!("dollars_per_1b_input_tokens: {}", model.dollars_per_1b_input_tokens);
+                println!("dollars_per_1b_output_tokens: {}", model.dollars_per_1b_output_tokens);
             }
         },
         Some("meta") => {

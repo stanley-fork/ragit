@@ -19,6 +19,9 @@ pub struct RenderableModel {
     pub name: String,
     pub api_provider: String,
     pub api_key_env_var: Option<String>,
+    pub can_read_images: bool,
+    pub dollars_per_1b_input_tokens: u64,
+    pub dollars_per_1b_output_tokens: u64,
     pub explanation: String,
 }
 
@@ -102,6 +105,9 @@ impl Index {
                 name: model.to_human_friendly_name().to_string(),
                 api_provider: api_provider.as_str().to_string(),
                 api_key_env_var: api_provider.api_key_env_var().map(|v| v.to_string()),
+                can_read_images: model.can_read_images(),
+                dollars_per_1b_input_tokens: model.dollars_per_1b_input_tokens(),
+                dollars_per_1b_output_tokens: model.dollars_per_1b_output_tokens(),
                 explanation: model.explanation().to_string(),
             };
 
