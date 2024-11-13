@@ -108,6 +108,7 @@ impl FileReader {
         let mut chunk_deque = VecDeque::new();
         let mut curr_chunk_size = 0;
 
+        // step 1. collect tokens for a chunk
         while curr_chunk_size < next_chunk_size && !self.buffer.is_empty() {
             let token = self.buffer.pop_front().unwrap();
             self.curr_buffer_size -= token.len(self.config.image_size);
@@ -115,8 +116,10 @@ impl FileReader {
             chunk_deque.push_back(token);
         }
 
+        // step 2. create a sliding window
         // if there's no remaining token, there's no need for sliding window
-        if !self.buffer.is_empty() {
+        // if the chunk consists of a single token, there's no point in making a sliding window
+        if !self.buffer.is_empty() || chunk_deque.len() == 1 {
             let mut sliding_window_deque = VecDeque::new();
             let mut curr_sliding_window_size = 0;
 
@@ -126,6 +129,11 @@ impl FileReader {
                 self.buffer.push_front(token.clone());
                 self.curr_buffer_size += token.len(self.config.image_size);
                 sliding_window_deque.push_front(token);
+            }
+
+            // prevent infinite loop
+            if curr_sliding_window_size == curr_chunk_size {
+                self.buffer.pop_front().unwrap();
             }
 
             for token in sliding_window_deque.into_iter() {
