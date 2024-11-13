@@ -7,11 +7,13 @@ pub type Path = String;
 impl Index {
     pub fn remove_file(
         &mut self,
-        path: Path,  // normalized rel_path  // TODO: it has to be real_path in order to be api-friendly
+        path: Path,  // real_path
     ) -> Result<(), Error> {
-        if self.staged_files.contains(&path) {
+        let rel_path = Index::get_rel_path(&self.root_dir, &path);
+
+        if self.staged_files.contains(&rel_path) {
             self.staged_files = self.staged_files.iter().filter(
-                |file| file.to_string() != path
+                |file| file.to_string() != rel_path
             ).map(
                 |file| file.to_string()
             ).collect();
@@ -19,15 +21,15 @@ impl Index {
             Ok(())
         }
 
-        else if self.processed_files.contains_key(&path) || self.curr_processing_file == Some(path.clone()) {
-            self.remove_chunks_by_file_name(path.clone())?;
+        else if self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.clone()) {
+            self.remove_chunks_by_file_name(rel_path.clone())?;
 
-            if self.curr_processing_file == Some(path.clone()) {
+            if self.curr_processing_file == Some(rel_path.clone()) {
                 self.curr_processing_file = None;
             }
 
             else {
-                self.processed_files.remove(&path).unwrap();
+                self.processed_files.remove(&rel_path).unwrap();
             }
 
             Ok(())
