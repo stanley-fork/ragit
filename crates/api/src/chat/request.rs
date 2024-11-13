@@ -139,6 +139,23 @@ impl Request {
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub async fn send(&self) -> Result<Response, Error> {
         if self.model.get_api_provider() == ApiProvider::Dummy {
+            if let Some(path) = &self.dump_pdl_at {
+                if let Err(e) = dump_pdl(
+                    &self.messages,
+                    "dummy",
+                    path,
+                    String::from("model: dummy, input_tokens: 0, output_tokens: 0, took: 0ms"),
+                ) {
+                    write_log(
+                        "dump_pdl",
+                        &format!("dump_pdl({path:?}, ..) failed with {e:?}"),
+                    );
+
+                    // TODO: should it return an error?
+                    //       the api call was successful
+                }
+            }
+
             return Ok(Response::dummy(String::from("dummy")));
         }
 
