@@ -16,11 +16,11 @@ There's another special stage. You can see the term `curr_processing_file` in th
 
 ## Chunk Files
 
-You can see the term `chunk_file` in the source code. Chunks have to be stored somewhere in the disk. It's not a good idea to create a file for each chunk. So, multiple chunks are stored in a file, in a json format. We call the files `chunk_file`. You can find chunk files in `.ragit/chunks` directory. There, you'll find two different files with the same name but different extensions: `.chunks` and `.tfidf`. `.chunks` file stores the actual data, and `.tfidf` stores index for tfidf scores. Both files must have the same chunks, in the same order.
+You can see the term `chunk_file` in the source code. Chunks have to be stored somewhere in the disk. It's not a good idea to create a file for each chunk. So, multiple chunks are stored in a file, in a json format. We call the files `chunk_file`. You can find chunk files in `.ragit/chunks` directory. There, you'll find two different files with the same name but different extensions: `.chunks` and `.tfidf`. `.chunks` file stores the actual data, and `.tfidf` stores index for tfidf scores. Both files must have the same chunks, in the same order. `.tfidf` files are lazily generated, meaning that a file may or may not exist. But you don't have to care about it at all! Ragit is smart enough to manage `.tfidf` files unnoticeably.
 
 `.tfidf` files are always compressed, and `.chunks` files are compressed depending on its size. You can configure the size threshold and compression level.
 
-The name of each chunk file is an xor-ed value of all the chunks a file has. It complicates the code (it has to rename a chunk file everytime a chunk is added/removed), but is useful in some cases. For example, one can compare 2 different knowledge-bases and easily see which chunks they have in common.
+The name of each chunk file is an xor-ed value of all the chunks' uids a file has. It complicates the code (it has to rename a chunk file everytime a chunk is added/removed), but is useful in some cases. For example, one can compare 2 different knowledge-bases and easily see which chunks they have in common.
 
 ## Chunk Index
 
