@@ -10,12 +10,19 @@ def end_to_end(test_model: str):
     goto_root()
     os.chdir("docs")
     md_files = []
+    txt_files = []
 
     for file in os.listdir():
         if not file.endswith(".md"):
             continue
 
         md_files.append(file)
+
+    for file in os.listdir("commands"):
+        if not file.endswith(".txt"):
+            continue
+
+        txt_files.append(os.path.join("commands", file))
 
     if ".ragit" in os.listdir():
         cargo_run(["reset", "--hard"])
@@ -52,23 +59,26 @@ def end_to_end(test_model: str):
 
     # step 2: add the files
     cargo_run(["add", *md_files])
+    cargo_run(["add", *txt_files])
     cargo_run(["check", "--recursive"])
     file_count, _, _ = count_files()
 
-    assert file_count == len(md_files)
+    assert file_count == len(md_files) + len(txt_files)
 
     # step 2.1: rm all the files and add the files again
     cargo_run(["rm", *md_files])
+    cargo_run(["rm", *txt_files])
     cargo_run(["check", "--recursive"])
     file_count, _, _ = count_files()
 
     assert file_count == 0
 
     cargo_run(["add", *md_files])
+    cargo_run(["add", *txt_files])
     cargo_run(["check", "--recursive"])
     file_count, _, _ = count_files()
 
-    assert file_count == len(md_files)
+    assert file_count == len(md_files) + len(txt_files)
 
     # step 3: build: pause and resume
     try:
@@ -110,7 +120,7 @@ def end_to_end(test_model: str):
     file_count_prev, _, _ = count_files()
     chunk_count_prev = count_chunks()
 
-    assert file_count_prev == len(md_files)
+    assert file_count_prev == len(md_files) + len(txt_files)
 
     # step 7: rm
     cargo_run(["rm", md_files[0]])
