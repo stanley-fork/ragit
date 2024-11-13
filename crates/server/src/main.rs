@@ -122,7 +122,9 @@ async fn main() {
                     let headers = info.request_headers();
 
                     write_log(
-                        "ragit-server",
+                        &info.remote_addr().map(
+                            |remote_addr| remote_addr.to_string()
+                        ).unwrap_or_else(|| String::from("NO REMOTE ADDR")),
                         &format!(
                             "{:4} {:16} {:4} {headers:?}",
                             info.method().as_str(),
