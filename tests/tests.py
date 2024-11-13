@@ -7,6 +7,7 @@ from external_bases import external_bases
 from images import images
 from images2 import images2
 from many_chunks import many_chunks
+from markdown_reader import markdown_reader
 from ragit_api import ragit_api
 from tfidf import tfidf
 
@@ -53,6 +54,11 @@ Commands
                                 files correctly.
                                 NOTE: It uses the vision capability of the model.
                                       Make sure that the model has one.
+
+    markdown_reader             run `markdown_reader` test
+                                I have found many bugs in `markdown_reader_v0`. The bugs
+                                are reproduced in this test. If you find a new one, please
+                                add that to this test.
 
     tfidf                       run `tfidf` test
                                 It creates bunch of lorem-ipsum files and see if
@@ -104,6 +110,9 @@ if __name__ == "__main__":
 
             images2(test_model=test_model)
 
+        elif command == "markdown_reader":
+            markdown_reader()
+
         elif command == "tfidf":
             tfidf()
 
@@ -131,6 +140,7 @@ if __name__ == "__main__":
                 ("clone", clone),
                 ("many_chunks", many_chunks),
                 ("images", images),
+                ("markdown_reader", markdown_reader),
                 ("cargo_tests", cargo_tests),
                 ("tfidf", tfidf),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
