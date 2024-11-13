@@ -23,5 +23,5 @@ cargo build
 If you have Python, test your build with test scripts.
 
 ```
-python scripts/tests.py all dummy
+python scripts/tests.py all
 ```

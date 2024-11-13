@@ -10,9 +10,9 @@
     - K: token, V: chunk_file
   - [ ] Custom file format for chunk_index files
 - [ ] More user-friendly commands
-  - `rag ls-bases`
-  - chunk viewers
-  - more options for `ls-chunks` and `ls-files`
+  - [ ] `rag ls-bases`
+  - [ ] chunk viewers
+  - [ ] more options for `ls-chunks` and `ls-files`
 - [ ] Pdf Reader
   - pdf -> markdown, then markdown reader? I'm not sure...
 - [ ] Formatter
@@ -29,3 +29,5 @@
   - [ ] Batch api for `rag build` (openai, anthropic)
 - [ ] ragit as a library
   - [ ] Make `Index::single_turn` and `Index::multi_turn` return more metadata
+- [ ] Sync with git
+  - [ ] `rag sync-git` adds the files in git's work tree to ragit's staging area. It also removes unnecessary files.

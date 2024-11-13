@@ -3,7 +3,7 @@
 Thanks for helping Ragit! Before contributing to the project, let me remind you the goals of ragit.
 
 1. Ragit has to be easy-to-use.
-2. Knowledge-bases in Ragit has to be easy-to-share.
+2. Knowledge-bases have to be easy-to-share.
 
 If you're familiar with Rust, please help us make ragit more useful. If you're not familiar with Rust, you still have tons of ways to contribute to the project. Using ragit and issuing bug reports help us a lot.
 
@@ -15,7 +15,7 @@ First, check `crates/api/src/api_provider.rs` if you're using one of the api pro
 
 Then, add your model to `ModelKind` in `crates/api/src/chat/model_kind.rs`. Make sure to add the new model to `ALL_MODELS`. Then, implement all the methods until it compiles.
 
-That's it! Please run [tests](#running-tests) before committing.
+I recommend you add your new model to `tests/ragit_api.py`.
 
 ## Add new file readers
 
@@ -38,12 +38,13 @@ See [prompt engineering.md](./prompt_engineering.md)
 
 It also helps a lot.
 
+## Issuing Bugs
+
+Opening a github issue helps us a lot. What's even better is reproducing your bug in `tests/`. `tests/add_and_rm.py` is a good example to reference.
+
+1. Write a new test file in a `test/add_and_rm.py`-like way. You'll find many useful functions at `tests/utils.py`.
+2. Add your new test case to `tests.py`.
+
 ## Run tests
 
-Make sure to run tests after contributing. For now, there's only one test file: `scripts/tests.py`.
-
-It takes 1 input argument, the name of the model. It also requires an API key if the model needs one. Run `rag ls --models` to see the full list.
-
-Run `python tests.py all gpt-4o-mini` to run tests with gpt-4o-mini. It requires you to have env var `OPENAI_API_KEY`.
-
-`dummy` is a special model. It doesn't require any network connection and always returns a dummy response. In order for more coverage, I recommend you to run tests both in the dummy model and a *real* model.
+After writing some code, please make sure to run tests. You can find the tests in `tests/tests.py`. The python file itself is an executable that runs tests. Just run `python tests/tests.py all`. Some tests require api keys. For example, `python tests.py images2 gpt-4o-mini` requires an environment variable: `OPENAI_API_KEY`.

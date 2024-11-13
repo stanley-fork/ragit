@@ -15,7 +15,8 @@ Ragit uses pdl file format to manage prompts. Pdl is a plain-text format that co
     - You cannot put a delimiter in a mid of a line. For example, `<|user|>Hello!<|assistant|>Hi!` is invalid. It has to be `\n<|user|>\nHello!\n<|assistant|>\nHi!`
     - A prompt not following any delimiter is treated as a system prompt. But I don't recommend you do that. I recommend you to start a pdl file with `<|system|>\n`
   - Second, a turn may contain multimedia files. There are 2 ways to insert multimedia files in a turn.
-    - TODO: write document
+    - `<|media(PATH/TO/YOUR/MEDIA/FILE)|>`
+    - `<|raw_media(png:BASE64_VALUE_OF_YOUR_MEDIA_FILE)|>`. For now, it supports `png`, `jpeg`, `gif` and `webp`.
 
 You'll find pdl files in 2 places: your local ragit repo and ragit's git repo.
 

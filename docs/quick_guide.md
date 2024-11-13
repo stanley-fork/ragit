@@ -1,6 +1,6 @@
 ## 1. Create Knowledge-Base
 
-First, let's say there're text files explaining ai. We'll build a knowledge-base on the text files. The dir should look like below.
+First, let's say there're text files explaining ai. We'll build a knowledge-base with from the text files. The directory should look like below.
 
 ```
 ai_tutorials/
@@ -10,7 +10,7 @@ ai_tutorials/
  ╰ ... and many more txt files
 ```
 
-Run `cd ai_tutorial; rag init`. You'll see a new dir created like below.
+Run `cd ai_tutorial; rag init`. You'll see a new directory created like below.
 
 ```
 ai_tutorials/
@@ -37,7 +37,7 @@ model: gpt-4o-mini
 input tokens: 2081 (0.000$), output tokens: 327 (0.000$)
 ```
 
-`rag build` takes very long time and money (if you're using proprietary api). It creates chunks and add title and summary to each chunk, using AI.
+`rag build` takes very long time and money (if you're using a proprietary api). It creates chunks and add title and summary to each chunk, using AI.
 
 You can press Ctrl+C to pause the process. You can resume from where you left off by running `rag build` again. (more on [a dedicated document](./commands/build.txt))
 
@@ -57,19 +57,13 @@ ai_tutorials/
 
 After it's built, you'll see many data files in the `.ragit/` directory. You can ask queries on the knowledge-base now. Here are brief explanations on data files:
 
-1. `/chunks` directory
-2. `/configs` directory
-3. `/logs` directory
-4. `/prompts` directory
-5. `usages.json` file
-
 NOTE: You can ask queries on an incomplete knowledge-base, too.
 
 ## 2. (Optional) Pull Knowledge-Bases from web
 
 This is the key part. You can download knowledge-bases from the internet and extend your knowledge-base with those. You can also share your knowledge-base with others.
 
-First, let's make a fresh dir. Run `mkdir playground; cd playground`.
+First, let's make a fresh directory. Run `mkdir playground; cd playground`.
 
 ```
 playground
@@ -86,15 +80,13 @@ playground
     ╰ index.json
 ```
 
-You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone http://TODO/TODO`
+You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone http://ragit.baehyunsol.com/sample/git`
 
-- [docker](TODO)
-- [git](TODO)
-- [kubernetes](TODO)
-- [nix](TODO)
-- [postgresql](TODO)
-- [ragit](TODO)
-- [rustc-dev-guide](TODO)
+- [git](http://ragit.baehyunsol.com/sample/git)
+- [ragit](http://ragit.baehyunsol.com/sample/ragit)
+- [rustc-dev-guide](http://ragit.baehyunsol.com/sample/rustc)
+
+Let's clone all of them. Run `rag clone http://ragit.baehyunsol.com/sample/git; rag clone http://ragit.baehyunsol.com/sample/ragit; rag clone http://ragit.baehyunsol.com/sample/rustc;`
 
 ```
 playground
@@ -109,7 +101,13 @@ playground
  │     ├ configs/
  │     ├ prompts/
  │     ╰ index.json
- ╰ rustc-dev-guide
+ ├ ragit
+ │  ╰ .ragit
+ │     ├ chunks/
+ │     ├ configs/
+ │     ├ prompts/
+ │     ╰ index.json
+ ╰ rustc
     ╰ .ragit
        ├ chunks/
        ├ configs/
@@ -117,7 +115,7 @@ playground
        ╰ index.json
 ```
 
-Now we have 1 empty knowledge-base and 2 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag ext ./git` and `rag ext ./rustc-dev-guide`.
+Now we have 1 empty knowledge-base and 3 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag ext ./git`, `rag ext ./ragit` and `rag ext ./rustc`.
 
 ## 3. Change Configs
 
@@ -125,7 +123,7 @@ Before asking a question or building a knowledge-base, you may want to change co
 
 Run `rag config --get model`. You'll see which model is used to answer your queries and build a knowledge-base.
 
-Let's say you have free credits for Anthropic. By running `rag config --set model sonnet`, you can change your default model.
+Let's say you have free credits for Anthropic. By running `rag config --set model claude-3.5-sonnet`, you can change your default model.
 
 Run `rag config --get-all` to see all the keys and values.
 

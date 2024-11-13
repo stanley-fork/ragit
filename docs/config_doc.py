@@ -1,10 +1,12 @@
-# TODO: It's not a test file. It must be in another directory.
-
+import os
 import re
 from typing import Optional
 
+def goto_root():
+    while "Cargo.toml" not in os.listdir() or ".gitignore" not in os.listdir():
+        os.chdir("..")
+
 def init():
-    from utils import goto_root
     goto_root()
 
 # It's NOT a complete parser. Its regices might have to be adjusted when the code changes
