@@ -3,3 +3,4 @@ Cargo.lock
 **/.ragit
 __pycache__
 target
+ragit-server-logs*
