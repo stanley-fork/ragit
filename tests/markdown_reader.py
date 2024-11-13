@@ -1,18 +1,18 @@
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
-# fix 8e06403f
+# fixed by 8e06403f
 sample1 = '''
 this is a sentence. `this is an unterminated
 code span`.
 '''
 
-# not fixed yet (rustc-dev-guide/diagnostics.md)
+# fixed by bf1906cb
 sample2 = "\n".join([
     "a" * 3500,
     *(["aaaa"] * 200),
 ])
 
-# not fixed yet
+# fixed by bf1906cb
 sample3 = "\n".join([
     "a" * 6000,
     "aa",
