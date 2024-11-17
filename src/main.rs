@@ -545,8 +545,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 vec![],
                 index.query_config.max_summaries,
             )?;
-            let uids = tfidf_results.iter().map(|r| r.id.clone()).collect::<Vec<_>>();
-            let chunks = index.get_chunks_by_uid(&uids)?;
+            let mut chunks = Vec::with_capacity(tfidf_results.len());
+
+            for tfidf_result in tfidf_results.iter() {
+                let (external_index, uid) = tfidf_result.id.clone();
+
+                match external_index {
+                    Some(i) => {
+                        chunks.push(index.get_external_base(&i)?.get_chunk_by_uid(&uid)?);
+                    },
+                    None => { chunks.push(index.get_chunk_by_uid(&uid)?); },
+                }
+            }
 
             println!("search keywords: {:?}", parsed_args.get_args());
             println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());

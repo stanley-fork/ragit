@@ -44,7 +44,7 @@ impl Default for BuildConfig {
             max_summary_len: 1000,
             chunks_per_json: 64,
             strict_file_reader: false,
-            compression_threshold: 65536,
+            compression_threshold: 2048,
             compression_level: 3,
         }
     }

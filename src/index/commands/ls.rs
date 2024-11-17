@@ -36,17 +36,15 @@ impl Index {
     ) -> Result<Vec<Chunk>, Error> where Filter: Fn(&Chunk) -> bool, Map: Fn(Chunk) -> Chunk, Sort: Fn(&Chunk) -> Key {
         let mut result = vec![];
 
-        for chunk_file in self.chunk_files_real_path() {
-            let chunks = chunk::load_from_file(&chunk_file)?;
+        for chunk_file in self.chunk_files_real_path()? {
+            let chunk = chunk::load_from_file(&chunk_file)?;
 
-            for chunk in chunks.into_iter() {
-                if !filter(&chunk) {
-                    continue;
-                }
-
-                let chunk = map(chunk);
-                result.push(chunk);
+            if !filter(&chunk) {
+                continue;
             }
+
+            let chunk = map(chunk);
+            result.push(chunk);
         }
 
         result.sort_by_key(sort_key);
@@ -73,8 +71,8 @@ impl Index {
         }
 
         for (file, hash) in self.processed_files.iter() {
-            let file_size = hash.get(0..8).unwrap().parse::<usize>().unwrap();
-            let file_hash = hash.get(9..).unwrap().to_string();
+            let file_hash = hash.get(0..64).unwrap().to_string();
+            let file_size = hash.get(64..).unwrap().parse::<usize>().unwrap();
             result.push(RenderableFile {
                 name: file.clone(),
                 is_processed: true,

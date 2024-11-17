@@ -1,7 +1,7 @@
 use charabia::{Language, TokenizerBuilder};
 use crate::chunk::{Chunk, Uid};
 use crate::error::Error;
-use crate::index::Index;
+use crate::index::{ExternalIndex, Index};
 use crate::query::Keywords;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
@@ -47,7 +47,7 @@ pub struct ProcessedDoc {
 }
 
 // tfidf files are always compressed
-pub fn load_from_file(path: &Path) -> Result<Vec<ProcessedDoc>, Error> {
+pub fn load_from_file(path: &Path) -> Result<ProcessedDoc, Error> {
     let content = read_bytes(path)?;
     let mut decompressed = vec![];
     let mut gz = GzDecoder::new(&content[..]);
@@ -56,13 +56,8 @@ pub fn load_from_file(path: &Path) -> Result<Vec<ProcessedDoc>, Error> {
     Ok(serde_json::from_slice(&decompressed)?)
 }
 
-pub fn save_to_file(path: &Path, chunks: &[Chunk], root_dir: &Path) -> Result<(), Error> {
-    let mut tfidf = Vec::with_capacity(chunks.len());
-
-    for chunk in chunks.iter() {
-        tfidf.push(ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack(root_dir)?));
-    }
-
+pub fn save_to_file(path: &Path, chunk: &Chunk, root_dir: &Path) -> Result<(), Error> {
+    let tfidf = ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack(root_dir)?);
     let result = serde_json::to_vec(&tfidf)?;
     let mut compressed = vec![];
     let mut gz = GzEncoder::new(&result[..], Compression::best());
@@ -76,19 +71,19 @@ pub fn save_to_file(path: &Path, chunks: &[Chunk], root_dir: &Path) -> Result<()
 }
 
 pub fn consume_tfidf_file(
+    external_index_info: Option<ExternalIndex>,
     path: Path,  // real path
     ignored_chunks: &[Uid],
-    tfidf_state: &mut TfIdfState<Uid>,
+    tfidf_state: &mut TfIdfState<(Option<ExternalIndex>, Uid)>,
 ) -> Result<(), Error> {
-    let processed_docs = load_from_file(&path)?;
+    let processed_doc = load_from_file(&path)?;
 
-    // processed_docs returned from `load_from_file` must have uids
-    for processed_doc in processed_docs.iter() {
-        if ignored_chunks.contains(processed_doc.chunk_uid.as_ref().unwrap()) {
-            continue;
-        }
-
-        tfidf_state.consume(processed_doc.chunk_uid.clone().unwrap(), &processed_doc);
+    // TODO: check this before loading processed_doc
+    if !ignored_chunks.contains(processed_doc.chunk_uid.as_ref().unwrap()) {
+        tfidf_state.consume(
+            (external_index_info.clone(), processed_doc.chunk_uid.clone().unwrap()),
+            &processed_doc,
+        );
     }
 
     Ok(())
@@ -340,10 +335,4 @@ impl Chunk {
             data,
         ))
     }
-}
-
-pub enum UpdateTfidf {
-    Generate,
-    Remove,
-    Nop,
 }

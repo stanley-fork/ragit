@@ -1,6 +1,6 @@
 use crate::INDEX_DIR_NAME;
 use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
-use crate::chunk::{self, BuildInfo, Chunk, CHUNK_DIR_NAME, CHUNK_INDEX_DIR_NAME, Uid};
+use crate::chunk::{self, BuildInfo, Chunk, CHUNK_DIR_NAME, Uid, is_valid_uid};
 use crate::error::{Error, JsonType, get_type};
 use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
@@ -20,37 +20,38 @@ use ragit_fs::{
     create_dir_all,
     diff,
     exists,
-    file_name,
+    extension,
     is_dir,
     join,
     join3,
     join4,
     normalize,
+    parent,
     read_bytes,
+    read_dir,
     read_string,
     remove_file,
-    rename,
     set_extension,
     write_bytes,
     write_string,
 };
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
-use std::iter;
+use std::collections::HashMap;
 
 mod commands;
 mod config;
 pub mod file;
 pub mod tfidf;
 
-pub use commands::{AddMode, AddResult, METADATA_FILE_NAME};
+pub use commands::{AddMode, AddResult, AutoRecoverResult, METADATA_FILE_NAME};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, get_file_hash};
-pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, UpdateTfidf, consume_tfidf_file};
+pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
 pub const IMAGE_DIR_NAME: &str = "images";
+pub const FILE_INDEX_DIR_NAME: &str = "files";
 pub const INDEX_FILE_NAME: &str = "index.json";
 pub const LOG_DIR_NAME: &str = "logs";
 
@@ -65,7 +66,6 @@ pub struct Index {
     pub staged_files: Vec<Path>,
     pub processed_files: HashMap<Path, FileHash>,
     pub curr_processing_file: Option<Path>,
-    chunk_files: HashMap<Path, usize>,  // number of chunks in a file
     repo_url: Option<String>,
 
     // the json file only stores links to the external knowledge-bases,
@@ -139,7 +139,7 @@ impl Index {
         ))?;
         create_dir_all(&Index::get_rag_path(
             &root_dir,
-            &CHUNK_INDEX_DIR_NAME.to_string(),
+            &FILE_INDEX_DIR_NAME.to_string(),
         ))?;
 
         let build_config = BuildConfig::default();
@@ -158,7 +158,6 @@ impl Index {
             api_config_raw,
             api_config,
             root_dir,
-            chunk_files: HashMap::new(),
             repo_url: None,
             prompts: PROMPTS.clone(),
             external_index_info: vec![],
@@ -281,20 +280,32 @@ impl Index {
     ) -> Result<Vec<Chunk>, Error> {
         if self.chunk_count + self.count_external_chunks() > self.query_config.max_titles {
             let keywords = extract_keywords(query, &self.api_config, &self.get_prompt("extract_keyword")?).await?;
-            let uids = self.run_tfidf(
+            let tfidf_results = self.run_tfidf(
                 keywords,
                 ignored_chunks,
                 self.query_config.max_summaries,
-            )?.into_iter().map(|r| r.id).collect::<Vec<Uid>>();
+            )?;
+            let mut chunks = Vec::with_capacity(tfidf_results.len());
 
-            self.get_chunks_by_uid(&uids)
+            for tfidf_result in tfidf_results.into_iter() {
+                let (external_index, uid) = tfidf_result.id;
+
+                match external_index {
+                    Some(i) => {
+                        chunks.push(self.get_external_base(&i)?.get_chunk_by_uid(&uid)?);
+                    },
+                    None => { chunks.push(self.get_chunk_by_uid(&uid)?); },
+                }
+            }
+
+            Ok(chunks)
         }
 
         else {
             let mut chunks = vec![];
 
-            for chunk_file in self.chunk_files_real_path() {
-                chunks.extend(chunk::load_from_file(&chunk_file)?);
+            for chunk_path in self.chunk_files_real_path()? {
+                chunks.push(chunk::load_from_file(&chunk_path)?);
             }
 
             chunks = chunks.into_iter().filter(
@@ -305,57 +316,57 @@ impl Index {
         }
     }
 
-    fn chunk_files(&self) -> Vec<Path> {
-        self.chunk_files.keys().map(|chunk_file| set_extension(chunk_file, "chunks").unwrap()).collect()
-    }
+    // real_paths of all the chunks
+    fn chunk_files_real_path(&self) -> Result<Vec<Path>, Error> {
+        let mut result = vec![];
 
-    // Rust doesn't allow me to return `.keys().map()` as `impl Iter<Item = Path>`
-    fn chunk_files_real_path(&self) -> Vec<Path> {
-        self.chunk_files.keys().map(|chunk_file| Index::get_chunk_path(&self.root_dir, &set_extension(chunk_file, "chunks").unwrap())).collect()
-    }
-
-    fn tfidf_files(&self) -> Vec<Path> {
-        self.chunk_files().iter().map(|chunk| set_extension(chunk, "tfidf").unwrap()).collect()
-    }
-
-    fn tfidf_files_real_path(&self) -> Vec<Path> {
-        self.tfidf_files().iter().map(|rel_path| Index::get_chunk_path(&self.root_dir, rel_path)).collect()
-    }
-
-    fn load_curr_processing_chunks(&mut self) -> Result<Vec<Chunk>, Error> {
-        chunk::load_from_file(&Index::get_chunk_path(&self.root_dir.clone(), &self.get_curr_processing_chunks_path()?))
-    }
-
-    fn get_curr_processing_chunks_path(&mut self) -> Result<Path, Error> {
-        loop {
-            for (path, count) in self.chunk_files.iter() {
-                if *count < self.build_config.chunks_per_json {
-                    return Ok(set_extension(path, "chunks").unwrap());
-                }
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
+            if !is_dir(&internal) {
+                continue;
             }
 
-            self.create_new_chunk_file()?;
+            for chunk_file in read_dir(&internal)? {
+                if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
+                    result.push(chunk_file.to_string());
+                }
+            }
         }
+
+        Ok(result)
     }
 
-    fn create_new_chunk_file(&mut self) -> Result<(), Error> {
-        let real_path = Index::get_chunk_path(
-            &self.root_dir,
+    fn tfidf_files_real_path(&self) -> Result<Vec<Path>, Error> {
+        let mut result = vec![];
 
-            // hack: a name of a chunk file is xor of its chunks' uids, so an empty chunk file must be 0
-            &format!("{:064x}.chunks", 0),
-        );
-        chunk::save_to_file(
-            &real_path,
-            &[],
-            self.build_config.compression_threshold,
-            self.build_config.compression_level,
-            &self.root_dir,
-            UpdateTfidf::Nop,
-        )?;
-        self.chunk_files.insert(format!("{:064x}", 0), 0);
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
+            if !is_dir(&internal) {
+                continue;
+            }
 
-        Ok(())
+            for tfidf_file in read_dir(&internal)? {
+                if extension(&tfidf_file).unwrap_or(None).unwrap_or(String::new()) == "tfidf" {
+                    result.push(tfidf_file.to_string());
+                }
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn file_index_real_path(&self) -> Result<Vec<Path>, Error> {
+        let mut result = vec![];
+
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &FILE_INDEX_DIR_NAME)?)? {
+            if !is_dir(&internal) {
+                continue;
+            }
+
+            for file_index in read_dir(&internal)? {
+                result.push(file_index.to_string());
+            }
+        }
+
+        Ok(result)
     }
 
     async fn add_image_description(&self, key: &str) -> Result<(), Error> {
@@ -476,23 +487,25 @@ impl Index {
         // 2. for now, no code does something with this value
         ignored_chunks: Vec<Uid>,
         chunk_count: usize,
-    ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
+    ) -> Result<Vec<TfIdfResult<(Option<ExternalIndex>, Uid)>>, Error> {
         let mut tfidf_state = TfIdfState::new(&keywords);
         self.generate_tfidfs()?;
 
-        for tfidf_file in self.tfidf_files_real_path() {
+        for tfidf_file in self.tfidf_files_real_path()? {
             consume_tfidf_file(
+                None,  // not an external knowledge_base
                 tfidf_file,
                 &ignored_chunks,
                 &mut tfidf_state,
             )?;
         }
 
-        for external_index in self.external_indexes.iter() {
+        for (i, external_index) in self.external_indexes.iter().enumerate() {
             external_index.generate_tfidfs()?;
 
-            for tfidf_file in external_index.tfidf_files_real_path() {
+            for tfidf_file in external_index.tfidf_files_real_path()? {
                 consume_tfidf_file(
+                    Some(self.external_index_info[i].clone()),
                     tfidf_file,
                     &ignored_chunks,
                     &mut tfidf_state,
@@ -503,47 +516,9 @@ impl Index {
         Ok(tfidf_state.get_top(chunk_count))
     }
 
-    // input and output has the same order
-    // if any uid is missing, it returns Err
-    pub fn get_chunks_by_uid(&self, uids: &[Uid]) -> Result<Vec<Chunk>, Error> {
-        let mut visited_files = HashSet::new();
-        let mut chunk_map = HashMap::with_capacity(uids.len());
-
-        for uid in uids.iter() {
-            let (root_dir, chunk_file) = self.get_chunk_file_by_index(uid)?;
-            let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_extension(&chunk_file, "chunks")?);
-
-            if visited_files.contains(&chunk_file) {
-                continue;
-            }
-
-            let chunks = chunk::load_from_file(&chunk_file_real_path)?;
-            visited_files.insert(chunk_file);
-
-            for mut chunk in chunks.into_iter() {
-                if uids.contains(&chunk.uid) {
-                    chunk.external_base = Some(root_dir.clone());
-                    chunk_map.insert(chunk.uid.clone(), chunk);
-                }
-            }
-        }
-
-        let mut result = Vec::with_capacity(uids.len());
-
-        for uid in uids.iter() {
-            match chunk_map.get(uid) {
-                Some(chunk) => {
-                    result.push(chunk.clone());
-                },
-                None => {
-                    return Err(Error::NoSuchChunk {
-                        uid: uid.clone(),
-                    });
-                },
-            }
-        }
-
-        Ok(result)
+    /// It does not search external knowledge-bases
+    pub fn get_chunk_by_uid(&self, uid: &Uid) -> Result<Chunk, Error> {
+        Ok(chunk::load_from_file(&Index::get_chunk_path(&self.root_dir, uid))?)
     }
 
     pub fn get_tfidf_by_chunk_uid(
@@ -551,19 +526,18 @@ impl Index {
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
         self.generate_tfidfs()?;
-        let (root_dir, chunk_file) = self.get_chunk_file_by_index(&uid)?;
-        let chunk_file_real_path = Index::get_chunk_path(&root_dir, &set_extension(&chunk_file, "chunks")?);
-        let tfidf_file_real_path = set_extension(&chunk_file_real_path, "tfidf")?;
+        let tfidf_path = set_extension(&Index::get_chunk_path(&self.root_dir, &uid), "tfidf")?;
+        tfidf::load_from_file(&tfidf_path)
+    }
 
-        let tfidfs = tfidf::load_from_file(&tfidf_file_real_path)?;
-
-        for processed_doc in tfidfs.iter() {
-            if processed_doc.chunk_uid.as_ref() == Some(&uid) {
-                return Ok(processed_doc.clone());
+    pub fn get_external_base(&self, index: &ExternalIndex) -> Result<&Index, Error> {
+        for (i, ext) in self.external_index_info.iter().enumerate() {
+            if ext.path == index.path {
+                return Ok(self.external_indexes.get(i).unwrap());
             }
         }
 
-        Err(Error::NoSuchChunk { uid })
+        Err(Error::NoSuchExternalIndex { index: index.clone() })
     }
 
     // it loads all the chunks that belongs to this index, runs `f` on them, and save them to the file.
@@ -571,7 +545,7 @@ impl Index {
     // make sure to backup files before running this!
     // it runs on chunks, not on an array of chunks
     pub fn map_chunk_jsons<F: Fn(JsonValue) -> Result<JsonValue, Error>>(&self, f: &F) -> Result<(), Error> {
-        for chunk_file in self.chunk_files_real_path() {
+        for chunk_file in self.chunk_files_real_path()? {
             let raw = read_string(&chunk_file)?;
             let j = json::parse(&raw)?;
 
@@ -630,14 +604,40 @@ impl Index {
         ).unwrap()
     }
 
-    fn get_chunk_path(root_dir: &Path, chunk_name: &Path) -> Path {
-        normalize(
-            &join4(
-                root_dir,
-                &INDEX_DIR_NAME.to_string(),
-                &CHUNK_DIR_NAME.to_string(),
-                chunk_name,
+    // root_dir/.ragit/chunks/chunk_uid_prefix/chunk_uid_suffix.chunk
+    fn get_chunk_path(root_dir: &Path, chunk_uid: &String) -> Path {
+        let chunks_at = join3(
+            root_dir,
+            &INDEX_DIR_NAME,
+            &CHUNK_DIR_NAME,
+        ).unwrap();
+        let chunk_uid_prefix = chunk_uid.get(0..2).unwrap().to_string();
+        let chunk_uid_suffix = chunk_uid.get(2..).unwrap().to_string();
+
+        join3(
+            &chunks_at,
+            &chunk_uid_prefix,
+            &set_extension(
+                &chunk_uid_suffix,
+                "chunk",
             ).unwrap(),
+        ).unwrap()
+    }
+
+    // root_dir/.ragit/file_index/file_hash_prefix/file_hash_suffix
+    fn get_file_index_path(root_dir: &Path, file_hash: &String) -> Path {
+        let index_at = join3(
+            root_dir,
+            &INDEX_DIR_NAME,
+            &FILE_INDEX_DIR_NAME,
+        ).unwrap();
+        let file_hash_prefix = file_hash.get(0..2).unwrap().to_string();
+        let file_hash_suffix = file_hash.get(2..).unwrap().to_string();
+
+        join3(
+            &index_at,
+            &file_hash_prefix,
+            &file_hash_suffix,
         ).unwrap()
     }
 
@@ -648,17 +648,6 @@ impl Index {
                 &INDEX_DIR_NAME.to_string(),
                 &IMAGE_DIR_NAME.to_string(),
                 &set_extension(image_key, extension).unwrap(),
-            ).unwrap(),
-        ).unwrap()
-    }
-
-    fn get_chunk_index_path(root_dir: &Path, chunk_uid: &Uid) -> Path {
-        normalize(
-            &join4(
-                root_dir,
-                &INDEX_DIR_NAME.to_string(),
-                &CHUNK_INDEX_DIR_NAME.to_string(),
-                &format!("{}.json", chunk_uid.get(0..2).unwrap()),
             ).unwrap(),
         ).unwrap()
     }
@@ -807,227 +796,48 @@ impl Index {
         }
     }
 
-    pub fn remove_chunks_by_file_name(&mut self, file: Path /* rel_path */ ) -> Result<(), Error> {
-        let mut total_chunk_count = 0;
+    fn add_file_index(&mut self, file_hash: &String, uids: &[Uid]) -> Result<(), Error> {
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_hash);
+        let parent_path = parent(&file_index_path)?;
 
-        for chunk_path in self.chunk_files() {
-            let real_path = Index::get_chunk_path(
-                &self.root_dir,
-                &chunk_path,
-            );
-            let mut chunks = chunk::load_from_file(&real_path)?;
-            let mut chunks_to_remove = vec![];
-            let old_chunk_file_name = file_name(&chunk_path)?;
-            let mut new_chunk_file_name = file_name(&chunk_path)?;
-
-            for chunk in chunks.iter() {
-                if chunk.file == file {
-                    chunks_to_remove.push(chunk.uid.clone());
-                    self.remove_chunk_index(&chunk.uid)?;
-                    new_chunk_file_name = xor_sha3(
-                        &chunk.uid,
-                        &new_chunk_file_name,
-                    )?;
-                }
-            }
-
-            if chunks_to_remove.is_empty() {
-                total_chunk_count += chunks.len();
-                continue;
-            }
-
-            chunks = chunks.into_iter().filter(
-                |chunk| !chunks_to_remove.contains(&chunk.uid)
-            ).collect();
-            chunk::save_to_file(
-                &real_path,
-                &chunks,
-                self.build_config.compression_threshold,
-                self.build_config.compression_level,
-                &self.root_dir,
-                UpdateTfidf::Remove,
-            )?;
-            self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
-            total_chunk_count += chunks.len();
-
-            // a name of a chunk file is an xor of its chunks
-            // so a chunk file has to be renamed when a chunk is added/removed
-            self.rename_chunk_file(
-                &old_chunk_file_name,
-                &new_chunk_file_name,
-            )?;
+        if !exists(&parent_path) {
+            create_dir_all(&parent_path)?;
         }
 
-        self.chunk_count = total_chunk_count;
-        Ok(())
-    }
-
-    // It returns `(external_index's root_dir, rel_chunk_path)` because the chunk might be at an external knowledge-base
-    pub(crate) fn get_chunk_file_by_index(&self, chunk_uid: &Uid) -> Result<(Path, Path), Error> {
-        for knowledge_base in iter::once(&self.root_dir).chain(self.external_indexes.iter().map(|index| &index.root_dir)) {
-            let chunk_index_file = Index::get_chunk_index_path(knowledge_base, chunk_uid);
-
-            if !exists(&chunk_index_file) {
-                continue;
-            }
-
-            let json_content = read_string(&chunk_index_file)?;
-            let j = json::parse(&json_content)?;
-
-            match j {
-                JsonValue::Object(obj) => match obj.get(chunk_uid) {
-                    Some(path) => match path.as_str() {
-                        Some(path) => {
-                            return Ok((knowledge_base.to_string(), path.to_string()));
-                        },
-                        None => {
-                            return Err(Error::JsonTypeError {
-                                expected: JsonType::String,
-                                got: get_type(path),
-                            });
-                        },
-                    },
-                    None => {},
-                },
-                _ => {
-                    return Err(Error::JsonTypeError {
-                        expected: JsonType::Object,
-                        got: get_type(&j),
-                    });
-                },
-            }
-        }
-
-        Err(Error::NoSuchChunk { uid: chunk_uid.clone() })
-    }
-
-    pub(crate) fn add_chunk_index(
-        &mut self,
-        chunk_uid: &Uid,
-        chunk_file: &Path,  // can be real_path or rel_path. doesn't matter
-        update_chunk_file_name: bool,
-    ) -> Result<(), Error> {
-        let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, chunk_uid);
-        let chunk_file_name = file_name(chunk_file)?;
-
-        let mut index = if !exists(&chunk_index_file) {
-            json::object::Object::new()
-        }
-
-        else {
-            let json_content = read_string(&chunk_index_file)?;
-            let j = json::parse(&json_content)?;
-
-            match j {
-                JsonValue::Object(obj) => obj,
-                _ => {
-                    return Err(Error::JsonTypeError {
-                        expected: JsonType::Object,
-                        got: get_type(&j),
-                    });
-                },
-            }
-        };
-
-        index.insert(chunk_uid, chunk_file_name.clone().into());
-        write_string(
-            &chunk_index_file,
-            &JsonValue::Object(index).pretty(4),
+        Ok(write_string(
+            &file_index_path,
+            &uids.join("\n"),
             WriteMode::CreateOrTruncate,
-        )?;
-
-        // a name of a chunk file is an xor of its chunks
-        // so a chunk file has to be renamed when a chunk is added/removed
-        if update_chunk_file_name {
-            self.rename_chunk_file(
-                &chunk_file_name,
-                &xor_sha3(
-                    &chunk_file_name,
-                    &chunk_uid,
-                )?,
-            )?;
-        }
-
-        Ok(())
+        )?)
     }
 
-    pub(crate) fn remove_chunk_index(&self, chunk_uid: &Uid) -> Result<(), Error> {
-        let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, chunk_uid);
-        let json_content = read_string(&chunk_index_file)?;
-        let mut j = json::parse(&json_content)?;
+    fn remove_file_index(&mut self, file_hash: &String) -> Result<(), Error> {
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_hash);
 
-        match &mut j {
-            JsonValue::Object(ref mut obj) => match obj.remove(chunk_uid) {
-                Some(_) => {},
-                None => {
-                    return Err(Error::NoSuchChunk { uid: chunk_uid.clone() });
-                },
-            },
-            _ => {
-                return Err(Error::JsonTypeError {
-                    expected: JsonType::Object,
-                    got: get_type(&j),
-                });
-            },
+        if !exists(&file_index_path) {
+            return Err(Error::NoSuchFile { file: None, hash: Some(file_hash.to_string()) });
         }
 
-        write_string(
-            &chunk_index_file,
-            &j.pretty(4),
-            WriteMode::CreateOrTruncate,
-        )?;
-        Ok(())
+        Ok(remove_file(&file_index_path)?)
     }
 
-    fn rename_chunk_file(
-        &mut self,
-        old_name: &str,
-        new_name: &str,
-    ) -> Result<(), Error> {
-        let old_real_path = Index::get_chunk_path(
-            &self.root_dir,
-            &set_extension(&old_name, "chunks")?,
-        );
-        let chunks = chunk::load_from_file(&old_real_path)?;
+    pub(crate) fn get_chunk_uid_by_file_name(&self, file_hash: &String) -> Result<Vec<Uid>, Error> {
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_hash);
+        let mut result = vec![];
 
-        for chunk in chunks.iter() {
-            let chunk_index_file = Index::get_chunk_index_path(&self.root_dir, &chunk.uid);
-            let json_content = read_string(&chunk_index_file)?;
-            let j = json::parse(&json_content)?;
-            let mut index = match j {
-                JsonValue::Object(obj) => obj,
-                _ => {
-                    return Err(Error::JsonTypeError {
-                        expected: JsonType::Object,
-                        got: get_type(&j),
-                    });
-                },
-            };
-            index.insert(&chunk.uid, new_name.into());
-            write_string(
-                &chunk_index_file,
-                &JsonValue::Object(index).pretty(4),
-                WriteMode::CreateOrTruncate,
-            )?;
+        if !exists(&file_index_path) {
+            return Err(Error::NoSuchFile { file: None, hash: Some(file_hash.to_string()) });
         }
 
-        self.chunk_files.remove(&old_name.to_string());
-        self.chunk_files.insert(new_name.to_string(), chunks.len());
-        let new_real_path = Index::get_chunk_path(
-            &self.root_dir,
-            &set_extension(&new_name, "chunks")?,
-        );
-        rename(&old_real_path, &new_real_path)?;
-        let old_tfidf_path = set_extension(&old_real_path, "tfidf")?;
+        for uid in read_string(&file_index_path)?.lines() {
+            if !is_valid_uid(&uid.to_string()) {
+                return Err(Error::BrokenIndex(format!("file_index `{file_index_path}` has an invalid uid: `{uid}`.")));
+            }
 
-        if exists(&old_tfidf_path) {
-            rename(
-                &old_tfidf_path,
-                &set_extension(&new_real_path, "tfidf")?,
-            )?;
+            result.push(uid.to_string());
         }
 
-        Ok(())
+        Ok(result)
     }
 
     fn count_external_chunks(&self) -> usize {
@@ -1045,18 +855,17 @@ impl Index {
     // 3. `self.build()` generates most tfidf files, but some would be missing due to performance reasons.
     // 4. It generates missing tfidf files, if exist.
     fn generate_tfidfs(&self) -> Result<(), Error> {
-        for chunk_file in self.chunk_files_real_path() {
+        for chunk_file in self.chunk_files_real_path()? {
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
 
             if !exists(&tfidf_file) {
-                let chunks = chunk::load_from_file(&chunk_file)?;
+                let chunk = chunk::load_from_file(&chunk_file)?;
                 chunk::save_to_file(
                     &chunk_file,
-                    &chunks,
+                    &chunk,
                     self.build_config.compression_threshold,
                     self.build_config.compression_level,
                     &self.root_dir,
-                    UpdateTfidf::Generate,
                 )?;
             }
         }
@@ -1065,7 +874,7 @@ impl Index {
     }
 }
 
-/// It loads `.rag_llama_index.json`, modifies it and saves it.
+/// It loads `.ragit/index.json`, modifies it and saves it.
 /// It's useful when the schema of the index has changed.
 /// Make sure to backup files before running this!
 pub fn update_index_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(path: &str, f: &F) -> Result<(), Error> {
@@ -1079,49 +888,4 @@ pub fn update_index_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(path: &
     )?;
 
     Ok(())
-}
-
-fn xor_sha3(
-    hash1: &str,
-    hash2: &str,
-) -> Result<String, Error> {
-    if hash1.len() != 64 {
-        return Err(Error::BrokenHash(hash1.to_string()));
-    }
-
-    if hash2.len() != 64 {
-        return Err(Error::BrokenHash(hash2.to_string()));
-    }
-
-    let mut strings = Vec::with_capacity(8);
-
-    for i in 0..8 {
-        match (
-            hash1.get((i * 8)..(i * 8 + 8)),
-            hash2.get((i * 8)..(i * 8 + 8)),
-        ) {
-            (Some(h1), Some(h2)) => match (
-                u32::from_str_radix(h1, 16),
-                u32::from_str_radix(h2, 16),
-            ) {
-                (Ok(n1), Ok(n2)) => {
-                    strings.push(format!("{:08x}", n1 ^ n2));
-                },
-                (Err(_), _) => {
-                    return Err(Error::BrokenHash(hash1.to_string()));
-                },
-                (_, Err(_)) => {
-                    return Err(Error::BrokenHash(hash2.to_string()));
-                },
-            },
-            (None, _) => {
-                return Err(Error::BrokenHash(hash1.to_string()));
-            },
-            (_, None) => {
-                return Err(Error::BrokenHash(hash2.to_string()));
-            },
-        }
-    }
-
-    Ok(strings.concat())
 }

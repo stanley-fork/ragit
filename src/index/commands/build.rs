@@ -1,18 +1,17 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{BuildInfo, FileReader, UpdateTfidf, get_file_hash};
+use crate::index::{BuildInfo, FileReader, get_file_hash};
 use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
-    file_name,
+    exists,
     write_bytes,
 };
 use sha3::{Digest, Sha3_256};
 
 impl Index {
     pub async fn build(&mut self) -> Result<(), Error> {
-        let mut chunks = self.load_curr_processing_chunks()?;
         self.render_build_dashboard()?;
 
         let prompt = self.get_prompt("summarize")?;
@@ -38,25 +37,28 @@ impl Index {
                 prompt_hash.clone(),
                 self.api_config.model.to_human_friendly_name().to_string(),
             );
+            let mut uids = vec![];
             let mut previous_summary = None;
+
+            // index IN a file, not OF a file
+            let mut file_index = 0;
 
             while fd.can_generate_chunk() {
                 self.render_build_dashboard()?;
-                let chunk_path = self.get_curr_processing_chunks_path()?;
                 let new_chunk = fd.generate_chunk(
                     &self,
                     &prompt,
                     build_info.clone(),
                     previous_summary.clone(),
+                    file_index,
                 ).await?;
                 previous_summary = Some(new_chunk.summary.clone());
                 let new_chunk_uid = new_chunk.uid.clone();
+                let new_chunk_path = Index::get_chunk_path(&self.root_dir, &new_chunk_uid);
 
-                // prevents adding duplicate chunks
-                if let Err(Error::NoSuchChunk { .. }) = self.get_chunk_file_by_index(&new_chunk_uid) {
-                    chunks.push(new_chunk);
-                    self.chunk_count += 1;
-                    self.chunk_files.insert(file_name(&chunk_path)?, chunks.len());
+                // prevent saving duplicate chunks (when using a dummy model)
+                if !exists(&new_chunk_path) {
+                    uids.push(new_chunk_uid.clone());
 
                     // TODO: It's inefficient in that it might write the same image file multiple times.
                     //       We have to run `self.add_image_description` before `chunk::save_to_file` because
@@ -72,37 +74,22 @@ impl Index {
                         self.add_image_description(key).await?;
                     }
 
-                    if chunks.len() >= self.build_config.chunks_per_json {
-                        chunk::save_to_file(
-                            &Index::get_chunk_path(&self.root_dir, &chunk_path),
-                            &chunks,
-                            self.build_config.compression_threshold,
-                            self.build_config.compression_level,
-                            &self.root_dir,
-                            UpdateTfidf::Generate,
-                        )?;
-
-                        self.create_new_chunk_file()?;
-                        chunks = self.load_curr_processing_chunks()?;
-                    }
-
-                    else {
-                        chunk::save_to_file(
-                            &Index::get_chunk_path(&self.root_dir, &chunk_path),
-                            &chunks,
-                            self.build_config.compression_threshold,
-                            self.build_config.compression_level,
-                            &self.root_dir,
-                            UpdateTfidf::Remove,
-                        )?;
-                    }
-
-                    self.add_chunk_index(&new_chunk_uid, &chunk_path, true)?;
+                    file_index += 1;
+                    chunk::save_to_file(
+                        &new_chunk_path,
+                        &new_chunk,
+                        self.build_config.compression_threshold,
+                        self.build_config.compression_level,
+                        &self.root_dir,
+                    )?;
+                    self.chunk_count += 1;
                     self.save_to_file()?;
                 }
             }
 
-            self.processed_files.insert(doc.clone(), get_file_hash(&real_path)?);
+            let file_hash = get_file_hash(&real_path)?;
+            self.add_file_index(&file_hash, &uids)?;
+            self.processed_files.insert(doc.clone(), file_hash);
             self.curr_processing_file = None;
             self.save_to_file()?;
         }
@@ -115,7 +102,7 @@ impl Index {
     fn render_build_dashboard(&self) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
-        println!("chunks: {}, chunk files: {}", self.chunk_count, self.chunk_files.len());
+        println!("chunks: {}", self.chunk_count);
 
         if let Some(file) = &self.curr_processing_file {
             println!("curr processing file: {file}");

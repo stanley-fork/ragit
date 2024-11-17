@@ -172,11 +172,11 @@ def end_to_end(test_model: str):
     assert chunk_count == chunk_count_new
 
     # step 10: break the knowledge-base and run auto-recover
-    os.chdir(".ragit/chunk_index")
+    os.chdir(".ragit/files")
     assert len(os.listdir()) > 0
 
-    for file in os.listdir():
-        os.remove(file)
+    for file_index in os.listdir():
+        shutil.rmtree(file_index)
 
     os.chdir("../..")
     assert cargo_run(["check"], check=False) != 0

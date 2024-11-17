@@ -6,7 +6,7 @@ pub type Path = String;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ExternalIndex {
-    path: Path,  // normalized rel_path
+    pub(crate) path: Path,  // normalized rel_path
 }
 
 impl ExternalIndex {

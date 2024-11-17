@@ -17,6 +17,7 @@ pub use error::Error;
 pub use index::{
     AddMode,
     AddResult,
+    AutoRecoverResult,
     BuildConfig,
     Index,
     LoadMode,

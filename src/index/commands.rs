@@ -15,4 +15,5 @@ mod remove;
 mod reset;
 
 pub use add::{AddMode, AddResult};
+pub use auto_recover::AutoRecoverResult;
 pub use meta::METADATA_FILE_NAME;

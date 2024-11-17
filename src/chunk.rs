@@ -1,7 +1,7 @@
 use chrono::offset::Local;
 use crate::ApiConfig;
 use crate::error::Error;
-use crate::index::{BuildConfig, Index, LoadMode, UpdateTfidf, tfidf};
+use crate::index::{BuildConfig, Index, LoadMode, tfidf};
 use crate::index::file::AtomicToken;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
@@ -16,9 +16,11 @@ use ragit_api::{
 };
 use ragit_fs::{
     WriteMode,
+    create_dir_all,
     exists,
     join,
     normalize,
+    parent,
     read_bytes,
     remove_file,
     set_extension,
@@ -40,7 +42,6 @@ pub use renderable::RenderableChunk;
 pub type Uid = String;
 pub type Path = String;
 pub const CHUNK_DIR_NAME: &str = "chunks";
-pub const CHUNK_INDEX_DIR_NAME: &str = "chunk_index";
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Chunk {
@@ -76,7 +77,7 @@ pub struct Chunk {
 const COMPRESS_PREFIX: u8 = b'c';
 const UNCOMPRESS_PREFIX: u8 = b'\n';  // I want it to be compatible with json syntax highlighters
 
-pub fn load_from_file(path: &str) -> Result<Vec<Chunk>, Error> {
+pub fn load_from_file(path: &str) -> Result<Chunk, Error> {
     let content = read_bytes(path)?;
 
     match content.get(0) {
@@ -85,48 +86,43 @@ pub fn load_from_file(path: &str) -> Result<Vec<Chunk>, Error> {
             let mut gz = GzDecoder::new(&content[1..]);
             gz.read_to_end(&mut decompressed)?;
 
-            Ok(serde_json::from_slice::<Vec<Chunk>>(&decompressed)?)
+            Ok(serde_json::from_slice::<Chunk>(&decompressed)?)
         },
-        Some(b) if *b == UNCOMPRESS_PREFIX => Ok(serde_json::from_slice::<Vec<Chunk>>(&content[1..])?),
+        Some(b) if *b == UNCOMPRESS_PREFIX => Ok(serde_json::from_slice::<Chunk>(&content[1..])?),
         Some(b) => {
             Err(Error::InvalidChunkPrefix(*b))
         },
         None => {
             // simple hack: it throws the exact error that I want
-            serde_json::from_slice::<Vec<Chunk>>(&[])?;
+            serde_json::from_slice::<Chunk>(&[])?;
             unreachable!()
         },
     }
 }
 
+/// It also creates a tfidf index of the chunk.
 pub fn save_to_file(
     path: &Path,
-    chunks: &[Chunk],
+    chunk: &Chunk,
 
     // if the result json is bigger than threshold (in bytes), the file is compressed
     compression_threshold: u64,
     compression_level: u32,
     root_dir: &Path,
-    update_tfidf: UpdateTfidf,
 ) -> Result<(), Error> {
-    let mut result = serde_json::to_vec_pretty(chunks)?;
+    let mut result = serde_json::to_vec_pretty(chunk)?;
     let tfidf_path = set_extension(path, "tfidf")?;
+    let parent_path = parent(path)?;
 
-    match update_tfidf {
-        UpdateTfidf::Generate => {
-            tfidf::save_to_file(
-                &tfidf_path,
-                chunks,
-                root_dir,
-            )?;
-        },
-        UpdateTfidf::Remove => {
-            if exists(&tfidf_path) {
-                remove_file(&tfidf_path)?;
-            }
-        },
-        UpdateTfidf::Nop => {},
+    if !exists(&parent_path) {
+        create_dir_all(&parent_path)?;
     }
+
+    tfidf::save_to_file(
+        &tfidf_path,
+        chunk,
+        root_dir,
+    )?;
 
     if result.len() as u64 > compression_threshold {
         let mut compressed = vec![];
@@ -449,6 +445,12 @@ fn merge_overlapping_strings(s1: &[u8], s2: &[u8]) -> String {
     }
 
     format!("{}{}", String::from_utf8_lossy(s1), String::from_utf8_lossy(&s2[index..]).to_string())
+}
+
+pub(crate) fn is_valid_uid(uid: &Uid) -> bool {
+    uid.len() == 64 && uid.chars().all(
+        |c| '0' <= c && c <= '9' || 'a' <= c && c <= 'f'
+    )
 }
 
 // `f` is run on a chunk, not on an array of chunks

@@ -2,166 +2,125 @@ use super::Index;
 use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
 use crate::error::Error;
 use crate::index::{
-    CHUNK_DIR_NAME,
-    CHUNK_INDEX_DIR_NAME,
-    IMAGE_DIR_NAME,
+    FILE_INDEX_DIR_NAME,
     INDEX_DIR_NAME,
-    UpdateTfidf,
-    xor_sha3,
+    tfidf,
 };
-use json::JsonValue;
 use ragit_fs::{
     WriteMode,
+    create_dir_all,
     exists,
-    file_name,
     join3,
+    parent,
+    set_extension,
     read_dir,
     read_string,
+    remove_dir_all,
     remove_file,
-    set_extension,
     write_bytes,
+    write_string,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+
+pub type Path = String;
+pub type Uid = String;
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub struct AutoRecoverResult {
+    removed_chunk: usize,
+}
 
 impl Index {
     /// This is `auto-recover` of `rag check --auto-recover`. It tries its best to make the index usable.
-    /// It may remove some chunks if necessary information is missing.
     ///
-    /// - Recover A: If `self.curr_processing_file` exists, remove all the chunks related to it and add the file to the staging area.
-    ///   - `self.curr_processing_file` exists if previous `rag build` was interrupted.
-    /// - Recover B: Create chunk_index files from scratch by reading the actual chunk files.
-    /// - Recover C: Replace config json files with their default values if broken.
-    /// - Recover D: Count `self.chunk_count`.
-    /// - Recover E: If chunks are missing, it updates `self.processed_files`.
-    ///   - It can remove entries in `self.processed_files`, but cannot add ones.
-    ///   - In order to add an entry, it needs an actual file, which are missing if the knowledge-base was cloned from remote.
-    pub fn auto_recover(&mut self) -> Result<(), Error> {
-        let curr_processing_file = self.curr_processing_file.clone();
-        self.curr_processing_file = None;  // Recover A
-        let mut chunk_files_to_remove = vec![];
-        let mut chunk_files_to_rename = vec![];
-
-        // It's re-created from scratch
-        let mut chunk_index_map = HashMap::new();
-        let mut chunk_files = HashMap::new();
+    /// - Recover A: It creates file_indexes from scratch.
+    /// - Recover B: If a chunk belongs to a file that's not in self.processed_files, it's removed.
+    /// - Recover C: If there's a broken tfidf file, it creates a new one.
+    /// - Recover D: If there's a broken config file, it replaces the file with a default one.
+    /// - Recover E: If self.curr_processing_file is not None, the file is staged.
+    pub fn auto_recover(&mut self) -> Result<AutoRecoverResult, Error> {
+        let mut processed_files: HashMap<Path, Vec<(Uid, usize)>> = HashMap::new();
         let mut chunk_count = 0;
-        let mut processed_files = HashSet::new();
+        let mut result = AutoRecoverResult {
+            removed_chunk: 0,
+        };
 
-        // It removes unused images
-        let mut images = HashSet::new();
+        for chunk_file in self.chunk_files_real_path()? {
+            let chunk_ = chunk::load_from_file(&chunk_file)?;
+            let tfidf_file = set_extension(&chunk_file, "tfidf")?;
 
-        for chunk_file in read_dir(&join3(
-            &self.root_dir,
-            &INDEX_DIR_NAME.to_string(),
-            &CHUNK_DIR_NAME.to_string(),
-        )?)? {
-            match chunk::load_from_file(&chunk_file) {
-                Ok(chunks) => {
-                    let mut xor_uids = format!("{:064x}", 0);
-                    let mut new_chunks = Vec::with_capacity(chunks.len());
-                    let chunk_file_name = file_name(&chunk_file)?;
-                    chunk_files.insert(chunk_file_name.clone(), 0);
+            if !self.processed_files.contains_key(&chunk_.file) {
+                // Recover B
+                remove_file(&chunk_file)?;
 
-                    for chunk in chunks.into_iter() {
-                        if let Some(file) = &curr_processing_file {
-                            if &chunk.file == file {
-                                continue;
-                            }
-                        }
+                if exists(&tfidf_file) {
+                    remove_file(&tfidf_file)?;
+                }
 
-                        chunk_index_map.insert(chunk.uid.clone(), chunk_file_name.clone());
-                        xor_uids = xor_sha3(
-                            &xor_uids,
-                            &chunk.uid,
-                        )?;
-
-                        match chunk_files.get_mut(&chunk_file_name) {
-                            Some(n) => { *n += 1; },
-                            None => { chunk_files.insert(chunk_file_name.clone(), 1); },
-                        }
-
-                        for image in chunk.images.iter() {
-                            images.insert(image.to_string());
-                        }
-
-                        processed_files.insert(chunk.file.clone());
-                        new_chunks.push(chunk);
-                        chunk_count += 1;
-                    }
-
-                    // It also re-creates tfidf indexes
-                    chunk::save_to_file(
-                        &chunk_file,
-                        &new_chunks,
-                        self.build_config.compression_threshold,
-                        self.build_config.compression_level,
-                        &self.root_dir,
-                        UpdateTfidf::Generate,
-                    )?;
-
-                    if chunk_file_name != xor_uids {
-                        chunk_files_to_rename.push((chunk_file_name, xor_uids));
-                    }
-                },
-                Err(_) => {
-                    chunk_files_to_remove.push(chunk_file);
-                },
-            }
-        }
-
-        for chunk_index_file in read_dir(&join3(
-            &self.root_dir,
-            &INDEX_DIR_NAME.to_string(),
-            &CHUNK_INDEX_DIR_NAME.to_string(),
-        )?)? {
-            remove_file(&chunk_index_file)?;
-        }
-
-        // Recover B
-        for (chunk_uid, chunk_index) in chunk_index_map.iter() {
-            self.add_chunk_index(chunk_uid, chunk_index, false)?;
-        }
-
-        let mut images_to_remove = vec![];
-
-        for image_file in read_dir(&join3(
-            &self.root_dir,
-            &INDEX_DIR_NAME.to_string(),
-            &IMAGE_DIR_NAME.to_string(),
-        )?)? {
-            // 1. At least one chunk has this image.
-            if !images.contains(&file_name(&image_file)?) {
-                images_to_remove.push(image_file);
+                result.removed_chunk += 1;
                 continue;
             }
 
-            // 2. Its description file is a valid json object.
-            match read_string(&set_extension(&image_file, "json")?) {
-                Ok(j) => match json::parse(&j) {
-                    Ok(JsonValue::Object(_)) => {},
-                    _ => {
-                        images_to_remove.push(image_file);
-                        continue;
-                    },
+            if exists(&tfidf_file) {
+                if tfidf::load_from_file(&tfidf_file).is_err() {
+                    chunk::save_to_file(
+                        &chunk_file,
+                        &chunk_,
+                        self.build_config.compression_threshold,
+                        self.build_config.compression_level,
+                        &self.root_dir,
+                    )?;
+                }
+            }
+
+            match processed_files.get_mut(&chunk_.file) {
+                Some(chunks) => {
+                    chunks.push((chunk_.uid.clone(), chunk_.index));
                 },
-                Err(_) => {
-                    images_to_remove.push(image_file);
-                    continue;
+                None => {
+                    processed_files.insert(chunk_.file.clone(), vec![(chunk_.uid.clone(), chunk_.index)]);
                 },
             }
 
-            // 3. Both png file and json file exist.
-            if !exists(&set_extension(&image_file, "png")?) || !exists(&set_extension(&image_file, "json")?) {
-                images_to_remove.push(image_file);
+            chunk_count += 1;
+        }
+
+        // Recover A
+        for dir in read_dir(&join3(
+            &self.root_dir,
+            &INDEX_DIR_NAME,
+            &FILE_INDEX_DIR_NAME,
+        )?)? {
+            remove_dir_all(&dir)?;
+        }
+
+        for (file, mut chunks) in processed_files.into_iter() {
+            chunks.sort_by_key(|(_, index)| *index);
+            let file_hash = self.processed_files.get(&file).unwrap();
+            let file_index_path = Index::get_file_index_path(&self.root_dir, &file_hash);
+            let parent_path = parent(&file_index_path)?;
+
+            if !exists(&parent_path) {
+                create_dir_all(&parent_path)?;
             }
+
+            // Recover A
+            write_string(
+                &file_index_path,
+                &chunks.into_iter().map(|(uid, _)| uid).collect::<Vec<_>>().join("\n"),
+                WriteMode::AlwaysCreate,
+            )?;
         }
 
-        for image_file in images_to_remove {
-            remove_file(&set_extension(&image_file, "png")?)?;
-            remove_file(&set_extension(&image_file, "json")?)?;
+        // Recover E
+        if let Some(curr_processing_file) = &self.curr_processing_file {
+            self.staged_files.push(curr_processing_file.clone());
+            self.curr_processing_file = None;
         }
 
-        // Recover C
+        self.chunk_count = chunk_count;
+
+        // Recover D
         let reset_build_config = match read_string(&self.get_build_config_path()?) {
             Ok(j) => serde_json::from_str::<BuildConfig>(&j).is_err(),
             _ => true,
@@ -204,43 +163,6 @@ impl Index {
             )?;
         }
 
-        // Recover D
-        self.chunk_files = chunk_files;
-        self.chunk_count = chunk_count;
-
-        for (old_name, new_name) in chunk_files_to_rename.iter() {
-            self.rename_chunk_file(old_name, new_name)?;
-        }
-
-        // Recover A
-        if let Some(curr_processing_file) = curr_processing_file {
-            self.staged_files.push(curr_processing_file);
-        }
-
-        // Recover E
-        for processed_file in processed_files.iter() {
-            // It cannot add a new file to `self.processed_files`. See the comments above.
-            if !self.processed_files.contains_key(processed_file) {
-                return Err(Error::BrokenIndex(format!("!self.processed_files.contains_key({processed_file:?})")));
-            }
-        }
-
-        let mut files_to_remove = vec![];
-
-        for processed_file in self.processed_files.keys() {
-            if !processed_files.contains(processed_file) {
-                files_to_remove.push(processed_file.to_string());
-            }
-        }
-
-        for file in files_to_remove.iter() {
-            self.processed_files.remove(file);
-
-            if !self.staged_files.contains(file) {
-                self.staged_files.push(file.to_string());
-            }
-        }
-
-        Ok(())
+        Ok(result)
     }
 }

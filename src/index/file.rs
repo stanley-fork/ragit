@@ -52,9 +52,6 @@ pub struct FileReader {  // of a single file
     curr_buffer_size: usize,
     pub images: HashMap<String, Vec<u8>>,
     config: BuildConfig,
-
-    // index IN a file, not OF a file
-    file_index: usize,
 }
 
 impl FileReader {
@@ -81,7 +78,6 @@ impl FileReader {
             curr_buffer_size: 0,
             images: HashMap::new(),
             config,
-            file_index: 0,
         })
     }
 
@@ -95,6 +91,9 @@ impl FileReader {
         pdl: &str,
         build_info: BuildInfo,
         previous_summary: Option<String>,
+
+        // index IN a file, not OF a file
+        file_index: usize,
     ) -> Result<Chunk, Error> {
         self.fill_buffer_until_chunks(2)?;
 
@@ -153,12 +152,11 @@ impl FileReader {
 
         let tokens = merge_tokens(chunk_deque);
 
-        self.file_index += 1;
         let chunk = Chunk::create_chunk_from(
             &tokens,
             &self.config,
             self.rel_path.clone(),
-            self.file_index,
+            file_index,
             &index.api_config,
             pdl,
             build_info,
@@ -294,7 +292,8 @@ pub fn get_file_hash(path: &Path) -> Result<String, Error> {
     // TODO: don't read the entire file at once
     let file_content = read_bytes(path)?;
     let mut hasher = Sha3_256::new();
+    hasher.update(path.as_bytes());
     hasher.update(&file_content);
 
-    Ok(format!("{:08}_{:064x}", file_content.len(), hasher.finalize()))
+    Ok(format!("{:064x}{:09}", hasher.finalize(), file_content.len()))
 }

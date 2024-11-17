@@ -1,6 +1,6 @@
 use super::Index;
 use crate::error::Error;
-use ragit_fs::exists;
+use ragit_fs::{exists, remove_file, set_extension};
 
 pub type Path = String;
 
@@ -22,21 +22,32 @@ impl Index {
         }
 
         else if self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.clone()) {
-            self.remove_chunks_by_file_name(rel_path.clone())?;
+            match self.processed_files.get(&rel_path).map(|hash| hash.to_string()) {
+                Some(file_hash) => {
+                    for uid in self.get_chunk_uid_by_file_name(&file_hash)? {
+                        self.chunk_count -= 1;
+                        let chunk_path = Index::get_chunk_path(&self.root_dir, &uid);
+                        remove_file(&chunk_path)?;
+                        let tfidf_path = set_extension(&chunk_path, "tfidf")?;
 
-            if self.curr_processing_file == Some(rel_path.clone()) {
-                self.curr_processing_file = None;
-            }
+                        if exists(&tfidf_path) {
+                            remove_file(&tfidf_path)?;
+                        }
+                    }
 
-            else {
-                self.processed_files.remove(&rel_path).unwrap();
+                    self.processed_files.remove(&rel_path).unwrap();
+                    self.remove_file_index(&file_hash)?;
+                },
+                None => {
+                    self.curr_processing_file = None;
+                },
             }
 
             Ok(())
         }
 
         else {
-            Err(Error::NoSuchFile { file: path })
+            Err(Error::NoSuchFile { file: Some(path), hash: None })
         }
     }
 
