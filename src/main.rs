@@ -103,6 +103,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
             println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
+        // FIXME: this is a temporary command, only to test the auto-migration function
+        //        I have to come up with better policies and cli for auto-migration
+        Some("auto-migrate") => {
+            Index::auto_migrate(&root_dir?)?;
+        },
         Some("build") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
 

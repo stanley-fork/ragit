@@ -1,4 +1,5 @@
 from add_and_rm import add_and_rm
+from auto_migrate import auto_migrate
 from auto_recover import auto_recover
 from cargo_tests import cargo_tests
 from clone import clone
@@ -38,6 +39,8 @@ Commands
 
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
+
+    auto_migrate                run `auto_migrate` test (TODO)
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -97,6 +100,9 @@ if __name__ == "__main__":
         elif command == "clone":
             clone()
 
+        elif command == "auto_migrate":
+            auto_migrate()
+
         elif command == "many_chunks":
             many_chunks()
 
@@ -138,6 +144,7 @@ if __name__ == "__main__":
                 ("add_and_rm", add_and_rm),
                 ("auto_recover", auto_recover),
                 ("clone", clone),
+                ("auto_migrate", auto_migrate),
                 ("many_chunks", many_chunks),
                 ("images", images),
                 ("markdown_reader", markdown_reader),

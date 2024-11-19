@@ -11,6 +11,7 @@ mod ext;
 mod gc;
 mod ls;
 mod meta;
+mod migrate;
 mod remove;
 mod reset;
 

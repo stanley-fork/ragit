@@ -234,9 +234,17 @@ impl Index {
         result.root_dir = root_dir;
 
         if result.ragit_version != crate::VERSION {
-            // TODO
-            // 1. show warning message
-            // 2. impl auto-version-migration
+            // TODO: what here?
+            // 1. a user prompt asking to run auto-migration
+            // 2. ignore. the user has to explicitly run auto-migration
+            // 3. a warning message, but no action. the user has to explicitly run auto-migration
+            // 4. always run auto-migration
+            //
+            // The problem is that
+            // 1. a version mismatch would be very often.
+            // 2. a compatibility issue would be very rare.
+            // 3. it's not always possible for the client to tell whether there's an issue or not
+            // 4. auto-migration is expensive
         }
 
         Ok(result)

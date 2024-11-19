@@ -214,6 +214,31 @@ pub fn rename(from: &str, to: &str) -> Result<(), FileError> {
     fs::rename(from, to).map_err(|e| FileError::from_std(e, from))
 }
 
+pub fn copy_dir(src: &str, dst: &str) -> Result<(), FileError> {
+    create_dir_all(dst)?;
+
+    // TODO: how about links?
+    for e in read_dir(src)? {
+        let new_dst = join(dst, &basename(&e)?)?;
+
+        if is_dir(&e) {
+            create_dir_all(&new_dst)?;
+            copy_dir(&e, &new_dst)?;
+        }
+
+        else {
+            copy_file(&e, &new_dst)?;
+        }
+    }
+
+    Ok(())
+}
+
+/// It returns the total number of bytes copied.
+pub fn copy_file(src: &str, dst: &str) -> Result<u64, FileError> {
+    std::fs::copy(src, dst).map_err(|e| FileError::from_std(e, src))  // TODO: how about dst?
+}
+
 // it only returns the hash value of the modified time
 pub fn last_modified(path: &str) -> Result<u64, FileError> {
     match fs::metadata(path) {
