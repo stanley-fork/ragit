@@ -1,4 +1,5 @@
 use crate::utils::get_rag_path;
+use json::{JsonValue, object::Object};
 use ragit_fs::{
     exists,
     extension,
@@ -72,43 +73,12 @@ pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> 
     }
 }
 
-pub fn get_chunk_file_list(user: String, repo: String) -> Box<dyn Reply> {
-    let rag_path = get_rag_path(&user, &repo);
-    let chunk_file_path = join(
-        &rag_path,
-        "chunks",
-    ).unwrap();
-
-    match read_dir(&chunk_file_path) {
-        Ok(chunk_files) => Box::new(json(
-            &chunk_files.iter().filter(|chunk_file| extension(chunk_file) == Ok(Some(String::from("chunks")))).filter_map(|chunk_file| file_name(chunk_file).ok()).collect::<Vec<String>>(),
-        )),
-        Err(_) => Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(404).unwrap(),
-        )),
-    }
+pub fn get_chunk_list(user: String, repo: String) -> Box<dyn Reply> {
+    todo!()
 }
 
-pub fn get_chunk_file(user: String, repo: String, chunk_file: String) -> Box<dyn Reply> {
-    let rag_path = get_rag_path(&user, &repo);
-    let chunk_file_path = join3(
-        &rag_path,
-        "chunks",
-        &format!("{chunk_file}.chunks"),
-    ).unwrap();
-
-    match read_bytes(&chunk_file_path) {
-        Ok(bytes) => Box::new(with_header(
-            bytes,
-            "Content-Type",
-            "application/octet-stream",
-        )),
-        Err(_) => Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(404).unwrap(),
-        )),
-    }
+pub fn get_chunk(user: String, repo: String, chunk_uid: String) -> Box<dyn Reply> {
+    todo!()
 }
 
 pub fn get_image_list(user: String, repo: String) -> Box<dyn Reply> {
@@ -190,5 +160,35 @@ pub fn get_meta(user: String, repo: String) -> Box<dyn Reply> {
         meta_json,
         "Content-Type",
         "application/json",
+    ))
+}
+
+pub fn get_version(user: String, repo: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+    let index_path = join(&rag_path, "index.json").unwrap();
+    let index_json = read_string(&index_path).unwrap_or(String::from("{}"));
+    let index = json::parse(&index_json).unwrap_or(JsonValue::Object(Object::new()));
+
+    match index {
+        JsonValue::Object(obj) => match obj.get("ragit_version") {
+            Some(v) => match v.as_str() {
+                Some(v) => Box::new(with_header(
+                    v.to_string(),
+                    "Content-Type",
+                    "text/plain",
+                )),
+                None => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),  // TODO: another error code
+            },
+            None => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),
+        },
+        _ => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),  // TODO: another error code
+    }
+}
+
+pub fn get_server_version() -> Box<dyn Reply> {
+    Box::new(with_header(
+        ragit::VERSION,
+        "Content-Type",
+        "text/plain",
     ))
 }

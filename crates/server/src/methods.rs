@@ -5,8 +5,8 @@ use warp::reply::with_status;
 mod get;
 
 pub use get::{
-    get_chunk_file,
-    get_chunk_file_list,
+    get_chunk,
+    get_chunk_list,
     get_config,
     get_image,
     get_image_desc,
@@ -14,6 +14,8 @@ pub use get::{
     get_index,
     get_meta,
     get_prompt,
+    get_server_version,
+    get_version,
 };
 
 pub fn not_found() -> Box<dyn Reply> {

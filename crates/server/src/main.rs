@@ -9,10 +9,10 @@
 - GET `ROOT/{user-name}/{repo-name}/prompt/{prompt-name}`
   - 200: text/plain
   - 404
-- GET `ROOT/{user-name}/{repo-name}/chunk-file-list`
+- GET `ROOT/{user-name}/{repo-name}/chunk-list`
   - 200: application/json
   - 404
-- GET `ROOT/{user-name}/{repo-name}/chunk-file/{chunk-file-name}`
+- GET `ROOT/{user-name}/{repo-name}/chunk/{chunk-uid}`
   - 200: application/octet-stream
   - 404
 - GET `ROOT/{user-name}/{repo-name}/image-list`
@@ -27,6 +27,11 @@
 - GET `ROOT/{user-name}/{repo-name}/meta`
   - 200: application/json
   - 404
+- GET `ROOT/{user-name}/{repo-name}/version`
+  - 200: text/plain
+  - 404
+- GET `ROOT/version`
+  - 200: text/plain
 */
 
 use crate::methods::*;
@@ -65,18 +70,18 @@ async fn main() {
         .and(warp::path::param::<String>())
         .map(get_prompt);
 
-    let get_chunk_file_list_handler = warp::get()
+    let get_chunk_list_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
-        .and(warp::path("chunk-file-list"))
-        .map(get_chunk_file_list);
+        .and(warp::path("chunk-list"))
+        .map(get_chunk_list);
 
-    let get_chunk_file_handler = warp::get()
+    let get_chunk_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
-        .and(warp::path("chunk-file"))
+        .and(warp::path("chunk"))
         .and(warp::path::param::<String>())
-        .map(get_chunk_file);
+        .map(get_chunk);
 
     let get_image_list_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -104,18 +109,30 @@ async fn main() {
         .and(warp::path("meta"))
         .map(get_meta);
 
+    let get_version_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("version"))
+        .map(get_version);
+
+    let get_server_version_handler = warp::get()
+        .and(warp::path("version"))
+        .map(get_server_version);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
-        get_index_handler
+        get_server_version_handler
+            .or(get_index_handler)
             .or(get_config_handler)
             .or(get_prompt_handler)
-            .or(get_chunk_file_list_handler)
-            .or(get_chunk_file_handler)
+            .or(get_chunk_list_handler)
+            .or(get_chunk_handler)
             .or(get_image_list_handler)
             .or(get_image_handler)
             .or(get_image_desc_handler)
             .or(get_meta_handler)
+            .or(get_version_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
                 |info| {
