@@ -1,6 +1,28 @@
+use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
+use crate::index::BuildConfig;
 use ragit_api::ImageType;
-use ragit_fs::{read_bytes, remove_file};
+use ragit_fs::{FileError, extension, read_bytes, remove_file};
+use sha3::{Digest, Sha3_256};
+use std::fmt;
+
+pub type Path = String;
+
+#[derive(Clone, PartialEq)]
+pub struct Image {
+    pub key: String,  // unique ID
+    pub image_type: ImageType,
+    pub bytes: Vec<u8>,
+}
+
+impl fmt::Debug for Image {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        fmt.debug_struct("Image")
+            .field("key", &self.key)
+            .field("image_type", &self.image_type)
+            .finish()
+    }
+}
 
 pub fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>, Error> {
     let mut dynamic_image = image::load_from_memory_with_format(
@@ -17,10 +39,62 @@ pub fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>,
         return Ok(bytes);
     }
 
-    // TODO: I don't want save it to a tmp file. I want a direct `Vec<u8>`
+    // TODO: I don't want to save it to a tmp file. I want a direct `Vec<u8>`
     dynamic_image.save_with_format("._tmp.png", image::ImageFormat::Png)?;
     let bytes = read_bytes("._tmp.png")?;
     remove_file("._tmp.png")?;
 
     Ok(bytes)
+}
+
+pub struct ImageReader {
+    path: Path,
+    tokens: Vec<AtomicToken>,
+    image_type: ImageType,
+    is_exhausted: bool,
+}
+
+impl FileReaderImpl for ImageReader {
+    fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
+        Ok(ImageReader {
+            path: path.to_string(),
+            image_type: ImageType::from_extension(&extension(path)?.unwrap_or(String::new()))?,
+            tokens: vec![],
+            is_exhausted: false,
+        })
+    }
+
+    fn load_tokens(&mut self) -> Result<(), Error> {
+        if self.is_exhausted {
+            Ok(())
+        }
+
+        else {
+            let bytes = read_bytes(&self.path)?;
+            let mut hasher = Sha3_256::new();
+            hasher.update(&bytes);
+
+            self.tokens.push(AtomicToken::Image(Image {
+                bytes,
+                image_type: self.image_type,
+                key: format!("{:064x}", hasher.finalize()),
+            }));
+            self.is_exhausted = true;
+            Ok(())
+        }
+    }
+
+    fn pop_all_tokens(&mut self) -> Result<Vec<AtomicToken>, Error> {
+        let mut result = vec![];
+        std::mem::swap(&mut self.tokens, &mut result);
+        Ok(result)
+    }
+
+    fn has_more_to_read(&self) -> bool {
+        !self.is_exhausted
+    }
+
+    fn key(&self) -> String {
+        String::from("image_reader_v0")
+    }
 }

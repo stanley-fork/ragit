@@ -16,7 +16,7 @@ mod line_reader;
 mod markdown;
 mod plain_text;
 
-pub use image::normalize_image;
+pub use image::{Image, ImageReader, normalize_image};
 pub use line_reader::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
@@ -56,8 +56,10 @@ pub struct FileReader {  // of a single file
 
 impl FileReader {
     pub fn new(rel_path: Path, real_path: Path, config: BuildConfig) -> Result<Self, Error> {
+        // TODO: use a config file, instead of hard-coding the extensions
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
+            "png" | "jpg" | "jpeg" | "gif" | "webp" => Box::new(ImageReader::new(&real_path, &config)?),
 
             // a newline character isn't always a row-separator in csv, but that's okay
             // because LLM reads the file, not *parse* the file.
@@ -269,22 +271,6 @@ impl From<AtomicToken> for MessageContent {
                 bytes,
             },
         }
-    }
-}
-
-#[derive(Clone, PartialEq)]
-pub struct Image {
-    pub key: String,  // unique ID
-    pub image_type: ImageType,
-    pub bytes: Vec<u8>,
-}
-
-impl fmt::Debug for Image {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-        fmt.debug_struct("Image")
-            .field("key", &self.key)
-            .field("image_type", &self.image_type)
-            .finish()
     }
 }
 
