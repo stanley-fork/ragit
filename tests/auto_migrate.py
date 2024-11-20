@@ -1,7 +1,44 @@
-# TODO
-# 1. Make a mock knowledge-base with markdown files.
-#    - reuse the markdown files in other tests. Let's just make them separate files, instead of hard-coded python strings.
-# 2. `git-checkout old-version`, and build knowledge-bases
-# 3. run `rag auto-migrate; rag check`
+from images import sample_markdown
+from markdown_reader import sample1, sample2, sample3
+import shutil
+import subprocess
+from subprocess import CalledProcessError
+from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+
+# TODO: any better way?
+def checkout(version: str):
+    commit_hashes = {
+        "0.1.1": "a168d13af967",
+        "0.2.0": "0e46cf6cd4ad",
+    }
+
+    try:
+        subprocess.run(["git", "checkout", commit_hashes[version]], check=True)
+
+    except CalledProcessError:
+        raise Exception(f"Cannot git-checkout to ragit version {version}, please commit your changes before running the test.")
+
 def auto_migrate():
-    pass
+    goto_root()
+    checkout("0.1.1")
+    mk_and_cd_tmp_dir()
+
+    # step 1. create a mock knowledge-base
+    write_string("sample1.md", sample1)
+    write_string("sample2.md", sample2)
+    write_string("sample3.md", sample3)
+    shutil.copyfile("../tests/images/empty.png", "sample2.png")
+    shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
+    shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
+    write_string("sample4.md", sample_markdown)
+
+    # step 2. init and build rag index
+    cargo_run(["init"])
+    cargo_run(["config", "--set", "model", "dummy"])
+    cargo_run(["add", "sample1.md", "sample2.md", "sample3.md", "sample4.md"])
+    cargo_run(["build"])
+    cargo_run(["check"])
+
+    checkout("0.2.0")
+    cargo_run(["auto-migrate"])
+    cargo_run(["check"])
