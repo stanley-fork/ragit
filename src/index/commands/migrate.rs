@@ -104,6 +104,7 @@ impl Index {
                     Ok(()) => {
                         remove_dir_all(&index_dir)?;
                         rename(&tmp_index_dir, &index_dir)?;
+                        remove_dir_all(&tmp_dir)?;
                         Ok(())
                     },
                     Err(e) => {
@@ -226,10 +227,10 @@ fn auto_migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: Versio
         let chunks = load_chunks_0_1_1(&chunk_file)?;
 
         match chunks {
-            JsonValue::Array(chunks) => {
-                for chunk in chunks.iter() {
+            JsonValue::Array(mut chunks) => {
+                for chunk in chunks.iter_mut() {
                     match chunk {
-                        JsonValue::Object(obj) => {
+                        JsonValue::Object(ref mut obj) => {
                             let file_name = match obj.get("file") {
                                 Some(file_name) => match file_name.as_str() {
                                     Some(file_name) => file_name.to_string(),
@@ -259,6 +260,24 @@ fn auto_migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: Versio
                                 },
                             };
 
+                            // 0.1.1 uses 1-based index
+                            match obj.get_mut("index") {
+                                Some(ref mut index) => match index.as_usize() {
+                                    Some(n) => {
+                                        **index = JsonValue::from(n - 1);
+                                    },
+                                    None => {
+                                        return Err(Error::JsonTypeError {
+                                            expected: JsonType::Usize,
+                                            got: get_type(index),
+                                        });
+                                    },
+                                },
+                                None => {
+                                    return Err(Error::BrokenIndex(String::from("A corrupted chunk.")));
+                                },
+                            }
+
                             match obj.get("uid") {
                                 Some(uid) => match uid.as_str() {
                                     Some(uid) if uid_re.is_match(uid) => {
@@ -271,12 +290,6 @@ fn auto_migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: Versio
                                             create_dir_all(&chunk_at)?;
                                         }
 
-                                        write_string(
-                                            &join(&chunk_at, &format!("{}.chunks", uid.get(2..).unwrap()))?,
-                                            &chunk.pretty(4),
-                                            WriteMode::AlwaysCreate,
-                                        )?;
-
                                         match file_to_chunks_map.get_mut(&file_name) {
                                             Some(uids) => {
                                                 uids.push((uid.to_string(), file_index));
@@ -285,6 +298,13 @@ fn auto_migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: Versio
                                                 file_to_chunks_map.insert(file_name, vec![(uid.to_string(), file_index)]);
                                             },
                                         }
+
+                                        // TODO: respect build_config.compress_threshold
+                                        write_string(
+                                            &join(&chunk_at, &format!("{}.chunk", uid.get(2..).unwrap()))?,
+                                            &format!("\n{}", chunk.pretty(4)),  // chunk prefix for an un-compressed chunk
+                                            WriteMode::AlwaysCreate,
+                                        )?;
                                     },
                                     Some(uid) => {
                                         return Err(Error::BrokenIndex(format!("There's a malformed uid: `{uid}`.")));
