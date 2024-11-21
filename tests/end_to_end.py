@@ -90,7 +90,7 @@ def end_to_end(test_model: str):
     else:
         raise Exception("The build should have timed out")
 
-    cargo_run(["check", "--auto-recover", "--recursive"])
+    cargo_run(["check", "--recover", "--recursive"])
     cargo_run(["config", "--set", "sleep_after_llm_call", "null"])
     cargo_run(["build"])
     cargo_run(["check", "--recursive"])
@@ -171,7 +171,7 @@ def end_to_end(test_model: str):
 
     assert chunk_count == chunk_count_new
 
-    # step 10: break the knowledge-base and run auto-recover
+    # step 10: break the knowledge-base and run `--recover`
     os.chdir(".ragit/files")
     assert len(os.listdir()) > 0
 
@@ -180,7 +180,7 @@ def end_to_end(test_model: str):
 
     os.chdir("../..")
     assert cargo_run(["check"], check=False) != 0
-    cargo_run(["check", "--auto-recover"])
+    cargo_run(["check", "--recover"])
     cargo_run(["check", "--recursive"])
 
     # step 11: query

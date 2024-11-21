@@ -18,7 +18,7 @@ def checkout(version: str):
     except CalledProcessError:
         raise Exception(f"Cannot git-checkout to ragit version {version}, please commit your changes before running the test.")
 
-def auto_migrate():
+def migrate():
     goto_root()
     checkout("0.1.1")
     mk_and_cd_tmp_dir()
@@ -43,5 +43,5 @@ def auto_migrate():
     cargo_run(["check"])
 
     checkout("0.2.0")
-    cargo_run(["auto-migrate"])
+    cargo_run(["migrate"])
     cargo_run(["check"])

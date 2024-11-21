@@ -17,11 +17,11 @@ pub use error::Error;
 pub use index::{
     AddMode,
     AddResult,
-    AutoRecoverResult,
     BuildConfig,
     Index,
     LoadMode,
     ProcessedDoc,
+    RecoverResult,
     update_index_schema,
 };
 pub use query::{

@@ -2,7 +2,7 @@ import os
 import shutil
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
-def auto_recover():
+def recover():
     goto_root()
     mk_and_cd_tmp_dir()
 
@@ -16,7 +16,7 @@ def auto_recover():
     os.remove("query.json")
     os.chdir("../..")
     assert cargo_run(["check"], check=False) != 0
-    cargo_run(["check", "--auto-recover"])
+    cargo_run(["check", "--recover"])
 
     # `build.json` must be kept intact
     assert "dummy" in cargo_run(["config", "--get", "model"], stdout=True)
@@ -34,6 +34,6 @@ def auto_recover():
     write_string(tfidf_files[0], "corrupted")
     os.chdir("../../..")
     assert cargo_run(["check"], check=False) != 0
-    cargo_run(["check", "--auto-recover"])
+    cargo_run(["check", "--recover"])
     cargo_run(["build"])
     cargo_run(["check"])

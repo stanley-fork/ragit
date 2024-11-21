@@ -103,10 +103,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
             println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
-        // FIXME: this is a temporary command, only to test the auto-migration function
-        //        I have to come up with better policies and cli for auto-migration
-        Some("auto-migrate") => {
-            Index::auto_migrate(&root_dir?)?;
+        // FIXME: this is a temporary command, only to test the migration function
+        //        I have to come up with better policies and cli for migration
+        Some("migrate") => {
+            Index::migrate(&root_dir?)?;
         },
         Some("build") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
@@ -120,7 +120,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.build().await?;
         },
         Some("check") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).optional_flag(&["--auto-recover"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).optional_flag(&["--recover"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/check.txt"));
@@ -129,35 +129,35 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let root_dir = root_dir?;
             let recursive = parsed_args.get_flag(0).is_some();
-            let auto_recover = parsed_args.get_flag(1).is_some();
+            let recover = parsed_args.get_flag(1).is_some();
 
             match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
-                Ok(mut index) => if index.curr_processing_file.is_some() && auto_recover {
-                    index.auto_recover()?;
+                Ok(mut index) => if index.curr_processing_file.is_some() && recover {
+                    index.recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;
-                    println!("auto-recovered from a corrupted knowledge-base");
+                    println!("recovered from a corrupted knowledge-base");
                 } else {
                     match index.check(recursive) {
                         Ok(()) => {
                             println!("everything is fine!");
                         },
-                        Err(e) => if auto_recover {
-                            index.auto_recover()?;
+                        Err(e) => if recover {
+                            index.recover()?;
                             index.save_to_file()?;
                             index.check(recursive)?;
-                            println!("auto-recovered from a corrupted knowledge-base");
+                            println!("recovered from a corrupted knowledge-base");
                         } else {
                             return Err(e);
                         }
                     }
                 },
-                Err(e) => if auto_recover {
+                Err(e) => if recover {
                     let mut index = Index::load(root_dir, LoadMode::Minimum)?;
-                    index.auto_recover()?;
+                    index.recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;
-                    println!("auto-recovered from a corrupted knowledge-base");
+                    println!("recovered from a corrupted knowledge-base");
                 } else {
                     return Err(e);
                 },

@@ -2,7 +2,7 @@
 
 TODO
 
-I really want to have an auto-mated benchmarks.
+I really want to have an automated benchmarks.
 
 ## What I want
 

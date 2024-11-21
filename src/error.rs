@@ -30,7 +30,7 @@ pub enum Error {
         url: String,
     },
     InvalidVersionString(String),
-    CannotAutoMigrate {
+    CannotMigrate {
         from: String,
         to: String,
     },

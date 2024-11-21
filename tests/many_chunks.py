@@ -32,9 +32,9 @@ def many_chunks():
 
     while True:
         # there are 2 cases to cover:
-        # 1. implicit --auto-recover invoked by `rag build`
-        # 2. explicit `rag check --auto-recover`
-        cargo_run(["check", "--auto-recover"])
+        # 1. implicit `--recover` invoked by `rag build`
+        # 2. explicit `rag check --recover`
+        cargo_run(["check", "--recover"])
 
         for _ in range(4):
             try:

@@ -65,11 +65,11 @@ impl Index {
     ///
     /// The result of this function doesn't always mean whether the knowledge-base
     /// is corrupted or not. For example, if the original knowledge-base is corrupted,
-    /// it may successfully auto-migrate, but still is corrupted.
+    /// it may successfully migrate, but still is corrupted.
     /// If the original knowledge-base perfect and there's no compatibility issue but
     /// the client doesn't know that, this function may fail but there's no problem
     /// using the knowledge-base.
-    pub fn auto_migrate(root_dir: &Path) -> Result<(), Error> {
+    pub fn migrate(root_dir: &Path) -> Result<(), Error> {
         let base_version = Index::check_ragit_version(root_dir)?;
         let client_version_str = crate::VERSION.to_string();
         let client_version = client_version_str.parse::<VersionInfo>()?;
@@ -78,10 +78,10 @@ impl Index {
         // Even though the client is outdated, compatibility issue is very unlikely.
         // But the client can never tell that.
         //
-        // The easiest fix is to implement auto-migration for all the versions, and tell users to always keep their ragit version up-to-date.
+        // The easiest fix is to implement migration for all the versions, and tell users to always keep their ragit version up-to-date.
         // But those are not always possible.
         if base_version > client_version {
-            Err(Error::CannotAutoMigrate {
+            Err(Error::CannotMigrate {
                 from: base_version.to_string(),
                 to: client_version_str,
             })
@@ -100,7 +100,7 @@ impl Index {
                 let tmp_index_dir = join(&tmp_dir, INDEX_DIR_NAME)?;
                 copy_dir(&index_dir, &tmp_index_dir)?;
 
-                match auto_migrate_0_1_1_to_0_2_0(base_version, client_version, &tmp_dir) {
+                match migrate_0_1_1_to_0_2_0(base_version, client_version, &tmp_dir) {
                     Ok(()) => {
                         remove_dir_all(&index_dir)?;
                         rename(&tmp_index_dir, &index_dir)?;
@@ -115,7 +115,7 @@ impl Index {
             }
 
             else {
-                Err(Error::CannotAutoMigrate {
+                Err(Error::CannotMigrate {
                     from: base_version.to_string(),
                     to: client_version_str,
                 })
@@ -131,7 +131,7 @@ fn create_tmp_dir() -> Result<Path, Error> {
     Ok(dir_name)
 }
 
-fn auto_migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo, root_dir: &Path) -> Result<(), Error> {
+fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo, root_dir: &Path) -> Result<(), Error> {
     let index_at = join3(
         root_dir,
         ".ragit",

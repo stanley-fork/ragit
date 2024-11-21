@@ -44,7 +44,7 @@ mod config;
 pub mod file;
 pub mod tfidf;
 
-pub use commands::{AddMode, AddResult, AutoRecoverResult, METADATA_FILE_NAME};
+pub use commands::{AddMode, AddResult, METADATA_FILE_NAME, RecoverResult};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, get_file_hash};
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
@@ -209,12 +209,12 @@ impl Index {
 
         match load_mode {
             LoadMode::QuickCheck if result.curr_processing_file.is_some() => {
-                result.auto_recover()?;
+                result.recover()?;
                 result.save_to_file()?;
                 Ok(result)
             },
             LoadMode::Check if result.curr_processing_file.is_some() || result.check(false).is_err() => {
-                result.auto_recover()?;
+                result.recover()?;
                 result.save_to_file()?;
                 Ok(result)
             },
@@ -223,7 +223,7 @@ impl Index {
     }
 
     /// It only loads `index.json`. No config files, no prompt files, and it doesn't care whether chunk files are broken or not.
-    /// It's for `rag check --auto-recover`: it only loads minimum data and the auto-recover function will load or fix the others.
+    /// It's for `rag check --recover`: it only loads minimum data and the recover function will load or fix the others.
     fn load_minimum(root_dir: Path) -> Result<Self, Error> {
         let index_json = read_string(&Index::get_rag_path(
             &root_dir,
@@ -235,16 +235,16 @@ impl Index {
 
         if result.ragit_version != crate::VERSION {
             // TODO: what here?
-            // 1. a user prompt asking to run auto-migration
-            // 2. ignore. the user has to explicitly run auto-migration
-            // 3. a warning message, but no action. the user has to explicitly run auto-migration
-            // 4. always run auto-migration
+            // 1. a user prompt asking to run migration
+            // 2. ignore. the user has to explicitly run migration
+            // 3. a warning message, but no action. the user has to explicitly run migration
+            // 4. always run migration
             //
             // The problem is that
             // 1. a version mismatch would be very often.
             // 2. a compatibility issue would be very rare.
             // 3. it's not always possible for the client to tell whether there's an issue or not
-            // 4. auto-migration is expensive
+            // 4. migration is expensive
         }
 
         Ok(result)

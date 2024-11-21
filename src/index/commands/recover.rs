@@ -26,22 +26,22 @@ pub type Path = String;
 pub type Uid = String;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct AutoRecoverResult {
+pub struct RecoverResult {
     removed_chunk: usize,
 }
 
 impl Index {
-    /// This is `auto-recover` of `rag check --auto-recover`. It tries its best to make the index usable.
+    /// This is `recover` of `rag check --recover`. It tries its best to make the index usable.
     ///
     /// - Recover A: It creates file_indexes from scratch.
     /// - Recover B: If a chunk belongs to a file that's not in self.processed_files, it's removed.
     /// - Recover C: If there's a broken tfidf file, it creates a new one.
     /// - Recover D: If there's a broken config file, it replaces the file with a default one.
     /// - Recover E: If self.curr_processing_file is not None, the file is staged.
-    pub fn auto_recover(&mut self) -> Result<AutoRecoverResult, Error> {
+    pub fn recover(&mut self) -> Result<RecoverResult, Error> {
         let mut processed_files: HashMap<Path, Vec<(Uid, usize)>> = HashMap::new();
         let mut chunk_count = 0;
-        let mut result = AutoRecoverResult {
+        let mut result = RecoverResult {
             removed_chunk: 0,
         };
 

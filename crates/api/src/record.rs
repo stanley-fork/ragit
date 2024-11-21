@@ -156,8 +156,7 @@ pub fn record_api_usage(
     // dollars per 1 billion tokens
     input_weight: u64,
     output_weight: u64,
-
-    auto_clean_up_records: bool,
+    clean_up_records: bool,
 ) -> Result<(), String> {
     let mut tracker = Tracker::load_from_file(&at.path).map_err(|e| format!("{e:?}"))?;
     let new_record = Record {
@@ -172,8 +171,36 @@ pub fn record_api_usage(
         Some(mut records) => {
             records.push(new_record);
 
-            if auto_clean_up_records {
-                clean_up_records(&mut records);
+            if clean_up_records {
+                // `records` is always sorted
+                let mut new_records = vec![];
+                let old = Local::now().timestamp().max(1 << 41) as u64 - (1 << 41);
+
+                for record in records.iter() {
+                    if record.time < old {
+                        continue;
+                    }
+
+                    match new_records.last_mut() {
+                        Some(Record {
+                            time,
+                            input,
+                            output,
+                            input_weight,
+                            output_weight,
+                        }) if *time + (1 << 27) > record.time && *input_weight == record.input_weight && *output_weight == record.output_weight => {
+                            *time = (*time + record.time) >> 1;
+                            *input += record.input;
+                            *output += record.output;
+                        },
+                        _ => {
+                            new_records.push(*record);
+                        },
+                    }
+                }
+
+                new_records.sort_by_key(|Record { time, .. }| *time);
+                *records = new_records;
             }
         },
         None => {
@@ -184,40 +211,6 @@ pub fn record_api_usage(
     tracker.save_to_file(&at.path).map_err(|e| format!("{e:?}"))?;
 
     Ok(())
-}
-
-// 1. merge records who are close to each other (134 seconds)
-// 2. remove old records (25.4 days)
-fn clean_up_records(records: &mut Vec<Record>) {
-    // `records` is always sorted
-    let mut new_records = vec![];
-    let old = Local::now().timestamp().max(1 << 41) as u64 - (1 << 41);
-
-    for record in records.iter() {
-        if record.time < old {
-            continue;
-        }
-
-        match new_records.last_mut() {
-            Some(Record {
-                time,
-                input,
-                output,
-                input_weight,
-                output_weight,
-            }) if *time + (1 << 27) > record.time && *input_weight == record.input_weight && *output_weight == record.output_weight => {
-                *time = (*time + record.time) >> 1;
-                *input += record.input;
-                *output += record.output;
-            },
-            _ => {
-                new_records.push(*record);
-            },
-        }
-    }
-
-    new_records.sort_by_key(|Record { time, .. }| *time);
-    *records = new_records;
 }
 
 pub fn get_user_usage_data_after(at: RecordAt, after: DateTime<Local>) -> Option<Vec<Record>> {

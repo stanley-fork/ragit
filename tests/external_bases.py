@@ -52,7 +52,7 @@ def external_bases():
         else:
             raise Exception("The build should have timed out")
 
-        cargo_run(["check", "--auto-recover"])
+        cargo_run(["check", "--recover"])
         cargo_run(["config", "--set", "sleep_after_llm_call", "0"])
         cargo_run(["check"])
         cargo_run(["build"])

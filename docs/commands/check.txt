@@ -8,10 +8,21 @@ rag-check - Check whether there's a corruption in a knowledge-base
 SYNOPSIS
 --------
 [verse]
-'rag check' [--recursive]
+'rag check' [--recursive] [--recover]
 
 DESCRIPTION
 -----------
-This command checks whether there's a bug in ragit. If you're just using ragit, you have
-nothing to do with this command. If you have implemented a new feature to ragit, and want
-to test that, use this command.
+This command checks whether a knowledge-base is corrupted or not. There are 2 use
+cases for this command. It's quite expensive command to run.
+
+1. When you have downloaded a knowledge-base and wanna know whether the knowledge-base
+   is corrupted or not, run this command.
+2. If you have implemented a new feature, which modifies a knowledge-base, use this
+   command to check whether your new feature does something bad or not. If you're
+   writing a test for your feature, this command will help you a lot.
+
+It comes with 2 options: `--recursive` and `--recover`.
+
+`--recursive` runs `rag check` on all its external bases, and their external bases.
+`--recover` tries to recover from a corrupted knowledge-base, without any loss of
+information. It may fail.

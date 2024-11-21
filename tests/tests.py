@@ -1,6 +1,4 @@
 from add_and_rm import add_and_rm
-from auto_migrate import auto_migrate
-from auto_recover import auto_recover
 from cargo_tests import cargo_tests
 from clone import clone
 from end_to_end import end_to_end
@@ -9,7 +7,9 @@ from images import images
 from images2 import images2
 from many_chunks import many_chunks
 from markdown_reader import markdown_reader
+from migrate import migrate
 from ragit_api import ragit_api
+from recover import recover
 from tfidf import tfidf
 
 import os
@@ -32,15 +32,15 @@ Commands
                                 It runs tons of `rag add` and `rag rm` with
                                 different options.
 
-    auto_recover                run `auto_recover` test
+    recover                     run `recover` test
                                 It checks whether 1) `rag check` fails on a broken
-                                knowledge-base and 2) `rag check --auto-recover` can
+                                knowledge-base and 2) `rag check --recover` can
                                 fix a broken knowledge-base.
 
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
 
-    auto_migrate                run `auto_migrate` test (TODO)
+    migrate                     run `migrate` test (TODO)
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -94,14 +94,14 @@ if __name__ == "__main__":
         elif command == "add_and_rm":
             add_and_rm()
 
-        elif command == "auto_recover":
-            auto_recover()
+        elif command == "recover":
+            recover()
 
         elif command == "clone":
             clone()
 
-        elif command == "auto_migrate":
-            auto_migrate()
+        elif command == "migrate":
+            migrate()
 
         elif command == "many_chunks":
             many_chunks()
@@ -142,9 +142,9 @@ if __name__ == "__main__":
             tests = [
                 ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
-                ("auto_recover", auto_recover),
+                ("recover", recover),
                 ("clone", clone),
-                ("auto_migrate", auto_migrate),
+                ("migrate", migrate),
                 ("many_chunks", many_chunks),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
