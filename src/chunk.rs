@@ -22,7 +22,6 @@ use ragit_fs::{
     normalize,
     parent,
     read_bytes,
-    remove_file,
     set_extension,
     write_bytes,
 };

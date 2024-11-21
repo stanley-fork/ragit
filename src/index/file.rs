@@ -9,7 +9,6 @@ use ragit_fs::{
 };
 use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, VecDeque};
-use std::fmt;
 
 mod image;
 mod line_reader;

@@ -36,7 +36,7 @@ impl Index {
     ) -> Result<Vec<Chunk>, Error> where Filter: Fn(&Chunk) -> bool, Map: Fn(Chunk) -> Chunk, Sort: Fn(&Chunk) -> Key {
         let mut result = vec![];
 
-        for chunk_file in self.chunk_files_real_path()? {
+        for chunk_file in self.get_all_chunk_files()? {
             let chunk = chunk::load_from_file(&chunk_file)?;
 
             if !filter(&chunk) {

@@ -45,7 +45,7 @@ impl Index {
             removed_chunk: 0,
         };
 
-        for chunk_file in self.chunk_files_real_path()? {
+        for chunk_file in self.get_all_chunk_files()? {
             let chunk_ = chunk::load_from_file(&chunk_file)?;
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
 

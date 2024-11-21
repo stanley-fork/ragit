@@ -1,7 +1,7 @@
 use crate::INDEX_DIR_NAME;
 use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
 use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME, Uid, is_valid_uid};
-use crate::error::{Error, JsonType, get_type};
+use crate::error::Error;
 use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
@@ -21,6 +21,7 @@ use ragit_fs::{
     diff,
     exists,
     extension,
+    file_name,
     is_dir,
     join,
     join3,
@@ -312,7 +313,7 @@ impl Index {
         else {
             let mut chunks = vec![];
 
-            for chunk_path in self.chunk_files_real_path()? {
+            for chunk_path in self.get_all_chunk_files()? {
                 chunks.push(chunk::load_from_file(&chunk_path)?);
             }
 
@@ -324,15 +325,30 @@ impl Index {
         }
     }
 
-    // real_paths of all the chunks
-    fn chunk_files_real_path(&self) -> Result<Vec<Path>, Error> {
+    pub fn get_all_chunk_uids(&self) -> Result<Vec<Uid>, Error> {
         let mut result = vec![];
 
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
-            if !is_dir(&internal) {
-                continue;
-            }
+            let prefix = file_name(&internal)?;
 
+            for chunk_file in read_dir(&internal)? {
+                if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
+                    result.push(format!("{prefix}{}", file_name(&chunk_file)?));
+                }
+            }
+        }
+
+        Ok(result)
+    }
+
+    pub fn get_all_file_uids(&self) -> Vec<Uid> {
+        self.processed_files.values().map(|uid| uid.to_string()).collect()
+    }
+
+    pub fn get_all_chunk_files(&self) -> Result<Vec<Path>, Error> {
+        let mut result = vec![];
+
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             for chunk_file in read_dir(&internal)? {
                 if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
                     result.push(chunk_file.to_string());
@@ -343,14 +359,10 @@ impl Index {
         Ok(result)
     }
 
-    fn tfidf_files_real_path(&self) -> Result<Vec<Path>, Error> {
+    pub fn get_all_tfidf_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
-            if !is_dir(&internal) {
-                continue;
-            }
-
             for tfidf_file in read_dir(&internal)? {
                 if extension(&tfidf_file).unwrap_or(None).unwrap_or(String::new()) == "tfidf" {
                     result.push(tfidf_file.to_string());
@@ -499,7 +511,7 @@ impl Index {
         let mut tfidf_state = TfIdfState::new(&keywords);
         self.generate_tfidfs()?;
 
-        for tfidf_file in self.tfidf_files_real_path()? {
+        for tfidf_file in self.get_all_tfidf_files()? {
             consume_tfidf_file(
                 None,  // not an external knowledge_base
                 tfidf_file,
@@ -511,7 +523,7 @@ impl Index {
         for (i, external_index) in self.external_indexes.iter().enumerate() {
             external_index.generate_tfidfs()?;
 
-            for tfidf_file in external_index.tfidf_files_real_path()? {
+            for tfidf_file in external_index.get_all_tfidf_files()? {
                 consume_tfidf_file(
                     Some(self.external_index_info[i].clone()),
                     tfidf_file,
@@ -829,7 +841,7 @@ impl Index {
     // 3. `self.build()` generates most tfidf files, but some would be missing due to performance reasons.
     // 4. It generates missing tfidf files, if exist.
     fn generate_tfidfs(&self) -> Result<(), Error> {
-        for chunk_file in self.chunk_files_real_path()? {
+        for chunk_file in self.get_all_chunk_files()? {
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
 
             if !exists(&tfidf_file) {

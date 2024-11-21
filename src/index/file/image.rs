@@ -2,7 +2,7 @@ use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
 use crate::index::BuildConfig;
 use ragit_api::ImageType;
-use ragit_fs::{FileError, extension, read_bytes, remove_file};
+use ragit_fs::{extension, read_bytes, remove_file};
 use sha3::{Digest, Sha3_256};
 use std::fmt;
 

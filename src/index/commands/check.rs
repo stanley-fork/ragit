@@ -39,7 +39,7 @@ impl Index {
         let mut file_uid_checks = uids_to_files.keys().map(|uid| (uid.to_string(), false /* exists */)).collect::<HashMap<_, _>>();
         let mut chunk_count = 0;
 
-        for chunk_file in self.chunk_files_real_path()? {
+        for chunk_file in self.get_all_chunk_files()? {
             let chunk_prefix = basename(&parent(&chunk_file)?)?;
             let chunk_suffix = file_name(&chunk_file)?;
             let chunk_uid = format!("{chunk_prefix}{chunk_suffix}");
