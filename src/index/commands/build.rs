@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{ChunkBuildInfo, FileReader, get_file_hash};
+use crate::index::{ChunkBuildInfo, FileReader, get_file_uid};
 use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
@@ -87,9 +87,9 @@ impl Index {
                 }
             }
 
-            let file_hash = get_file_hash(&real_path)?;
-            self.add_file_index(&file_hash, &uids)?;
-            self.processed_files.insert(doc.clone(), file_hash);
+            let file_uid = get_file_uid(&real_path)?;
+            self.add_file_index(&file_uid, &uids)?;
+            self.processed_files.insert(doc.clone(), file_uid);
             self.curr_processing_file = None;
             self.save_to_file()?;
         }

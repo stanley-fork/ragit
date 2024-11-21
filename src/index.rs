@@ -46,7 +46,7 @@ pub mod tfidf;
 
 pub use commands::{AddMode, AddResult, METADATA_FILE_NAME, RecoverResult, RenderableFile, RenderableModel};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
-pub use file::{FileReader, get_file_hash};
+pub use file::{FileReader, get_file_uid};
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
@@ -598,20 +598,20 @@ impl Index {
         ).unwrap()
     }
 
-    // root_dir/.ragit/file_index/file_hash_prefix/file_hash_suffix
-    fn get_file_index_path(root_dir: &Path, file_hash: &String) -> Path {
+    // root_dir/.ragit/file_index/file_uid_prefix/file_uid_suffix
+    fn get_file_index_path(root_dir: &Path, file_uid: &String) -> Path {
         let index_at = join3(
             root_dir,
             &INDEX_DIR_NAME,
             &FILE_INDEX_DIR_NAME,
         ).unwrap();
-        let file_hash_prefix = file_hash.get(0..2).unwrap().to_string();
-        let file_hash_suffix = file_hash.get(2..).unwrap().to_string();
+        let file_uid_prefix = file_uid.get(0..2).unwrap().to_string();
+        let file_uid_suffix = file_uid.get(2..).unwrap().to_string();
 
         join3(
             &index_at,
-            &file_hash_prefix,
-            &file_hash_suffix,
+            &file_uid_prefix,
+            &file_uid_suffix,
         ).unwrap()
     }
 
@@ -770,8 +770,8 @@ impl Index {
         }
     }
 
-    fn add_file_index(&mut self, file_hash: &String, uids: &[Uid]) -> Result<(), Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_hash);
+    fn add_file_index(&mut self, file_uid: &String, uids: &[Uid]) -> Result<(), Error> {
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
         let parent_path = parent(&file_index_path)?;
 
         if !exists(&parent_path) {
@@ -785,22 +785,22 @@ impl Index {
         )?)
     }
 
-    fn remove_file_index(&mut self, file_hash: &String) -> Result<(), Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_hash);
+    fn remove_file_index(&mut self, file_uid: &String) -> Result<(), Error> {
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
 
         if !exists(&file_index_path) {
-            return Err(Error::NoSuchFile { file: None, hash: Some(file_hash.to_string()) });
+            return Err(Error::NoSuchFile { file: None, uid: Some(file_uid.to_string()) });
         }
 
         Ok(remove_file(&file_index_path)?)
     }
 
-    pub(crate) fn get_chunk_uid_by_file_name(&self, file_hash: &String) -> Result<Vec<Uid>, Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_hash);
+    pub(crate) fn get_chunks_of_file(&self, file_uid: &String) -> Result<Vec<Uid>, Error> {
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
         let mut result = vec![];
 
         if !exists(&file_index_path) {
-            return Err(Error::NoSuchFile { file: None, hash: Some(file_hash.to_string()) });
+            return Err(Error::NoSuchFile { file: None, uid: Some(file_uid.to_string()) });
         }
 
         for uid in read_string(&file_index_path)?.lines() {

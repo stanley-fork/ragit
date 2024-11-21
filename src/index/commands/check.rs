@@ -35,8 +35,8 @@ impl Index {
         let mut images = HashMap::new();
         let mut chunks_to_files = HashMap::with_capacity(self.chunk_count);
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());
-        let hashes_to_files = self.processed_files.iter().map(|(file, hash)| (hash.to_string(), file.to_string())).collect::<HashMap<_, _>>();
-        let mut file_hash_checks = hashes_to_files.keys().map(|hash| (hash.to_string(), false /* exists */)).collect::<HashMap<_, _>>();
+        let uids_to_files = self.processed_files.iter().map(|(file, uid)| (uid.to_string(), file.to_string())).collect::<HashMap<_, _>>();
+        let mut file_uid_checks = uids_to_files.keys().map(|uid| (uid.to_string(), false /* exists */)).collect::<HashMap<_, _>>();
         let mut chunk_count = 0;
 
         for chunk_file in self.chunk_files_real_path()? {
@@ -81,17 +81,17 @@ impl Index {
         }
 
         for file_index in self.file_index_real_path()? {
-            let hash_prefix = basename(&parent(&file_index)?)?;
-            let hash_suffix = file_name(&file_index)?;
-            let file_hash = format!("{hash_prefix}{hash_suffix}");
-            let file_name = match hashes_to_files.get(&file_hash) {
+            let uid_prefix = basename(&parent(&file_index)?)?;
+            let uid_suffix = file_name(&file_index)?;
+            let file_uid = format!("{uid_prefix}{uid_suffix}");
+            let file_name = match uids_to_files.get(&file_uid) {
                 Some(file_name) => file_name.to_string(),
                 None => {  // Check B-1
-                    return Err(Error::BrokenIndex(format!("There's a file_index for `{file_hash}`, but self.processed_files does not have an entry with such hash value.")));
+                    return Err(Error::BrokenIndex(format!("There's a file_index for `{file_uid}`, but self.processed_files does not have an entry with such hash value.")));
                 },
             };
 
-            match file_hash_checks.get_mut(&file_hash) {
+            match file_uid_checks.get_mut(&file_uid) {
                 Some(exists) => { *exists = true; },
                 None => unreachable!(),  // Check B-1, already checked
             }
@@ -115,9 +115,9 @@ impl Index {
             }
         }
 
-        for (file_hash, exists) in file_hash_checks.iter() {
+        for (file_uid, exists) in file_uid_checks.iter() {
             if !*exists {  // Check B-2
-                let file_name = hashes_to_files.get(file_hash).unwrap();
+                let file_name = uids_to_files.get(file_uid).unwrap();
                 return Err(Error::BrokenIndex(format!("`{file_name}` doesn't have an index.")));
             }
         }

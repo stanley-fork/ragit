@@ -274,12 +274,18 @@ impl From<AtomicToken> for MessageContent {
     }
 }
 
-pub fn get_file_hash(path: &Path) -> Result<String, Error> {
+/// File uids have a somewhat complicated schema.
+/// First, it calculates the sha3-256 hash of the content of the file.
+/// Second, it represents the hash value in 64 characters long string.
+/// Third, it counts the byte length of the file. It represents the length in 9 characters long string.
+/// Then, it takes the first 55 characters of the hash string and the length string.
+pub fn get_file_uid(path: &Path) -> Result<String, Error> {
     // TODO: don't read the entire file at once
     let file_content = read_bytes(path)?;
     let mut hasher = Sha3_256::new();
     hasher.update(path.as_bytes());
     hasher.update(&file_content);
 
-    Ok(format!("{:064x}{:09}", hasher.finalize(), file_content.len()))
+    let hash = format!("{:064x}", hasher.finalize());
+    Ok(format!("{}{:09}", hash.get(0..55).unwrap(), file_content.len()))
 }

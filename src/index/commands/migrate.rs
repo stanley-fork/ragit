@@ -139,7 +139,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     )?;
     let j = read_string(&index_at)?;
     let mut j = json::parse(&j)?;
-    let file_hash_re = Regex::new(r"(\d{8})_([0-9a-f]{64})").unwrap();
+    let file_uid_re = Regex::new(r"(\d{8})_([0-9a-f]{64})").unwrap();
     let uid_re = Regex::new(r"[0-9a-z]{64}").unwrap();
     let mut processed_files_cache;
 
@@ -155,22 +155,22 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                 Some(JsonValue::Object(ref mut processed_files)) => {
                     processed_files_cache = HashMap::with_capacity(processed_files.len());
 
-                    for (file_name, file_hash) in processed_files.clone().iter() {
-                        match file_hash.as_str() {
-                            Some(file_hash) => match file_hash_re.captures(file_hash) {
-                                Some(file_hash_cap) => {
-                                    let file_hash = format!("{}0{}", &file_hash_cap[2], &file_hash_cap[1]);
-                                    processed_files.insert(file_name, file_hash.clone().into());
-                                    processed_files_cache.insert(file_name.to_string(), file_hash);
+                    for (file_name, file_uid) in processed_files.clone().iter() {
+                        match file_uid.as_str() {
+                            Some(file_uid) => match file_uid_re.captures(file_uid) {
+                                Some(file_uid_cap) => {
+                                    let file_uid = format!("{}0{}", &file_uid_cap[2], &file_uid_cap[1]);
+                                    processed_files.insert(file_name, file_uid.clone().into());
+                                    processed_files_cache.insert(file_name.to_string(), file_uid);
                                 },
                                 None => {
-                                    return Err(Error::BrokenIndex(format!("`index.json` has a corrupted file hash: `{file_hash}`.")));
+                                    return Err(Error::BrokenIndex(format!("`index.json` has a corrupted file uid: `{file_uid}`.")));
                                 },
                             },
                             None => {
                                 return Err(Error::JsonTypeError {
                                     expected: JsonType::String,
-                                    got: get_type(file_hash),
+                                    got: get_type(file_uid),
                                 });
                             },
                         }
@@ -364,20 +364,20 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
 
     for (file_name, mut chunks) in file_to_chunks_map.into_iter() {
         chunks.sort_by_key(|(_, index)| *index);
-        let file_hash = match processed_files_cache.get(&file_name) {
-            Some(file_hash) => file_hash.to_string(),
+        let file_uid = match processed_files_cache.get(&file_name) {
+            Some(file_uid) => file_uid.to_string(),
             None => {
                 return Err(Error::BrokenIndex(format!("File hash not found: `{file_name}`")));
             },
         };
-        let index_path = join(&file_index_at, file_hash.get(0..2).unwrap())?;
+        let index_path = join(&file_index_at, file_uid.get(0..2).unwrap())?;
 
         if !exists(&index_path) {
             create_dir_all(&index_path)?;
         }
 
         write_string(
-            &join(&index_path, file_hash.get(2..).unwrap())?,
+            &join(&index_path, file_uid.get(2..).unwrap())?,
             &chunks.into_iter().map(|(uid, _)| uid).collect::<Vec<_>>().join("\n"),
             WriteMode::AlwaysCreate,
         )?;

@@ -96,8 +96,8 @@ impl Index {
 
         for (file, mut chunks) in processed_files.into_iter() {
             chunks.sort_by_key(|(_, index)| *index);
-            let file_hash = self.processed_files.get(&file).unwrap();
-            let file_index_path = Index::get_file_index_path(&self.root_dir, &file_hash);
+            let file_uid = self.processed_files.get(&file).unwrap();
+            let file_index_path = Index::get_file_index_path(&self.root_dir, &file_uid);
             let parent_path = parent(&file_index_path)?;
 
             if !exists(&parent_path) {

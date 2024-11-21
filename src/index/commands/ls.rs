@@ -10,8 +10,8 @@ pub struct RenderableFile {
     // if it's false, all the fields below have arbitrary values
     pub is_processed: bool,
 
-    pub length: usize,  // not in bytes
-    pub hash: String,
+    pub length: usize,
+    pub uid: String,
 }
 
 #[derive(Serialize)]
@@ -66,17 +66,17 @@ impl Index {
                 name: file.clone(),
                 is_processed: false,
                 length: 0,
-                hash: String::new(),
+                uid: String::new(),
             });
         }
 
-        for (file, hash) in self.processed_files.iter() {
-            let file_size = hash.get(64..).unwrap().parse::<usize>().unwrap();
+        for (file, uid) in self.processed_files.iter() {
+            let file_size = uid.get(55..).unwrap().parse::<usize>().unwrap();
             result.push(RenderableFile {
                 name: file.clone(),
                 is_processed: true,
                 length: file_size,
-                hash: hash.to_string(),
+                uid: uid.to_string(),
             });
         }
 

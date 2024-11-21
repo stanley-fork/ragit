@@ -357,7 +357,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 if file.is_processed {
                     println!("length: {}", file.length);
-                    println!("hash: {}", file.hash);
+                    println!("uid: {}", file.uid);
                 }
             }
         },
