@@ -331,6 +331,10 @@ impl Index {
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             let prefix = file_name(&internal)?;
 
+            if !is_dir(&internal) {
+                continue;
+            }
+
             for chunk_file in read_dir(&internal)? {
                 if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
                     result.push(format!("{prefix}{}", file_name(&chunk_file)?));
@@ -349,6 +353,10 @@ impl Index {
         let mut result = vec![];
 
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
+            if !is_dir(&internal) {
+                continue;
+            }
+
             for chunk_file in read_dir(&internal)? {
                 if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
                     result.push(chunk_file.to_string());
@@ -363,6 +371,10 @@ impl Index {
         let mut result = vec![];
 
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
+            if !is_dir(&internal) {
+                continue;
+            }
+
             for tfidf_file in read_dir(&internal)? {
                 if extension(&tfidf_file).unwrap_or(None).unwrap_or(String::new()) == "tfidf" {
                     result.push(tfidf_file.to_string());

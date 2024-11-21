@@ -27,6 +27,9 @@ pub struct RenderableModel {
 
 impl Index {
     /// `rag ls-chunks`
+    ///
+    /// It iterates all the chunks in the knowledge-base, which can be very expensive. If you know the uid of the chunk,
+    /// use `get_chunk_by_uid` instead.
     pub fn list_chunks<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`

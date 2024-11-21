@@ -300,16 +300,22 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("ls-chunks") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--stat-only"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only", "--stat-only"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-chunks.txt"));
                 return Ok(());
             }
-            // TODO: impl `--name-only` and `--stat-only`
 
+            let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
+            let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             println!("{} chunks", index.chunk_count);
+
+            if stat_only {
+                return Ok(());
+            }
+
             let chunks = index.list_chunks(
                 &|_| true,  // no filter
                 &|mut chunk: Chunk| {
@@ -321,23 +327,30 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             )?;
 
             for chunk in chunks.iter() {
+                if uid_only {
+                    println!("{}", chunk.uid);
+                    continue;
+                }
+
                 println!("----------");
                 println!("{}th chunk of {}", chunk.index, chunk.render_source());
-                println!("id: {}", chunk.uid);
+                println!("uid: {}", chunk.uid);
                 println!("character len: {}", chunk.data);  // it's mapped above
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }
         },
         Some("ls-files") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--stat-only"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--uid-only", "--stat-only"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-files.txt"));
                 return Ok(());
             }
-            // TODO: impl `--name-only` and `--stat-only`
 
+            let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
+            let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
+            let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             println!(
                 "{} total files, {} staged files, {} processed files",
@@ -345,6 +358,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 index.staged_files.len(),
                 index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
             );
+
+            if stat_only {
+                return Ok(());
+            }
+
             let files = index.list_files(
                 &|_| true,  // no filter
                 &|f| f,  // no map
@@ -352,6 +370,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             );
 
             for file in files.iter() {
+                if name_only {
+                    println!("{}", file.name);
+                    continue;
+                }
+
+                else if uid_only {
+                    println!("{}", file.uid);
+                    continue;
+                }
+
                 println!("--------");
                 println!("name: {}{}", file.name, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
 
@@ -368,8 +396,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("{}", include_str!("../docs/commands/ls-models.txt"));
                 return Ok(());
             }
-            // TODO: impl `--name-only` and `--stat-only`
 
+            let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
+            let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let models = Index::list_models(
                 &|model| model.name != "dummy",  // filter
                 &|model| model,  // no map
@@ -377,7 +406,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             );
             println!("{} models", models.len());
 
+            if stat_only {
+                return Ok(());
+            }
+
             for model in models.iter() {
+                if name_only {
+                    println!("{}", model.name);
+                    continue;
+                }
+
                 println!("--------");
                 println!("name: {}", model.name);
                 println!("api_provider: {}", model.api_provider);
