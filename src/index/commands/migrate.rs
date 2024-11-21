@@ -139,7 +139,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     )?;
     let j = read_string(&index_at)?;
     let mut j = json::parse(&j)?;
-    let file_uid_re = Regex::new(r"(\d{8})_([0-9a-f]{64})").unwrap();
+    let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{55})[0-9a-f]{9}$").unwrap();
     let uid_re = Regex::new(r"[0-9a-z]{64}").unwrap();
     let mut processed_files_cache;
 
