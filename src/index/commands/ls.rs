@@ -71,13 +71,12 @@ impl Index {
         }
 
         for (file, hash) in self.processed_files.iter() {
-            let file_hash = hash.get(0..64).unwrap().to_string();
             let file_size = hash.get(64..).unwrap().parse::<usize>().unwrap();
             result.push(RenderableFile {
                 name: file.clone(),
                 is_processed: true,
                 length: file_size,
-                hash: file_hash,
+                hash: hash.to_string(),
             });
         }
 

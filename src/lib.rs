@@ -11,9 +11,10 @@ pub const INDEX_DIR_NAME: &str = ".ragit";
 pub use api_config::{ApiConfig, ApiConfigRaw};
 pub use chunk::{
     Chunk,
-    update_chunk_schema,
+    ChunkBuildInfo,
 };
 pub use error::Error;
+pub use external::ExternalIndex;
 pub use index::{
     AddMode,
     AddResult,
@@ -22,7 +23,8 @@ pub use index::{
     LoadMode,
     ProcessedDoc,
     RecoverResult,
-    update_index_schema,
+    RenderableFile,
+    RenderableModel,
 };
 pub use query::{
     QueryConfig,

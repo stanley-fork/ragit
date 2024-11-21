@@ -1,7 +1,7 @@
 use chrono::offset::Local;
 use crate::ApiConfig;
 use crate::error::Error;
-use crate::index::{BuildConfig, Index, LoadMode, tfidf};
+use crate::index::{BuildConfig, Index, tfidf};
 use crate::index::file::AtomicToken;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
@@ -35,7 +35,7 @@ use std::io::Read;
 mod build_info;
 mod renderable;
 
-pub use build_info::BuildInfo;
+pub use build_info::ChunkBuildInfo;
 pub use renderable::RenderableChunk;
 
 // I wanted it to be u128, but serde_json does not support u128
@@ -47,14 +47,14 @@ pub const CHUNK_DIR_NAME: &str = "chunks";
 pub struct Chunk {
     pub data: String,
 
-    // it's both key and path of an image
-    // for ex, if "abcdef" is in `images`,
-    // replace "img_abcdef" in `data` with `.ragit/images/abcdef.png`
+    /// It's both key and path of an image.
+    /// For example, if "abcdef" is in `images`,
+    /// it replaces "img_abcdef" in `data` with `.ragit/images/abcdef.png`
     pub images: Vec<String>,
     pub char_len: usize,
 
-    // it's not always `images.len()`
-    // if the same image appears twice, it's pushed only once to `images` but twice to `image_count`
+    /// It's not always `images.len()`. If the same image appears twice,
+    /// it's pushed only once to `images` but twice to `image_count`
     pub image_count: usize,
 
     pub title: String,
@@ -62,14 +62,12 @@ pub struct Chunk {
 
     pub file: String,  // rel path
     pub index: usize,  // index in the file
-
-    // unique identifier for chunks
     pub uid: Uid,
-    pub build_info: BuildInfo,
+    pub build_info: ChunkBuildInfo,
     pub timestamp: i64,
 
-    // if it belongs to an external base, the name of the
-    // base is kept here
+    /// If it belongs to an external base, the name of the
+    /// base is kept here.
     #[serde(skip)]
     pub external_base: Option<String>,
 }
@@ -166,14 +164,14 @@ impl Chunk {
         }
     }
 
-    pub async fn create_chunk_from(
+    pub(crate) async fn create_chunk_from(
         tokens: &[AtomicToken],
         config: &BuildConfig,
         file: String,
         file_index: usize,
         api_config: &ApiConfig,
         pdl: &str,
-        build_info: BuildInfo,
+        build_info: ChunkBuildInfo,
         previous_summary: Option<String>,
     ) -> Result<Self, Error> {
         let mut dummy_context = tera::Context::new();
@@ -352,17 +350,10 @@ impl Chunk {
 
         Ok(result)
     }
-
-    pub fn len(&self) -> usize {
-        // TODO: it has to be
-        // `self.data.chars().count() + self.image_count * (config.image_size)`,
-        // but `config.image_size` is not available
-        self.data.chars().count()
-    }
 }
 
 // TODO: merging chunks is not tested yet
-pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
+pub(crate) fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
 
@@ -428,7 +419,7 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         summary: String::new(),
         title: String::new(),
         uid: Uid::new(),
-        build_info: BuildInfo::dummy(),
+        build_info: ChunkBuildInfo::dummy(),
         external_base: None,
     }
 }
@@ -451,18 +442,4 @@ pub(crate) fn is_valid_uid(uid: &Uid) -> bool {
     uid.len() == 64 && uid.chars().all(
         |c| '0' <= c && c <= '9' || 'a' <= c && c <= 'f'
     )
-}
-
-// `f` is run on a chunk, not on an array of chunks
-// make sure to back up files before running this
-pub fn update_chunk_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(
-    index_dirs: Vec<String>,
-    f: &F,
-) -> Result<(), Error> {
-    for dir in index_dirs.iter() {
-        let index = Index::load(dir.to_string(), LoadMode::Minimum)?;
-        index.map_chunk_jsons(f)?;
-    }
-
-    Ok(())
 }

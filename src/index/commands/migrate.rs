@@ -30,7 +30,7 @@ pub type Path = String;
 impl Index {
     /// It reads version info at `root/.ragit/index.json`. Make sure that the
     /// file exists and `index.json` has `"ragit_version" field.`
-    pub fn check_ragit_version(root_dir: &Path) -> Result<VersionInfo, Error> {
+    fn check_ragit_version(root_dir: &Path) -> Result<VersionInfo, Error> {
         let index_at = join3(
             root_dir,
             INDEX_DIR_NAME,

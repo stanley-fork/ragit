@@ -314,7 +314,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 &|_| true,  // no filter
                 &|mut chunk: Chunk| {
                     // it's too big
-                    chunk.data = format!("{}", chunk.len());
+                    chunk.data = format!("{}", chunk.data.chars().count());
                     chunk
                 },
                 &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
@@ -324,7 +324,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("----------");
                 println!("{}th chunk of {}", chunk.index, chunk.render_source());
                 println!("id: {}", chunk.uid);
-                println!("data len: {}", chunk.data);  // it's mapped above
+                println!("character len: {}", chunk.data);  // it's mapped above
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }

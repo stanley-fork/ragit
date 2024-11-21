@@ -1,8 +1,8 @@
 use super::BuildConfig;
-use crate::chunk::{BuildInfo, Chunk};
+use crate::chunk::{Chunk, ChunkBuildInfo};
 use crate::error::Error;
 use crate::index::Index;
-use ragit_api::{ImageType, MessageContent};
+use ragit_api::MessageContent;
 use ragit_fs::{
     extension,
     read_bytes,
@@ -91,7 +91,7 @@ impl FileReader {
         &mut self,
         index: &Index,
         pdl: &str,
-        build_info: BuildInfo,
+        build_info: ChunkBuildInfo,
         previous_summary: Option<String>,
 
         // index IN a file, not OF a file

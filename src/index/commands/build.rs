@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{BuildInfo, FileReader, get_file_hash};
+use crate::index::{ChunkBuildInfo, FileReader, get_file_hash};
 use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
@@ -32,7 +32,7 @@ impl Index {
                 self.build_config.clone(),
             )?;
             self.curr_processing_file = Some(doc.clone());
-            let build_info = BuildInfo::new(
+            let build_info = ChunkBuildInfo::new(
                 fd.file_reader_key(),
                 prompt_hash.clone(),
                 self.api_config.model.to_human_friendly_name().to_string(),

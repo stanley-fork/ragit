@@ -1,6 +1,6 @@
 use crate::INDEX_DIR_NAME;
 use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
-use crate::chunk::{self, BuildInfo, Chunk, CHUNK_DIR_NAME, Uid, is_valid_uid};
+use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME, Uid, is_valid_uid};
 use crate::error::{Error, JsonType, get_type};
 use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
@@ -44,7 +44,7 @@ mod config;
 pub mod file;
 pub mod tfidf;
 
-pub use commands::{AddMode, AddResult, METADATA_FILE_NAME, RecoverResult};
+pub use commands::{AddMode, AddResult, METADATA_FILE_NAME, RecoverResult, RenderableFile, RenderableModel};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, get_file_hash};
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
@@ -524,11 +524,12 @@ impl Index {
         Ok(tfidf_state.get_top(chunk_count))
     }
 
-    /// It does not search external knowledge-bases
+    /// It does not search external knowledge-bases.
     pub fn get_chunk_by_uid(&self, uid: &Uid) -> Result<Chunk, Error> {
         Ok(chunk::load_from_file(&Index::get_chunk_path(&self.root_dir, uid))?)
     }
 
+    /// It does not search external knowledge-bases.
     pub fn get_tfidf_by_chunk_uid(
         &self,
         uid: Uid,
@@ -546,41 +547,6 @@ impl Index {
         }
 
         Err(Error::NoSuchExternalIndex { index: index.clone() })
-    }
-
-    // it loads all the chunks that belongs to this index, runs `f` on them, and save them to the file.
-    // it's useful when the schema of chunks have changed
-    // make sure to backup files before running this!
-    // it runs on chunks, not on an array of chunks
-    pub fn map_chunk_jsons<F: Fn(JsonValue) -> Result<JsonValue, Error>>(&self, f: &F) -> Result<(), Error> {
-        for chunk_file in self.chunk_files_real_path()? {
-            let raw = read_string(&chunk_file)?;
-            let j = json::parse(&raw)?;
-
-            match j {
-                JsonValue::Array(chunks) => {
-                    let mut new_chunks = vec![];
-
-                    for chunk in chunks.into_iter() {
-                        new_chunks.push(f(chunk)?);
-                    }
-
-                    write_string(
-                        &chunk_file,
-                        &JsonValue::from(new_chunks).pretty(4),
-                        WriteMode::CreateOrTruncate,
-                    )?;
-                },
-                _ => {
-                    return Err(Error::JsonTypeError {
-                        expected: JsonType::Array,
-                        got: get_type(&j),
-                    });
-                },
-            }
-        }
-
-        Ok(())
     }
 
     // every path in index.json are relative path to root_dir
@@ -880,20 +846,4 @@ impl Index {
 
         Ok(())
     }
-}
-
-/// It loads `.ragit/index.json`, modifies it and saves it.
-/// It's useful when the schema of the index has changed.
-/// Make sure to backup files before running this!
-pub fn update_index_schema<F: Fn(JsonValue) -> Result<JsonValue, Error>>(path: &str, f: &F) -> Result<(), Error> {
-    let raw = read_string(path)?;
-    let j = json::parse(&raw)?;
-    let j_new = f(j)?;
-    write_string(
-        path,
-        &j_new.pretty(4),
-        WriteMode::CreateOrTruncate,
-    )?;
-
-    Ok(())
 }

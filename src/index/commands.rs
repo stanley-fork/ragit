@@ -16,5 +16,6 @@ mod remove;
 mod reset;
 
 pub use add::{AddMode, AddResult};
-pub use recover::RecoverResult;
+pub use ls::{RenderableFile, RenderableModel};
 pub use meta::METADATA_FILE_NAME;
+pub use recover::RecoverResult;
