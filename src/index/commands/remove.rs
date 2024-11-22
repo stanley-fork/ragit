@@ -9,7 +9,7 @@ impl Index {
         &mut self,
         path: Path,  // real_path
     ) -> Result<(), Error> {
-        let rel_path = Index::get_rel_path(&self.root_dir, &path);
+        let rel_path = Index::get_rel_path(&self.root_dir, &path)?;
 
         if self.staged_files.contains(&rel_path) {
             self.staged_files = self.staged_files.iter().filter(

@@ -43,7 +43,7 @@ impl Index {
         path: &str,  // real_path
         mode: AddMode,
     ) -> Result<AddResult, Error> {
-        let rel_path = Index::get_rel_path(&self.root_dir, &path.to_string());
+        let rel_path = Index::get_rel_path(&self.root_dir, &path.to_string())?;
 
         // you cannot add a file that's inside `.ragit/`
         if rel_path.starts_with(INDEX_DIR_NAME) {  // TODO: `starts_with` is for strings, not for paths

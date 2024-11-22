@@ -5,6 +5,7 @@ mod external;
 mod index;
 mod prompts;
 mod query;
+mod uid;
 
 pub const INDEX_DIR_NAME: &str = ".ragit";
 

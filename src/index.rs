@@ -325,30 +325,6 @@ impl Index {
         }
     }
 
-    pub fn get_all_chunk_uids(&self) -> Result<Vec<Uid>, Error> {
-        let mut result = vec![];
-
-        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
-            let prefix = file_name(&internal)?;
-
-            if !is_dir(&internal) {
-                continue;
-            }
-
-            for chunk_file in read_dir(&internal)? {
-                if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
-                    result.push(format!("{prefix}{}", file_name(&chunk_file)?));
-                }
-            }
-        }
-
-        Ok(result)
-    }
-
-    pub fn get_all_file_uids(&self) -> Vec<Uid> {
-        self.processed_files.values().map(|uid| uid.to_string()).collect()
-    }
-
     pub fn get_all_chunk_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
@@ -593,13 +569,13 @@ impl Index {
         ).unwrap()
     }
 
-    pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Path {
-        normalize(
+    pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Result<Path, Error> {
+        Ok(normalize(
             &diff(
                 real_path,
                 root_dir,
-            ).unwrap(),
-        ).unwrap()
+            )?,
+        )?)
     }
 
     // root_dir/.ragit/chunks/chunk_uid_prefix/chunk_uid_suffix.chunk
