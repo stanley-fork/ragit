@@ -104,7 +104,7 @@ def end_to_end(test_model: str):
     chunk_uids = []
 
     for line in chunks.split("\n"):
-        if (r := re.match(r"^id\:\s([0-9a-f]{32,})$", line)) is not None:
+        if (r := re.match(r"^uid\:\s([0-9a-f]{32,})$", line)) is not None:
             chunk_uids.append(r.group(1))
 
     # step 5: check whether tfidf index has token "ragit"
