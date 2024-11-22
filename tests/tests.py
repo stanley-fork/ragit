@@ -16,6 +16,15 @@ import os
 import sys
 from utils import clean, goto_root
 
+def get_git_commit_hash():
+    try:
+        import git
+        repo = git.Repo(search_parent_directories=True)
+        return repo.head.object.hexsha
+
+    except:
+        return "please install `git` package"
+
 help_message = """
 Commands
     end_to_end [model=dummy]    run `end_to_end` test
@@ -137,8 +146,13 @@ if __name__ == "__main__":
             import time
             import traceback
 
+            start_all = time.time()
             has_error = False
-            results = {}
+            results = {
+                "_meta": {
+                    "complete": False,
+                },
+            }
             tests = [
                 ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
@@ -170,24 +184,31 @@ if __name__ == "__main__":
 
                 except Exception as e:
                     has_error = True
-                    end = time.time()
                     results[name] = {
                         "pass": False,
                         "error": str(e) + "\n" + traceback.format_exc(),
-                        "elapsed_ms": int((end - start) * 1000),
+                        "elapsed_ms": int((time.time() - start) * 1000),
                     }
 
                 else:
-                    end = time.time()
                     results[name] = {
                         "pass": True,
                         "error": None,
-                        "elapsed_ms": int((end - start) * 1000),
+                        "elapsed_ms": int((time.time() - start) * 1000),
                     }
 
                 finally:
                     clean()
+                    goto_root()
+                    os.chdir("tests")
 
+                    with open("results.json", "w") as f:
+                        result = json.dumps(results, indent=4)
+                        f.write(result)
+
+            results["_meta"]["commit"] = get_git_commit_hash()
+            results["_meta"]["elapsed_ms"] = int((time.time() - start_all) * 1000)
+            results["_meta"]["complete"] = True
             goto_root()
             os.chdir("tests")
             result = json.dumps(results, indent=4)
