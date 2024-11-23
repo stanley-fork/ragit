@@ -539,6 +539,23 @@ impl Index {
         tfidf::load_from_file(&tfidf_path)
     }
 
+    /// It does not search external knowledge-bases.
+    pub fn get_tfidf_by_file_uid(
+        &self,
+        uid: Uid,
+    ) -> Result<ProcessedDoc, Error> {
+        self.generate_tfidfs()?;
+        let chunk_uids = self.get_chunks_of_file(&uid)?;
+        let mut result = ProcessedDoc::empty();
+
+        for uid in chunk_uids.iter() {
+            result.extend(&self.get_tfidf_by_chunk_uid(uid.to_string())?);
+        }
+
+        result.uid = Some(uid);
+        Ok(result)
+    }
+
     pub fn get_external_base(&self, index: &ExternalIndex) -> Result<&Index, Error> {
         for (i, ext) in self.external_index_info.iter().enumerate() {
             if ext.path == index.path {
@@ -572,8 +589,8 @@ impl Index {
     pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Result<Path, Error> {
         Ok(normalize(
             &diff(
-                real_path,
-                root_dir,
+                &normalize(real_path)?,
+                &normalize(root_dir)?,
             )?,
         )?)
     }
@@ -789,18 +806,18 @@ impl Index {
         let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
 
         if !exists(&file_index_path) {
-            return Err(Error::NoSuchFile { file: None, uid: Some(file_uid.to_string()) });
+            return Err(Error::NoSuchFile { path: None, uid: Some(file_uid.to_string()) });
         }
 
         Ok(remove_file(&file_index_path)?)
     }
 
-    pub(crate) fn get_chunks_of_file(&self, file_uid: &String) -> Result<Vec<Uid>, Error> {
+    pub fn get_chunks_of_file(&self, file_uid: &String) -> Result<Vec<Uid>, Error> {
         let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
         let mut result = vec![];
 
         if !exists(&file_index_path) {
-            return Err(Error::NoSuchFile { file: None, uid: Some(file_uid.to_string()) });
+            return Err(Error::NoSuchFile { path: None, uid: Some(file_uid.to_string()) });
         }
 
         for uid in read_string(&file_index_path)?.lines() {

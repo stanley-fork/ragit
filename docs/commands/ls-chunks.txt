@@ -8,7 +8,7 @@ rag-ls-chunks - Show information about chunks
 SYNOPSIS
 --------
 [verse]
-'rag ls-chunks' [--name-only | --uid-only]
+'rag ls-chunks' [--name-only | --uid-only] [<uid>]
 
 DESCRIPTION
 -----------

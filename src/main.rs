@@ -8,6 +8,8 @@ use ragit::{
     INDEX_DIR_NAME,
     Keywords,
     LoadMode,
+    RenderableFile,
+    UidQueryResult,
     multi_turn,
     single_turn,
 };
@@ -300,7 +302,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("ls-chunks") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--uid-only", "--stat-only"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only", "--stat-only"]).args(ArgType::Query, ArgCount::Leq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-chunks.txt"));
@@ -316,15 +318,44 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let chunks = index.list_chunks(
-                &|_| true,  // no filter
-                &|mut chunk: Chunk| {
-                    // it's too big
-                    chunk.data = format!("{}", chunk.data.chars().count());
-                    chunk
+            let chunks = match parsed_args.get_args().get(0) {
+                Some(arg) => match index.uid_query(arg)? {
+                    UidQueryResult::FileUid { uid }
+                    | UidQueryResult::FilePath { uid, .. } => {
+                        let uids = index.get_chunks_of_file(&uid)?;
+                        let mut chunks = Vec::with_capacity(uids.len());
+
+                        for uid in uids.iter() {
+                            let mut chunk = index.get_chunk_by_uid(uid)?;
+                            chunk.data = chunk.data.chars().count().to_string();
+                            chunks.push(chunk);
+                        }
+
+                        chunks
+                    },
+                    UidQueryResult::Chunk { uid } => {
+                        let mut chunk = index.get_chunk_by_uid(&uid)?;
+                        chunk.data = chunk.data.chars().count().to_string();
+                        vec![chunk]
+                    },
+                    UidQueryResult::StagedFile { .. } => vec![],  // staged file doesn't have a chunk
+                    UidQueryResult::NoMatch => {
+                        return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{arg}`.")));
+                    },
+                    UidQueryResult::Multiple { file: v1, chunk: v2 } => {
+                        return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{arg}`. Please give more specific query.", v1.len() + v2.len())));
+                    },
                 },
-                &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
-            )?;
+                None => index.list_chunks(
+                    &|_| true,  // no filter
+                    &|mut chunk: Chunk| {
+                        // it's too big
+                        chunk.data = format!("{}", chunk.data.chars().count());
+                        chunk
+                    },
+                    &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
+                )?,
+            };
 
             for chunk in chunks.iter() {
                 if uid_only {
@@ -341,7 +372,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("ls-files") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--uid-only", "--stat-only"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--uid-only", "--stat-only"]).args(ArgType::Query, ArgCount::Leq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-files.txt"));
@@ -363,15 +394,39 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let files = index.list_files(
-                &|_| true,  // no filter
-                &|f| f,  // no map
-                &|f| f.name.to_string(),
-            );
+            let files = match parsed_args.get_args().get(0) {
+                Some(arg) => match index.uid_query(arg)? {
+                    UidQueryResult::FileUid { uid } => vec![index.get_renderable_file(None, Some(uid))?],
+                    UidQueryResult::FilePath { path, uid } => vec![index.get_renderable_file(Some(path), Some(uid))?],
+                    UidQueryResult::StagedFile { path } => vec![RenderableFile {
+                        path,
+                        is_processed: false,
+                        ..RenderableFile::dummy()
+                    }],
+                    UidQueryResult::Chunk { .. }
+                    | UidQueryResult::NoMatch => {
+                        return Err(Error::UidQueryError(format!("There's no file that matches `{arg}`")));
+                    },
+                    UidQueryResult::Multiple { file: v1, chunk: _ } => match v1.len() {
+                        0 => {
+                            return Err(Error::UidQueryError(format!("There's no file that matches `{arg}`")));
+                        },
+                        1 => vec![index.get_renderable_file(None, Some(v1[0].clone()))?],
+                        n => {
+                            return Err(Error::UidQueryError(format!("There're {n} files that match `{arg}`. Please give more specific query.")))
+                        },
+                    },
+                },
+                None => index.list_files(
+                    &|_| true,  // no filter
+                    &|f| f,  // no map
+                    &|f| f.path.to_string(),
+                ),
+            };
 
             for file in files.iter() {
                 if name_only {
-                    println!("{}", file.name);
+                    println!("{}", file.path);
                     continue;
                 }
 
@@ -381,11 +436,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 println!("--------");
-                println!("name: {}{}", file.name, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
+                println!("name: {}{}", file.path, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
 
                 if file.is_processed {
                     println!("length: {}", file.length);
                     println!("uid: {}", file.uid);
+                    println!("chunks: {}", file.chunks);
                 }
             }
         },
@@ -566,7 +622,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         // TODO: I would like to introduce `-N=10` flag, which tells at most how many chunks to retrieve.
         //       but the ArgParser doesn't support that kinda arguments
         Some("tfidf") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--show"]).args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--show"]).args(ArgType::Query, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
@@ -576,7 +632,21 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
 
             if parsed_args.get_flag(0).is_some() {
-                let processed_doc = index.get_tfidf_by_chunk_uid(args[3].clone())?;
+                let processed_doc = match index.uid_query(&args[3])? {
+                    UidQueryResult::Chunk { uid } => index.get_tfidf_by_chunk_uid(uid)?,
+                    UidQueryResult::FileUid { uid }
+                    | UidQueryResult::FilePath { uid, .. } => index.get_tfidf_by_file_uid(uid)?,
+                    UidQueryResult::NoMatch => {
+                        return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{}`.", &args[3])));
+                    },
+                    UidQueryResult::Multiple { file: v1, chunk: v2 } => {
+                        return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{}`. Please give more specific query.", v1.len() + v2.len(), &args[3])));
+                    },
+                    UidQueryResult::StagedFile { path } => {
+                        return Err(Error::UidQueryError(format!("`{path}` is not processed yet.")));
+                    },
+                };
+
                 println!("{}", processed_doc.render());
                 return Ok(());
             }

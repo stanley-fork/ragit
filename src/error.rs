@@ -19,10 +19,11 @@ pub enum Error {
     PromptMissing(String),
     IndexNotFound,
     NoSuchChunk { uid: Uid },
-    NoSuchFile { file: Option<String>, uid: Option<String> },
+    NoSuchFile { path: Option<String>, uid: Option<String> },
     NoSuchExternalIndex { index: ExternalIndex },
     NotImplemented(String),
     CliError(String),  // TODO: spans?
+    UidQueryError(String),
     BrokenHash(String),
     BrokenPrompt(String),
     CloneRequestError {

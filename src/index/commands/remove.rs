@@ -47,7 +47,7 @@ impl Index {
         }
 
         else {
-            Err(Error::NoSuchFile { file: Some(path), uid: None })
+            Err(Error::NoSuchFile { path: Some(path), uid: None })
         }
     }
 

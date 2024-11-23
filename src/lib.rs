@@ -33,6 +33,7 @@ pub use query::{
     single_turn,
     multi_turn,
 };
+pub use uid::UidQueryResult;
 
 // My rules for version numbers
 // Let's say I'm working on 0.1.2

@@ -141,6 +141,7 @@ pub enum ArgType {
     String,
     Path,
     Command,
+    Query,  // uid or path
 }
 
 impl ArgType {

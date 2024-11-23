@@ -8,7 +8,7 @@ rag-tfidf - Simulate tfidf search
 SYNOPSIS
 --------
 [verse]
-'rag tfidf' --show <chunk-uid>
+'rag tfidf' --show <uid>
 'rag tfidf' <keywords>
 
 DESCRIPTION

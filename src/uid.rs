@@ -7,13 +7,14 @@ use ragit_fs::{
     extension,
     file_name,
     is_dir,
-    join,
     join3,
+    join4,
     read_dir,
 };
 use regex::Regex;
 
 pub type Uid = String;
+pub type Path = String;
 
 lazy_static! {
     static ref UID_RE: Regex = Regex::new(r"^([0-9a-z]{1,64})$").unwrap();
@@ -60,8 +61,9 @@ impl Index {
 
         if UID_RE.is_match(q) {
             if q.len() == 1 {
-                for chunk_dir in read_dir(&join(
+                for chunk_dir in read_dir(&join3(
                     &self.root_dir,
+                    INDEX_DIR_NAME,
                     CHUNK_DIR_NAME,
                 )?).unwrap_or(vec![]) {
                     let chunk_prefix = file_name(&chunk_dir)?;
@@ -77,8 +79,9 @@ impl Index {
                     }
                 }
 
-                for file_index_dir in read_dir(&join(
+                for file_index_dir in read_dir(&join3(
                     &self.root_dir,
+                    INDEX_DIR_NAME,
                     FILE_INDEX_DIR_NAME,
                 )?).unwrap_or(vec![]) {
                     let file_index_prefix = file_name(&file_index_dir)?;
@@ -92,8 +95,9 @@ impl Index {
             }
 
             else if q.len() == 2 {
-                for chunk_file in read_dir(&join3(
+                for chunk_file in read_dir(&join4(
                     &self.root_dir,
+                    INDEX_DIR_NAME,
                     CHUNK_DIR_NAME,
                     &q,
                 )?).unwrap_or(vec![]) {
@@ -104,8 +108,9 @@ impl Index {
                     matched_chunk_uids.push(format!("{q}{}", file_name(&chunk_file)?));
                 }
 
-                for file_index in read_dir(&join3(
+                for file_index in read_dir(&join4(
                     &self.root_dir,
+                    INDEX_DIR_NAME,
                     FILE_INDEX_DIR_NAME,
                     &q,
                 )?).unwrap_or(vec![]) {
@@ -117,10 +122,11 @@ impl Index {
                 let prefix = q.get(0..2).unwrap().to_string();
                 let suffix = q.get(2..).unwrap().to_string();
 
-                for chunk_file in read_dir(&join3(
+                for chunk_file in read_dir(&join4(
                     &self.root_dir,
+                    INDEX_DIR_NAME,
                     CHUNK_DIR_NAME,
-                    &q,
+                    &prefix,
                 )?).unwrap_or(vec![]) {
                     if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
                         continue;
@@ -129,50 +135,69 @@ impl Index {
                     let chunk_file = file_name(&chunk_file)?;
 
                     if chunk_file.starts_with(&suffix) {
-                        matched_chunk_uids.push(format!("{q}{chunk_file}"));
+                        matched_chunk_uids.push(format!("{prefix}{chunk_file}"));
                     }
                 }
 
-                for file_index in read_dir(&join3(
+                for file_index in read_dir(&join4(
                     &self.root_dir,
+                    INDEX_DIR_NAME,
                     FILE_INDEX_DIR_NAME,
-                    &q,
+                    &prefix,
                 )?).unwrap_or(vec![]) {
                     let file_index = file_name(&file_index)?;
 
                     if file_index.starts_with(&suffix) {
-                        matched_file_uids.push(format!("{q}{file_index}"));
+                        matched_file_uids.push(format!("{prefix}{file_index}"));
                     }
                 }
             }
         }
 
+        println!("{:?}", (matched_chunk_uids.len(), matched_file_uids.len()));
         match (matched_chunk_uids.len(), matched_file_uids.len()) {
             (0, 0) => {
+                println!("{:?}", Index::get_rel_path(&self.root_dir, &q.to_string()));
                 if let Ok(rel_path) = Index::get_rel_path(&self.root_dir, &q.to_string()) {
                     if let Some(file_uid) = self.processed_files.get(&rel_path) {
-                        return Ok(UidQueryResult::FileUid(file_uid.to_string()));
+                        return Ok(UidQueryResult::FilePath { path: rel_path, uid: file_uid.to_string() });
+                    }
+
+                    if self.staged_files.contains(&rel_path) {
+                        return Ok(UidQueryResult::StagedFile { path: rel_path });
                     }
                 }
 
                 Ok(UidQueryResult::NoMatch)
             },
-            (1, 0) => Ok(UidQueryResult::ChunkUid(matched_chunk_uids[0].clone())),
-            (0, 1) => Ok(UidQueryResult::FileUid(matched_file_uids[0].clone())),
-            _ => Ok(UidQueryResult::MultipleUids(vec![
-                matched_chunk_uids,
-                matched_file_uids,
-            ].concat())),
+            (1, 0) => Ok(UidQueryResult::Chunk { uid: matched_chunk_uids[0].clone() }),
+            (0, 1) => Ok(UidQueryResult::FileUid { uid: matched_file_uids[0].clone() }),
+            _ => Ok(UidQueryResult::Multiple {
+                chunk: matched_chunk_uids,
+                file: matched_file_uids,
+            }),
         }
     }
 }
 
 pub enum UidQueryResult {
     NoMatch,
-    ChunkUid(Uid),
-    FileUid(Uid),
-    MultipleUids(Vec<Uid>),
+    Chunk { uid: Uid },
+    Multiple {
+        file: Vec<Uid>,
+        chunk: Vec<Uid>,
+    },
 
-    /// Uid of a matched file
-    FilePath(Uid),
+    /// If a query is matched by uid, it's `FileUid`.
+    /// If a query is matched by file path, it's `FilePath`.
+    /// Both are for processed_files.
+    FileUid { uid: Uid },
+
+    /// If a query is matched by uid, it's `FileUid`.
+    /// If a query is matched by file path, it's `FilePath`.
+    /// Both are for processed_files.
+    FilePath { path: Path, uid: Uid },
+
+    /// A staged file doesn't have a uid yet.
+    StagedFile { path: Path },
 }

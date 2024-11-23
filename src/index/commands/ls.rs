@@ -5,13 +5,26 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct RenderableFile {
-    pub name: String,
+    pub path: String,
 
     // if it's false, all the fields below have arbitrary values
     pub is_processed: bool,
 
     pub length: usize,
     pub uid: String,
+    pub chunks: usize,
+}
+
+impl RenderableFile {
+    pub fn dummy() -> Self {
+        RenderableFile {
+            path: String::new(),
+            is_processed: false,
+            length: 0,
+            uid: String::new(),
+            chunks: 0,
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -66,20 +79,20 @@ impl Index {
 
         for file in self.staged_files.iter() {
             result.push(RenderableFile {
-                name: file.clone(),
+                path: file.clone(),
                 is_processed: false,
-                length: 0,
-                uid: String::new(),
+                ..RenderableFile::dummy()
             });
         }
 
         for (file, uid) in self.processed_files.iter() {
             let file_size = uid.get(55..).unwrap().parse::<usize>().unwrap();
             result.push(RenderableFile {
-                name: file.clone(),
+                path: file.clone(),
                 is_processed: true,
                 length: file_size,
                 uid: uid.to_string(),
+                chunks: self.get_chunks_of_file(uid).unwrap_or(vec![]).len(),
             });
         }
 
@@ -121,5 +134,37 @@ impl Index {
 
         result.sort_by_key(sort_key);
         result
+    }
+
+    /// `rag ls-files`
+    pub fn get_renderable_file(&self, path: Option<String>, uid: Option<String>) -> Result<RenderableFile, Error> {
+        if let Some(path) = &path {
+            if let Some(uid) = self.processed_files.get(path) {
+                return Ok(self.get_renderable_file_worker(path.to_string(), uid.to_string())?);
+            }
+        }
+
+        if let Some(uid) = &uid {
+            for (path, uid_) in self.processed_files.iter() {
+                if uid_ == uid {
+                    return Ok(self.get_renderable_file_worker(path.to_string(), uid.to_string())?);
+                }
+            }
+        }
+
+        Err(Error::NoSuchFile { path, uid })
+    }
+
+    fn get_renderable_file_worker(&self, path: String, uid: String) -> Result<RenderableFile, Error> {
+        let file_size = uid.get(55..).unwrap().parse::<usize>().unwrap();
+        let chunks = self.get_chunks_of_file(&uid).unwrap_or(vec![]).len();
+
+        Ok(RenderableFile {
+            path,
+            is_processed: true,
+            length: file_size,
+            uid,
+            chunks,
+        })
     }
 }

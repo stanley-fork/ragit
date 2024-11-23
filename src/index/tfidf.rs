@@ -1,4 +1,3 @@
-use charabia::{Language, TokenizerBuilder};
 use crate::chunk::{Chunk, Uid};
 use crate::error::Error;
 use crate::index::{ExternalIndex, Index};
@@ -41,7 +40,7 @@ pub struct TfIdfResult<DocId: Clone> {
 
 #[derive(Clone, Debug, Deserialize, Eq, Serialize, PartialEq)]
 pub struct ProcessedDoc {
-    pub chunk_uid: Option<Uid>,
+    pub uid: Option<Uid>,
     pub tokens: HashMap<String, usize>,
     length: usize,
 }
@@ -79,9 +78,9 @@ pub fn consume_tfidf_file(
     let processed_doc = load_from_file(&path)?;
 
     // TODO: check this before loading processed_doc
-    if !ignored_chunks.contains(processed_doc.chunk_uid.as_ref().unwrap()) {
+    if !ignored_chunks.contains(processed_doc.uid.as_ref().unwrap()) {
         tfidf_state.consume(
-            (external_index_info.clone(), processed_doc.chunk_uid.clone().unwrap()),
+            (external_index_info.clone(), processed_doc.uid.clone().unwrap()),
             &processed_doc,
         );
     }
@@ -91,7 +90,7 @@ pub fn consume_tfidf_file(
 
 impl ProcessedDoc {
     pub fn new(
-        chunk_uid: Uid,
+        uid: Uid,
         doc_content: &str,
     ) -> Self {
         let mut tokens = HashMap::new();
@@ -107,7 +106,7 @@ impl ProcessedDoc {
         }
 
         ProcessedDoc {
-            chunk_uid: Some(chunk_uid),
+            uid: Some(uid),
             length,
             tokens,
         }
@@ -115,15 +114,15 @@ impl ProcessedDoc {
 
     pub fn empty() -> Self {
         ProcessedDoc {
-            chunk_uid: None,
+            uid: None,
             length: 0,
             tokens: HashMap::new(),
         }
     }
 
     pub fn extend(&mut self, other: &ProcessedDoc) {
-        if self.chunk_uid != other.chunk_uid {
-            self.chunk_uid = None;
+        if self.uid != other.uid {
+            self.uid = None;
         }
 
         self.length += other.length;
@@ -150,7 +149,7 @@ impl ProcessedDoc {
 
     pub fn render(&self) -> String {
         let mut lines = vec![];
-        lines.push(format!("chunk uid: {}", if let Some(u) = &self.chunk_uid { u.to_string() } else { String::from("None (not from a single chunk)") }));
+        lines.push(format!("uid: {}", if let Some(u) = &self.uid { u.to_string() } else { String::from("None (not from a single chunk)") }));
         lines.push(format!("tokens: {}", self.length));
         lines.push(String::from("term-frequency:"));
 
@@ -241,25 +240,9 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
     }
 }
 
-// Decisions and their reasons
-// 1. It tries to make tokens as fine as possible. e.g. ["gpt", "4o", "mini"] instead of ["gpt-4o-mini"].
-//    It makes sense because ragit's reranking is very strong.
-//    As long as we can place the desired chunk in a top 10 list, it doesn't matter whether the chunk is at 1st place or 9th place.
-// 2. Tokens are write-once, read-forever. It's okay for tokenizer to be expensive.
 pub fn tokenize(s: &str) -> Vec<String> {
     let stemmer = Stemmer::create(Algorithm::English);
-
-    // cjk are very easy to detect
-    let mut cjk_tokenizer = TokenizerBuilder::default();
-    let cjk_tokenizer = cjk_tokenizer.allow_list(
-        &[
-            Language::Cmn,
-            Language::Jpn,
-            Language::Kor,
-        ],
-    ).build();
-
-    let eng_tokens = s.to_ascii_lowercase().split(
+    s.to_ascii_lowercase().split(
         |c| if c <= '~' {
             match c {
                 '0'..='9'
@@ -274,16 +257,7 @@ pub fn tokenize(s: &str) -> Vec<String> {
         move |s| stemmer.stem(s).to_string()
     ).filter(
         |s| s.len() > 0
-    ).collect::<Vec<_>>();
-    let mut ecjk_tokens = Vec::with_capacity(eng_tokens.len());
-
-    for eng_token in eng_tokens.iter() {
-        for cjk_token in cjk_tokenizer.tokenize(eng_token) {
-            ecjk_tokens.push(cjk_token.lemma().to_string());
-        }
-    }
-
-    ecjk_tokens
+    ).collect::<Vec<_>>()
 }
 
 impl Chunk {
