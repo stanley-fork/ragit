@@ -521,21 +521,37 @@ impl Index {
         Ok(tfidf_state.get_top(chunk_count))
     }
 
-    /// It does not search external knowledge-bases.
     pub fn get_chunk_by_uid(&self, uid: &Uid) -> Result<Chunk, Error> {
-        Ok(chunk::load_from_file(&Index::get_chunk_path(&self.root_dir, uid))?)
+        for root_dir in std::iter::once(&self.root_dir).chain(
+            self.external_indexes.iter().map(|index| &index.root_dir)
+        ) {
+            let chunk_at = Index::get_chunk_path(root_dir, uid);
+
+            if exists(&chunk_at) {
+                return Ok(chunk::load_from_file(&chunk_at)?);
+            }
+        }
+
+        Err(Error::NoSuchChunk { uid: uid.to_string() })
     }
 
-    /// It does not search external knowledge-bases.
     pub fn get_tfidf_by_chunk_uid(
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
-        let tfidf_path = set_extension(&Index::get_chunk_path(&self.root_dir, &uid), "tfidf")?;
-        tfidf::load_from_file(&tfidf_path)
+        for root_dir in std::iter::once(&self.root_dir).chain(
+            self.external_indexes.iter().map(|index| &index.root_dir)
+        ) {
+            let tfidf_at = set_extension(&Index::get_chunk_path(root_dir, &uid), "tfidf")?;
+
+            if exists(&tfidf_at) {
+                return Ok(tfidf::load_from_file(&tfidf_at)?);
+            }
+        }
+
+        Err(Error::NoSuchChunk { uid: uid.to_string() })
     }
 
-    /// It does not search external knowledge-bases.
     pub fn get_tfidf_by_file_uid(
         &self,
         uid: Uid,
@@ -808,22 +824,26 @@ impl Index {
     }
 
     pub fn get_chunks_of_file(&self, file_uid: &String) -> Result<Vec<Uid>, Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
-        let mut result = vec![];
+        for root_dir in std::iter::once(&self.root_dir).chain(
+            self.external_indexes.iter().map(|index| &index.root_dir)
+        ) {
+            let file_index_path = Index::get_file_index_path(root_dir, file_uid);
+            let mut result = vec![];
 
-        if !exists(&file_index_path) {
-            return Err(Error::NoSuchFile { path: None, uid: Some(file_uid.to_string()) });
-        }
+            if exists(&file_index_path) {
+                for uid in read_string(&file_index_path)?.lines() {
+                    if !is_valid_uid(&uid.to_string()) {
+                        return Err(Error::BrokenIndex(format!("file_index `{file_index_path}` has an invalid uid: `{uid}`.")));
+                    }
 
-        for uid in read_string(&file_index_path)?.lines() {
-            if !is_valid_uid(&uid.to_string()) {
-                return Err(Error::BrokenIndex(format!("file_index `{file_index_path}` has an invalid uid: `{uid}`.")));
+                    result.push(uid.to_string());
+                }
+
+                return Ok(result);
             }
-
-            result.push(uid.to_string());
         }
 
-        Ok(result)
+        return Err(Error::NoSuchFile { path: None, uid: Some(file_uid.to_string()) });
     }
 
     fn count_external_chunks(&self) -> usize {
