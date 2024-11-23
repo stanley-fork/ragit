@@ -242,7 +242,9 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
 
 pub fn tokenize(s: &str) -> Vec<String> {
     let stemmer = Stemmer::create(Algorithm::English);
-    s.to_ascii_lowercase().split(
+    let mut result = vec![];
+
+    for token in s.to_ascii_lowercase().split(
         |c| if c <= '~' {
             match c {
                 '0'..='9'
@@ -254,10 +256,16 @@ pub fn tokenize(s: &str) -> Vec<String> {
             false
         }
     ).map(
-        move |s| stemmer.stem(s).to_string()
-    ).filter(
-        |s| s.len() > 0
-    ).collect::<Vec<_>>()
+        move |s| ragit_korean::tokenize(&stemmer.stem(s))
+    ) {
+        for t in token {
+            if t.len() > 0 {
+                result.push(t);
+            }
+        }
+    }
+
+    result
 }
 
 impl Chunk {
