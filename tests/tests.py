@@ -5,6 +5,7 @@ from end_to_end import end_to_end
 from external_bases import external_bases
 from images import images
 from images2 import images2
+from ls import ls
 from many_chunks import many_chunks
 from markdown_reader import markdown_reader
 from migrate import migrate
@@ -55,6 +56,10 @@ Commands
                                 It creates a lot of small files and see if ragit can
                                 handle the files correctly. It also tests interrupting
                                 `rag build`.
+
+    ls                          run `ls` test
+                                It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
+                                of different options.
 
     images                      run `images` test
                                 It creates a markdown file with images and check
@@ -115,6 +120,9 @@ if __name__ == "__main__":
         elif command == "many_chunks":
             many_chunks()
 
+        elif command == "ls":
+            ls()
+
         elif command == "images":
             images()
 
@@ -160,6 +168,7 @@ if __name__ == "__main__":
                 ("clone", clone),
                 ("migrate", migrate),
                 ("many_chunks", many_chunks),
+                ("ls", ls),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
                 ("cargo_tests", cargo_tests),
