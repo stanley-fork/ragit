@@ -497,7 +497,6 @@ impl Index {
         chunk_count: usize,
     ) -> Result<Vec<TfIdfResult<(Option<ExternalIndex>, Uid)>>, Error> {
         let mut tfidf_state = TfIdfState::new(&keywords);
-        self.generate_tfidfs()?;
 
         for tfidf_file in self.get_all_tfidf_files()? {
             consume_tfidf_file(
@@ -509,8 +508,6 @@ impl Index {
         }
 
         for (i, external_index) in self.external_indexes.iter().enumerate() {
-            external_index.generate_tfidfs()?;
-
             for tfidf_file in external_index.get_all_tfidf_files()? {
                 consume_tfidf_file(
                     Some(self.external_index_info[i].clone()),
@@ -534,7 +531,6 @@ impl Index {
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
-        self.generate_tfidfs()?;
         let tfidf_path = set_extension(&Index::get_chunk_path(&self.root_dir, &uid), "tfidf")?;
         tfidf::load_from_file(&tfidf_path)
     }
@@ -544,7 +540,6 @@ impl Index {
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
-        self.generate_tfidfs()?;
         let chunk_uids = self.get_chunks_of_file(&uid)?;
         let mut result = ProcessedDoc::empty();
 
@@ -837,30 +832,5 @@ impl Index {
 
     pub fn load_image_by_key(&self, key: &str) -> Result<Vec<u8>, Error> {
         Ok(read_bytes(&Index::get_image_path(&self.root_dir, key, "png"))?)
-    }
-
-    // tfidf files are kinda lazily-loaded.
-    // 1. In order to run tfidf queries, all the tfidf files must be complete.
-    //    - Each chunk must have its ProcessedDoc.
-    // 2. A tfidf file either 1) not exist at all or 2) is complete.
-    // 3. `self.build()` generates most tfidf files, but some would be missing due to performance reasons.
-    // 4. It generates missing tfidf files, if exist.
-    fn generate_tfidfs(&self) -> Result<(), Error> {
-        for chunk_file in self.get_all_chunk_files()? {
-            let tfidf_file = set_extension(&chunk_file, "tfidf")?;
-
-            if !exists(&tfidf_file) {
-                let chunk = chunk::load_from_file(&chunk_file)?;
-                chunk::save_to_file(
-                    &chunk_file,
-                    &chunk,
-                    self.build_config.compression_threshold,
-                    self.build_config.compression_level,
-                    &self.root_dir,
-                )?;
-            }
-        }
-
-        Ok(())
     }
 }
