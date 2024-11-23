@@ -8,7 +8,7 @@ rag-version - Display version information about ragit
 SYNOPSIS
 --------
 [verse]
-'git version'
+'rag version'
 
 DESCRIPTION
 -----------
