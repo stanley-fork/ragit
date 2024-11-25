@@ -53,12 +53,12 @@ impl Index {
                     file_index,
                 ).await?;
                 previous_summary = Some(new_chunk.summary.clone());
-                let new_chunk_uid = new_chunk.uid.clone();
-                let new_chunk_path = Index::get_chunk_path(&self.root_dir, &new_chunk_uid);
+                let new_chunk_uid = new_chunk.uid;
+                let new_chunk_path = Index::get_chunk_path(&self.root_dir, new_chunk_uid);
 
                 // prevent saving duplicate chunks (when using a dummy model)
                 if !exists(&new_chunk_path) {
-                    uids.push(new_chunk_uid.clone());
+                    uids.push(new_chunk_uid);
 
                     // TODO: It's inefficient in that it might write the same image file multiple times.
                     //       We have to run `self.add_image_description` before `chunk::save_to_file` because
@@ -88,7 +88,7 @@ impl Index {
             }
 
             let file_uid = get_file_uid(&real_path)?;
-            self.add_file_index(&file_uid, &uids)?;
+            self.add_file_index(file_uid, &uids)?;
             self.processed_files.insert(doc.clone(), file_uid);
             self.curr_processing_file = None;
             self.save_to_file()?;

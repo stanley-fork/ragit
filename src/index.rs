@@ -1,10 +1,11 @@
 use crate::INDEX_DIR_NAME;
 use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
-use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME, Uid, is_valid_uid};
+use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME};
 use crate::error::Error;
 use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
+use crate::uid::{self, Uid};
 use json::JsonValue;
 use ragit_api::{
     ChatRequest,
@@ -57,7 +58,6 @@ pub const INDEX_FILE_NAME: &str = "index.json";
 pub const LOG_DIR_NAME: &str = "logs";
 
 pub type Path = String;
-pub type FileHash = String;
 
 // all the `Path` are normalized relative paths
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -65,7 +65,7 @@ pub struct Index {
     ragit_version: String,
     pub chunk_count: usize,
     pub staged_files: Vec<Path>,
-    pub processed_files: HashMap<Path, FileHash>,
+    pub processed_files: HashMap<Path, Uid>,
     pub curr_processing_file: Option<Path>,
     repo_url: Option<String>,
 
@@ -301,9 +301,9 @@ impl Index {
 
                 match external_index {
                     Some(i) => {
-                        chunks.push(self.get_external_base(&i)?.get_chunk_by_uid(&uid)?);
+                        chunks.push(self.get_external_base(&i)?.get_chunk_by_uid(uid)?);
                     },
-                    None => { chunks.push(self.get_chunk_by_uid(&uid)?); },
+                    None => { chunks.push(self.get_chunk_by_uid(uid)?); },
                 }
             }
 
@@ -521,7 +521,7 @@ impl Index {
         Ok(tfidf_state.get_top(chunk_count))
     }
 
-    pub fn get_chunk_by_uid(&self, uid: &Uid) -> Result<Chunk, Error> {
+    pub fn get_chunk_by_uid(&self, uid: Uid) -> Result<Chunk, Error> {
         for root_dir in std::iter::once(&self.root_dir).chain(
             self.external_indexes.iter().map(|index| &index.root_dir)
         ) {
@@ -532,7 +532,7 @@ impl Index {
             }
         }
 
-        Err(Error::NoSuchChunk { uid: uid.to_string() })
+        Err(Error::NoSuchChunk(uid))
     }
 
     pub fn get_tfidf_by_chunk_uid(
@@ -542,25 +542,25 @@ impl Index {
         for root_dir in std::iter::once(&self.root_dir).chain(
             self.external_indexes.iter().map(|index| &index.root_dir)
         ) {
-            let tfidf_at = set_extension(&Index::get_chunk_path(root_dir, &uid), "tfidf")?;
+            let tfidf_at = set_extension(&Index::get_chunk_path(root_dir, uid), "tfidf")?;
 
             if exists(&tfidf_at) {
                 return Ok(tfidf::load_from_file(&tfidf_at)?);
             }
         }
 
-        Err(Error::NoSuchChunk { uid: uid.to_string() })
+        Err(Error::NoSuchChunk(uid))
     }
 
     pub fn get_tfidf_by_file_uid(
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
-        let chunk_uids = self.get_chunks_of_file(&uid)?;
+        let chunk_uids = self.get_chunks_of_file(uid)?;
         let mut result = ProcessedDoc::empty();
 
         for uid in chunk_uids.iter() {
-            result.extend(&self.get_tfidf_by_chunk_uid(uid.to_string())?);
+            result.extend(&self.get_tfidf_by_chunk_uid(*uid)?);
         }
 
         result.uid = Some(uid);
@@ -607,14 +607,14 @@ impl Index {
     }
 
     // root_dir/.ragit/chunks/chunk_uid_prefix/chunk_uid_suffix.chunk
-    fn get_chunk_path(root_dir: &Path, chunk_uid: &String) -> Path {
+    fn get_chunk_path(root_dir: &Path, chunk_uid: Uid) -> Path {
         let chunks_at = join3(
             root_dir,
             &INDEX_DIR_NAME,
             &CHUNK_DIR_NAME,
         ).unwrap();
-        let chunk_uid_prefix = chunk_uid.get(0..2).unwrap().to_string();
-        let chunk_uid_suffix = chunk_uid.get(2..).unwrap().to_string();
+        let chunk_uid_prefix = chunk_uid.get_prefix();
+        let chunk_uid_suffix = chunk_uid.get_suffix();
 
         join3(
             &chunks_at,
@@ -627,14 +627,14 @@ impl Index {
     }
 
     // root_dir/.ragit/file_index/file_uid_prefix/file_uid_suffix
-    fn get_file_index_path(root_dir: &Path, file_uid: &String) -> Path {
+    fn get_file_index_path(root_dir: &Path, file_uid: Uid) -> Path {
         let index_at = join3(
             root_dir,
             &INDEX_DIR_NAME,
             &FILE_INDEX_DIR_NAME,
         ).unwrap();
-        let file_uid_prefix = file_uid.get(0..2).unwrap().to_string();
-        let file_uid_suffix = file_uid.get(2..).unwrap().to_string();
+        let file_uid_prefix = file_uid.get_prefix();
+        let file_uid_suffix = file_uid.get_suffix();
 
         join3(
             &index_at,
@@ -643,7 +643,7 @@ impl Index {
         ).unwrap()
     }
 
-    fn get_image_path(root_dir: &Path, image_key: &str, extension: &str) -> Path {
+    fn get_image_path(root_dir: &str, image_key: &str, extension: &str) -> Path {
         normalize(
             &join4(
                 root_dir,
@@ -798,7 +798,7 @@ impl Index {
         }
     }
 
-    fn add_file_index(&mut self, file_uid: &String, uids: &[Uid]) -> Result<(), Error> {
+    fn add_file_index(&mut self, file_uid: Uid, uids: &[Uid]) -> Result<(), Error> {
         let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
         let parent_path = parent(&file_index_path)?;
 
@@ -806,24 +806,20 @@ impl Index {
             create_dir_all(&parent_path)?;
         }
 
-        Ok(write_string(
-            &file_index_path,
-            &uids.join("\n"),
-            WriteMode::CreateOrTruncate,
-        )?)
+        uid::save_to_file(&file_index_path, uids)
     }
 
-    fn remove_file_index(&mut self, file_uid: &String) -> Result<(), Error> {
+    fn remove_file_index(&mut self, file_uid: Uid) -> Result<(), Error> {
         let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
 
         if !exists(&file_index_path) {
-            return Err(Error::NoSuchFile { path: None, uid: Some(file_uid.to_string()) });
+            return Err(Error::NoSuchFile { path: None, uid: Some(file_uid) });
         }
 
         Ok(remove_file(&file_index_path)?)
     }
 
-    pub fn get_chunks_of_file(&self, file_uid: &String) -> Result<Vec<Uid>, Error> {
+    pub fn get_chunks_of_file(&self, file_uid: Uid) -> Result<Vec<Uid>, Error> {
         for root_dir in std::iter::once(&self.root_dir).chain(
             self.external_indexes.iter().map(|index| &index.root_dir)
         ) {
@@ -831,19 +827,15 @@ impl Index {
             let mut result = vec![];
 
             if exists(&file_index_path) {
-                for uid in read_string(&file_index_path)?.lines() {
-                    if !is_valid_uid(&uid.to_string()) {
-                        return Err(Error::BrokenIndex(format!("file_index `{file_index_path}` has an invalid uid: `{uid}`.")));
-                    }
-
-                    result.push(uid.to_string());
+                for uid_str in read_string(&file_index_path)?.lines() {
+                    result.push(uid_str.parse::<Uid>()?);
                 }
 
                 return Ok(result);
             }
         }
 
-        return Err(Error::NoSuchFile { path: None, uid: Some(file_uid.to_string()) });
+        return Err(Error::NoSuchFile { path: None, uid: Some(file_uid) });
     }
 
     fn count_external_chunks(&self) -> usize {

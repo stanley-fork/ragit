@@ -3,6 +3,7 @@ use crate::{ApiConfigRaw, QueryConfig};
 use crate::chunk;
 use crate::error::Error;
 use crate::index::{BuildConfig, IMAGE_DIR_NAME, tfidf};
+use crate::uid::{self, Uid};
 use json::JsonValue;
 use ragit_fs::{
     basename,
@@ -42,7 +43,7 @@ impl Index {
         for chunk_file in self.get_all_chunk_files()? {
             let chunk_prefix = basename(&parent(&chunk_file)?)?;
             let chunk_suffix = file_name(&chunk_file)?;
-            let chunk_uid = format!("{chunk_prefix}{chunk_suffix}");
+            let chunk_uid = Uid::from_prefix_and_suffix(&chunk_prefix, &chunk_suffix)?;
             let chunk = chunk::load_from_file(&chunk_file)?;
 
             if chunk_uid != chunk.uid {  // Check A-0
@@ -96,7 +97,7 @@ impl Index {
                 None => unreachable!(),  // Check B-1, already checked
             }
 
-            for (index1, uid) in read_string(&file_index)?.lines().enumerate() {
+            for (index1, uid) in uid::load_from_file(&file_index)?.iter().enumerate() {
                 match chunks_to_files.get(uid) {
                     Some((file_name_from_chunk, index2)) => {
                         if &file_name != file_name_from_chunk {  // Check B-0

@@ -1,7 +1,8 @@
 use crate::ApiConfig;
-use crate::chunk::{Chunk, RenderableChunk, Uid, merge_and_convert_chunks};
+use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
+use crate::uid::Uid;
 use json::JsonValue;
 use ragit_api::{
     ChatRequest,

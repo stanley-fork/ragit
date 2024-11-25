@@ -22,11 +22,11 @@ impl Index {
         }
 
         else if self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.clone()) {
-            match self.processed_files.get(&rel_path).map(|hash| hash.to_string()) {
+            match self.processed_files.get(&rel_path).map(|uid| *uid) {
                 Some(file_uid) => {
-                    for uid in self.get_chunks_of_file(&file_uid)? {
+                    for uid in self.get_chunks_of_file(file_uid)? {
                         self.chunk_count -= 1;
-                        let chunk_path = Index::get_chunk_path(&self.root_dir, &uid);
+                        let chunk_path = Index::get_chunk_path(&self.root_dir, uid);
                         remove_file(&chunk_path)?;
                         let tfidf_path = set_extension(&chunk_path, "tfidf")?;
 
@@ -36,7 +36,7 @@ impl Index {
                     }
 
                     self.processed_files.remove(&rel_path).unwrap();
-                    self.remove_file_index(&file_uid)?;
+                    self.remove_file_index(file_uid)?;
                 },
                 None => {
                     self.curr_processing_file = None;

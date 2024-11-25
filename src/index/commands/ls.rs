@@ -1,6 +1,7 @@
 use super::Index;
 use crate::chunk::{self, Chunk};
 use crate::error::Error;
+use crate::uid::Uid;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -11,7 +12,7 @@ pub struct RenderableFile {
     pub is_processed: bool,
 
     pub length: usize,
-    pub uid: String,
+    pub uid: Uid,
     pub chunks: usize,
 }
 
@@ -21,7 +22,7 @@ impl RenderableFile {
             path: String::new(),
             is_processed: false,
             length: 0,
-            uid: String::new(),
+            uid: Uid::dummy(),
             chunks: 0,
         }
     }
@@ -74,7 +75,7 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Vec<RenderableFile> where Filter: Fn(&RenderableFile) -> bool, Map: Fn(RenderableFile) -> RenderableFile, Sort: Fn(&RenderableFile) -> Key {
+    ) -> Result<Vec<RenderableFile>, Error> where Filter: Fn(&RenderableFile) -> bool, Map: Fn(RenderableFile) -> RenderableFile, Sort: Fn(&RenderableFile) -> Key {
         let mut result = vec![];
 
         for file in self.staged_files.iter() {
@@ -86,13 +87,13 @@ impl Index {
         }
 
         for (file, uid) in self.processed_files.iter() {
-            let file_size = uid.get(55..).unwrap().parse::<usize>().unwrap();
+            let file_size = uid.get_file_size()?;
             result.push(RenderableFile {
                 path: file.clone(),
                 is_processed: true,
                 length: file_size,
-                uid: uid.to_string(),
-                chunks: self.get_chunks_of_file(uid).unwrap_or(vec![]).len(),
+                uid: *uid,
+                chunks: self.get_chunks_of_file(*uid).unwrap_or(vec![]).len(),
             });
         }
 
@@ -100,7 +101,7 @@ impl Index {
         result = result.into_iter().map(map).collect();
         result.sort_by_key(sort_key);
 
-        result
+        Ok(result)
     }
 
     /// `rag ls-models`
@@ -137,17 +138,17 @@ impl Index {
     }
 
     /// `rag ls-files`
-    pub fn get_renderable_file(&self, path: Option<String>, uid: Option<String>) -> Result<RenderableFile, Error> {
+    pub fn get_renderable_file(&self, path: Option<String>, uid: Option<Uid>) -> Result<RenderableFile, Error> {
         if let Some(path) = &path {
             if let Some(uid) = self.processed_files.get(path) {
-                return Ok(self.get_renderable_file_worker(path.to_string(), uid.to_string())?);
+                return Ok(self.get_renderable_file_worker(path.to_string(), *uid)?);
             }
         }
 
-        if let Some(uid) = &uid {
+        if let Some(uid) = uid {
             for (path, uid_) in self.processed_files.iter() {
-                if uid_ == uid {
-                    return Ok(self.get_renderable_file_worker(path.to_string(), uid.to_string())?);
+                if uid == *uid_ {
+                    return Ok(self.get_renderable_file_worker(path.to_string(), uid)?);
                 }
             }
         }
@@ -155,9 +156,9 @@ impl Index {
         Err(Error::NoSuchFile { path, uid })
     }
 
-    fn get_renderable_file_worker(&self, path: String, uid: String) -> Result<RenderableFile, Error> {
-        let file_size = uid.get(55..).unwrap().parse::<usize>().unwrap();
-        let chunks = self.get_chunks_of_file(&uid).unwrap_or(vec![]).len();
+    fn get_renderable_file_worker(&self, path: String, uid: Uid) -> Result<RenderableFile, Error> {
+        let file_size = uid.get_file_size()?;
+        let chunks = self.get_chunks_of_file(uid).unwrap_or(vec![]).len();
 
         Ok(RenderableFile {
             path,

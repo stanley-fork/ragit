@@ -139,7 +139,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     )?;
     let j = read_string(&index_at)?;
     let mut j = json::parse(&j)?;
-    let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{55})[0-9a-f]{9}$").unwrap();
+    let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{52})[0-9a-f]{12}$").unwrap();
     let uid_re = Regex::new(r"[0-9a-z]{64}").unwrap();
     let mut processed_files_cache;
 
@@ -159,8 +159,8 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                         match file_uid.as_str() {
                             Some(file_uid) => match file_uid_re.captures(file_uid) {
                                 Some(file_uid_cap) => {
-                                    let file_uid = format!("{}0{}", &file_uid_cap[2], &file_uid_cap[1]);
-                                    processed_files.insert(file_name, file_uid.clone().into());
+                                    let file_uid = format!("{}0000{}", &file_uid_cap[2], &file_uid_cap[1]);
+                                    processed_files.insert(file_name, file_uid.clone().into());  // TODO: use obj instead of string for uid
                                     processed_files_cache.insert(file_name.to_string(), file_uid);
                                 },
                                 None => {
@@ -231,6 +231,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                 for chunk in chunks.iter_mut() {
                     match chunk {
                         JsonValue::Object(ref mut obj) => {
+                            // TODO: use obj instead of string for uid
                             let file_name = match obj.get("file") {
                                 Some(file_name) => match file_name.as_str() {
                                     Some(file_name) => file_name.to_string(),

@@ -3,6 +3,7 @@ use crate::ApiConfig;
 use crate::error::Error;
 use crate::index::{BuildConfig, Index, tfidf};
 use crate::index::file::AtomicToken;
+use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use json::JsonValue;
@@ -37,8 +38,6 @@ mod renderable;
 pub use build_info::ChunkBuildInfo;
 pub use renderable::RenderableChunk;
 
-// I wanted it to be u128, but serde_json does not support u128
-pub type Uid = String;
 pub type Path = String;
 pub const CHUNK_DIR_NAME: &str = "chunks";
 
@@ -86,9 +85,7 @@ pub fn load_from_file(path: &str) -> Result<Chunk, Error> {
             Ok(serde_json::from_slice::<Chunk>(&decompressed)?)
         },
         Some(b) if *b == UNCOMPRESS_PREFIX => Ok(serde_json::from_slice::<Chunk>(&content[1..])?),
-        Some(b) => {
-            Err(Error::InvalidChunkPrefix(*b))
-        },
+        Some(b) => Err(Error::CorruptedFile(path.to_string())),
         None => {
             // simple hack: it throws the exact error that I want
             serde_json::from_slice::<Chunk>(&[])?;
@@ -99,13 +96,13 @@ pub fn load_from_file(path: &str) -> Result<Chunk, Error> {
 
 /// It also creates a tfidf index of the chunk.
 pub fn save_to_file(
-    path: &Path,
+    path: &str,
     chunk: &Chunk,
 
     // if the result json is bigger than threshold (in bytes), the file is compressed
     compression_threshold: u64,
     compression_level: u32,
-    root_dir: &Path,
+    root_dir: &str,
 ) -> Result<(), Error> {
     let mut result = serde_json::to_vec_pretty(chunk)?;
     let tfidf_path = set_extension(path, "tfidf")?;
@@ -337,7 +334,7 @@ impl Chunk {
             summary,
             file: normalize(&file)?,
             index: file_index,
-            uid: String::new(),
+            uid: Uid::dummy(),
             build_info,
             timestamp: Local::now().timestamp(),
             external_base: None,
@@ -345,7 +342,10 @@ impl Chunk {
         let uid_pile = format!("{}{}{}", result.data, result.title, result.summary);
         let mut hasher = Sha3_256::new();
         hasher.update(uid_pile.as_bytes());
-        result.uid = format!("{:064x}", hasher.finalize());
+        let mut uid_str = format!("{:064x}", hasher.finalize()).as_bytes().to_vec();
+        // NOTE: a uid of a chunk must contain at least 1 alphabet in its last 12 characters
+        uid_str[63] = b'a';
+        result.uid = String::from_utf8(uid_str).unwrap().parse::<Uid>()?;
 
         Ok(result)
     }
@@ -417,7 +417,7 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         // TODO: is it okay to leave these fields empty?
         summary: String::new(),
         title: String::new(),
-        uid: Uid::new(),
+        uid: Uid::dummy(),
         build_info: ChunkBuildInfo::dummy(),
         external_base: None,
     }
@@ -435,10 +435,4 @@ fn merge_overlapping_strings(s1: &[u8], s2: &[u8]) -> String {
     }
 
     format!("{}{}", String::from_utf8_lossy(s1), String::from_utf8_lossy(&s2[index..]).to_string())
-}
-
-pub(crate) fn is_valid_uid(uid: &Uid) -> bool {
-    uid.len() == 64 && uid.chars().all(
-        |c| '0' <= c && c <= '9' || 'a' <= c && c <= 'f'
-    )
 }

@@ -2,6 +2,7 @@ use super::BuildConfig;
 use crate::chunk::{Chunk, ChunkBuildInfo};
 use crate::error::Error;
 use crate::index::Index;
+use crate::uid::Uid;
 use ragit_api::MessageContent;
 use ragit_fs::{
     extension,
@@ -276,9 +277,9 @@ impl From<AtomicToken> for MessageContent {
 /// File uids have a somewhat complicated schema.
 /// First, it calculates the sha3-256 hash of the content of the file.
 /// Second, it represents the hash value in 64 characters long string.
-/// Third, it counts the byte length of the file. It represents the length in 9 characters long string.
-/// Then, it takes the first 55 characters of the hash string and the length string.
-pub fn get_file_uid(path: &Path) -> Result<String, Error> {
+/// Third, it counts the byte length of the file. It represents the length in 12 characters long string.
+/// Then, it takes the first 52 characters of the hash string and the length string.
+pub fn get_file_uid(path: &Path) -> Result<Uid, Error> {
     // TODO: don't read the entire file at once
     let file_content = read_bytes(path)?;
     let mut hasher = Sha3_256::new();
@@ -286,5 +287,5 @@ pub fn get_file_uid(path: &Path) -> Result<String, Error> {
     hasher.update(&file_content);
 
     let hash = format!("{:064x}", hasher.finalize());
-    Ok(format!("{}{:09}", hash.get(0..55).unwrap(), file_content.len()))
+    Ok(format!("{}{:012}", hash.get(0..52).unwrap(), file_content.len()).parse::<Uid>()?)
 }

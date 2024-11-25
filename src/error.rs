@@ -1,5 +1,5 @@
-use crate::chunk::Uid;
 use crate::external::ExternalIndex;
+use crate::uid::Uid;
 pub use ragit_api::{Error as ApiError, JsonType, get_type};
 use ragit_fs::FileError;
 use std::string::FromUtf8Error;
@@ -13,14 +13,15 @@ pub enum Error {
         got: JsonType,
     },
     IndexAlreadyExists(Path),
-    InvalidChunkPrefix(u8),
     InvalidConfigKey(String),
     InvalidImageType(String),
+    InvalidUid(String),
     PromptMissing(String),
     IndexNotFound,
-    NoSuchChunk { uid: Uid },
-    NoSuchFile { path: Option<String>, uid: Option<String> },
+    NoSuchChunk(Uid),
+    NoSuchFile { path: Option<Path>, uid: Option<Uid> },
     NoSuchExternalIndex { index: ExternalIndex },
+    CorruptedFile(Path),
     NotImplemented(String),
     CliError(String),  // TODO: spans?
     UidQueryError(String),

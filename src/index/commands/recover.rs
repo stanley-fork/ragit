@@ -6,6 +6,7 @@ use crate::index::{
     INDEX_DIR_NAME,
     tfidf,
 };
+use crate::uid::{self, Uid};
 use ragit_fs::{
     WriteMode,
     create_dir_all,
@@ -23,7 +24,6 @@ use ragit_fs::{
 use std::collections::HashMap;
 
 pub type Path = String;
-pub type Uid = String;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct RecoverResult {
@@ -75,10 +75,10 @@ impl Index {
 
             match processed_files.get_mut(&chunk_.file) {
                 Some(chunks) => {
-                    chunks.push((chunk_.uid.clone(), chunk_.index));
+                    chunks.push((chunk_.uid, chunk_.index));
                 },
                 None => {
-                    processed_files.insert(chunk_.file.clone(), vec![(chunk_.uid.clone(), chunk_.index)]);
+                    processed_files.insert(chunk_.file.clone(), vec![(chunk_.uid, chunk_.index)]);
                 },
             }
 
@@ -97,7 +97,7 @@ impl Index {
         for (file, mut chunks) in processed_files.into_iter() {
             chunks.sort_by_key(|(_, index)| *index);
             let file_uid = self.processed_files.get(&file).unwrap();
-            let file_index_path = Index::get_file_index_path(&self.root_dir, &file_uid);
+            let file_index_path = Index::get_file_index_path(&self.root_dir, *file_uid);
             let parent_path = parent(&file_index_path)?;
 
             if !exists(&parent_path) {
@@ -105,10 +105,9 @@ impl Index {
             }
 
             // Recover A
-            write_string(
+            uid::save_to_file(
                 &file_index_path,
-                &chunks.into_iter().map(|(uid, _)| uid).collect::<Vec<_>>().join("\n"),
-                WriteMode::AlwaysCreate,
+                &chunks.iter().map(|(uid, _)| *uid).collect::<Vec<_>>(),
             )?;
         }
 

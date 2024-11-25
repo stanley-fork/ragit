@@ -1,7 +1,8 @@
-use crate::chunk::{Chunk, Uid};
+use crate::chunk::Chunk;
 use crate::error::Error;
 use crate::index::{ExternalIndex, Index};
 use crate::query::Keywords;
+use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use json::JsonValue;
@@ -46,7 +47,7 @@ pub struct ProcessedDoc {
 }
 
 // tfidf files are always compressed
-pub fn load_from_file(path: &Path) -> Result<ProcessedDoc, Error> {
+pub fn load_from_file(path: &str) -> Result<ProcessedDoc, Error> {
     let content = read_bytes(path)?;
     let mut decompressed = vec![];
     let mut gz = GzDecoder::new(&content[..]);
@@ -55,7 +56,7 @@ pub fn load_from_file(path: &Path) -> Result<ProcessedDoc, Error> {
     Ok(serde_json::from_slice(&decompressed)?)
 }
 
-pub fn save_to_file(path: &Path, chunk: &Chunk, root_dir: &Path) -> Result<(), Error> {
+pub fn save_to_file(path: &str, chunk: &Chunk, root_dir: &str) -> Result<(), Error> {
     let tfidf = ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack(root_dir)?);
     let result = serde_json::to_vec(&tfidf)?;
     let mut compressed = vec![];
@@ -276,7 +277,7 @@ impl Chunk {
     //     - It has explanations on images
     //     - It's always English
     // 4. Images have to be replaced with its description.
-    pub fn into_tfidf_haystack(&self, root_dir: &Path) -> Result<String, Error> {
+    pub fn into_tfidf_haystack(&self, root_dir: &str) -> Result<String, Error> {
         let mut data = self.data.clone();
 
         for image in self.images.iter() {

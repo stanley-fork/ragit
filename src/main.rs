@@ -322,11 +322,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Some(arg) => match index.uid_query(arg)? {
                     UidQueryResult::FileUid { uid }
                     | UidQueryResult::FilePath { uid, .. } => {
-                        let uids = index.get_chunks_of_file(&uid)?;
+                        let uids = index.get_chunks_of_file(uid)?;
                         let mut chunks = Vec::with_capacity(uids.len());
 
                         for uid in uids.iter() {
-                            let mut chunk = index.get_chunk_by_uid(uid)?;
+                            let mut chunk = index.get_chunk_by_uid(*uid)?;
                             chunk.data = chunk.data.chars().count().to_string();
                             chunks.push(chunk);
                         }
@@ -334,7 +334,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         chunks
                     },
                     UidQueryResult::Chunk { uid } => {
-                        let mut chunk = index.get_chunk_by_uid(&uid)?;
+                        let mut chunk = index.get_chunk_by_uid(uid)?;
                         chunk.data = chunk.data.chars().count().to_string();
                         vec![chunk]
                     },
@@ -421,7 +421,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     &|_| true,  // no filter
                     &|f| f,  // no map
                     &|f| f.path.to_string(),
-                ),
+                )?,
             };
 
             for file in files.iter() {
@@ -665,9 +665,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 match external_index {
                     Some(i) => {
-                        chunks.push(index.get_external_base(&i)?.get_chunk_by_uid(&uid)?);
+                        chunks.push(index.get_external_base(&i)?.get_chunk_by_uid(uid)?);
                     },
-                    None => { chunks.push(index.get_chunk_by_uid(&uid)?); },
+                    None => { chunks.push(index.get_chunk_by_uid(uid)?); },
                 }
             }
 
