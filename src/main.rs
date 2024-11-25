@@ -206,7 +206,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 "--get" => {
                     let args = parsed_args.get_args_exact(1)?;
-                    println!("{}", index.get_config_by_key(args[0].clone())?.dump());
+                    println!("{}", index.get_config_by_key(args[0].clone())?.to_string());
                 },
                 "--get-all" => {
                     parsed_args.get_args_exact(0)?;  // make sure that there's no dangling args
@@ -216,7 +216,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!("{}", '{');
 
                     for (k, v) in kv.iter() {
-                        println!("    {k:?}: {},", v.dump());
+                        println!("    {k:?}: {v},");
                     }
 
                     println!("{}", '}');

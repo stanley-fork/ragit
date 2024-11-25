@@ -1,6 +1,6 @@
 use crate::external::ExternalIndex;
 use crate::uid::Uid;
-pub use ragit_api::{Error as ApiError, JsonType, get_type};
+pub use ragit_api::{Error as ApiError, JsonType};
 use ragit_fs::FileError;
 use std::string::FromUtf8Error;
 

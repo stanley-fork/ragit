@@ -1,6 +1,6 @@
 use crate::Error;
 use crate::api_provider::ApiProvider;
-use crate::json_type::{JsonType, get_type};
+use crate::json_type::JsonType;
 use json::JsonValue;
 use ragit_fs::read_string;
 
@@ -14,7 +14,7 @@ pub fn load_api_key(path: &str, api_provider: ApiProvider) -> Result<String, Err
                         Some(s) => Ok(s.to_string()),
                         None => Err(Error::JsonTypeError {
                             expected: JsonType::String,
-                            got: get_type(key),
+                            got: key.into(),
                         }),
                     },
                     None => Err(Error::JsonObjectMissingField(api_provider.as_str().to_ascii_lowercase())),
@@ -22,7 +22,7 @@ pub fn load_api_key(path: &str, api_provider: ApiProvider) -> Result<String, Err
             } else {
                 Err(Error::JsonTypeError {
                     expected: JsonType::Object,
-                    got: get_type(&j),
+                    got: (&j).into(),
                 })
             },
             Err(e) => Err(Error::JsonError(e)),

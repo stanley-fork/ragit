@@ -1,14 +1,14 @@
 use super::Index;
 use crate::error::Error;
-use json::JsonValue;
-use ragit_api::{JsonType, get_type};
+use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     exists,
     read_string,
     remove_file,
-    write_string,
+    write_bytes,
 };
+use serde_json::Value;
 use std::collections::HashMap;
 
 pub type Path = String;
@@ -81,10 +81,10 @@ fn get_meta_path(root_dir: &Path) -> Path {
 
 fn load_meta(path: &Path) -> Result<HashMap<String, String>, Error> {
     let content = read_string(path)?;
-    let j = json::parse(&content)?;
-    let JsonValue::Object(obj) = j else { return Err(Error::JsonTypeError {
+    let j = serde_json::from_str::<Value>(&content)?;
+    let Value::Object(obj) = j else { return Err(Error::JsonTypeError {
         expected: JsonType::Object,
-        got: get_type(&j),
+        got: (&j).into(),
     }) };
     let mut result = HashMap::with_capacity(obj.len());
 
@@ -96,7 +96,7 @@ fn load_meta(path: &Path) -> Result<HashMap<String, String>, Error> {
             None => {
                 return Err(Error::JsonTypeError {
                     expected: JsonType::Object,
-                    got: get_type(value),
+                    got: value.into(),
                 });
             },
         }
@@ -106,9 +106,11 @@ fn load_meta(path: &Path) -> Result<HashMap<String, String>, Error> {
 }
 
 fn save_meta(path: &Path, meta: HashMap<String, String>) -> Result<(), Error> {
-    Ok(write_string(
+    Ok(write_bytes(
         path,
-        &JsonValue::from(meta).pretty(4),
+        &serde_json::to_vec_pretty(&meta.into_iter().map(
+            |(key, value)| (key, Value::String(value))
+        ).collect::<Value>())?,
         WriteMode::CreateOrTruncate,
     )?)
 }

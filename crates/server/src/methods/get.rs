@@ -1,5 +1,4 @@
 use crate::utils::get_rag_path;
-use json::{JsonValue, object::Object};
 use ragit_fs::{
     exists,
     extension,
@@ -10,6 +9,7 @@ use ragit_fs::{
     read_dir,
     read_string,
 };
+use serde_json::{Map, Value};
 use warp::Reply;
 use warp::http::StatusCode;
 use warp::reply::{json, with_header, with_status};
@@ -167,10 +167,10 @@ pub fn get_version(user: String, repo: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
     let index_path = join(&rag_path, "index.json").unwrap();
     let index_json = read_string(&index_path).unwrap_or(String::from("{}"));
-    let index = json::parse(&index_json).unwrap_or(JsonValue::Object(Object::new()));
+    let index = serde_json::from_str::<Value>(&index_json).unwrap_or(Value::Object(Map::new()));
 
     match index {
-        JsonValue::Object(obj) => match obj.get("ragit_version") {
+        Value::Object(obj) => match obj.get("ragit_version") {
             Some(v) => match v.as_str() {
                 Some(v) => Box::new(with_header(
                     v.to_string(),

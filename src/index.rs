@@ -6,7 +6,6 @@ use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
 use crate::uid::{self, Uid};
-use json::JsonValue;
 use ragit_api::{
     ChatRequest,
     Message,
@@ -22,7 +21,6 @@ use ragit_fs::{
     diff,
     exists,
     extension,
-    file_name,
     is_dir,
     join,
     join3,
@@ -39,6 +37,7 @@ use ragit_fs::{
 };
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 
 mod commands;
@@ -384,7 +383,7 @@ impl Index {
         let image_bytes = encode_base64(&image_bytes);
 
         if let Ok(j) = read_string(&description_path) {
-            if json::parse(&j).is_ok() {
+            if serde_json::from_str::<Value>(&j).is_ok() {
                 return Ok(());
             }
 
@@ -428,9 +427,9 @@ impl Index {
             if let Some(cap) = json_regex.captures(&response_text) {
                 let json_text = cap[1].to_string();
 
-                match json::parse(&json_text) {
+                match serde_json::from_str::<Value>(&json_text) {
                     Ok(j) => match j {
-                        JsonValue::Object(ref obj) if obj.len() == 2 => match (
+                        Value::Object(ref obj) if obj.len() == 2 => match (
                             obj.get("extracted_text"), obj.get("explanation"),
                         ) {
                             (Some(extracted), Some(explanation)) => match (extracted.as_str(), explanation.as_str()) {
@@ -463,7 +462,10 @@ impl Index {
 
             // if a model is too stupid, it cannot create title and summary
             if mistakes > 5 {
-                break vec![("extracted_text", ""), ("explanation", "")].into_iter().collect::<HashMap<&str, &str>>().into();
+                break vec![
+                    (String::from("extracted_text"), Value::String(String::new())),
+                    (String::from("explanation"), Value::String(String::new())),
+                ].into_iter().collect::<Value>();
             }
 
             request.messages.push(Message {
@@ -478,9 +480,9 @@ impl Index {
             response_text = response.get_message(0).unwrap();
         };
 
-        write_string(
+        write_bytes(
             &description_path,
-            &result.pretty(4),
+            &serde_json::to_vec_pretty(&result)?,
             WriteMode::AlwaysCreate,
         )?;
 

@@ -4,7 +4,7 @@ use crate::chunk;
 use crate::error::Error;
 use crate::index::{BuildConfig, IMAGE_DIR_NAME, tfidf};
 use crate::uid::{self, Uid};
-use json::JsonValue;
+use ragit_api::JsonType;
 use ragit_fs::{
     basename,
     exists,
@@ -16,6 +16,7 @@ use ragit_fs::{
     read_string,
     set_extension,
 };
+use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 
 impl Index {
@@ -152,8 +153,8 @@ impl Index {
             )?;
             let image_description = read_string(&image_description_path)?;
 
-            match json::parse(&image_description) {
-                Ok(JsonValue::Object(_)) => {},
+            match serde_json::from_str::<Value>(&image_description) {
+                Ok(Value::Object(_)) => {},
                 _ => {  // Check F
                     return Err(Error::BrokenIndex(format!("`{image_file}` exists, but `{image_description_path}` does not exist.")));
                 },
@@ -187,14 +188,24 @@ impl Index {
             self.get_query_config_path()?,
         ] {
             let j = read_string(&path)?;
-            let j = json::parse(&j)?;
+            let j = serde_json::from_str::<Value>(&j)?;
 
-            for (key, _) in j.entries() {
-                if keys.contains(key) {
-                    return Err(Error::BrokenIndex(format!("Key conflict in config file {path:?}: {key:?}")));
-                }
+            match j {
+                Value::Object(obj) => {
+                    for (key, _) in obj.iter() {
+                        if keys.contains(key) {
+                            return Err(Error::BrokenIndex(format!("Key conflict in config file {path:?}: {key:?}")));
+                        }
 
-                keys.insert(key.to_string());
+                        keys.insert(key.to_string());
+                    }
+                },
+                _ => {
+                    return Err(Error::JsonTypeError {
+                        expected: JsonType::Object,
+                        got: (&j).into(),
+                    });
+                },
             }
         }
 

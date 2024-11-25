@@ -33,9 +33,6 @@ pub use crate::image::{
     GetResponse as ImageGetResponse,
     HandleResult as HandleImageResult,
 };
-pub use crate::json_type::{
-    JsonType,
-    get_type,
-};
+pub use crate::json_type::JsonType;
 pub use crate::record::RecordAt;
 pub use crate::utils::{decode_base64, encode_base64};

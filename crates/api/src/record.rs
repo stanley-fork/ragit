@@ -1,10 +1,7 @@
 use chrono::DateTime;
 use chrono::offset::Local;
 use crate::{Error, Message};
-use crate::json_type::{
-    JsonType,
-    get_type,
-};
+use crate::json_type::JsonType;
 use json::JsonValue;
 use ragit_fs::{
     WriteMode,
@@ -60,7 +57,7 @@ impl TryFrom<JsonValue> for Record {
                 None => {
                     return Err(Error::JsonTypeError {
                         expected: JsonType::U64,
-                        got: get_type(member),
+                        got: member.into(),
                     });
                 },
             }
@@ -87,7 +84,7 @@ fn records_from_json(j: JsonValue) -> Result<Vec<Record>, Error> {
     if !j.is_array() {
         return Err(Error::JsonTypeError {
             expected: JsonType::Array,
-            got: get_type(&j),
+            got: (&j).into(),
         });
     }
 

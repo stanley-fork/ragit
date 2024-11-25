@@ -5,11 +5,7 @@ use crate::query::Keywords;
 use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
-use json::JsonValue;
-use ragit_api::{
-    JsonType,
-    get_type,
-};
+use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     read_bytes,
@@ -18,6 +14,7 @@ use ragit_fs::{
 };
 use rust_stemmers::{Algorithm, Stemmer};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::io::Read;
@@ -288,8 +285,8 @@ impl Chunk {
             );
             let j = read_string(&description_at)?;
 
-            let rep_text = match json::parse(&j)? {
-                JsonValue::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
+            let rep_text = match serde_json::from_str::<Value>(&j)? {
+                Value::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
                     (Some(e1), Some(e2)) => format!("<img>{e1}{e2}</img>"),
                     _ => {
                         return Err(Error::BrokenIndex(format!("schema error at {image}.json")));
@@ -298,7 +295,7 @@ impl Chunk {
                 j => {
                     return Err(Error::JsonTypeError {
                         expected: JsonType::Object,
-                        got: get_type(&j),
+                        got: (&j).into(),
                     });
                 },
             };

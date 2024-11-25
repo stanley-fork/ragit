@@ -8,8 +8,7 @@ use crate::index::{
     LoadMode,
     METADATA_FILE_NAME,
 };
-use json::JsonValue;
-use ragit_api::{JsonType, get_type};
+use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     create_dir,
@@ -20,6 +19,7 @@ use ragit_fs::{
     write_bytes,
 };
 use reqwest::Url;
+use serde_json::Value;
 
 struct CloneState {
     url: String,
@@ -74,7 +74,7 @@ fn infer_repo_name_from_url(url: &str) -> String {
     }
 }
 
-async fn request_json_file(url: &str) -> Result<JsonValue, Error> {
+async fn request_json_file(url: &str) -> Result<Value, Error> {
     let client = reqwest::Client::new();
     let response = client.get(url).send().await?;
 
@@ -85,7 +85,7 @@ async fn request_json_file(url: &str) -> Result<JsonValue, Error> {
         });
     }
 
-    Ok(json::parse(&response.text().await?)?)
+    Ok(serde_json::from_str::<Value>(&response.text().await?)?)
 }
 
 async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
@@ -102,12 +102,9 @@ async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
     Ok(response.bytes().await?.to_vec())
 }
 
-// TODO: create a fork of <https://crates.io/crates/json>, then impl
-//       1. this feature (with much fancier api)
-//       2, sortable objects (for dump results)
-fn parse_vec_string(j: &JsonValue) -> Result<Vec<String>, Error> {
+fn parse_vec_string(j: &Value) -> Result<Vec<String>, Error> {
     match j {
-        JsonValue::Array(values) => {
+        Value::Array(values) => {
             let mut result = Vec::with_capacity(values.len());
 
             for value in values.iter() {
@@ -116,7 +113,7 @@ fn parse_vec_string(j: &JsonValue) -> Result<Vec<String>, Error> {
                     None => {
                         return Err(Error::JsonTypeError {
                             expected: JsonType::String,
-                            got: get_type(value),
+                            got: value.into(),
                         });
                     },
                 }
@@ -126,7 +123,7 @@ fn parse_vec_string(j: &JsonValue) -> Result<Vec<String>, Error> {
         },
         _ => Err(Error::JsonTypeError {
             expected: JsonType::Array,
-            got: get_type(j),
+            got: j.into(),
         }),
     }
 }

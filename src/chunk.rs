@@ -6,7 +6,6 @@ use crate::index::file::AtomicToken;
 use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
-use json::JsonValue;
 use ragit_api::{
     ChatRequest,
     Message,
@@ -28,6 +27,7 @@ use ragit_fs::{
 };
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
@@ -250,9 +250,9 @@ impl Chunk {
             if let Some(cap) = json_regex.captures(&response_text) {
                 let json_text = cap[1].to_string();
 
-                match json::parse(&json_text) {
+                match serde_json::from_str::<Value>(&json_text) {
                     Ok(j) => match j {
-                        JsonValue::Object(obj) if obj.len() == 2 => match (
+                        Value::Object(obj) if obj.len() == 2 => match (
                             obj.get("title"), obj.get("summary")
                         ) {
                             (Some(title), Some(summary)) => match (title.as_str(), summary.as_str()) {
@@ -283,7 +283,7 @@ impl Chunk {
                                 error_message = String::from("Give me a json object with 2 keys: \"title\" and \"summary\".");
                             }, 
                         },
-                        JsonValue::Object(_) => {
+                        Value::Object(_) => {
                             error_message = String::from("Please give me a json object that contains 2 keys: \"title\" and \"summary\". Don't add keys to give extra information, put all your information in those two fields.");
                         },
                         _ => {

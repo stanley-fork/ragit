@@ -1,7 +1,7 @@
 use super::Role;
 use crate::api_provider::ApiProvider;
 use crate::error::Error;
-use crate::json_type::{JsonType, get_type};
+use crate::json_type::JsonType;
 use crate::utils::{decode_base64, encode_base64};
 use json::JsonValue;
 use ragit_fs::read_string;
@@ -91,7 +91,7 @@ impl MessageContent {
                     Some(s) if s.is_string() => Ok(vec![MessageContent::String(s.to_string())]),
                     Some(wrong_type) => Err(Error::JsonTypeError {
                         expected: JsonType::String,
-                        got: get_type(wrong_type),
+                        got: wrong_type.into(),
                     }),
                     None => Err(Error::JsonObjectMissingField(String::from("text"))),
                 },
@@ -105,7 +105,7 @@ impl MessageContent {
                                     Some(wrong_type) => {
                                         return Err(Error::JsonTypeError {
                                             expected: JsonType::String,
-                                            got: get_type(wrong_type),
+                                            got: wrong_type.into(),
                                         });
                                     },
                                     None => {
@@ -120,7 +120,7 @@ impl MessageContent {
                             },
                             Some(wrong_type) => Err(Error::JsonTypeError {
                                 expected: JsonType::String,
-                                got: get_type(wrong_type),
+                                got: wrong_type.into(),
                             }),
                             None => Err(Error::JsonObjectMissingField(String::from("data"))),
                         },
@@ -129,7 +129,7 @@ impl MessageContent {
                     },
                     Some(wrong_type) => Err(Error::JsonTypeError {
                         expected: JsonType::Object,
-                        got: get_type(wrong_type),
+                        got: wrong_type.into(),
                     }),
                     None => Err(Error::JsonObjectMissingField(String::from("source"))),
                 },
@@ -138,7 +138,7 @@ impl MessageContent {
             },
             _ => Err(Error::JsonTypeError {
                 expected: JsonType::Array,
-                got: get_type(j),
+                got: j.into(),
             }),
         }
     }
@@ -221,7 +221,7 @@ impl Message {
                 } else {
                     return Err(Error::JsonTypeError {
                         expected: JsonType::String,
-                        got: get_type(role),
+                        got: role.into(),
                     })
                 },
                 None => {
@@ -244,7 +244,7 @@ impl Message {
         else {
             Err(Error::JsonTypeError {
                 expected: JsonType::Object,
-                got: get_type(j),
+                got: j.into(),
             })
         }
     }

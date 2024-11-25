@@ -3,17 +3,17 @@ use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
-use json::JsonValue;
 use ragit_api::{
     ChatRequest,
+    JsonType,
     Message,
     MessageContent,
     RecordAt,
     Role,
-    get_type,
     messages_from_pdl,
 };
 use regex::Regex;
+use serde_json::Value;
 
 mod config;
 mod keyword;
@@ -218,8 +218,8 @@ async fn get_array_of_numbers(
         if let Some(cap) = array_regex.captures(&response_text) {
             let json_text = cap[1].to_string();
 
-            match json::parse(&json_text) {
-                Ok(JsonValue::Array(numbers)) => {
+            match serde_json::from_str::<Value>(&json_text) {
+                Ok(Value::Array(numbers)) => {
                     let mut has_error = false;
 
                     for number in numbers.iter() {
@@ -340,7 +340,8 @@ pub async fn rephrase_multi_turn(
     api_config: &ApiConfig,
     pdl: &str,
 ) -> Result<String, Error> {
-    let turns_json = json::JsonValue::from(turns.clone()).pretty(2);
+    let turns_json = Value::Array(turns.iter().map(|turn| Value::String(turn.to_string())).collect());
+    let turns_json = String::from_utf8_lossy(&serde_json::to_vec_pretty(&turns_json)?).to_string();
     let mut tera_context = tera::Context::new();
     tera_context.insert("turns", &turns_json);
 
@@ -376,21 +377,21 @@ pub async fn rephrase_multi_turn(
         if let Some(cap) = json_regex.captures(&response_text) {
             let json_text = cap[1].to_string();
 
-            match json::parse(&json_text) {
+            match serde_json::from_str::<Value>(&json_text) {
                 Ok(j) => match j {
-                    JsonValue::Object(obj) => match (
+                    Value::Object(obj) => match (
                         obj.get("is_query"),
                         obj.get("query"),
                     ) {
-                        (Some(JsonValue::Boolean(false)), _) => {
+                        (Some(Value::Bool(false)), _) => {
                             break (false, String::new());
                         },
-                        (Some(JsonValue::Boolean(true)), Some(query)) => match query.as_str() {
+                        (Some(Value::Bool(true)), Some(query)) => match query.as_str() {
                             Some(s) => {
                                 break (true, s.to_string());
                             },
                             None => {
-                                error_message = format!("The value of \"query\" must be a string, not {}", format!("{:?}", get_type(query)).to_ascii_lowercase());
+                                error_message = format!("The value of \"query\" must be a string, not {}", format!("{:?}", JsonType::from(query)).to_ascii_lowercase());
                             },
                         },
                         (_, _) => {

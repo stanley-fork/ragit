@@ -1,6 +1,5 @@
 use crate::ApiConfig;
 use crate::index::tfidf::tokenize;
-use json::JsonValue;
 use ragit_api::{
     ChatRequest,
     Error,
@@ -11,6 +10,7 @@ use ragit_api::{
     messages_from_pdl,
 };
 use regex::Regex;
+use serde_json::Value;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -101,12 +101,12 @@ pub async fn extract_keywords(
         if let Some(cap) = json_regex.captures(&response_text) {
             let json_text = cap[1].to_string();
 
-            match json::parse(&json_text) {
+            match serde_json::from_str::<Value>(&json_text) {
                 Ok(j) => match j {
-                    JsonValue::Object(obj) if obj.len() == 2 => match (
+                    Value::Object(obj) if obj.len() == 2 => match (
                         obj.get("keywords"), obj.get("extra")
                     ) {
-                        (Some(JsonValue::Array(keywords)), Some(JsonValue::Array(extra))) => {
+                        (Some(Value::Array(keywords)), Some(Value::Array(extra))) => {
                             let mut k = Vec::with_capacity(keywords.len());
                             let mut e = Vec::with_capacity(extra.len());
                             let mut has_error = false;
@@ -146,7 +146,7 @@ pub async fn extract_keywords(
                             error_message = String::from("Give me a json object with 2 keys: \"keywords\" and \"extra\".");
                         }, 
                     },
-                    JsonValue::Object(_) => {
+                    Value::Object(_) => {
                         error_message = String::from("Please give me a json object that contains 2 keys: \"keywords\" and \"extra\". Don't add keys to give extra information, put all your information in those two fields. Place an empty array if you have no keywords to extract.");
                     },
                     _ => {

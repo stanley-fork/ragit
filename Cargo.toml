@@ -25,7 +25,7 @@ regex = "1.11.1"
 reqwest = "0.12.9"
 rust-stemmers = "1.2.0"
 serde = { version = "1.0.214", features = ["derive"] }
-serde_json = "1.0.132"
+serde_json = { version = "1.0.132", features = ["arbitrary_precision"] }
 sha3 = "0.10.8"
 tera = "1.20.0"
 tokio = { version = "1.41.0", features = ["full"] }

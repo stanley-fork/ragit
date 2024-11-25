@@ -19,7 +19,6 @@ use ragit_fs::{
     remove_dir_all,
     remove_file,
     write_bytes,
-    write_string,
 };
 use std::collections::HashMap;
 

@@ -2,8 +2,7 @@ use super::Index;
 use crate::error::Error;
 use crate::index::{INDEX_DIR_NAME, INDEX_FILE_NAME};
 use flate2::read::GzDecoder;
-use json::JsonValue;
-use ragit_api::{JsonType, get_type};
+use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     copy_dir,
@@ -17,9 +16,11 @@ use ragit_fs::{
     read_string,
     remove_dir_all,
     rename,
+    write_bytes,
     write_string,
 };
 use regex::Regex;
+use serde_json::{Number, Value};
 use std::{cmp, fmt};
 use std::collections::HashMap;
 use std::io::Read;
@@ -38,20 +39,20 @@ impl Index {
         )?;
         let j = read_string(&index_at)?;
 
-        match json::parse(&j)? {
-            JsonValue::Object(obj) => match obj.get("ragit_version") {
+        match serde_json::from_str::<Value>(&j)? {
+            Value::Object(obj) => match obj.get("ragit_version") {
                 Some(v) => match v.as_str() {
                     Some(v) => Ok(v.parse::<VersionInfo>()?),
                     None => Err(Error::JsonTypeError {
                         expected: JsonType::String,
-                        got: get_type(v),
+                        got: v.into(),
                     }),
                 },
                 None => Err(Error::BrokenIndex(String::from("`ragit_version` is not found in `index.json`."))),
             },
             v => Err(Error::JsonTypeError {
                 expected: JsonType::Object,
-                got: get_type(&v),
+                got: (&v).into(),
             }),
         }
     }
@@ -138,21 +139,21 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
         "index.json",
     )?;
     let j = read_string(&index_at)?;
-    let mut j = json::parse(&j)?;
+    let mut j = serde_json::from_str::<Value>(&j)?;
     let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{52})[0-9a-f]{12}$").unwrap();
     let uid_re = Regex::new(r"[0-9a-z]{64}").unwrap();
     let mut processed_files_cache;
 
     match &mut j {
-        JsonValue::Object(ref mut index) => {
-            index.insert("ragit_version", "0.2.0".into());
+        Value::Object(ref mut index) => {
+            index.insert(String::from("ragit_version"), "0.2.0".into());
 
             if index.remove("chunk_files").is_none() {
                 return Err(Error::BrokenIndex(String::from("`index.json` is missing `chunk_files` field.")));
             }
 
             match index.get_mut("processed_files") {
-                Some(JsonValue::Object(ref mut processed_files)) => {
+                Some(Value::Object(ref mut processed_files)) => {
                     processed_files_cache = HashMap::with_capacity(processed_files.len());
 
                     for (file_name, file_uid) in processed_files.clone().iter() {
@@ -160,7 +161,13 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                             Some(file_uid) => match file_uid_re.captures(file_uid) {
                                 Some(file_uid_cap) => {
                                     let file_uid = format!("{}0000{}", &file_uid_cap[2], &file_uid_cap[1]);
-                                    processed_files.insert(file_name, file_uid.clone().into());  // TODO: use obj instead of string for uid
+                                    processed_files.insert(
+                                        file_name.to_string(),
+                                        vec![
+                                            (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(file_uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+                                            (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(file_uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
+                                        ].into_iter().collect(),
+                                    );
                                     processed_files_cache.insert(file_name.to_string(), file_uid);
                                 },
                                 None => {
@@ -170,7 +177,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                             None => {
                                 return Err(Error::JsonTypeError {
                                     expected: JsonType::String,
-                                    got: get_type(file_uid),
+                                    got: file_uid.into(),
                                 });
                             },
                         }
@@ -179,7 +186,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                 Some(v) => {
                     return Err(Error::JsonTypeError {
                         expected: JsonType::Object,
-                        got: get_type(v),
+                        got: (&*v).into(),
                     });
                 },
                 None => {
@@ -190,14 +197,14 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
         _ => {
             return Err(Error::JsonTypeError {
                 expected: JsonType::Object,
-                got: get_type(&j),
+                got: (&j).into(),
             });
         },
     }
 
-    write_string(
+    write_bytes(
         &index_at,
-        &j.pretty(4),
+        &serde_json::to_vec_pretty(&j)?,
         WriteMode::CreateOrTruncate,
     )?;
     remove_dir_all(
@@ -227,18 +234,17 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
         let chunks = load_chunks_0_1_1(&chunk_file)?;
 
         match chunks {
-            JsonValue::Array(mut chunks) => {
+            Value::Array(mut chunks) => {
                 for chunk in chunks.iter_mut() {
                     match chunk {
-                        JsonValue::Object(ref mut obj) => {
-                            // TODO: use obj instead of string for uid
+                        Value::Object(ref mut obj) => {
                             let file_name = match obj.get("file") {
                                 Some(file_name) => match file_name.as_str() {
                                     Some(file_name) => file_name.to_string(),
                                     None => {
                                         return Err(Error::JsonTypeError {
                                             expected: JsonType::String,
-                                            got: get_type(file_name),
+                                            got: file_name.into(),
                                         });
                                     },
                                 },
@@ -247,12 +253,12 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                                 },
                             };
                             let file_index = match obj.get("index") {
-                                Some(index) => match index.as_usize() {
-                                    Some(index) => index,
+                                Some(index) => match index.as_u64() {
+                                    Some(index) => index as usize,
                                     None => {
                                         return Err(Error::JsonTypeError {
                                             expected: JsonType::Usize,
-                                            got: get_type(index),
+                                            got: index.into(),
                                         });
                                     },
                                 },
@@ -263,14 +269,14 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
 
                             // 0.1.1 uses 1-based index
                             match obj.get_mut("index") {
-                                Some(ref mut index) => match index.as_usize() {
+                                Some(ref mut index) => match index.as_u64() {
                                     Some(n) => {
-                                        **index = JsonValue::from(n - 1);
+                                        **index = Value::from(n - 1);
                                     },
                                     None => {
                                         return Err(Error::JsonTypeError {
                                             expected: JsonType::Usize,
-                                            got: get_type(index),
+                                            got: (&**index).into(),
                                         });
                                     },
                                 },
@@ -282,6 +288,14 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                             match obj.get("uid") {
                                 Some(uid) => match uid.as_str() {
                                     Some(uid) if uid_re.is_match(uid) => {
+                                        let uid = uid.to_string();
+                                        obj.insert(
+                                            String::from("uid"),
+                                            vec![
+                                                (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+                                                (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
+                                            ].into_iter().collect(),
+                                        );
                                         let chunk_at = join(
                                             &tmp_chunk_dir,
                                             uid.get(0..2).unwrap(),
@@ -301,9 +315,12 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                                         }
 
                                         // TODO: respect build_config.compress_threshold
-                                        write_string(
+                                        write_bytes(
                                             &join(&chunk_at, &format!("{}.chunk", uid.get(2..).unwrap()))?,
-                                            &format!("\n{}", chunk.pretty(4)),  // chunk prefix for an un-compressed chunk
+                                            &vec![
+                                                vec![b'\n'],  // chunk prefix for an un-compressed chunk
+                                                serde_json::to_vec_pretty(&chunk)?,
+                                            ].concat(),
                                             WriteMode::AlwaysCreate,
                                         )?;
                                     },
@@ -313,7 +330,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                                     None => {
                                         return Err(Error::JsonTypeError {
                                             expected: JsonType::String,
-                                            got: get_type(uid),
+                                            got: uid.into(),
                                         });
                                     },
                                 },
@@ -325,7 +342,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                         _ => {
                             return Err(Error::JsonTypeError {
                                 expected: JsonType::Array,
-                                got: get_type(chunk),
+                                got: (&*chunk).into(),
                             });
                         },
                     }
@@ -334,7 +351,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
             _ => {
                 return Err(Error::JsonTypeError {
                     expected: JsonType::Array,
-                    got: get_type(&chunks),
+                    got: (&chunks).into(),
                 });
             },
         }
@@ -387,7 +404,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     Ok(())
 }
 
-fn load_chunks_0_1_1(path: &str) -> Result<JsonValue, Error> {
+fn load_chunks_0_1_1(path: &str) -> Result<Value, Error> {
     let content = read_bytes(path)?;
 
     match content.get(0) {
@@ -396,9 +413,9 @@ fn load_chunks_0_1_1(path: &str) -> Result<JsonValue, Error> {
             let mut gz = GzDecoder::new(&content[1..]);
             gz.read_to_end(&mut decompressed)?;
 
-            Ok(json::parse(&String::from_utf8_lossy(&decompressed).to_string())?)
+            Ok(serde_json::from_slice::<Value>(&decompressed)?)
         },
-        Some(b) if *b == b'\n' => Ok(json::parse(&String::from_utf8_lossy(&content[1..]).to_string())?),
+        Some(b) if *b == b'\n' => Ok(serde_json::from_slice::<Value>(&content[1..])?),
         Some(b) => Err(Error::BrokenIndex(format!("Unknown chunk prefix: {}", *b as char))),
         None => Err(Error::BrokenIndex(format!("An empty chunk file."))),
     }

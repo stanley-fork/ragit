@@ -1,5 +1,5 @@
 use crate::{ApiProvider, Error};
-use crate::json_type::{JsonType, get_type};
+use crate::json_type::JsonType;
 use json::JsonValue;
 
 pub struct CreateResponse {
@@ -17,7 +17,7 @@ impl CreateResponse {
                 } else {
                     return Err(Error::JsonTypeError {
                         expected: JsonType::Object,
-                        got: get_type(j),
+                        got: j.into(),
                     });
                 };
 
@@ -51,27 +51,27 @@ impl CreateResponse {
                                     }),
                                     None => Err(Error::JsonTypeError {
                                         expected: JsonType::String,
-                                        got: get_type(url),
+                                        got: url.into(),
                                     }),
                                 },
                                 None => Err(Error::JsonObjectMissingField(String::from("url"))),
                             },
                             Some(ty_err) => Err(Error::JsonTypeError {
                                 expected: JsonType::Object,
-                                got: get_type(ty_err),
+                                got: ty_err.into(),
                             }),
                             None => Err(Error::WrongSchema(String::from("no data found in response"))),
                         },
                         _ => Err(Error::JsonTypeError {
                             expected: JsonType::Array,
-                            got: get_type(data),
+                            got: data.into(),
                         }),
                     },
                     None => Err(Error::JsonObjectMissingField(String::from("data"))),
                 },
                 _ => Err(Error::JsonTypeError {
                     expected: JsonType::Object,
-                    got: get_type(j),
+                    got: j.into(),
                 }),
             },
             _ => unreachable!(),
@@ -107,7 +107,7 @@ impl GetResponse {
                                 None => {
                                     return Err(Error::JsonTypeError {
                                         expected: JsonType::String,
-                                        got: get_type(g),
+                                        got: g.into(),
                                     });
                                 },
                             },
@@ -131,7 +131,7 @@ impl GetResponse {
                     Some(v) => {
                         return Err(Error::JsonTypeError {
                             expected: JsonType::Object,
-                            got: get_type(v),
+                            got: v.into(),
                         });
                     },
                     None => {
@@ -159,7 +159,7 @@ impl GetResponse {
             },
             _ => Err(Error::JsonTypeError {
                 expected: JsonType::Object,
-                got: get_type(j),
+                got: j.into(),
             }),
         }
     }

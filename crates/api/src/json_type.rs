@@ -1,5 +1,6 @@
 use crate::error::Error;
 use json::JsonValue;
+use serde_json::Value;
 
 /// This enum is solely for error messages.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -24,21 +25,21 @@ impl JsonType {
     // NOTE: if `self` is `JsonType::Null`, then the actual type must be `Option<T>`, but there's no
     //       way we can guess what `T` is...
     // TODO: I don't like its implementation. It's too Javascript-ish.
-    pub fn parse(&self, s: &str) -> Result<JsonValue, Error> {
+    pub fn parse(&self, s: &str) -> Result<Value, Error> {
         if s == "null" {
-            return Ok(JsonValue::Null);
+            return Ok(Value::Null);
         }
 
         match self {
-            JsonType::String => Ok(JsonValue::from(s)),
+            JsonType::String => Ok(Value::from(s)),
             JsonType::Number => match s.parse::<i64>() {
-                Ok(n) => Ok(JsonValue::from(n)),
+                Ok(n) => Ok(Value::from(n)),
                 _ => match s.parse::<f64>() {
-                    Ok(n) => Ok(JsonValue::from(n)),
-                    _ => match json::parse(s) {
+                    Ok(n) => Ok(Value::from(n)),
+                    _ => match serde_json::from_str::<Value>(s) {
                         Ok(v) => Err(Error::JsonTypeError {
                             expected: *self,
-                            got: get_type(&v),
+                            got: (&v).into(),
                         }),
                         Err(e) => Err(e.into()),
                     },
@@ -47,32 +48,47 @@ impl JsonType {
             JsonType::Boolean => match s {
                 "true" => Ok(true.into()),
                 "false" => Ok(false.into()),
-                _ => match json::parse(s) {
+                _ => match serde_json::from_str::<Value>(s) {
                     Ok(v) => Err(Error::JsonTypeError {
                         expected: *self,
-                        got: get_type(&v),
+                        got: (&v).into(),
                     }),
                     Err(e) => Err(e.into()),
                 },
             },
             // the most Javascript-ish part of this function. read the comments above
-            JsonType::Null => match json::parse(s) {
+            JsonType::Null => match serde_json::from_str(s) {
                 Ok(v) => Ok(v),
-                Err(_) => Ok(JsonValue::from(s)),
+                Err(_) => Ok(Value::from(s)),
             },
             _ => todo!(),
         }
     }
 }
 
-pub fn get_type(j: &JsonValue) -> JsonType {
-    match j {
-        JsonValue::Null => JsonType::Null,
-        JsonValue::Short(_)
-        | JsonValue::String(_) => JsonType::String,
-        JsonValue::Number(_) => JsonType::Number,
-        JsonValue::Boolean(_) => JsonType::Boolean,
-        JsonValue::Object(_) => JsonType::Object,
-        JsonValue::Array(_) => JsonType::Array,
+impl From<&JsonValue> for JsonType {
+    fn from(v: &JsonValue) -> Self {
+        match v {
+            JsonValue::Null => JsonType::Null,
+            JsonValue::Short(_)
+            | JsonValue::String(_) => JsonType::String,
+            JsonValue::Number(_) => JsonType::Number,
+            JsonValue::Boolean(_) => JsonType::Boolean,
+            JsonValue::Object(_) => JsonType::Object,
+            JsonValue::Array(_) => JsonType::Array,
+        }
+    }
+}
+
+impl From<&Value> for JsonType {
+    fn from(v: &Value) -> Self {
+        match v {
+            Value::Null => JsonType::Null,
+            Value::String(_) => JsonType::String,
+            Value::Number(_) => JsonType::Number,
+            Value::Bool(_) => JsonType::Boolean,
+            Value::Object(_) => JsonType::Object,
+            Value::Array(_) => JsonType::Array,
+        }
     }
 }
