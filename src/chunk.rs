@@ -85,7 +85,7 @@ pub fn load_from_file(path: &str) -> Result<Chunk, Error> {
             Ok(serde_json::from_slice::<Chunk>(&decompressed)?)
         },
         Some(b) if *b == UNCOMPRESS_PREFIX => Ok(serde_json::from_slice::<Chunk>(&content[1..])?),
-        Some(b) => Err(Error::CorruptedFile(path.to_string())),
+        Some(_) => Err(Error::CorruptedFile(path.to_string())),
         None => {
             // simple hack: it throws the exact error that I want
             serde_json::from_slice::<Chunk>(&[])?;
