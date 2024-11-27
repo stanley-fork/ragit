@@ -135,20 +135,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
                 Ok(mut index) => if index.curr_processing_file.is_some() && recover {
-                    index.recover()?;
+                    let recover_result = index.recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;
-                    println!("recovered from a corrupted knowledge-base");
+                    println!("recovered from a corrupted knowledge-base: {recover_result:?}");
                 } else {
                     match index.check(recursive) {
                         Ok(()) => {
                             println!("everything is fine!");
                         },
                         Err(e) => if recover {
-                            index.recover()?;
+                            let recover_result = index.recover()?;
                             index.save_to_file()?;
                             index.check(recursive)?;
-                            println!("recovered from a corrupted knowledge-base");
+                            println!("recovered from a corrupted knowledge-base: {recover_result:?}");
                         } else {
                             return Err(e);
                         }
@@ -156,10 +156,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 Err(e) => if recover {
                     let mut index = Index::load(root_dir, LoadMode::Minimum)?;
-                    index.recover()?;
+                    let recover_result = index.recover()?;
                     index.save_to_file()?;
                     index.check(recursive)?;
-                    println!("recovered from a corrupted knowledge-base");
+                    println!("recovered from a corrupted knowledge-base: {recover_result:?}");
                 } else {
                     return Err(e);
                 },

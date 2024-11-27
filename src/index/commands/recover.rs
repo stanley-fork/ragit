@@ -24,9 +24,12 @@ use std::collections::HashMap;
 
 pub type Path = String;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct RecoverResult {
-    removed_chunk: usize,
+    removed_chunks: usize,
+    created_tfidfs: usize,
+    replaced_configs: Vec<String>,
+    staged_files: Vec<String>,
 }
 
 impl Index {
@@ -41,7 +44,10 @@ impl Index {
         let mut processed_files: HashMap<Path, Vec<(Uid, usize)>> = HashMap::new();
         let mut chunk_count = 0;
         let mut result = RecoverResult {
-            removed_chunk: 0,
+            removed_chunks: 0,
+            created_tfidfs: 0,
+            replaced_configs: vec![],
+            staged_files: vec![],
         };
 
         for chunk_file in self.get_all_chunk_files()? {
@@ -56,7 +62,7 @@ impl Index {
                     remove_file(&tfidf_file)?;
                 }
 
-                result.removed_chunk += 1;
+                result.removed_chunks += 1;
                 continue;
             }
 
@@ -70,6 +76,7 @@ impl Index {
                     self.build_config.compression_level,
                     &self.root_dir,
                 )?;
+                result.created_tfidfs += 1;
             }
 
             match processed_files.get_mut(&chunk_.file) {
@@ -113,6 +120,7 @@ impl Index {
         // Recover E
         if let Some(curr_processing_file) = &self.curr_processing_file {
             self.staged_files.push(curr_processing_file.clone());
+            result.staged_files.push(curr_processing_file.clone());
             self.curr_processing_file = None;
         }
 
@@ -130,6 +138,7 @@ impl Index {
                 &serde_json::to_vec_pretty(&BuildConfig::default())?,
                 WriteMode::CreateOrTruncate,
             )?;
+            result.replaced_configs.push(String::from("build"));
         }
 
         let reset_query_config = match read_string(&self.get_query_config_path()?) {
@@ -143,6 +152,7 @@ impl Index {
                 &serde_json::to_vec_pretty(&QueryConfig::default())?,
                 WriteMode::CreateOrTruncate,
             )?;
+            result.replaced_configs.push(String::from("query"));
         }
 
         let reset_api_config = match read_string(&self.get_api_config_path()?) {
@@ -159,6 +169,7 @@ impl Index {
                 &serde_json::to_vec_pretty(&ApiConfigRaw::default())?,
                 WriteMode::CreateOrTruncate,
             )?;
+            result.replaced_configs.push(String::from("api"));
         }
 
         Ok(result)
