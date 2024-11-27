@@ -6,3 +6,4 @@ license = "MIT"
 description = "korean tokenizer for ragit"
 
 [dependencies]
+lazy_static = "1.5.0"

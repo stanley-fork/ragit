@@ -12,7 +12,24 @@ rules
 4. If it fails due to a 한글 character, it doesn't do anything.
 */
 
-pub fn tokenize(tokens: &str) -> Vec<String> {
-    // TODO
-    vec![tokens.to_string()]
+use hangul::자모;
+
+mod hangul;
+
+pub fn tokenize(token: &str) -> Vec<String> {
+    match get_token_type(token) {
+        TokenType::No한글(s) => vec![s],
+        TokenType::Mixed한글(ts) => ts,
+        TokenType::Only한글(js) => todo!(),
+    }
+}
+
+enum TokenType {
+    No한글(String),
+    Mixed한글(Vec<String>),
+    Only한글(Vec<자모>),
+}
+
+fn get_token_type(token: &str) -> TokenType {
+    TokenType::No한글(token.to_string())  // TODO
 }
