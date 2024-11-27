@@ -60,10 +60,7 @@ impl Index {
             }
 
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
-
-            if exists(&tfidf_file) {
-                tfidf::load_from_file(&tfidf_file)?;
-            }
+            tfidf::load_from_file(&tfidf_file)?;
         }
 
         for processed_file in processed_files.iter() {

@@ -60,16 +60,16 @@ impl Index {
                 continue;
             }
 
-            if exists(&tfidf_file) {
-                if tfidf::load_from_file(&tfidf_file).is_err() {
-                    chunk::save_to_file(
-                        &chunk_file,
-                        &chunk_,
-                        self.build_config.compression_threshold,
-                        self.build_config.compression_level,
-                        &self.root_dir,
-                    )?;
-                }
+            let corrupted_tfidf_file = exists(&tfidf_file) && tfidf::load_from_file(&tfidf_file).is_err() || !exists(&tfidf_file);
+
+            if corrupted_tfidf_file {
+                chunk::save_to_file(
+                    &chunk_file,
+                    &chunk_,
+                    self.build_config.compression_threshold,
+                    self.build_config.compression_level,
+                    &self.root_dir,
+                )?;
             }
 
             match processed_files.get_mut(&chunk_.file) {
