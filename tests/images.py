@@ -1,6 +1,7 @@
 import shutil
 from utils import (
     cargo_run,
+    count_images,
     goto_root,
     mk_and_cd_tmp_dir,
     write_string,
@@ -54,3 +55,10 @@ def images():
     shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
     cargo_run(["build"])
     cargo_run(["check"])
+
+    # step 1: `rm` does not remove images, but `gc-images` does
+    assert count_images() == 3
+    cargo_run(["rm", "sample.md"])
+    assert count_images() == 3
+    assert "removed 6 files" in cargo_run(["gc", "--images"], stdout=True)  # 3 images and 3 descriptions
+    assert count_images() == 0

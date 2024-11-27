@@ -50,7 +50,7 @@ pub struct FileReader {  // of a single file
     inner: Box<dyn FileReaderImpl>,
     buffer: VecDeque<AtomicToken>,
     curr_buffer_size: usize,
-    pub images: HashMap<String, Vec<u8>>,
+    pub images: HashMap<Uid, Vec<u8>>,
     config: BuildConfig,
 }
 
@@ -166,9 +166,9 @@ impl FileReader {
         ).await;
 
         for token in tokens.into_iter() {
-            if let AtomicToken::Image(Image { key, bytes, image_type }) = token {
+            if let AtomicToken::Image(Image { uid, bytes, image_type }) = token {
                 let bytes = normalize_image(bytes, image_type)?;
-                self.images.insert(key, bytes);
+                self.images.insert(uid, bytes);
             }
         }
 

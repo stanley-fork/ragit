@@ -39,7 +39,7 @@ use ragit_fs::{
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 mod commands;
 mod config;
@@ -328,6 +328,7 @@ impl Index {
     pub fn get_all_chunk_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
+        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -346,6 +347,7 @@ impl Index {
     pub fn get_all_tfidf_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
+        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -361,9 +363,23 @@ impl Index {
         Ok(result)
     }
 
-    fn file_index_real_path(&self) -> Result<Vec<Path>, Error> {
+    pub fn get_all_image_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
+        // TODO: search external bases
+        for image_file in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
+            if extension(&image_file).unwrap_or(None).unwrap_or(String::new()) == "png" {
+                result.push(image_file.to_string());
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn get_all_file_indexes(&self) -> Result<Vec<Path>, Error> {
+        let mut result = vec![];
+
+        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &FILE_INDEX_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -377,9 +393,9 @@ impl Index {
         Ok(result)
     }
 
-    async fn add_image_description(&self, key: &str) -> Result<(), Error> {
-        let description_path = Index::get_image_path(&self.root_dir, key, "json");
-        let image_path = Index::get_image_path(&self.root_dir, key, "png");
+    async fn add_image_description(&self, uid: Uid) -> Result<(), Error> {
+        let description_path = Index::get_image_path(&self.root_dir, uid, "json");
+        let image_path = Index::get_image_path(&self.root_dir, uid, "png");
         let image_bytes = read_bytes(&image_path)?;
         let image_bytes = encode_base64(&image_bytes);
 
@@ -655,13 +671,14 @@ impl Index {
         ).unwrap()
     }
 
-    fn get_image_path(root_dir: &str, image_key: &str, extension: &str) -> Path {
+    // TODO: it has to be 2-level, like chunks and file_indexes
+    fn get_image_path(root_dir: &str, uid: Uid, extension: &str) -> Path {
         normalize(
             &join4(
                 root_dir,
                 &INDEX_DIR_NAME.to_string(),
                 &IMAGE_DIR_NAME.to_string(),
-                &set_extension(image_key, extension).unwrap(),
+                &set_extension(&uid.to_string(), extension).unwrap(),
             ).unwrap(),
         ).unwrap()
     }
@@ -850,11 +867,26 @@ impl Index {
         return Err(Error::NoSuchFile { path: None, uid: Some(file_uid) });
     }
 
+    pub fn get_images_of_file(&self, file_uid: Uid) -> Result<Vec<Uid>, Error> {
+        let chunk_uids = self.get_chunks_of_file(file_uid)?;
+        let mut result = HashSet::new();
+
+        for chunk_uid in chunk_uids.into_iter() {
+            let chunk = self.get_chunk_by_uid(chunk_uid)?;
+
+            for image in chunk.images.iter() {
+                result.insert(*image);
+            }
+        }
+
+        Ok(result.into_iter().collect())
+    }
+
     fn count_external_chunks(&self) -> usize {
         self.external_indexes.iter().map(|index| index.chunk_count).sum()
     }
 
-    pub fn load_image_by_key(&self, key: &str) -> Result<Vec<u8>, Error> {
-        Ok(read_bytes(&Index::get_image_path(&self.root_dir, key, "png"))?)
+    pub fn load_image_by_uid(&self, uid: Uid) -> Result<Vec<u8>, Error> {
+        Ok(read_bytes(&Index::get_image_path(&self.root_dir, uid, "png"))?)
     }
 }

@@ -280,7 +280,7 @@ impl Chunk {
         for image in self.images.iter() {
             let description_at = Index::get_image_path(
                 root_dir,
-                image,
+                *image,
                 "json",
             );
             let j = read_string(&description_at)?;

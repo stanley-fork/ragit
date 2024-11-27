@@ -1,6 +1,7 @@
 use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
 use crate::index::BuildConfig;
+use crate::uid::Uid;
 use ragit_api::ImageType;
 use ragit_fs::{extension, read_bytes, remove_file};
 use sha3::{Digest, Sha3_256};
@@ -10,7 +11,7 @@ pub type Path = String;
 
 #[derive(Clone, PartialEq)]
 pub struct Image {
-    pub key: String,  // unique ID
+    pub uid: Uid,
     pub image_type: ImageType,
     pub bytes: Vec<u8>,
 }
@@ -18,7 +19,7 @@ pub struct Image {
 impl fmt::Debug for Image {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         fmt.debug_struct("Image")
-            .field("key", &self.key)
+            .field("uid", &self.uid)
             .field("image_type", &self.image_type)
             .finish()
     }
@@ -74,10 +75,13 @@ impl FileReaderImpl for ImageReader {
             let mut hasher = Sha3_256::new();
             hasher.update(&bytes);
 
+            // TODO: like chunk uid, image uid must have a marker
+            let uid = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+
             self.tokens.push(AtomicToken::Image(Image {
                 bytes,
                 image_type: self.image_type,
-                key: format!("{:064x}", hasher.finalize()),
+                uid,
             }));
             self.is_exhausted = true;
             Ok(())

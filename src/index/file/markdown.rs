@@ -1,6 +1,7 @@
 use super::{AtomicToken, FileReaderImpl, Image};
 use crate::error::Error;
 use crate::index::BuildConfig;
+use crate::uid::Uid;
 use ragit_api::ImageType;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use regex::Regex;
@@ -159,10 +160,13 @@ impl MarkdownReader {
                     let mut hasher = Sha3_256::new();
                     hasher.update(&bytes);
 
+                    // TODO: like chunk uid, image uid must have a marker
+                    let uid = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+
                     self.tokens.push(AtomicToken::Image(Image {
                         image_type: ImageType::from_extension(&extension(&url).unwrap_or(Some(String::from("png"))).unwrap_or(String::from("png"))).unwrap_or(ImageType::Png),
                         bytes,
-                        key: format!("{:064x}", hasher.finalize()),
+                        uid,
                     }));
                 },
             }

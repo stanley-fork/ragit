@@ -44,11 +44,7 @@ pub const CHUNK_DIR_NAME: &str = "chunks";
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Chunk {
     pub data: String,
-
-    /// It's both key and path of an image.
-    /// For example, if "abcdef" is in `images`,
-    /// it replaces "img_abcdef" in `data` with `.ragit/images/abcdef.png`
-    pub images: Vec<String>,
+    pub images: Vec<Uid>,
     pub char_len: usize,
 
     /// It's not always `images.len()`. If the same image appears twice,
@@ -235,9 +231,9 @@ impl Chunk {
                     char_len += *n;
                 },
                 AtomicToken::Image(i) => {
-                    images.push(i.key.clone());
+                    images.push(i.uid);
                     image_count += 1;
-                    data.push(format!("img_{}", i.key));
+                    data.push(format!("img_{}", i.uid));
                 },
             }
         }

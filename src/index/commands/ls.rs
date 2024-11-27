@@ -2,7 +2,19 @@ use super::Index;
 use crate::chunk::{self, Chunk};
 use crate::error::Error;
 use crate::uid::Uid;
+use ragit_api::JsonType;
+use ragit_fs::{
+    file_name,
+    file_size,
+    read_string,
+    set_extension,
+};
 use serde::Serialize;
+use serde_json::Value;
+
+// TODOs
+// 1. rename `RenderableXXX` to `LsXXX`.
+// 2. make `list_chunks` return `LsChunk` instead of `Chunk`.
 
 #[derive(Serialize)]
 pub struct RenderableFile {
@@ -37,6 +49,13 @@ pub struct RenderableModel {
     pub dollars_per_1b_input_tokens: u64,
     pub dollars_per_1b_output_tokens: u64,
     pub explanation: String,
+}
+
+pub struct RenderableImage {
+    pub uid: Uid,
+    pub extracted_text: String,
+    pub explanation: String,
+    pub size: u64,  // bytes
 }
 
 impl Index {
@@ -139,17 +158,25 @@ impl Index {
 
     /// `rag ls-files`
     pub fn get_renderable_file(&self, path: Option<String>, uid: Option<Uid>) -> Result<RenderableFile, Error> {
-        if let Some(path) = &path {
-            if let Some(uid) = self.processed_files.get(path) {
-                return Ok(self.get_renderable_file_worker(path.to_string(), *uid)?);
-            }
-        }
-
         if let Some(uid) = uid {
             for (path, uid_) in self.processed_files.iter() {
                 if uid == *uid_ {
                     return Ok(self.get_renderable_file_worker(path.to_string(), uid)?);
                 }
+            }
+        }
+
+        if let Some(path) = &path {
+            if let Some(uid) = self.processed_files.get(path) {
+                return Ok(self.get_renderable_file_worker(path.to_string(), *uid)?);
+            }
+
+            if self.staged_files.contains(path) {
+                return Ok(RenderableFile {
+                    path: path.to_string(),
+                    is_processed: false,
+                    ..RenderableFile::dummy()
+                })
             }
         }
 
@@ -167,5 +194,57 @@ impl Index {
             uid,
             chunks,
         })
+    }
+
+    /// `rag ls-images`
+    pub fn list_images<Filter, Map, Sort, Key: Ord>(
+        &self,
+        // `filter` is applied before `map`
+        filter: &Filter,
+        map: &Map,
+        sort_key: &Sort,
+    ) -> Result<Vec<RenderableImage>, Error> where Filter: Fn(&RenderableImage) -> bool, Map: Fn(RenderableImage) -> RenderableImage, Sort: Fn(&RenderableImage) -> Key {
+        let mut result = vec![];
+
+        for image in self.get_all_image_files()? {
+            let image = self.get_renderable_image(file_name(&image)?.parse::<Uid>()?)?;
+
+            if !filter(&image) {
+                continue;
+            }
+
+            result.push(map(image));
+        }
+
+        result.sort_by_key(sort_key);
+        Ok(result)
+    }
+
+    /// `rag ls-images`
+    pub fn get_renderable_image(&self, uid: Uid) -> Result<RenderableImage, Error> {
+        let description_path = Index::get_image_path(
+            &self.root_dir,
+            uid,
+            "json",
+        );
+        let image_path = set_extension(&description_path, "png")?;
+        let description = read_string(&description_path)?;
+        let description = serde_json::from_str::<Value>(&description)?;
+
+        match description {
+            Value::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
+                (Some(extracted_text), Some(explanation)) => Ok(RenderableImage {
+                    uid,
+                    extracted_text: extracted_text.to_string(),
+                    explanation: explanation.to_string(),
+                    size: file_size(&image_path)?,
+                }),
+                _ => Err(Error::BrokenIndex(format!("`{description_path}` has a wrong schema."))),
+            },
+            _ => Err(Error::JsonTypeError {
+                expected: JsonType::Object,
+                got: (&description).into(),
+            }),
+        }
     }
 }

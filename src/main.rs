@@ -8,8 +8,7 @@ use ragit::{
     INDEX_DIR_NAME,
     Keywords,
     LoadMode,
-    RenderableFile,
-    UidQueryResult,
+    UidQuery,
     multi_turn,
     single_turn,
 };
@@ -242,7 +241,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
         },
         Some("gc") => {
-            let parsed_args = ArgParser::new().flag(&["--logs"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().flag(&["--logs", "--images"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/gc.txt"));
@@ -254,6 +253,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_logs()?;
                     println!("removed {removed} log files");
+                },
+                "--images" => {
+                    let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+                    let removed = index.gc_images()?;
+                    println!("removed {removed} files");
                 },
                 _ => unreachable!(),
             }
@@ -312,49 +316,60 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            println!("{} chunks", index.chunk_count);
-
-            if stat_only {
-                return Ok(());
-            }
-
             let chunks = match parsed_args.get_args().get(0) {
-                Some(arg) => match index.uid_query(arg)? {
-                    UidQueryResult::FileUid { uid }
-                    | UidQueryResult::FilePath { uid, .. } => {
-                        let uids = index.get_chunks_of_file(uid)?;
-                        let mut chunks = Vec::with_capacity(uids.len());
+                Some(arg) => {
+                    let query = index.uid_query(UidQuery::with_query(arg.to_string()).file_or_chunk())?;
+                    let mut chunks = vec![];
+
+                    for file_uid in query.get_file_uids() {
+                        let uids = index.get_chunks_of_file(file_uid)?;
 
                         for uid in uids.iter() {
                             let mut chunk = index.get_chunk_by_uid(*uid)?;
                             chunk.data = chunk.data.chars().count().to_string();
                             chunks.push(chunk);
                         }
+                    }
 
-                        chunks
-                    },
-                    UidQueryResult::Chunk { uid } => {
+                    for uid in query.get_chunk_uids() {
                         let mut chunk = index.get_chunk_by_uid(uid)?;
                         chunk.data = chunk.data.chars().count().to_string();
-                        vec![chunk]
-                    },
-                    UidQueryResult::StagedFile { .. } => vec![],  // staged file doesn't have a chunk
-                    UidQueryResult::NoMatch => {
-                        return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{arg}`.")));
-                    },
-                    UidQueryResult::Multiple { file: v1, chunk: v2 } => {
-                        return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{arg}`. Please give more specific query.", v1.len() + v2.len())));
-                    },
+                        chunks.push(chunk);
+                    }
+
+                    if chunks.is_empty() {
+                        return Err(Error::UidQueryError(format!("There's no chunk/file that matches `{arg}`.")));
+                    }
+
+                    if !uid_only {
+                        println!("{} chunks", chunks.len());
+                    }
+
+                    if stat_only {
+                        return Ok(());
+                    }
+
+                    chunks
                 },
-                None => index.list_chunks(
-                    &|_| true,  // no filter
-                    &|mut chunk: Chunk| {
-                        // it's too big
-                        chunk.data = format!("{}", chunk.data.chars().count());
-                        chunk
-                    },
-                    &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
-                )?,
+                None => {
+                    if !uid_only {
+                        println!("{} chunks", index.chunk_count);
+                    }
+
+                    if stat_only {
+                        return Ok(());
+                    }
+
+                    index.list_chunks(
+                        &|_| true,  // no filter
+                        &|mut chunk: Chunk| {
+                            // it's too big
+                            chunk.data = format!("{}", chunk.data.chars().count());
+                            chunk
+                        },
+                        &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
+                    )?
+                },
             };
 
             for chunk in chunks.iter() {
@@ -366,7 +381,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("----------");
                 println!("{}th chunk of {}", chunk.index, chunk.render_source());
                 println!("uid: {}", chunk.uid);
-                println!("character len: {}", chunk.data);  // it's mapped above
+                println!("character_len: {}", chunk.data);  // it's mapped above
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }
@@ -383,45 +398,62 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            println!(
-                "{} total files, {} staged files, {} processed files",
-                index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-                index.staged_files.len(),
-                index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-            );
-
-            if stat_only {
-                return Ok(());
-            }
-
             let files = match parsed_args.get_args().get(0) {
-                Some(arg) => match index.uid_query(arg)? {
-                    UidQueryResult::FileUid { uid } => vec![index.get_renderable_file(None, Some(uid))?],
-                    UidQueryResult::FilePath { path, uid } => vec![index.get_renderable_file(Some(path), Some(uid))?],
-                    UidQueryResult::StagedFile { path } => vec![RenderableFile {
-                        path,
-                        is_processed: false,
-                        ..RenderableFile::dummy()
-                    }],
-                    UidQueryResult::Chunk { .. }
-                    | UidQueryResult::NoMatch => {
-                        return Err(Error::UidQueryError(format!("There's no file that matches `{arg}`")));
-                    },
-                    UidQueryResult::Multiple { file: v1, chunk: _ } => match v1.len() {
-                        0 => {
-                            return Err(Error::UidQueryError(format!("There's no file that matches `{arg}`")));
-                        },
-                        1 => vec![index.get_renderable_file(None, Some(v1[0].clone()))?],
-                        n => {
-                            return Err(Error::UidQueryError(format!("There're {n} files that match `{arg}`. Please give more specific query.")))
-                        },
-                    },
+                Some(arg) => {
+                    let query = index.uid_query(UidQuery::with_query(arg.to_string()).file_only())?;
+                    let mut files = vec![];
+                    let mut processed_files_len = 0;
+                    let mut staged_files_len = 0;
+
+                    for (path, uid) in query.get_processed_files() {
+                        processed_files_len += 1;
+                        files.push(index.get_renderable_file(Some(path), Some(uid))?);
+                    }
+
+                    for path in query.get_staged_files() {
+                        staged_files_len += 1;
+                        files.push(index.get_renderable_file(Some(path), None)?);
+                    }
+
+                    if files.is_empty() {
+                        return Err(Error::UidQueryError(format!("There's no file that matches `{arg}`.")));
+                    }
+
+                    if !uid_only && !name_only {
+                        println!(
+                            "{} total files, {} staged files, {} processed files",
+                            processed_files_len + staged_files_len,
+                            staged_files_len,
+                            processed_files_len,
+                        );
+                    }
+
+                    if stat_only {
+                        return Ok(());
+                    }
+
+                    files
                 },
-                None => index.list_files(
-                    &|_| true,  // no filter
-                    &|f| f,  // no map
-                    &|f| f.path.to_string(),
-                )?,
+                None => {
+                    if !uid_only && !name_only {
+                        println!(
+                            "{} total files, {} staged files, {} processed files",
+                            index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.staged_files.len(),
+                            index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                        );
+                    }
+
+                    if stat_only {
+                        return Ok(());
+                    }
+
+                    index.list_files(
+                        &|_| true,  // no filter
+                        &|f| f,  // no map
+                        &|f| f.path.to_string(),
+                    )?
+                },
             };
 
             for file in files.iter() {
@@ -443,6 +475,92 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!("uid: {}", file.uid);
                     println!("chunks: {}", file.chunks);
                 }
+            }
+        },
+        Some("ls-images") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only", "--stat-only"]).args(ArgType::Query, ArgCount::Leq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ls-images.txt"));
+                return Ok(());
+            }
+
+            let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
+            let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let images = match parsed_args.get_args().get(0) {
+                Some(arg) => {
+                    let query = index.uid_query(UidQuery::with_query(arg.to_string()))?;
+                    let mut image_uids = vec![];
+
+                    for (_, uid) in query.get_processed_files() {
+                        for image_uid in index.get_images_of_file(uid)? {
+                            image_uids.push(image_uid);
+                        }
+                    }
+
+                    for uid in query.get_chunk_uids() {
+                        let chunk = index.get_chunk_by_uid(uid)?;
+
+                        for image_uid in chunk.images {
+                            image_uids.push(image_uid);
+                        }
+                    }
+
+                    for image_uid in query.get_image_uids() {
+                        image_uids.push(image_uid);
+                    }
+
+                    if image_uids.is_empty() {
+                        return Err(Error::UidQueryError(format!("There's no chunk/file/image that matches `{arg}`.")));
+                    }
+
+                    if !uid_only {
+                        println!("{} images", image_uids.len());
+                    }
+
+                    if stat_only {
+                        return Ok(());
+                    }
+
+                    let mut result = Vec::with_capacity(image_uids.len());
+
+                    for image_uid in image_uids.iter() {
+                        result.push(index.get_renderable_image(*image_uid)?);
+                    }
+
+                    result
+                },
+                None => {
+                    let result = index.list_images(
+                        &|_| true,  // no filter
+                        &|image| image,  // no map
+                        &|_| 0,  // no sort
+                    )?;
+
+                    if !uid_only {
+                        println!("{} images", result.len());
+                    }
+
+                    if stat_only {
+                        return Ok(());
+                    }
+
+                    result
+                },
+            };
+
+            for image in images.iter() {
+                if uid_only {
+                    println!("{}", image.uid);
+                    continue;
+                }
+
+                println!("--------");
+                println!("uid: {}", image.uid);
+                println!("explanation: {}", image.explanation);
+                println!("extracted_text: {}", image.extracted_text);
+                println!("size: {}", image.size);
             }
         },
         Some("ls-models") => {
@@ -632,19 +750,26 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
 
             if parsed_args.get_flag(0).is_some() {
-                let processed_doc = match index.uid_query(&args[3])? {
-                    UidQueryResult::Chunk { uid } => index.get_tfidf_by_chunk_uid(uid)?,
-                    UidQueryResult::FileUid { uid }
-                    | UidQueryResult::FilePath { uid, .. } => index.get_tfidf_by_file_uid(uid)?,
-                    UidQueryResult::NoMatch => {
-                        return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{}`.", &args[3])));
-                    },
-                    UidQueryResult::Multiple { file: v1, chunk: v2 } => {
-                        return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{}`. Please give more specific query.", v1.len() + v2.len(), &args[3])));
-                    },
-                    UidQueryResult::StagedFile { path } => {
-                        return Err(Error::UidQueryError(format!("`{path}` is not processed yet.")));
-                    },
+                let query = index.uid_query(UidQuery::with_query(args[3].to_string()).file_or_chunk().no_staged_file())?;
+
+                let processed_doc = if query.has_multiple_matches() {
+                    return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{}`. Please give more specific query.", query.len(), &args[3])));
+                }
+
+                else if query.is_empty() {
+                    return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{}`.", &args[3])));
+                }
+
+                else if let Some((_, uid)) = query.get_processed_file() {
+                    index.get_tfidf_by_file_uid(uid)?
+                }
+
+                else if let Some(uid) = query.get_chunk_uid() {
+                    index.get_tfidf_by_chunk_uid(uid)?
+                }
+
+                else {
+                    unreachable!()
                 };
 
                 println!("{}", processed_doc.render());

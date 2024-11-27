@@ -74,6 +74,11 @@ def count_chunks() -> int:
     first_line = chunks.split("\n")[0]
     return int(re.search(r"^(\d+)\schunks", first_line).group(1))
 
+def count_images() -> int:
+    images = cargo_run(["ls-images"], stdout=True)
+    first_line = images.split("\n")[0]
+    return int(re.search(r"^(\d+)\simages", first_line).group(1))
+
 def parse_add_output(args: list[str], rag_check=True) -> Tuple[int, int, int]:
     output = cargo_run(["add"] + args, stdout=True)
 

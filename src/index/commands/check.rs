@@ -7,7 +7,6 @@ use crate::uid::{self, Uid};
 use ragit_api::JsonType;
 use ragit_fs::{
     basename,
-    exists,
     extension,
     file_name,
     parent,
@@ -79,7 +78,7 @@ impl Index {
             all_files.insert(file.to_string());
         }
 
-        for file_index in self.file_index_real_path()? {
+        for file_index in self.get_all_file_indexes()? {
             let uid_prefix = basename(&parent(&file_index)?)?;
             let uid_suffix = file_name(&file_index)?;
             let file_uid = format!("{uid_prefix}{uid_suffix}");

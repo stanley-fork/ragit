@@ -1,0 +1,14 @@
+rag-ls-images(1)
+==========
+
+NAME
+----
+rag-ls-images - Show information about images
+
+SYNOPSIS
+--------
+[verse]
+'rag ls-images' [--stat-only | --uid-only] [<uid>]
+
+DESCRIPTION
+-----------
