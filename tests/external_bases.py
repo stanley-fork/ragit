@@ -3,7 +3,6 @@ from random import randint, seed as rand_seed
 from subprocess import TimeoutExpired
 from utils import (
     cargo_run,
-    clean,
     count_files,
     goto_root,
     mk_and_cd_tmp_dir,
@@ -67,6 +66,3 @@ def external_bases():
     for prefix, file in prefixes.items():
         tfidf_result = cargo_run(["tfidf", prefix], stdout=True)
         assert file in tfidf_result
-
-    os.chdir("../..")
-    clean()

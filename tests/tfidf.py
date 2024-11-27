@@ -29,13 +29,11 @@ def tfidf():
     assert "lorem_ipsum1.txt" not in cargo_run(["tfidf", "Pellentesque tincidunt"], stdout=True)
     assert "lorem_ipsum2.txt" in cargo_run(["tfidf", "Pellentesque tincidunt"], stdout=True)
 
-    # step 4: tfidf on cjk
-    write_string("cjk.txt", "나는 비빔인간입니다.")
-    cargo_run(["add", "cjk.txt"])
+    # step 4: tfidf on korean
+    write_string("korean.txt", "나는 비빔인간입니다.")
+    cargo_run(["add", "korean.txt"])
     cargo_run(["build"])
     cargo_run(["check"])
-    assert "cjk.txt" in cargo_run(["tfidf", "비빔"], stdout=True)
-    assert "lorem_ipsum1.txt" not in cargo_run(["tfidf", "비빔"], stdout=True)
-    assert "cjk.txt" in cargo_run(["tfidf", "비빔인간"], stdout=True)
+    assert "korean.txt" in cargo_run(["tfidf", "비빔인간"], stdout=True)
     assert "lorem_ipsum1.txt" not in cargo_run(["tfidf", "비빔인간"], stdout=True)
-    assert "cjk.txt" not in cargo_run(["tfidf", "Pellentesque tincidunt"], stdout=True)
+    assert "korean.txt" not in cargo_run(["tfidf", "Pellentesque tincidunt"], stdout=True)

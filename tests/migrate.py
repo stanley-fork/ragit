@@ -24,6 +24,7 @@ def migrate():
     mk_and_cd_tmp_dir()
 
     # step 1. create a mock knowledge-base
+    write_string("sample0.md", "Hi! My name is Baehyunsol.")
     write_string("sample1.md", sample1)
     write_string("sample2.md", sample2)
     write_string("sample3.md", sample3)
@@ -45,3 +46,4 @@ def migrate():
     checkout("0.2.0")
     cargo_run(["migrate"])
     cargo_run(["check"])
+    assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)

@@ -50,7 +50,13 @@ Commands
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
 
-    migrate                     run `migrate` test (TODO)
+    migrate                     run `migrate` test
+                                It checks out git to v 0.1.1, creates a knowledge-base,
+                                and run `migrate` until the knowledge-base is migrated to
+                                the newest version.
+                                Since it runs `git checkout`, it may mess up your working
+                                tree. If you have uncommitted changes, this test will fail
+                                and does not mess up your working tree.
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -215,7 +221,7 @@ if __name__ == "__main__":
                         result = json.dumps(results, indent=4)
                         f.write(result)
 
-            results["_meta"]["commit"] = get_git_commit_hash()
+            results["_meta"]["version"] = get_git_commit_hash()
             results["_meta"]["elapsed_ms"] = int((time.time() - start_all) * 1000)
             results["_meta"]["complete"] = True
             goto_root()
