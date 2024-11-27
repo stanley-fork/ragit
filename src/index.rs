@@ -18,6 +18,7 @@ use ragit_api::{
 use ragit_fs::{
     WriteMode,
     create_dir_all,
+    current_dir,
     diff,
     exists,
     extension,
@@ -600,10 +601,19 @@ impl Index {
     }
 
     pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Result<Path, Error> {
-        Ok(normalize(
-            &diff(
-                &normalize(real_path)?,
-                &normalize(root_dir)?,
+        Ok(diff(
+            &normalize(
+                // in order to calc diff, it needs a full path
+                &join(
+                    &current_dir()?,
+                    &real_path,
+                )?,
+            )?,
+            &normalize(
+                &join(
+                    &current_dir()?,
+                    &root_dir,
+                )?,
             )?,
         )?)
     }

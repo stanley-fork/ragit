@@ -300,13 +300,22 @@ pub fn remove_dir_all(path: &str) -> Result<(), FileError> {
     fs::remove_dir_all(path).map_err(|e| FileError::from_std(e, path))
 }
 
+pub fn current_dir() -> Result<String, FileError> {
+    let cwd = std::env::current_dir().map_err(|e| FileError::from_std(e, "."))?;
+
+    match cwd.to_str() {
+        Some(cwd) => Ok(cwd.to_string()),
+        None => Err(FileError::os_str_err(cwd.into_os_string())),
+    }
+}
+
 pub fn diff(path: &str, base: &str) -> Result<String, FileError> {
     match pathdiff::diff_paths(path, base) {
         Some(path) => match path.to_str() {
             Some(path) => Ok(path.to_string()),
             None => Err(FileError::os_str_err(path.into_os_string())),
         },
-        None => Err(FileError::cannot_diff_path(path.to_string(), path.to_string())),
+        None => Err(FileError::cannot_diff_path(path.to_string(), base.to_string())),
     }
 }
 
