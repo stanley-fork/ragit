@@ -1,5 +1,6 @@
 import os
 import subprocess
+from subprocess import CalledProcessError
 from utils import goto_root
 
 def cargo_tests():
@@ -10,6 +11,12 @@ def cargo_tests():
 
     for crate in ["api", "fs", "korean", "server"]:
         os.chdir(crate)
-        subprocess.run(["cargo", "test"], check=True)
-        subprocess.run(["cargo", "test", "--release"], check=True)
+
+        try:
+            subprocess.run(["cargo", "test"], check=True)
+            subprocess.run(["cargo", "test", "--release"], check=True)
+
+        except CalledProcessError as e:
+            raise Exception(f"Error in {crate}: {e}")
+
         os.chdir("..")
