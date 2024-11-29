@@ -43,8 +43,9 @@ impl From<WriteMode> for OpenOptions {
     }
 }
 
-/// if it fails to read from `from`, that's an error\
-/// if it fails to read to `to`, that's not an error
+/// It never reads more than `to - from` bytes.
+/// If it fails to read from `from`, that's an error.
+/// If it fails to read to `to`, that's not an error.
 pub fn read_bytes_offset(path: &str, from: u64, to: u64) -> Result<Vec<u8>, FileError> {
     assert!(to >= from);
 

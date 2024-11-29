@@ -4,7 +4,6 @@ use crate::index::BuildConfig;
 use crate::uid::Uid;
 use ragit_api::ImageType;
 use ragit_fs::{extension, read_bytes, remove_file};
-use sha3::{Digest, Sha3_256};
 use std::fmt;
 
 pub type Path = String;
@@ -72,12 +71,7 @@ impl FileReaderImpl for ImageReader {
 
         else {
             let bytes = read_bytes(&self.path)?;
-            let mut hasher = Sha3_256::new();
-            hasher.update(&bytes);
-
-            // TODO: like chunk uid, image uid must have a marker
-            let uid = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
-
+            let uid = Uid::new_image(&bytes);
             self.tokens.push(AtomicToken::Image(Image {
                 bytes,
                 image_type: self.image_type,

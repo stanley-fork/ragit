@@ -132,7 +132,7 @@ impl Index {
         }
 
         for (file, uid) in self.processed_files.iter() {
-            let file_size = uid.get_file_size()?;
+            let file_size = uid.get_data_size();
             result.push(LsFile {
                 path: file.clone(),
                 is_processed: true,
@@ -210,7 +210,7 @@ impl Index {
     }
 
     fn get_ls_file_worker(&self, path: String, uid: Uid) -> Result<LsFile, Error> {
-        let file_size = uid.get_file_size()?;
+        let file_size = uid.get_data_size();
         let chunks = self.get_chunks_of_file(uid).unwrap_or(vec![]).len();
 
         Ok(LsFile {

@@ -325,15 +325,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         let uids = index.get_chunks_of_file(file_uid)?;
 
                         for uid in uids.iter() {
-                            let mut chunk = index.get_chunk_by_uid(*uid)?;
-                            chunk.data = chunk.data.chars().count().to_string();
+                            let chunk = index.get_chunk_by_uid(*uid)?;
                             chunks.push(chunk);
                         }
                     }
 
                     for uid in query.get_chunk_uids() {
-                        let mut chunk = index.get_chunk_by_uid(uid)?;
-                        chunk.data = chunk.data.chars().count().to_string();
+                        let chunk = index.get_chunk_by_uid(uid)?;
                         chunks.push(chunk);
                     }
 

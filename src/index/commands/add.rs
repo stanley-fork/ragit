@@ -1,7 +1,7 @@
 use super::Index;
 use crate::INDEX_DIR_NAME;
 use crate::error::Error;
-use crate::index::get_file_uid;
+use crate::uid::Uid;
 
 /// "force update" means `rag remove FILE` + `rag add FILE`
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
@@ -70,7 +70,7 @@ impl Index {
                 }
 
                 else if let Some(prev_hash) = self.processed_files.get(&rel_path) {
-                    if let Ok(hash) = get_file_uid(&path.to_string()) {
+                    if let Ok(hash) = Uid::new_file(path) {
                         if &hash != prev_hash {
                             self.remove_file(path.to_string())?;
                             self.staged_files.push(rel_path);

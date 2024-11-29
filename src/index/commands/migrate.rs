@@ -160,7 +160,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                         match file_uid.as_str() {
                             Some(file_uid) => match file_uid_re.captures(file_uid) {
                                 Some(file_uid_cap) => {
-                                    let file_uid = format!("{}0000{}", &file_uid_cap[2], &file_uid_cap[1]);
+                                    let file_uid = format!("{}00000003{:08x}", &file_uid_cap[2], file_uid_cap[1].parse::<usize>().unwrap());
                                     processed_files.insert(
                                         file_name.to_string(),
                                         vec![

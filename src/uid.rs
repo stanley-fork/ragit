@@ -1,5 +1,5 @@
 use crate::INDEX_DIR_NAME;
-use crate::chunk::CHUNK_DIR_NAME;
+use crate::chunk::{Chunk, CHUNK_DIR_NAME};
 use crate::error::Error;
 use crate::index::{FILE_INDEX_DIR_NAME, IMAGE_DIR_NAME, Index};
 use lazy_static::lazy_static;
@@ -8,17 +8,20 @@ use ragit_fs::{
     exists,
     extension,
     file_name,
+    file_size,
     is_dir,
     join,
     join3,
     join4,
     read_bytes,
+    read_bytes_offset,
     read_dir,
     set_extension,
     write_string,
 };
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::str::FromStr;
@@ -30,11 +33,8 @@ use std::str::FromStr;
 /// inputs a hex representation of a uid, or a prefix of it, and the function returns
 /// matched uids.
 ///
-/// File uid and chunk uid has a small difference and ragit uses the difference to distinguish
-/// chunks and files. When a file uid is represented in hexadecimal, the last 12 characters of the hex
-/// are always numbers (no alphabets). And the numbers represents the length of the file, in bytes.
-/// For a chunk uid, it's guaranteed that at least one character of the last 12 characters is an
-/// alphabet. There must also be a marker for image uids, but I haven't implemented one yet.
+/// The first 192 bits (128 of `high` + 64 of `low`) are from the hash function, and
+/// the remaining bits are for metadata.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Uid {
     high: u128,
@@ -83,11 +83,67 @@ pub fn save_to_file(
 }
 
 impl Uid {
+    const METADATA_MASK: u128 = 0xffff_ffff_ffff_ffff_0000_0000_0000_0000;
+    const CHUNK_TYPE: u128 = (0x1 << 32);
+    const IMAGE_TYPE: u128 = (0x2 << 32);
+    const FILE_TYPE: u128 = (0x3 << 32);
+
     pub(crate) fn dummy() -> Self {
         Uid {
             high: 0,
             low: 0,
         }
+    }
+
+    pub fn new_chunk(chunk: &Chunk) -> Self {
+        let mut hasher = Sha3_256::new();
+        hasher.update(format!("{}{}{}", chunk.title, chunk.summary, chunk.data).as_bytes());
+        let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+        result.low &= Uid::METADATA_MASK;
+        result.low |= Uid::CHUNK_TYPE;
+        result.low |= (chunk.data.len() as u128) & 0xffff_ffff;
+        result
+    }
+
+    pub fn new_image(bytes: &[u8]) -> Self {
+        let mut hasher = Sha3_256::new();
+        hasher.update(bytes);
+        let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+        result.low &= Uid::METADATA_MASK;
+        result.low |= Uid::IMAGE_TYPE;
+        result.low |= (bytes.len() as u128) & 0xffff_ffff;
+        result
+    }
+
+    pub fn new_file(path: &str) -> Result<Self, Error> {
+        let size = file_size(path)?;
+        let mut hasher = Sha3_256::new();
+
+        if size < 32 * 1024 * 1024 {
+            let bytes = read_bytes(path)?;
+            hasher.update(&bytes);
+        }
+
+        else {
+            let block_size = 32 * 1024 * 1024;
+            let mut offset = 0;
+
+            loop {
+                let bytes = read_bytes_offset(path, offset, offset + block_size)?;
+                hasher.update(&bytes);
+                offset += block_size;
+
+                if offset >= size {
+                    break;
+                }
+            }
+        }
+
+        let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+        result.low &= Uid::METADATA_MASK;
+        result.low |= Uid::FILE_TYPE;
+        result.low |= (size as u128) & 0xffff_ffff;
+        Ok(result)
     }
 
     pub(crate) fn from_prefix_and_suffix(prefix: &str, suffix: &str) -> Result<Self, Error> {
@@ -117,9 +173,8 @@ impl Uid {
         format!("{:030x}{:032x}", self.high & 0xff_ffff_ffff_ffff_ffff_ffff_ffff_ffff, self.low)
     }
 
-    pub(crate) fn get_file_size(&self) -> Result<usize, Error> {
-        let low = format!("{:x}", self.low & 0xffff_ffff_ffff);
-        low.parse::<usize>().map_err(|_| Error::InvalidUid(self.to_string()))
+    pub(crate) fn get_data_size(&self) -> usize {
+        (self.low & 0xffff_ffff) as usize
     }
 }
 

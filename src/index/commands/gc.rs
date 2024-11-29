@@ -1,13 +1,10 @@
 use super::Index;
-use crate::INDEX_DIR_NAME;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{IMAGE_DIR_NAME, LOG_DIR_NAME};
+use crate::index::LOG_DIR_NAME;
 use crate::uid::Uid;
 use ragit_fs::{
-    extension,
     file_name,
-    join3,
     parent,
     read_dir,
     remove_file,

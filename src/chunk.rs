@@ -28,7 +28,6 @@ use ragit_fs::{
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sha3::{Digest, Sha3_256};
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 
@@ -334,14 +333,8 @@ impl Chunk {
             timestamp: Local::now().timestamp(),
             external_base: None,
         };
-        let uid_pile = format!("{}{}{}", result.data, result.title, result.summary);
-        let mut hasher = Sha3_256::new();
-        hasher.update(uid_pile.as_bytes());
-        let mut uid_str = format!("{:064x}", hasher.finalize()).as_bytes().to_vec();
-        // NOTE: a uid of a chunk must contain at least 1 alphabet in its last 12 characters
-        uid_str[63] = b'a';
-        result.uid = String::from_utf8(uid_str).unwrap().parse::<Uid>()?;
-
+        let chunk_uid = Uid::new_chunk(&result);
+        result.uid = chunk_uid;
         Ok(result)
     }
 }

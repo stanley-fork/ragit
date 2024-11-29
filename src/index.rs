@@ -25,7 +25,6 @@ use ragit_fs::{
     is_dir,
     join,
     join3,
-    join4,
     normalize,
     parent,
     read_bytes,
@@ -57,7 +56,7 @@ pub use commands::{
     RecoverResult,
 };
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
-pub use file::{FileReader, get_file_uid};
+pub use file::FileReader;
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
 
 pub const CONFIG_DIR_NAME: &str = "configs";

@@ -2,16 +2,14 @@ use super::Index;
 use crate::{ApiConfigRaw, QueryConfig};
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{BuildConfig, IMAGE_DIR_NAME, tfidf};
+use crate::index::{BuildConfig, tfidf};
 use crate::uid::{self, Uid};
 use ragit_api::JsonType;
 use ragit_fs::{
     basename,
-    extension,
     file_name,
     parent,
     read_bytes,
-    read_dir,
     read_string,
     set_extension,
 };
