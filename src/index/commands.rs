@@ -16,6 +16,11 @@ mod remove;
 mod reset;
 
 pub use add::{AddMode, AddResult};
-pub use ls::{RenderableFile, RenderableModel};
+pub use ls::{
+    LsChunk,
+    LsFile,
+    LsImage,
+    LsModel,
+};
 pub use meta::METADATA_FILE_NAME;
 pub use recover::RecoverResult;

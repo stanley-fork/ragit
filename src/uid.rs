@@ -188,12 +188,6 @@ impl Index {
         self.processed_files.values().map(|uid| *uid).collect()
     }
 
-    /// General purpose uid query for many commands: `ls-chunks`, `ls-files`, `tfidf --show` ...
-    ///
-    /// It first queries chunk uids and file uids that starts with `q`.
-    /// If no uid's found, it treats `q` like a file path and tries to
-    /// find a file uid of a file who has the uid. It doesn't do a
-    /// prefix-matching when querying file paths.
     pub fn uid_query(&self, q: UidQuery) -> Result<UidQueryResult, Error> {
         if q.query.is_empty() {
             return Ok(UidQueryResult::empty());

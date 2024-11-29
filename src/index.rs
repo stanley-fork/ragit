@@ -46,7 +46,16 @@ mod config;
 pub mod file;
 pub mod tfidf;
 
-pub use commands::{AddMode, AddResult, METADATA_FILE_NAME, RecoverResult, RenderableFile, RenderableModel};
+pub use commands::{
+    AddMode,
+    AddResult,
+    LsChunk,
+    LsFile,
+    LsImage,
+    LsModel,
+    METADATA_FILE_NAME,
+    RecoverResult,
+};
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, get_file_uid};
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};

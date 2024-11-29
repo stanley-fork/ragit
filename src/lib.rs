@@ -22,10 +22,12 @@ pub use index::{
     BuildConfig,
     Index,
     LoadMode,
+    LsChunk,
+    LsFile,
+    LsImage,
+    LsModel,
     ProcessedDoc,
     RecoverResult,
-    RenderableFile,
-    RenderableModel,
 };
 pub use query::{
     QueryConfig,

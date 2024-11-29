@@ -2,12 +2,12 @@ use async_recursion::async_recursion;
 use ragit::{
     AddMode,
     AddResult,
-    Chunk,
     Error,
     Index,
     INDEX_DIR_NAME,
     Keywords,
     LoadMode,
+    LsChunk,
     UidQuery,
     multi_turn,
     single_turn,
@@ -349,7 +349,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         return Ok(());
                     }
 
-                    chunks
+                    chunks.into_iter().map(|chunk| LsChunk::from(chunk)).collect()
                 },
                 None => {
                     if !uid_only {
@@ -362,12 +362,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                     index.list_chunks(
                         &|_| true,  // no filter
-                        &|mut chunk: Chunk| {
-                            // it's too big
-                            chunk.data = format!("{}", chunk.data.chars().count());
-                            chunk
-                        },
-                        &|chunk: &Chunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
+                        &|c| c,  // no map
+                        &|chunk: &LsChunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
                     )?
                 },
             };
@@ -379,9 +375,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 println!("----------");
-                println!("{}th chunk of {}", chunk.index, chunk.render_source());
+                println!("{}th chunk of {}", chunk.index, chunk.file);
                 println!("uid: {}", chunk.uid);
-                println!("character_len: {}", chunk.data);  // it's mapped above
+                println!("character_len: {}", chunk.character_len);
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }
@@ -407,12 +403,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                     for (path, uid) in query.get_processed_files() {
                         processed_files_len += 1;
-                        files.push(index.get_renderable_file(Some(path), Some(uid))?);
+                        files.push(index.get_ls_file(Some(path), Some(uid))?);
                     }
 
                     for path in query.get_staged_files() {
                         staged_files_len += 1;
-                        files.push(index.get_renderable_file(Some(path), None)?);
+                        files.push(index.get_ls_file(Some(path), None)?);
                     }
 
                     if files.is_empty() {
@@ -526,7 +522,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let mut result = Vec::with_capacity(image_uids.len());
 
                     for image_uid in image_uids.iter() {
-                        result.push(index.get_renderable_image(*image_uid)?);
+                        result.push(index.get_ls_image(*image_uid)?);
                     }
 
                     result

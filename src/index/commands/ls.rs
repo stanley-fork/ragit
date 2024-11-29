@@ -12,12 +12,33 @@ use ragit_fs::{
 use serde::Serialize;
 use serde_json::Value;
 
-// TODOs
-// 1. rename `RenderableXXX` to `LsXXX`.
-// 2. make `list_chunks` return `LsChunk` instead of `Chunk`.
+/// Convenient type for `ls-chunks`
+#[derive(Clone, Debug, Serialize)]
+pub struct LsChunk {
+    pub title: String,
+    pub summary: String,
+    pub character_len: usize,
+    pub file: String,
+    pub index: usize,
+    pub uid: Uid,
+}
 
-#[derive(Serialize)]
-pub struct RenderableFile {
+impl From<Chunk> for LsChunk {
+    fn from(c: Chunk) -> LsChunk {
+        LsChunk {
+            title: c.title.clone(),
+            summary: c.summary.clone(),
+            character_len: c.data.chars().count(),
+            file: c.file.clone(),
+            index: c.index,
+            uid: c.uid,
+        }
+    }
+}
+
+/// Convenient type for `ls-files`
+#[derive(Clone, Debug, Serialize)]
+pub struct LsFile {
     pub path: String,
 
     // if it's false, all the fields below have arbitrary values
@@ -28,9 +49,9 @@ pub struct RenderableFile {
     pub chunks: usize,
 }
 
-impl RenderableFile {
+impl LsFile {
     pub fn dummy() -> Self {
-        RenderableFile {
+        LsFile {
             path: String::new(),
             is_processed: false,
             length: 0,
@@ -40,8 +61,9 @@ impl RenderableFile {
     }
 }
 
-#[derive(Serialize)]
-pub struct RenderableModel {
+/// Convenient type for `ls-models`
+#[derive(Clone, Debug, Serialize)]
+pub struct LsModel {
     pub name: String,
     pub api_provider: String,
     pub api_key_env_var: Option<String>,
@@ -51,7 +73,9 @@ pub struct RenderableModel {
     pub explanation: String,
 }
 
-pub struct RenderableImage {
+/// Convenient type for `ls-images`
+#[derive(Clone, Debug, Serialize)]
+pub struct LsImage {
     pub uid: Uid,
     pub extracted_text: String,
     pub explanation: String,
@@ -69,11 +93,12 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Result<Vec<Chunk>, Error> where Filter: Fn(&Chunk) -> bool, Map: Fn(Chunk) -> Chunk, Sort: Fn(&Chunk) -> Key {
+    ) -> Result<Vec<LsChunk>, Error> where Filter: Fn(&LsChunk) -> bool, Map: Fn(LsChunk) -> LsChunk, Sort: Fn(&LsChunk) -> Key {
         let mut result = vec![];
 
         for chunk_file in self.get_all_chunk_files()? {
             let chunk = chunk::load_from_file(&chunk_file)?;
+            let chunk: LsChunk = chunk.into();
 
             if !filter(&chunk) {
                 continue;
@@ -94,20 +119,20 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Result<Vec<RenderableFile>, Error> where Filter: Fn(&RenderableFile) -> bool, Map: Fn(RenderableFile) -> RenderableFile, Sort: Fn(&RenderableFile) -> Key {
+    ) -> Result<Vec<LsFile>, Error> where Filter: Fn(&LsFile) -> bool, Map: Fn(LsFile) -> LsFile, Sort: Fn(&LsFile) -> Key {
         let mut result = vec![];
 
         for file in self.staged_files.iter() {
-            result.push(RenderableFile {
+            result.push(LsFile {
                 path: file.clone(),
                 is_processed: false,
-                ..RenderableFile::dummy()
+                ..LsFile::dummy()
             });
         }
 
         for (file, uid) in self.processed_files.iter() {
             let file_size = uid.get_file_size()?;
-            result.push(RenderableFile {
+            result.push(LsFile {
                 path: file.clone(),
                 is_processed: true,
                 length: file_size,
@@ -129,12 +154,12 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Vec<RenderableModel> where Filter: Fn(&RenderableModel) -> bool, Map: Fn(RenderableModel) -> RenderableModel, Sort: Fn(&RenderableModel) -> Key {
+    ) -> Vec<LsModel> where Filter: Fn(&LsModel) -> bool, Map: Fn(LsModel) -> LsModel, Sort: Fn(&LsModel) -> Key {
         let mut result = vec![];
 
         for model in ragit_api::ChatModel::all_kinds() {
             let api_provider = model.get_api_provider();
-            let renderable = RenderableModel {
+            let ls_model = LsModel {
                 name: model.to_human_friendly_name().to_string(),
                 api_provider: api_provider.as_str().to_string(),
                 api_key_env_var: api_provider.api_key_env_var().map(|v| v.to_string()),
@@ -144,12 +169,12 @@ impl Index {
                 explanation: model.explanation().to_string(),
             };
 
-            if !filter(&renderable) {
+            if !filter(&ls_model) {
                 continue;
             }
 
-            let renderable = map(renderable);
-            result.push(renderable);
+            let ls_model = map(ls_model);
+            result.push(ls_model);
         }
 
         result.sort_by_key(sort_key);
@@ -157,25 +182,25 @@ impl Index {
     }
 
     /// `rag ls-files`
-    pub fn get_renderable_file(&self, path: Option<String>, uid: Option<Uid>) -> Result<RenderableFile, Error> {
+    pub fn get_ls_file(&self, path: Option<String>, uid: Option<Uid>) -> Result<LsFile, Error> {
         if let Some(uid) = uid {
             for (path, uid_) in self.processed_files.iter() {
                 if uid == *uid_ {
-                    return Ok(self.get_renderable_file_worker(path.to_string(), uid)?);
+                    return Ok(self.get_ls_file_worker(path.to_string(), uid)?);
                 }
             }
         }
 
         if let Some(path) = &path {
             if let Some(uid) = self.processed_files.get(path) {
-                return Ok(self.get_renderable_file_worker(path.to_string(), *uid)?);
+                return Ok(self.get_ls_file_worker(path.to_string(), *uid)?);
             }
 
             if self.staged_files.contains(path) {
-                return Ok(RenderableFile {
+                return Ok(LsFile {
                     path: path.to_string(),
                     is_processed: false,
-                    ..RenderableFile::dummy()
+                    ..LsFile::dummy()
                 })
             }
         }
@@ -183,11 +208,11 @@ impl Index {
         Err(Error::NoSuchFile { path, uid })
     }
 
-    fn get_renderable_file_worker(&self, path: String, uid: Uid) -> Result<RenderableFile, Error> {
+    fn get_ls_file_worker(&self, path: String, uid: Uid) -> Result<LsFile, Error> {
         let file_size = uid.get_file_size()?;
         let chunks = self.get_chunks_of_file(uid).unwrap_or(vec![]).len();
 
-        Ok(RenderableFile {
+        Ok(LsFile {
             path,
             is_processed: true,
             length: file_size,
@@ -203,11 +228,11 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Result<Vec<RenderableImage>, Error> where Filter: Fn(&RenderableImage) -> bool, Map: Fn(RenderableImage) -> RenderableImage, Sort: Fn(&RenderableImage) -> Key {
+    ) -> Result<Vec<LsImage>, Error> where Filter: Fn(&LsImage) -> bool, Map: Fn(LsImage) -> LsImage, Sort: Fn(&LsImage) -> Key {
         let mut result = vec![];
 
         for image in self.get_all_image_files()? {
-            let image = self.get_renderable_image(file_name(&image)?.parse::<Uid>()?)?;
+            let image = self.get_ls_image(file_name(&image)?.parse::<Uid>()?)?;
 
             if !filter(&image) {
                 continue;
@@ -221,7 +246,7 @@ impl Index {
     }
 
     /// `rag ls-images`
-    pub fn get_renderable_image(&self, uid: Uid) -> Result<RenderableImage, Error> {
+    pub fn get_ls_image(&self, uid: Uid) -> Result<LsImage, Error> {
         let description_path = Index::get_image_path(
             &self.root_dir,
             uid,
@@ -233,7 +258,7 @@ impl Index {
 
         match description {
             Value::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
-                (Some(extracted_text), Some(explanation)) => Ok(RenderableImage {
+                (Some(extracted_text), Some(explanation)) => Ok(LsImage {
                     uid,
                     extracted_text: extracted_text.to_string(),
                     explanation: explanation.to_string(),
