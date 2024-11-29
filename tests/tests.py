@@ -100,8 +100,10 @@ Commands
 """
 
 if __name__ == "__main__":
-    command = sys.argv[1] if len(sys.argv) > 1 else None
-    test_model = sys.argv[2] if len(sys.argv) > 2 else None
+    no_clean = "--no-clean" in sys.argv
+    args = [arg for arg in sys.argv if arg != "--no-clean"]
+    command = args[1] if len(args) > 1 else None
+    test_model = args[2] if len(args) > 2 else None
 
     try:
         if command == "end_to_end":
@@ -213,7 +215,9 @@ if __name__ == "__main__":
                     }
 
                 finally:
-                    clean()
+                    if not no_clean:
+                        clean()
+
                     goto_root()
                     os.chdir("tests")
 
@@ -239,4 +243,5 @@ if __name__ == "__main__":
             print(help_message)
 
     finally:
-        clean()
+        if not no_clean:
+            clean()
