@@ -33,7 +33,7 @@
 mod char;
 mod constants;
 
-pub use char::자모;
+pub use char::한글;
 pub use constants::{
     CONSONANTS,
     VOWELS,

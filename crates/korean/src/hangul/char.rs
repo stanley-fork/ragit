@@ -7,12 +7,6 @@ use super::{
     초성s,
 };
 
-pub enum 자모 {
-    초성(u16),
-    중성(u16),
-    종성(u16),
-}
-
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct 한글 {
     pub 초성: u16,
