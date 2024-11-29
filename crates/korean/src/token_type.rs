@@ -34,17 +34,21 @@ pub fn get_token_type(token: &str) -> TokenType {
                     한글s.push(ch);
                 },
                 _ => {
+                    let char_vec = token.chars().collect::<Vec<_>>();
+                    let (first, second) = char_vec.split_at(index);
                     return TokenType::Mixed한글(vec![
-                        token.get(..index).unwrap().to_string(),
-                        token.get(index..).unwrap().to_string(),
+                        first.iter().collect(),
+                        second.iter().collect(),
                     ]);
                 },
             },
             TokenTypeParseState::ReadingNon한글 => match ch {
                 '가'..='힣' => {
+                    let char_vec = token.chars().collect::<Vec<_>>();
+                    let (first, second) = char_vec.split_at(index);
                     return TokenType::Mixed한글(vec![
-                        token.get(..index).unwrap().to_string(),
-                        token.get(index..).unwrap().to_string(),
+                        first.iter().collect(),
+                        second.iter().collect(),
                     ]);
                 },
                 _ => {

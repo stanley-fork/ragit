@@ -31,6 +31,9 @@ fn tokenize_korean() {
         ("너랑", vec!["너"]),
         ("널랑", vec!["널랑"]),
         ("abc", vec!["abc"]),
+
+        // TODO: it has to be `vec!["「", "형사소송법", "」"]`, but the current implementation has limitations
+        ("「형사소송법」", vec!["「", "형사소송법」"]),
     ];
 
     for (s, answer) in sample.into_iter() {
