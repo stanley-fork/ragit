@@ -9,7 +9,7 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 def checkout(version: str):
     commit_hashes = {
         "0.1.1": "a168d13af967",
-        "0.2.0": "8bd239e84d80",
+        "0.2.0": "a729cce8311c",
     }
 
     try:
