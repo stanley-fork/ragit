@@ -38,7 +38,6 @@ mod renderable;
 pub use build_info::ChunkBuildInfo;
 pub use renderable::RenderableChunk;
 
-pub type Path = String;
 pub const CHUNK_DIR_NAME: &str = "chunks";
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

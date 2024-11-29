@@ -5,7 +5,9 @@ use crate::index::{ChunkBuildInfo, FileReader, get_file_uid};
 use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
+    create_dir_all,
     exists,
+    parent,
     write_bytes,
 };
 use sha3::{Digest, Sha3_256};
@@ -66,8 +68,15 @@ impl Index {
                     //       The good new is that it doesn't run `self.add_image_description` multiple times
                     //       on the same image.
                     for (uid, bytes) in fd.images.iter() {
+                        let image_path = Index::get_image_path(&self.root_dir, *uid, "png");
+                        let parent_path = parent(&image_path)?;
+
+                        if !exists(&parent_path) {
+                            create_dir_all(&parent_path)?;
+                        }
+
                         write_bytes(
-                            &Index::get_image_path(&self.root_dir, *uid, "png"),
+                            &image_path,
                             &bytes,
                             WriteMode::CreateOrTruncate,
                         )?;

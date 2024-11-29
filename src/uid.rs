@@ -5,13 +5,16 @@ use crate::index::{FILE_INDEX_DIR_NAME, IMAGE_DIR_NAME, Index};
 use lazy_static::lazy_static;
 use ragit_fs::{
     WriteMode,
+    exists,
     extension,
     file_name,
     is_dir,
+    join,
     join3,
     join4,
     read_bytes,
     read_dir,
+    set_extension,
     write_string,
 };
 use regex::Regex;
@@ -62,7 +65,7 @@ pub fn load_from_file(path: &str) -> Result<Vec<Uid>, Error> {
             },
             Err(_) => Err(Error::CorruptedFile(path.to_string())),
         },
-        Some(b) => Err(Error::CorruptedFile(path.to_string())),
+        Some(_) => Err(Error::CorruptedFile(path.to_string())),
         None => Ok(vec![]),
     }
 }
@@ -116,7 +119,7 @@ impl Uid {
 
     pub(crate) fn get_file_size(&self) -> Result<usize, Error> {
         let low = format!("{:x}", self.low & 0xffff_ffff_ffff);
-        low.parse::<usize>().map_err(|e| Error::InvalidUid(self.to_string()))
+        low.parse::<usize>().map_err(|_| Error::InvalidUid(self.to_string()))
     }
 }
 
@@ -171,13 +174,21 @@ impl Index {
         Ok(result)
     }
 
-    // TODO: use 2-level structure, like others
     pub fn get_all_image_uids(&self) -> Result<Vec<Uid>, Error> {
         let mut result = vec![];
 
-        for image in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
-            if extension(&image).unwrap_or(None).unwrap_or(String::new()) == "png" {
-                result.push(file_name(&image)?.parse::<Uid>()?);
+        // TODO: search external bases
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
+            let prefix = file_name(&internal)?;
+
+            if !is_dir(&internal) {
+                continue;
+            }
+
+            for image_file in read_dir(&internal)? {
+                if extension(&image_file).unwrap_or(None).unwrap_or(String::new()) == "png" {
+                    result.push(Uid::from_prefix_and_suffix(&prefix, &file_name(&image_file)?)?);
+                }
             }
         }
 
@@ -239,6 +250,26 @@ impl Index {
                         }
                     }
                 }
+
+                if q.search_image {
+                    for image_dir in read_dir(&join3(
+                        &self.root_dir,
+                        INDEX_DIR_NAME,
+                        IMAGE_DIR_NAME,
+                    )?).unwrap_or(vec![]) {
+                        let image_prefix = file_name(&image_dir)?;
+
+                        if image_prefix.starts_with(&q.query) {
+                            for image_file in read_dir(&image_dir)? {
+                                if extension(&image_file)?.unwrap_or(String::new()) != "png" {
+                                    continue;
+                                }
+
+                                images.push(Uid::from_prefix_and_suffix(&image_prefix, &file_name(&image_file)?)?);
+                            }
+                        }
+                    }
+                }
             }
 
             else if q.query.len() == 2 {
@@ -267,54 +298,144 @@ impl Index {
                         file_uids.push(Uid::from_prefix_and_suffix(&q.query, &file_name(&file_index)?)?);
                     }
                 }
+
+                if q.search_image {
+                    for image_file in read_dir(&join4(
+                        &self.root_dir,
+                        INDEX_DIR_NAME,
+                        IMAGE_DIR_NAME,
+                        &q.query,
+                    )?).unwrap_or(vec![]) {
+                        if extension(&image_file)?.unwrap_or(String::new()) != "png" {
+                            continue;
+                        }
+
+                        images.push(Uid::from_prefix_and_suffix(&q.query, &file_name(&image_file)?)?);
+                    }
+                }
             }
 
-            // TODO: a small optimization: if q is 64 characters long, don't iterate
             else {
                 let prefix = q.query.get(0..2).unwrap().to_string();
                 let suffix = q.query.get(2..).unwrap().to_string();
 
                 if q.search_chunk {
-                    for chunk_file in read_dir(&join4(
-                        &self.root_dir,
-                        INDEX_DIR_NAME,
-                        CHUNK_DIR_NAME,
-                        &prefix,
-                    )?).unwrap_or(vec![]) {
-                        if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
-                            continue;
+                    if q.query.len() == 64 {
+                        let chunk_at = join(
+                            &join3(
+                                &self.root_dir,
+                                INDEX_DIR_NAME,
+                                CHUNK_DIR_NAME,
+                            )?,
+                            &join(
+                                &prefix,
+                                &set_extension(
+                                    &suffix,
+                                    "chunk",
+                                )?,
+                            )?,
+                        )?;
+
+                        if exists(&chunk_at) {
+                            chunks.push(q.query.parse::<Uid>()?);
                         }
+                    }
 
-                        let chunk_file = file_name(&chunk_file)?;
+                    else {
+                        for chunk_file in read_dir(&join4(
+                            &self.root_dir,
+                            INDEX_DIR_NAME,
+                            CHUNK_DIR_NAME,
+                            &prefix,
+                        )?).unwrap_or(vec![]) {
+                            if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
+                                continue;
+                            }
 
-                        if chunk_file.starts_with(&suffix) {
-                            chunks.push(Uid::from_prefix_and_suffix(&prefix, &chunk_file)?);
+                            let chunk_file = file_name(&chunk_file)?;
+
+                            if chunk_file.starts_with(&suffix) {
+                                chunks.push(Uid::from_prefix_and_suffix(&prefix, &chunk_file)?);
+                            }
                         }
                     }
                 }
 
                 if q.search_file_uid {
-                    for file_index in read_dir(&join4(
-                        &self.root_dir,
-                        INDEX_DIR_NAME,
-                        FILE_INDEX_DIR_NAME,
-                        &prefix,
-                    )?).unwrap_or(vec![]) {
-                        let file_index = file_name(&file_index)?;
+                    if q.query.len() == 64 {
+                        let file_index = join(
+                            &join3(
+                                &self.root_dir,
+                                INDEX_DIR_NAME,
+                                FILE_INDEX_DIR_NAME,
+                            )?,
+                            &join(
+                                &prefix,
+                                &suffix,
+                            )?,
+                        )?;
 
-                        if file_index.starts_with(&suffix) {
-                            file_uids.push(Uid::from_prefix_and_suffix(&prefix, &file_index)?);
+                        if exists(&file_index) {
+                            file_uids.push(q.query.parse::<Uid>()?);
+                        }
+                    }
+
+                    else {
+                        for file_index in read_dir(&join4(
+                            &self.root_dir,
+                            INDEX_DIR_NAME,
+                            FILE_INDEX_DIR_NAME,
+                            &prefix,
+                        )?).unwrap_or(vec![]) {
+                            let file_index = file_name(&file_index)?;
+
+                            if file_index.starts_with(&suffix) {
+                                file_uids.push(Uid::from_prefix_and_suffix(&prefix, &file_index)?);
+                            }
                         }
                     }
                 }
-            }
-        }
 
-        // TODO: impl 2-level structure for images, then put this in the loop above
-        if q.search_image {
-            for image_file in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
-                if extension(&image_file).unwrap_or(None).unwrap_or(String::new()) == "png" && file_name(&image_file)?.starts_with(&q.query) {
-                    images.push(file_name(&image_file)?.parse::<Uid>()?);
+                if q.search_image {
+                    if q.query.len() == 64 {
+                        let image_at = join(
+                            &join3(
+                                &self.root_dir,
+                                INDEX_DIR_NAME,
+                                IMAGE_DIR_NAME,
+                            )?,
+                            &join(
+                                &prefix,
+                                &set_extension(
+                                    &suffix,
+                                    "png",
+                                )?,
+                            )?,
+                        )?;
+
+                        if exists(&image_at) {
+                            images.push(q.query.parse::<Uid>()?);
+                        }
+                    }
+
+                    else {
+                        for image_file in read_dir(&join4(
+                            &self.root_dir,
+                            INDEX_DIR_NAME,
+                            IMAGE_DIR_NAME,
+                            &prefix,
+                        )?).unwrap_or(vec![]) {
+                            if extension(&image_file)?.unwrap_or(String::new()) != "png" {
+                                continue;
+                            }
+
+                            let image_file = file_name(&image_file)?;
+
+                            if image_file.starts_with(&suffix) {
+                                images.push(Uid::from_prefix_and_suffix(&prefix, &image_file)?);
+                            }
+                        }
+                    }
                 }
             }
         }

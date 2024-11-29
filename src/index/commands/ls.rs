@@ -6,6 +6,7 @@ use ragit_api::JsonType;
 use ragit_fs::{
     file_name,
     file_size,
+    parent,
     read_string,
     set_extension,
 };
@@ -232,7 +233,10 @@ impl Index {
         let mut result = vec![];
 
         for image in self.get_all_image_files()? {
-            let image = self.get_ls_image(file_name(&image)?.parse::<Uid>()?)?;
+            let image = self.get_ls_image(Uid::from_prefix_and_suffix(
+                &file_name(&parent(&image)?)?,
+                &file_name(&image)?,
+            )?)?;
 
             if !filter(&image) {
                 continue;

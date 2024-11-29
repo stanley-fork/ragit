@@ -29,7 +29,7 @@ impl Index {
     /// - Check C: Files in `self.processed_files + self.staged_files + self.curr_processing_file` are unique.
     /// - Check D: `self.chunk_count` has a correct number.
     /// - Check E: Images in chunks are in `.ragit/images`.
-    ///   - If there's and image that belongs to no chunks, that's not an error. Just run `rag gc --images`. (TODO: not implemented yet)
+    ///   - If there's and image that belongs to no chunks, that's not an error. Just run `rag gc --images`.
     /// - Check F: Images in `.ragit/images` are not corrupted, and has a proper description file.
     /// - Check G: Config files are not broken.
     pub fn check(&self, recursive: bool) -> Result<(), Error> {
@@ -55,7 +55,7 @@ impl Index {
             chunk_count += 1;
 
             for image in chunk.images.iter() {
-                images.insert(image.to_string(), false /* exists */);
+                images.insert(*image, false /* exists */);
             }
 
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
@@ -124,18 +124,14 @@ impl Index {
             return Err(Error::BrokenIndex(format!("self.chunk_count is {}, but the actual number is {chunk_count}", self.chunk_count)));
         }
 
-        for image_file in read_dir(&Index::get_rag_path(
-            &self.root_dir,
-            &IMAGE_DIR_NAME.to_string(),
-        ))? {
-            if extension(&image_file)?.unwrap_or(String::new()) == "json" {
-                continue;
-            }
-
-            let image_file_hash = file_name(&image_file)?;
+        for image_file in self.get_all_image_files()? {
+            let image_uid = Uid::from_prefix_and_suffix(
+                &file_name(&parent(&image_file)?)?,
+                &file_name(&image_file)?,
+            )?;
             let image_description_path = set_extension(&image_file, "json")?;
 
-            match images.get_mut(&image_file_hash) {
+            match images.get_mut(&image_uid) {
                 Some(exists) => { *exists = true; },
                 None => {
                     // NOTE: it's not an error. see the comments above.

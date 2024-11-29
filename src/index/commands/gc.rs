@@ -8,8 +8,10 @@ use ragit_fs::{
     extension,
     file_name,
     join3,
+    parent,
     read_dir,
     remove_file,
+    set_extension,
 };
 use std::collections::HashSet;
 
@@ -45,16 +47,16 @@ impl Index {
             }
         }
 
-        for file in read_dir(&join3(
-            &self.root_dir,
-            INDEX_DIR_NAME,
-            IMAGE_DIR_NAME,
-        )?)? {
-            let uid = file_name(&file)?.parse::<Uid>()?;
+        for image_file in self.get_all_image_files()? {
+            let uid = Uid::from_prefix_and_suffix(
+                &file_name(&parent(&image_file)?)?,
+                &file_name(&image_file)?,
+            )?;
 
             if !all_images.contains(&uid) {
-                remove_file(&file)?;
-                count += 1;
+                remove_file(&image_file)?;
+                remove_file(&set_extension(&image_file, "json")?)?;
+                count += 2;
             }
         }
 

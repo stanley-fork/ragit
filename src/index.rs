@@ -376,9 +376,15 @@ impl Index {
         let mut result = vec![];
 
         // TODO: search external bases
-        for image_file in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
-            if extension(&image_file).unwrap_or(None).unwrap_or(String::new()) == "png" {
-                result.push(image_file.to_string());
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
+            if !is_dir(&internal) {
+                continue;
+            }
+
+            for image_file in read_dir(&internal)? {
+                if extension(&image_file).unwrap_or(None).unwrap_or(String::new()) == "png" {
+                    result.push(image_file.to_string());
+                }
             }
         }
 
@@ -405,6 +411,12 @@ impl Index {
     async fn add_image_description(&self, uid: Uid) -> Result<(), Error> {
         let description_path = Index::get_image_path(&self.root_dir, uid, "json");
         let image_path = Index::get_image_path(&self.root_dir, uid, "png");
+        let parent_path = parent(&image_path)?;
+
+        if !exists(&parent_path) {
+            create_dir_all(&parent_path)?;
+        }
+
         let image_bytes = read_bytes(&image_path)?;
         let image_bytes = encode_base64(&image_bytes);
 
@@ -680,14 +692,22 @@ impl Index {
         ).unwrap()
     }
 
-    // TODO: it has to be 2-level, like chunks and file_indexes
-    fn get_image_path(root_dir: &str, uid: Uid, extension: &str) -> Path {
-        normalize(
-            &join4(
-                root_dir,
-                &INDEX_DIR_NAME.to_string(),
-                &IMAGE_DIR_NAME.to_string(),
-                &set_extension(&uid.to_string(), extension).unwrap(),
+    // root_dir/.ragit/image_index/image_uid_prefix/image_uid_suffix
+    fn get_image_path(root_dir: &str, image_uid: Uid, extension: &str) -> Path {
+        let images_at = join3(
+            root_dir,
+            &INDEX_DIR_NAME,
+            &IMAGE_DIR_NAME,
+        ).unwrap();
+        let image_uid_prefix = image_uid.get_prefix();
+        let image_uid_suffix = image_uid.get_suffix();
+
+        join3(
+            &images_at,
+            &image_uid_prefix,
+            &set_extension(
+                &image_uid_suffix,
+                extension,
             ).unwrap(),
         ).unwrap()
     }
