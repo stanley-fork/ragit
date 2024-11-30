@@ -53,6 +53,7 @@ impl FileReaderImpl for MarkdownReader {
             }
 
             if buffer.len() > 16 && !has_unknown_link_reference(&self.link_reference_definitions, &buffer) {
+                buffer.push(StringOrImage::String(line));
                 self.consume_buffer(buffer)?;
                 break;
             }
