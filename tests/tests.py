@@ -176,11 +176,9 @@ if __name__ == "__main__":
                 },
             }
             tests = [
-                ("external_bases", external_bases),
                 ("add_and_rm", add_and_rm),
                 ("recover", recover),
                 ("clone", clone),
-                ("migrate", migrate),
                 ("many_chunks", many_chunks),
                 ("ls", ls),
                 ("cat_file", cat_file),
@@ -188,6 +186,7 @@ if __name__ == "__main__":
                 ("markdown_reader", markdown_reader),
                 ("cargo_tests", cargo_tests),
                 ("tfidf", tfidf),
+                ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
@@ -199,6 +198,7 @@ if __name__ == "__main__":
                 ("ragit_api llama3.2-11b-groq", lambda: ragit_api(test_model="llama3.2-11b-groq")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
                 ("ragit_api phi-3-14b-ollama", lambda: ragit_api(test_model="phi-3-14b-ollama")),
+                ("migrate", migrate),
             ]
 
             for name, test in tests:
