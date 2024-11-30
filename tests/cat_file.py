@@ -13,7 +13,7 @@ def cat_file():
 
     for i in range(10):
         # for now, ragit chooses file reader based on file extensions
-        for ext in ["md", "txt", "csv"]:
+        for ext in ["md", "txt"]:
             file_name = f"{i}.{ext}"
             file_content = "".join([rand_word() + (" " if random() < 0.8 else "\n") for _ in range(i * 20)])
             write_string(file_name, file_content)

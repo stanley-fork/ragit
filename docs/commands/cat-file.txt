@@ -13,3 +13,8 @@ SYNOPSIS
 DESCRIPTION
 -----------
 This command dump the contents of a file or a chunk.
+
+It doesn't always dump the exact content of the file, and that's intentional.
+For example, the default csv reader prepends csv header to each chunk in order
+to give more context to LLMs. `cat-file` works by merging chunks and it's not
+smart enough to remove the redundant lines.
