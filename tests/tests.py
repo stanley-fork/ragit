@@ -1,5 +1,6 @@
 from add_and_rm import add_and_rm
 from cargo_tests import cargo_tests
+from cat_file import cat_file
 from clone import clone
 from end_to_end import end_to_end
 from external_bases import external_bases
@@ -67,6 +68,8 @@ Commands
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
 
+    cat-file                    run `cat-file` test
+
     images                      run `images` test
                                 It creates a markdown file with images and check
                                 whether the markdown reader can parse the file
@@ -131,6 +134,9 @@ if __name__ == "__main__":
         elif command == "ls":
             ls()
 
+        elif command == "cat_file":
+            cat_file()
+
         elif command == "images":
             images()
 
@@ -177,6 +183,7 @@ if __name__ == "__main__":
                 ("migrate", migrate),
                 ("many_chunks", many_chunks),
                 ("ls", ls),
+                ("cat_file", cat_file),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
                 ("cargo_tests", cargo_tests),

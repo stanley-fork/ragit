@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RenderableChunk {
-    data: String,
-    source: String,
+    pub data: String,
+    pub source: String,
 }
 
 impl RenderableChunk {

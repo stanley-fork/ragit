@@ -14,6 +14,7 @@ from utils import (
 def create_doc_with_magic_words(magic_word1: str, magic_word2: str) -> str:
     return "\n".join([magic_word1] + ["aaaa" for _ in range(randint(500, 3000))] + [magic_word2])
 
+# TODO: test with empty files
 def ls():
     rand_seed(0)
     goto_root()

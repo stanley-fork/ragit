@@ -1,0 +1,15 @@
+rag-cat-file(1)
+==========
+
+NAME
+----
+rag-cat-file - Show content of a file or a chunk
+
+SYNOPSIS
+--------
+[verse]
+'rag cat-file' <uid>
+
+DESCRIPTION
+-----------
+This command dump the contents of a file or a chunk.

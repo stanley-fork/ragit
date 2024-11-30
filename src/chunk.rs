@@ -339,8 +339,7 @@ impl Chunk {
     }
 }
 
-// TODO: merging chunks is not tested yet
-pub(crate) fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
+pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
 

@@ -640,6 +640,17 @@ impl UidQueryResult {
     }
 
     /// It returns `Some` iff there's only 1 match.
+    pub fn get_staged_file(&self) -> Option<String> {
+        if self.staged_files.len() == 1 {
+            Some(self.staged_files[0].clone())
+        }
+
+        else {
+            None
+        }
+    }
+
+    /// It returns `Some` iff there's only 1 match.
     pub fn get_chunk_uid(&self) -> Option<Uid> {
         if self.chunks.len() == 1 {
             Some(self.chunks[0])

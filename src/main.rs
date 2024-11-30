@@ -9,6 +9,7 @@ use ragit::{
     LoadMode,
     LsChunk,
     UidQuery,
+    merge_and_convert_chunks,
     multi_turn,
     single_turn,
 };
@@ -119,6 +120,59 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             index.build().await?;
+        },
+        Some("cat-file") => {
+            let parsed_args = ArgParser::new().args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/cat-file.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let query = parsed_args.get_args_exact(1)?[0].clone();
+            let query_result = index.uid_query(UidQuery::with_query(query.clone()).file_or_chunk())?;
+
+            if query_result.has_multiple_matches() {
+                return Err(Error::UidQueryError(format!("There're multiple file/chunk that match `{query}`. Please give more specific query.")));
+            }
+
+            else if let Some(uid) = query_result.get_chunk_uid() {
+                let chunk = index.get_chunk_by_uid(uid)?;
+                println!("{}", chunk.data);
+            }
+
+            else if let Some((_, uid)) = query_result.get_processed_file() {
+                let chunk_uids = index.get_chunks_of_file(uid)?;
+                let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+                for chunk_uid in chunk_uids {
+                    chunks.push(index.get_chunk_by_uid(chunk_uid)?);
+                }
+
+                chunks.sort_by_key(|chunk| chunk.index);
+                let chunks = merge_and_convert_chunks(&index, chunks)?;
+
+                match chunks.len() {
+                    0 => {
+                        // empty file
+                    },
+                    1 => {
+                        println!("{}", chunks[0].data);
+                    },
+                    _ => {
+                        return Err(Error::BrokenIndex(String::from("Assertion error: `merge_and_convert_chunks` failed to merge chunks of a file. It's likely to be a bug, please open an issue.")));
+                    },
+                }
+            }
+
+            else if let Some(f) = query_result.get_staged_file() {
+                return Err(Error::UidQueryError(format!("`{f}` has no chunks yet. Please run `rag build`.")));
+            }
+
+            else {
+                return Err(Error::UidQueryError(format!("There's no file/chunk that matches `{query}`.")));
+            }
         },
         Some("check") => {
             let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).optional_flag(&["--recover"]).parse(&args[2..])?;
