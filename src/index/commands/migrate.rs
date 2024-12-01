@@ -140,7 +140,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     )?;
     let j = read_string(&index_at)?;
     let mut j = serde_json::from_str::<Value>(&j)?;
-    let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{52})[0-9a-f]{12}$").unwrap();
+    let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{48})[0-9a-f]{16}$").unwrap();
     let uid_re = Regex::new(r"[0-9a-z]{64}").unwrap();
     let mut processed_files_cache;
 
