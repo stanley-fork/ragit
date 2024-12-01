@@ -20,13 +20,13 @@ use std::hash::Hash;
 use std::io::Read;
 
 type Path = String;
-type Keyword = String;
+type Term = String;
 type Weight = f32;
 
 pub struct TfIdfState<DocId> {
-    keywords: HashMap<Keyword, Weight>,
-    tf: HashMap<(DocId, Keyword), f32>,
-    keyword_in_doc: HashMap<Keyword, usize>,
+    terms: HashMap<Term, Weight>,
+    term_frequency: HashMap<(DocId, Term), f32>,
+    document_frequency: HashMap<Term, usize>,
     docs: Vec<DocId>,
 }
 
@@ -39,7 +39,7 @@ pub struct TfIdfResult<DocId: Clone> {
 #[derive(Clone, Debug, Deserialize, Eq, Serialize, PartialEq)]
 pub struct ProcessedDoc {
     pub uid: Option<Uid>,
-    pub tokens: HashMap<String, usize>,
+    pub term_frequency: HashMap<Term, usize>,
     length: usize,
 }
 
@@ -91,22 +91,22 @@ impl ProcessedDoc {
         uid: Uid,
         doc_content: &str,
     ) -> Self {
-        let mut tokens = HashMap::new();
+        let mut term_frequency = HashMap::new();
         let mut length = 0;
 
-        for token in tokenize(doc_content) {
+        for term in tokenize(doc_content) {
             length += 1;
 
-            match tokens.get_mut(&token) {
+            match term_frequency.get_mut(&term) {
                 Some(n) => { *n += 1; },
-                None => { tokens.insert(token, 1); },
+                None => { term_frequency.insert(term, 1); },
             }
         }
 
         ProcessedDoc {
             uid: Some(uid),
             length,
-            tokens,
+            term_frequency,
         }
     }
 
@@ -114,7 +114,7 @@ impl ProcessedDoc {
         ProcessedDoc {
             uid: None,
             length: 0,
-            tokens: HashMap::new(),
+            term_frequency: HashMap::new(),
         }
     }
 
@@ -125,20 +125,20 @@ impl ProcessedDoc {
 
         self.length += other.length;
 
-        for (token, count) in other.tokens.iter() {
-            match self.tokens.get_mut(token) {
+        for (term, count) in other.term_frequency.iter() {
+            match self.term_frequency.get_mut(term) {
                 Some(n) => { *n += *count; },
-                None => { self.tokens.insert(token.clone(), *count); },
+                None => { self.term_frequency.insert(term.clone(), *count); },
             }
         }
     }
 
-    pub fn get(&self, token: &str) -> Option<usize> {
-        self.tokens.get(token).copied()
+    pub fn get(&self, term: &str) -> Option<usize> {
+        self.term_frequency.get(term).copied()
     }
 
-    pub fn contains_key(&self, token: &str) -> bool {
-        self.tokens.contains_key(token)
+    pub fn contains_term(&self, term: &str) -> bool {
+        self.term_frequency.contains_key(term)
     }
 
     pub fn length(&self) -> usize {
@@ -148,14 +148,14 @@ impl ProcessedDoc {
     pub fn render(&self) -> String {
         let mut lines = vec![];
         lines.push(format!("uid: {}", if let Some(u) = &self.uid { u.to_string() } else { String::from("None (not from a single chunk)") }));
-        lines.push(format!("tokens: {}", self.length));
+        lines.push(format!("terms: {}", self.length));
         lines.push(String::from("term-frequency:"));
 
-        let mut pairs: Vec<_> = self.tokens.iter().collect();
+        let mut pairs: Vec<_> = self.term_frequency.iter().collect();
         pairs.sort_by_key(|(_, count)| usize::MAX - *count);
 
-        for (token, count) in pairs.iter() {
-            lines.push(format!("    {token:?}: {count}"));
+        for (term, count) in pairs.iter() {
+            lines.push(format!("    {term:?}: {count}"));
         }
 
         lines.join("\n")
@@ -165,9 +165,9 @@ impl ProcessedDoc {
 impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
     pub fn new(keywords: &Keywords) -> Self {
         TfIdfState {
-            keywords: keywords.tokenize(),
-            tf: HashMap::new(),
-            keyword_in_doc: HashMap::new(),
+            terms: keywords.tokenize(),
+            term_frequency: HashMap::new(),
+            document_frequency: HashMap::new(),
             docs: vec![],
         }
     }
@@ -178,17 +178,17 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         processed_doc: &ProcessedDoc,
     ) {
 
-        for (keyword, _) in self.keywords.clone().iter() {
-            if processed_doc.contains_key(keyword) {
-                match self.keyword_in_doc.get_mut(keyword) {
+        for (term, _) in self.terms.clone().iter() {
+            if processed_doc.contains_term(term) {
+                match self.document_frequency.get_mut(term) {
                     Some(n) => { *n += 1; },
-                    None => { self.keyword_in_doc.insert(keyword.to_string(), 1); },
+                    None => { self.document_frequency.insert(term.to_string(), 1); },
                 }
             }
 
-            self.tf.insert(
-                (doc_id.clone(), keyword.to_string()),
-                processed_doc.get(keyword).unwrap_or(0) as f32 / processed_doc.length() as f32,
+            self.term_frequency.insert(
+                (doc_id.clone(), term.to_string()),
+                processed_doc.get(term).unwrap_or(0) as f32 / processed_doc.length() as f32,
             );
         }
 
@@ -198,19 +198,15 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
     pub fn get_top(&self, max_len: usize) -> Vec<TfIdfResult<DocId>> {
         let mut tfidfs: HashMap<DocId, f32> = HashMap::new();
 
-        for (keyword, weight) in self.keywords.iter() {
+        for (term, weight) in self.terms.iter() {
             let idf = if self.docs.len() > 1 {
-                ((self.docs.len() as f32 + 1.0) / (*self.keyword_in_doc.get(keyword).unwrap_or(&0) as f32 + 1.0)).log2()
+                ((self.docs.len() as f32 + 1.0) / (*self.document_frequency.get(term).unwrap_or(&0) as f32 + 1.0)).log2()
             } else {
                 1.0
             };
 
             for doc in self.docs.iter() {
-                let tfidf = *self.tf.get(&(doc.clone(), keyword.to_string())).unwrap_or(&0.0) * idf;
-
-                // #[cfg(test)] {
-                //     println!("{doc:?}/{keyword}: {}", tfidf * 1000.0);
-                // }
+                let tfidf = *self.term_frequency.get(&(doc.clone(), term.to_string())).unwrap_or(&0.0) * idf;
 
                 if tfidf == 0.0 {
                     continue;

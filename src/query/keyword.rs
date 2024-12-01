@@ -47,11 +47,11 @@ impl Keywords {
 
         for (keyword, weight) in self.with_weights() {
             for token in tokenize(&keyword) {
-                match tokens.get(&token) {
-                    Some(w) if *w > weight => {
-                        // nop
+                match tokens.get_mut(&token) {
+                    Some(w) => {
+                        *w += weight;
                     },
-                    _ => {
+                    None => {
                         tokens.insert(token, weight);
                     },
                 }

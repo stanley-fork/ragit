@@ -3,26 +3,26 @@ use crate::jamo::자모;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-enum TokenType {
+enum TermKind {
     종성Term,
     Non종성Term,
     Any,
 
-    // represents a TokenType that's lowered from `종성Term` or `Non종성Term`, by `flatten_token_types`.
+    // represents a TermKind that's lowered from `종성Term` or `Non종성Term`, by `flatten_term_kinds`.
     Offset,
 }
 
 // cargo run --release > fsm.rs; mv fsm.rs src/fsm.rs; cargo test --release -- --nocapture
 pub fn gen_fsm(debug: bool) {
     let rules = vec![
-        (TokenType::종성Term, vec![vec!["은", "이", "을", "과", "으로", "이랑", "이라고"]]),
-        (TokenType::Non종성Term, vec![vec!["는", "가", "를", "와", "랑", "라고"]]),
-        (TokenType::Any, vec![vec!["의", "만", "도", "에", "에서", "로", "까지", "부터", "한테", "하고", "께"]]),
-        (TokenType::Any, vec![vec!["이", "하"], vec!["ㅂ니다", "ㄴ데", "ㄴ지", "고", "면", "다", "지만"]]),
+        (TermKind::종성Term, vec![vec!["은", "이", "을", "과", "으로", "이랑", "이라고"]]),
+        (TermKind::Non종성Term, vec![vec!["는", "가", "를", "와", "랑", "라고"]]),
+        (TermKind::Any, vec![vec!["의", "만", "도", "에", "에서", "로", "까지", "부터", "한테", "하고", "께"]]),
+        (TermKind::Any, vec![vec!["이", "하"], vec!["ㅂ니다", "ㄴ데", "ㄴ지", "고", "면", "다", "지만"]]),
     ];
 
     let rules = disassemble_자모s(rules);
-    let rules = flatten_token_types(rules);
+    let rules = flatten_term_kinds(rules);
     let rules = flatten_rules1(rules);
     let rules = flatten_rules2(rules);
     let states = build_states(rules);
@@ -31,10 +31,10 @@ pub fn gen_fsm(debug: bool) {
     println!("{code}");
 }
 
-fn disassemble_자모s(rules: Vec<(TokenType, Vec<Vec<&str>>)>) -> Vec<(TokenType, Vec<Vec<Vec<자모>>>)> {
+fn disassemble_자모s(rules: Vec<(TermKind, Vec<Vec<&str>>)>) -> Vec<(TermKind, Vec<Vec<Vec<자모>>>)> {
     rules.into_iter().map(
-        |(token, suffix)| (
-            token,
+        |(term, suffix)| (
+            term,
             suffix.into_iter().map(
                 |ss| ss.into_iter().map(
                     |s| {
@@ -65,22 +65,22 @@ fn disassemble_자모s(rules: Vec<(TokenType, Vec<Vec<&str>>)>) -> Vec<(TokenTyp
 }
 
 // (종성Term, [[은, 이, 을, 과]]) -> (Any, [[ㄱ, ㄴ, ㄷ, ...], [은, 이, 을, 과]])
-fn flatten_token_types(mut rules: Vec<(TokenType, Vec<Vec<Vec<자모>>>)>) -> Vec<(TokenType, Vec<Vec<Vec<자모>>>)> {
+fn flatten_term_kinds(mut rules: Vec<(TermKind, Vec<Vec<Vec<자모>>>)>) -> Vec<(TermKind, Vec<Vec<Vec<자모>>>)> {
     let 중성_자모s = 중성s.iter().map(|j| vec![자모::중성(*j)]).collect::<Vec<_>>();
     let 종성_자모s = 종성s.iter().map(|j| vec![자모::종성(*j)]).collect::<Vec<_>>();
 
-    for (token, suffixes) in rules.iter_mut() {
-        match token {
-            TokenType::종성Term => {
+    for (term, suffixes) in rules.iter_mut() {
+        match term {
+            TermKind::종성Term => {
                 suffixes.insert(0, 종성_자모s.clone());
-                *token = TokenType::Offset;
+                *term = TermKind::Offset;
             },
-            TokenType::Non종성Term => {
+            TermKind::Non종성Term => {
                 suffixes.insert(0, 중성_자모s.clone());
-                *token = TokenType::Offset;
+                *term = TermKind::Offset;
             },
-            TokenType::Any => {},
-            TokenType::Offset => unreachable!(),
+            TermKind::Any => {},
+            TermKind::Offset => unreachable!(),
         }
     }
 
@@ -88,13 +88,13 @@ fn flatten_token_types(mut rules: Vec<(TokenType, Vec<Vec<Vec<자모>>>)>) -> Ve
 }
 
 // [[이, 하], [ㅂ니다, ㄴ데, ㄴ지, 고]] -> [입니다, 인데, 인지, 이고, 합니다, 한데, 한지, 하고]
-fn flatten_rules1(rules: Vec<(TokenType, Vec<Vec<Vec<자모>>>)>) -> Vec<(TokenType, Vec<Vec<자모>>)> {
+fn flatten_rules1(rules: Vec<(TermKind, Vec<Vec<Vec<자모>>>)>) -> Vec<(TermKind, Vec<Vec<자모>>)> {
     let mut result = Vec::with_capacity(rules.len());
 
-    for (token, mut suffix) in rules.into_iter() {
+    for (term, mut suffix) in rules.into_iter() {
         loop {
             if suffix.len() == 1 {
-                result.push((token, suffix[0].clone()));
+                result.push((term, suffix[0].clone()));
                 break;
             }
 
@@ -120,12 +120,12 @@ fn flatten_rules1(rules: Vec<(TokenType, Vec<Vec<Vec<자모>>>)>) -> Vec<(TokenT
     result
 }
 
-fn flatten_rules2(rules: Vec<(TokenType, Vec<Vec<자모>>)>) -> Vec<(TokenType, Vec<자모>)> {
+fn flatten_rules2(rules: Vec<(TermKind, Vec<Vec<자모>>)>) -> Vec<(TermKind, Vec<자모>)> {
     let mut result = vec![];
 
-    for (token, suffixes) in rules.into_iter() {
+    for (term, suffixes) in rules.into_iter() {
         for suffix in suffixes.into_iter() {
-            result.push((token, suffix));
+            result.push((term, suffix));
         }
     }
 
@@ -136,12 +136,12 @@ type StateId = usize;
 
 #[derive(Debug)]
 struct State {
-    remaining_units: Vec<(TokenType, Vec<자모>)>,
+    remaining_units: Vec<(TermKind, Vec<자모>)>,
     transitions: HashMap<자모, StateId>,
-    terminations: Vec<TokenType>,
+    terminations: Vec<TermKind>,
 }
 
-fn build_states(units: Vec<(TokenType, Vec<자모>)>) -> Vec<State> {
+fn build_states(units: Vec<(TermKind, Vec<자모>)>) -> Vec<State> {
     let mut result = vec![];
     result.push(
         State {
@@ -157,14 +157,14 @@ fn build_states(units: Vec<(TokenType, Vec<자모>)>) -> Vec<State> {
         for (state_id, state) in result.iter_mut().enumerate() {
             let mut terminations = vec![];
 
-            for (token, 자모s) in state.remaining_units.iter() {
+            for (term, 자모s) in state.remaining_units.iter() {
                 if !자모s.is_empty() {
                     let mut 자모s = 자모s.clone();
-                    transitions.push((state_id, 자모s.pop().unwrap(), (*token, 자모s)));
+                    transitions.push((state_id, 자모s.pop().unwrap(), (*term, 자모s)));
                 }
 
                 else {
-                    terminations.push(*token);
+                    terminations.push(*term);
                 }
             }
 
@@ -260,10 +260,10 @@ fn generate_code(states: Vec<State>, debug: bool) -> String {
             assert_eq!(state.terminations.len(), 1);
 
             match state.terminations[0] {
-                TokenType::Any => {
+                TermKind::Any => {
                     lines.push((4, format!("_ => {} break count - 1; {},", "{", "}")));
                 },
-                TokenType::Offset => {
+                TermKind::Offset => {
                     lines.push((4, format!("_ => {} break count - 2; {},", "{", "}")));
                 },
                 _ => unreachable!(),

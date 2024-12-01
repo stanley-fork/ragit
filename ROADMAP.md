@@ -7,7 +7,7 @@
   - [ ] Better help messages and documents
 - [ ] Search Optimization
   - [ ] K-V database for an inverted index
-    - K: token, V: chunk_file
+    - K: term, V: chunk_file
   - [ ] Custom file format for chunk_index files
 - [ ] More user-friendly commands
   - [ ] `rag ls-bases`
