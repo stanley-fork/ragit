@@ -301,6 +301,21 @@ pub fn remove_dir_all(path: &str) -> Result<(), FileError> {
     fs::remove_dir_all(path).map_err(|e| FileError::from_std(e, path))
 }
 
+pub fn into_abs_path(path: &str) -> Result<String, FileError> {
+    let std_path = Path::new(path);
+
+    if std_path.is_absolute() {
+        Ok(path.to_string())
+    }
+
+    else {
+        Ok(join(
+            &current_dir()?,
+            path,
+        )?)
+    }
+}
+
 pub fn current_dir() -> Result<String, FileError> {
     let cwd = std::env::current_dir().map_err(|e| FileError::from_std(e, "."))?;
 

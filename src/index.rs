@@ -18,10 +18,10 @@ use ragit_api::{
 use ragit_fs::{
     WriteMode,
     create_dir_all,
-    current_dir,
     diff,
     exists,
     extension,
+    into_abs_path,
     is_dir,
     join,
     join3,
@@ -128,6 +128,7 @@ impl Index {
         root_dir: Path,
     ) -> Result<Self, Error> {
         let index_dir = join(&root_dir, INDEX_DIR_NAME)?;
+        let root_dir = normalize(&into_abs_path(&root_dir)?)?;
 
         if exists(&index_dir) {
             return Err(Error::IndexAlreadyExists(index_dir));
@@ -234,6 +235,7 @@ impl Index {
     /// It only loads `index.json`. No config files, no prompt files, and it doesn't care whether chunk files are broken or not.
     /// It's for `rag check --recover`: it only loads minimum data and the recover function will load or fix the others.
     fn load_minimum(root_dir: Path) -> Result<Self, Error> {
+        let root_dir = normalize(&into_abs_path(&root_dir)?)?;
         let index_json = read_string(&Index::get_rag_path(
             &root_dir,
             &INDEX_FILE_NAME.to_string(),
@@ -638,19 +640,11 @@ impl Index {
 
     pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Result<Path, Error> {
         Ok(diff(
+            // in order to calc diff, it needs a full path
             &normalize(
-                // in order to calc diff, it needs a full path
-                &join(
-                    &current_dir()?,
-                    &real_path,
-                )?,
+                &into_abs_path(real_path)?,
             )?,
-            &normalize(
-                &join(
-                    &current_dir()?,
-                    &root_dir,
-                )?,
-            )?,
+            &normalize(root_dir)?,
         )?)
     }
 
