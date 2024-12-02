@@ -12,6 +12,7 @@ from markdown_reader import markdown_reader
 from migrate import migrate
 from ragit_api import ragit_api
 from recover import recover
+from subdir import subdir
 from tfidf import tfidf
 
 import os
@@ -86,6 +87,10 @@ Commands
                                 are reproduced in this test. If you find a new one, please
                                 add that to this test.
 
+    subdir                     run `subdir` test
+                                It checks whether `ragit` is smart enough to find `.ragit/`
+                                in any directory.
+
     tfidf                       run `tfidf` test
                                 It creates bunch of lorem-ipsum files and see if
                                 `rag tfidf` can retrieve files correctly. It also tests
@@ -150,6 +155,9 @@ if __name__ == "__main__":
         elif command == "markdown_reader":
             markdown_reader()
 
+        elif command == "subdir":
+            subdir()
+
         elif command == "tfidf":
             tfidf()
 
@@ -184,6 +192,7 @@ if __name__ == "__main__":
                 ("cat_file", cat_file),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
+                ("subdir", subdir),
                 ("cargo_tests", cargo_tests),
                 ("tfidf", tfidf),
                 ("external_bases", external_bases),
