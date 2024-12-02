@@ -97,7 +97,7 @@ impl Uid {
 
     pub fn new_chunk(chunk: &Chunk) -> Self {
         let mut hasher = Sha3_256::new();
-        hasher.update(format!("{}{}{}", chunk.title, chunk.summary, chunk.data).as_bytes());
+        hasher.update(format!("{}{}{}{}{}", chunk.file, chunk.index, chunk.title, chunk.summary, chunk.data).as_bytes());
         let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
         result.low &= Uid::METADATA_MASK;
         result.low |= Uid::CHUNK_TYPE;
@@ -115,9 +115,11 @@ impl Uid {
         result
     }
 
-    pub fn new_file(path: &str) -> Result<Self, Error> {
+    pub fn new_file(root_dir: &str, path: &str) -> Result<Self, Error> {
         let size = file_size(path)?;
+        let rel_path = Index::get_rel_path(&root_dir.to_string(), &path.to_string())?;
         let mut hasher = Sha3_256::new();
+        hasher.update(rel_path.as_bytes());
 
         if size < 32 * 1024 * 1024 {
             let bytes = read_bytes(path)?;

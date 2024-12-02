@@ -12,7 +12,7 @@ from utils import (
 )
 
 def create_doc_with_magic_words(magic_word1: str, magic_word2: str) -> str:
-    return "\n".join([magic_word1] + ["aaaa" for _ in range(randint(500, 3000))] + [magic_word2])
+    return "\n".join([magic_word1] + ["aaaa" for _ in range(randint(150, 750))] + [magic_word2])
 
 # TODO: test with empty files
 def ls():
@@ -21,7 +21,8 @@ def ls():
     mk_and_cd_tmp_dir()
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
-    cargo_run(["config", "--set", "chunk_size", "1000"])
+    cargo_run(["config", "--set", "chunk_size", "512"])
+    cargo_run(["config", "--set", "slide_len", "128"])
     magic_words = []
     file_names = []
     magic_words_map = {}  # magic_word -> file_name

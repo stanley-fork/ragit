@@ -70,7 +70,7 @@ impl Index {
                 }
 
                 else if let Some(prev_hash) = self.processed_files.get(&rel_path) {
-                    if let Ok(hash) = Uid::new_file(path) {
+                    if let Ok(hash) = Uid::new_file(&self.root_dir, path) {
                         if &hash != prev_hash {
                             self.remove_file(path.to_string())?;
                             self.staged_files.push(rel_path);
