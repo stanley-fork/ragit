@@ -8,4 +8,10 @@ Make sure to always use English, no matter what language the chunk uses.
 
 <|user|>
 
-NOTE: due to a current limit of pdl implementation, the rust code directly injects the summary and the chunk, instead of using tera templates
+{% if previous_summary %}
+
+Summary of the previous chunk: {{previous_summary|safe}}
+
+Chunk: {% endif %}
+
+{{chunk|safe}}

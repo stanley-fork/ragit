@@ -148,7 +148,15 @@ impl FileReader {
             chunk_deque.push_back(token);
         }
 
-        let tokens = merge_tokens(chunk_deque);
+        let mut tokens = merge_tokens(chunk_deque);
+
+        for token in tokens.iter_mut() {
+            if let AtomicToken::Image(Image { uid, bytes, image_type }) = token {
+                let normalized = normalize_image(bytes.clone(), *image_type)?;
+                self.images.insert(*uid, normalized.clone());
+                *bytes = normalized;
+            }
+        }
 
         let chunk = Chunk::create_chunk_from(
             &tokens,
@@ -160,13 +168,6 @@ impl FileReader {
             build_info,
             previous_summary,
         ).await;
-
-        for token in tokens.into_iter() {
-            if let AtomicToken::Image(Image { uid, bytes, image_type }) = token {
-                let bytes = normalize_image(bytes, image_type)?;
-                self.images.insert(uid, bytes);
-            }
-        }
 
         if let Some(ms) = index.api_config.sleep_after_llm_call {
             tokio::time::sleep(std::time::Duration::from_millis(ms)).await;

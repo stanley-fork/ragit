@@ -2,7 +2,7 @@ use chrono::offset::Local;
 use crate::ApiConfig;
 use crate::error::Error;
 use crate::index::{BuildConfig, Index, tfidf};
-use crate::index::file::AtomicToken;
+use crate::index::file::{AtomicToken, Image};
 use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
@@ -12,6 +12,7 @@ use ragit_api::{
     MessageContent,
     RecordAt,
     Role,
+    encode_base64,
     messages_from_pdl,
 };
 use ragit_fs::{
@@ -164,39 +165,30 @@ impl Chunk {
         build_info: ChunkBuildInfo,
         previous_summary: Option<String>,
     ) -> Result<Self, Error> {
-        let mut dummy_context = tera::Context::new();
-        dummy_context.insert("chunk", "placeholder");
-        dummy_context.insert("previous_summary", &previous_summary.is_some());
+        let mut context = tera::Context::new();
+        let mut chunk = vec![];
 
-        let mut prompt = messages_from_pdl(
+        for token in tokens.iter() {
+            match token {
+                AtomicToken::String { data, .. } => {
+                    chunk.push(data.to_string());
+                },
+                AtomicToken::Image(Image { bytes, image_type, .. }) => {
+                    chunk.push(format!("<|raw_media({}:{})|>", image_type.to_extension(), encode_base64(&bytes)));
+                },
+            }
+        }
+
+        context.insert("chunk", &chunk.concat());
+
+        if let Some(previous_summary) = &previous_summary {
+            context.insert("previous_summary", previous_summary);
+        }
+
+        let prompt = messages_from_pdl(
             pdl.to_string(),
-            dummy_context,
+            context,
         )?;
-
-        if let Some(message) = prompt.last_mut() {
-            if message.role != Role::User {
-                return Err(Error::BrokenPrompt(String::from("The last turn of a prompt must be of <|user|>.")));
-            }
-
-            let mut content = if let Some(previous_summary) = previous_summary {
-                vec![MessageContent::String(format!("Previous Summary: {previous_summary}\n\nChunk: "))]
-            } else {
-                vec![]
-            };
-
-            for chunk_content in tokens.iter().map(
-                |content| MessageContent::from(content.clone())
-            ) {
-                content.push(chunk_content);
-            }
-
-            message.content = content;
-        }
-
-        else {
-            return Err(Error::BrokenPrompt(String::from("Got an empty prompt.")));
-        }
-
         let mut request = ChatRequest {
             api_key: api_config.api_key.clone(),
             messages: prompt,
