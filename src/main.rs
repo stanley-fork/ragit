@@ -851,6 +851,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
                 println!("--------------------------");
                 println!("score: {}", tfidf.score);
+                println!("uid: {}", chunk.uid);
                 println!("file: {}", chunk.render_source());
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
