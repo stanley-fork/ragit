@@ -1,6 +1,7 @@
 from add_and_rm import add_and_rm
 from cargo_tests import cargo_tests
 from cat_file import cat_file
+from cli import cli
 from clone import clone
 from end_to_end import end_to_end
 from external_bases import external_bases
@@ -51,6 +52,9 @@ Commands
 
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
+
+    cli                         run `cli` test
+                                It tests whether cli parser can parse the arguments correctly.
 
     migrate                     run `migrate` test
                                 It checks out git to v 0.1.1, creates a knowledge-base,
@@ -130,6 +134,9 @@ if __name__ == "__main__":
         elif command == "clone":
             clone()
 
+        elif command == "cli":
+            cli()
+
         elif command == "migrate":
             migrate()
 
@@ -187,6 +194,7 @@ if __name__ == "__main__":
                 ("add_and_rm", add_and_rm),
                 ("recover", recover),
                 ("clone", clone),
+                ("cli", cli),
                 ("many_chunks", many_chunks),
                 ("ls", ls),
                 ("cat_file", cat_file),
