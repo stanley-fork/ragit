@@ -1,6 +1,6 @@
 use crate::chunk::Chunk;
 use crate::error::Error;
-use crate::index::{ExternalIndex, Index};
+use crate::index::Index;
 use crate::query::Keywords;
 use crate::uid::Uid;
 use flate2::Compression;
@@ -68,17 +68,16 @@ pub fn save_to_file(path: &str, chunk: &Chunk, root_dir: &str) -> Result<(), Err
 }
 
 pub fn consume_tfidf_file(
-    external_index_info: Option<ExternalIndex>,
     path: Path,  // real path
     ignored_chunks: &[Uid],
-    tfidf_state: &mut TfIdfState<(Option<ExternalIndex>, Uid)>,
+    tfidf_state: &mut TfIdfState<Uid>,
 ) -> Result<(), Error> {
     let processed_doc = load_from_file(&path)?;
 
     // TODO: check this before loading processed_doc
     if !ignored_chunks.contains(processed_doc.uid.as_ref().unwrap()) {
         tfidf_state.consume(
-            (external_index_info.clone(), processed_doc.uid.clone().unwrap()),
+            processed_doc.uid.unwrap(),
             &processed_doc,
         );
     }

@@ -60,8 +60,8 @@ def external_bases():
         assert processed_files == file_count
 
         os.chdir("..")
-        cargo_run(["ext", dir_name])
-        cargo_run(["check", "--recursive"])
+        cargo_run(["merge", dir_name])
+        cargo_run(["check"])
 
     for prefix, file in prefixes.items():
         tfidf_result = cargo_run(["tfidf", prefix], stdout=True)

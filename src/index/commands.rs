@@ -6,9 +6,9 @@ mod build;
 mod check;
 mod clone;
 mod config;
-mod ext;
 mod gc;
 mod ls;
+mod merge;
 mod meta;
 mod migrate;
 mod recover;
@@ -16,11 +16,13 @@ mod remove;
 mod reset;
 
 pub use add::{AddMode, AddResult};
+pub use clone::CloneResult;
 pub use ls::{
     LsChunk,
     LsFile,
     LsImage,
     LsModel,
 };
+pub use merge::{MergeMode, MergeResult};
 pub use meta::METADATA_FILE_NAME;
 pub use recover::RecoverResult;

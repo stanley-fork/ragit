@@ -213,7 +213,6 @@ impl Index {
     pub fn get_all_chunk_uids(&self) -> Result<Vec<Uid>, Error> {
         let mut result = vec![];
 
-        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             let prefix = file_name(&internal)?;
 
@@ -234,7 +233,6 @@ impl Index {
     pub fn get_all_image_uids(&self) -> Result<Vec<Uid>, Error> {
         let mut result = vec![];
 
-        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
             let prefix = file_name(&internal)?;
 
@@ -269,7 +267,6 @@ impl Index {
         let mut file_uids = vec![];
         let mut file_paths = vec![];
 
-        // TODO: search external bases
         if UID_RE.is_match(&q.query) {
             if q.query.len() == 1 {
                 if q.search_chunk {

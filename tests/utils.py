@@ -83,7 +83,7 @@ def parse_add_output(args: list[str], rag_check=True) -> Tuple[int, int, int]:
     output = cargo_run(["add"] + args, stdout=True)
 
     if rag_check:
-        cargo_run(["check", "--recursive"])
+        cargo_run(["check"])
 
     first_line = output.split("\n")[0]
     added, updated, ignored = re.search(r"(\d+)\sadded\sfiles\,\s(\d+)\supdated\sfiles\,\s(\d+)\signored\sfiles", first_line).groups()

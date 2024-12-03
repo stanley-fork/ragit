@@ -2,7 +2,6 @@ use crate::INDEX_DIR_NAME;
 use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
 use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME};
 use crate::error::Error;
-use crate::external::ExternalIndex;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
 use crate::uid::{self, Uid};
@@ -48,10 +47,13 @@ pub mod tfidf;
 pub use commands::{
     AddMode,
     AddResult,
+    CloneResult,
     LsChunk,
     LsFile,
     LsImage,
     LsModel,
+    MergeMode,
+    MergeResult,
     METADATA_FILE_NAME,
     RecoverResult,
 };
@@ -76,12 +78,6 @@ pub struct Index {
     pub processed_files: HashMap<Path, Uid>,
     pub curr_processing_file: Option<Path>,
     repo_url: Option<String>,
-
-    // the json file only stores links to the external knowledge-bases,
-    // but the code actually loads all the externals
-    pub external_index_info: Vec<ExternalIndex>,
-    #[serde(skip)]
-    pub external_indexes: Vec<Index>,
 
     // it's not used by code, but used by serde
     // users modify json file, which is deserialized to `ApiConfigRaw`,
@@ -170,8 +166,6 @@ impl Index {
             root_dir,
             repo_url: None,
             prompts: PROMPTS.clone(),
-            external_index_info: vec![],
-            external_indexes: vec![],
         };
 
         write_bytes(
@@ -215,7 +209,6 @@ impl Index {
         )?;
         result.api_config = result.init_api_config(&result.api_config_raw)?;
         result.load_prompts()?;
-        result.load_external_indexes(load_mode)?;
 
         match load_mode {
             LoadMode::QuickCheck if result.curr_processing_file.is_some() => {
@@ -223,7 +216,7 @@ impl Index {
                 result.save_to_file()?;
                 Ok(result)
             },
-            LoadMode::Check if result.curr_processing_file.is_some() || result.check(false).is_err() => {
+            LoadMode::Check if result.curr_processing_file.is_some() || result.check().is_err() => {
                 result.recover()?;
                 result.save_to_file()?;
                 Ok(result)
@@ -297,7 +290,7 @@ impl Index {
         query: &str,
         ignored_chunks: Vec<Uid>,
     ) -> Result<Vec<Chunk>, Error> {
-        if self.chunk_count + self.count_external_chunks() > self.query_config.max_titles {
+        if self.chunk_count > self.query_config.max_titles {
             let keywords = extract_keywords(query, &self.api_config, &self.get_prompt("extract_keyword")?).await?;
             let tfidf_results = self.run_tfidf(
                 keywords,
@@ -307,14 +300,8 @@ impl Index {
             let mut chunks = Vec::with_capacity(tfidf_results.len());
 
             for tfidf_result in tfidf_results.into_iter() {
-                let (external_index, uid) = tfidf_result.id;
-
-                match external_index {
-                    Some(i) => {
-                        chunks.push(self.get_external_base(&i)?.get_chunk_by_uid(uid)?);
-                    },
-                    None => { chunks.push(self.get_chunk_by_uid(uid)?); },
-                }
+                let uid = tfidf_result.id;
+                chunks.push(self.get_chunk_by_uid(uid)?);
             }
 
             Ok(chunks)
@@ -338,7 +325,6 @@ impl Index {
     pub fn get_all_chunk_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
-        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -357,7 +343,6 @@ impl Index {
     pub fn get_all_tfidf_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
-        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -376,7 +361,6 @@ impl Index {
     pub fn get_all_image_files(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
-        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -395,7 +379,6 @@ impl Index {
     fn get_all_file_indexes(&self) -> Result<Vec<Path>, Error> {
         let mut result = vec![];
 
-        // TODO: search external bases
         for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &FILE_INDEX_DIR_NAME)?)? {
             if !is_dir(&internal) {
                 continue;
@@ -536,41 +519,25 @@ impl Index {
         // 2. for now, no code does something with this value
         ignored_chunks: Vec<Uid>,
         chunk_count: usize,
-    ) -> Result<Vec<TfIdfResult<(Option<ExternalIndex>, Uid)>>, Error> {
+    ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
         let mut tfidf_state = TfIdfState::new(&keywords);
 
         for tfidf_file in self.get_all_tfidf_files()? {
             consume_tfidf_file(
-                None,  // not an external knowledge_base
                 tfidf_file,
                 &ignored_chunks,
                 &mut tfidf_state,
             )?;
         }
 
-        for (i, external_index) in self.external_indexes.iter().enumerate() {
-            for tfidf_file in external_index.get_all_tfidf_files()? {
-                consume_tfidf_file(
-                    Some(self.external_index_info[i].clone()),
-                    tfidf_file,
-                    &ignored_chunks,
-                    &mut tfidf_state,
-                )?;
-            }
-        }
-
         Ok(tfidf_state.get_top(chunk_count))
     }
 
     pub fn get_chunk_by_uid(&self, uid: Uid) -> Result<Chunk, Error> {
-        for root_dir in std::iter::once(&self.root_dir).chain(
-            self.external_indexes.iter().map(|index| &index.root_dir)
-        ) {
-            let chunk_at = Index::get_chunk_path(root_dir, uid);
+        let chunk_at = Index::get_chunk_path(&self.root_dir, uid);
 
-            if exists(&chunk_at) {
-                return Ok(chunk::load_from_file(&chunk_at)?);
-            }
+        if exists(&chunk_at) {
+            return Ok(chunk::load_from_file(&chunk_at)?);
         }
 
         Err(Error::NoSuchChunk(uid))
@@ -580,14 +547,10 @@ impl Index {
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
-        for root_dir in std::iter::once(&self.root_dir).chain(
-            self.external_indexes.iter().map(|index| &index.root_dir)
-        ) {
-            let tfidf_at = set_extension(&Index::get_chunk_path(root_dir, uid), "tfidf")?;
+        let tfidf_at = set_extension(&Index::get_chunk_path(&self.root_dir, uid), "tfidf")?;
 
-            if exists(&tfidf_at) {
-                return Ok(tfidf::load_from_file(&tfidf_at)?);
-            }
+        if exists(&tfidf_at) {
+            return Ok(tfidf::load_from_file(&tfidf_at)?);
         }
 
         Err(Error::NoSuchChunk(uid))
@@ -606,16 +569,6 @@ impl Index {
 
         result.uid = Some(uid);
         Ok(result)
-    }
-
-    pub fn get_external_base(&self, index: &ExternalIndex) -> Result<&Index, Error> {
-        for (i, ext) in self.external_index_info.iter().enumerate() {
-            if ext.path == index.path {
-                return Ok(self.external_indexes.get(i).unwrap());
-            }
-        }
-
-        Err(Error::NoSuchExternalIndex { index: index.clone() })
     }
 
     // every path in index.json are relative path to root_dir
@@ -871,22 +824,18 @@ impl Index {
     }
 
     pub fn get_chunks_of_file(&self, file_uid: Uid) -> Result<Vec<Uid>, Error> {
-        for root_dir in std::iter::once(&self.root_dir).chain(
-            self.external_indexes.iter().map(|index| &index.root_dir)
-        ) {
-            let file_index_path = Index::get_file_index_path(root_dir, file_uid);
-            let mut result = vec![];
+        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
+        let mut result = vec![];
 
-            if exists(&file_index_path) {
-                for uid_str in read_string(&file_index_path)?.lines() {
-                    result.push(uid_str.parse::<Uid>()?);
-                }
-
-                return Ok(result);
+        if exists(&file_index_path) {
+            for uid_str in read_string(&file_index_path)?.lines() {
+                result.push(uid_str.parse::<Uid>()?);
             }
+
+            return Ok(result);
         }
 
-        return Err(Error::NoSuchFile { path: None, uid: Some(file_uid) });
+        Err(Error::NoSuchFile { path: None, uid: Some(file_uid) })
     }
 
     pub fn get_images_of_file(&self, file_uid: Uid) -> Result<Vec<Uid>, Error> {
@@ -902,10 +851,6 @@ impl Index {
         }
 
         Ok(result.into_iter().collect())
-    }
-
-    fn count_external_chunks(&self) -> usize {
-        self.external_indexes.iter().map(|index| index.chunk_count).sum()
     }
 
     pub fn load_image_by_uid(&self, uid: Uid) -> Result<Vec<u8>, Error> {

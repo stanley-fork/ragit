@@ -8,6 +8,7 @@ use ragit::{
     Keywords,
     LoadMode,
     LsChunk,
+    MergeMode,
     UidQuery,
     merge_and_convert_chunks,
     multi_turn,
@@ -175,7 +176,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("check") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--recursive"]).optional_flag(&["--recover"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--recover"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/check.txt"));
@@ -183,24 +184,23 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let root_dir = root_dir?;
-            let recursive = parsed_args.get_flag(0).is_some();
-            let recover = parsed_args.get_flag(1).is_some();
+            let recover = parsed_args.get_flag(0).is_some();
 
             match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
                 Ok(mut index) => if index.curr_processing_file.is_some() && recover {
                     let recover_result = index.recover()?;
                     index.save_to_file()?;
-                    index.check(recursive)?;
+                    index.check()?;
                     println!("recovered from a corrupted knowledge-base: {recover_result:?}");
                 } else {
-                    match index.check(recursive) {
+                    match index.check() {
                         Ok(()) => {
                             println!("everything is fine!");
                         },
                         Err(e) => if recover {
                             let recover_result = index.recover()?;
                             index.save_to_file()?;
-                            index.check(recursive)?;
+                            index.check()?;
                             println!("recovered from a corrupted knowledge-base: {recover_result:?}");
                         } else {
                             return Err(e);
@@ -211,7 +211,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let mut index = Index::load(root_dir, LoadMode::Minimum)?;
                     let recover_result = index.recover()?;
                     index.save_to_file()?;
-                    index.check(recursive)?;
+                    index.check()?;
                     println!("recovered from a corrupted knowledge-base: {recover_result:?}");
                 } else {
                     return Err(e);
@@ -276,23 +276,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 _ => unreachable!(),
             }
-        },
-        Some("ext") => {
-            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
-
-            if parsed_args.show_help() {
-                println!("{}", include_str!("../docs/commands/ext.txt"));
-                return Ok(());
-            }
-
-            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
-            let bases = parsed_args.get_args();
-
-            for base in bases.iter() {
-                index.ext(base)?;
-            }
-
-            index.save_to_file()?;
         },
         Some("gc") => {
             let parsed_args = ArgParser::new().flag(&["--logs", "--images"]).parse(&args[2..])?;
@@ -647,6 +630,28 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("dollars_per_1b_output_tokens: {}", model.dollars_per_1b_output_tokens);
             }
         },
+        Some("merge") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/merge.txt"));
+                return Ok(());
+            }
+
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let bases = parsed_args.get_args();
+
+            for base in bases.iter() {
+                index.merge(
+                    base.to_string(),
+                    None,  // prefix  // TODO: make it configurable
+                    MergeMode::Ignore,  // TODO: make it configurable
+                    false,  // quiet  // TODO: make it configurable
+                )?;
+            }
+
+            index.save_to_file()?;
+        },
         Some("meta") => {
             let parsed_args = ArgParser::new().flag(&["--get", "--get-all", "--set", "--remove", "--remove-all"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
 
@@ -834,14 +839,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let mut chunks = Vec::with_capacity(tfidf_results.len());
 
             for tfidf_result in tfidf_results.iter() {
-                let (external_index, uid) = tfidf_result.id.clone();
-
-                match external_index {
-                    Some(i) => {
-                        chunks.push(index.get_external_base(&i)?.get_chunk_by_uid(uid)?);
-                    },
-                    None => { chunks.push(index.get_chunk_by_uid(uid)?); },
-                }
+                let uid = tfidf_result.id;
+                chunks.push(index.get_chunk_by_uid(uid)?);
             }
 
             println!("search keywords: {:?}", parsed_args.get_args());
@@ -852,7 +851,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("--------------------------");
                 println!("score: {}", tfidf.score);
                 println!("uid: {}", chunk.uid);
-                println!("file: {}", chunk.render_source());
+                println!("file: {}", chunk.file);
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }

@@ -1,27 +1,12 @@
 use super::Index;
-use crate::chunk;
 use crate::error::Error;
-use crate::index::{
-    CHUNK_DIR_NAME,
-    IMAGE_DIR_NAME,
-    INDEX_DIR_NAME,
-    LoadMode,
-    METADATA_FILE_NAME,
-};
-use ragit_api::JsonType;
 use ragit_fs::{
-    WriteMode,
     create_dir,
-    join3,
-    join4,
     remove_dir_all,
-    set_extension,
-    write_bytes,
 };
 use reqwest::Url;
-use serde_json::Value;
 
-struct CloneState {
+pub struct CloneResult {
     url: String,
     image_total: usize,
     image_count: usize,
@@ -30,12 +15,12 @@ struct CloneState {
 }
 
 impl Index {
-    pub async fn clone(url: String, repo_name: Option<String>) -> Result<(), Error> {
+    pub async fn clone(url: String, repo_name: Option<String>) -> Result<CloneResult, Error> {
         let repo_name = repo_name.unwrap_or_else(|| infer_repo_name_from_url(&url));
         create_dir(&repo_name)?;
 
         match Index::clone_worker(url, repo_name.clone()).await {
-            Ok(()) => Ok(()),
+            Ok(result) => Ok(result),
             Err(e) => {
                 remove_dir_all(&repo_name)?;
                 Err(e)
@@ -43,16 +28,13 @@ impl Index {
         }
     }
 
-    async fn clone_worker(mut url: String, repo_name: String) -> Result<(), Error> {
+    async fn clone_worker(url: String, repo_name: String) -> Result<CloneResult, Error> {
         todo!()
     }
 
     // TODO: erase lines instead of the entire screen
-    fn render_clone_dashboard(state: &CloneState) {
-        clearscreen::clear().expect("failed to clear screen");
-        println!("cloning {}...", state.url);
-        println!("chunks: {}/{}", state.chunk_count, state.chunk_total);
-        println!("images: {}/{}", state.image_count, state.image_total);
+    fn render_clone_dashboard(state: &CloneResult) {
+        todo!()
     }
 }
 
@@ -71,59 +53,5 @@ fn infer_repo_name_from_url(url: &str) -> String {
             _ => String::from("_"),
         },
         _ => String::from("_"),
-    }
-}
-
-async fn request_json_file(url: &str) -> Result<Value, Error> {
-    let client = reqwest::Client::new();
-    let response = client.get(url).send().await?;
-
-    if response.status().as_u16() != 200 {
-        return Err(Error::CloneRequestError {
-            code: Some(response.status().as_u16()),
-            url: url.to_string(),
-        });
-    }
-
-    Ok(serde_json::from_str::<Value>(&response.text().await?)?)
-}
-
-async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
-    let client = reqwest::Client::new();
-    let response = client.get(url).send().await?;
-
-    if response.status().as_u16() != 200 {
-        return Err(Error::CloneRequestError {
-            code: Some(response.status().as_u16()),
-            url: url.to_string(),
-        });
-    }
-
-    Ok(response.bytes().await?.to_vec())
-}
-
-fn parse_vec_string(j: &Value) -> Result<Vec<String>, Error> {
-    match j {
-        Value::Array(values) => {
-            let mut result = Vec::with_capacity(values.len());
-
-            for value in values.iter() {
-                match value.as_str() {
-                    Some(s) => { result.push(s.to_string()); },
-                    None => {
-                        return Err(Error::JsonTypeError {
-                            expected: JsonType::String,
-                            got: value.into(),
-                        });
-                    },
-                }
-            }
-
-            Ok(result)
-        },
-        _ => Err(Error::JsonTypeError {
-            expected: JsonType::Array,
-            got: j.into(),
-        }),
     }
 }

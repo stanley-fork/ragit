@@ -30,7 +30,7 @@ impl Index {
     ///   - If there's and image that belongs to no chunks, that's not an error. Just run `rag gc --images`.
     /// - Check F: Images in `.ragit/images` are not corrupted, and has a proper description file.
     /// - Check G: Config files are not broken.
-    pub fn check(&self, recursive: bool) -> Result<(), Error> {
+    pub fn check(&self) -> Result<(), Error> {
         let mut images = HashMap::new();
         let mut chunks_to_files = HashMap::with_capacity(self.chunk_count);
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());
@@ -196,12 +196,6 @@ impl Index {
                         got: (&j).into(),
                     });
                 },
-            }
-        }
-
-        if recursive {
-            for ext in self.external_indexes.iter() {
-                ext.check(recursive)?;
             }
         }
 

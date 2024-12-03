@@ -115,7 +115,7 @@ playground
        ╰ index.json
 ```
 
-Now we have 1 empty knowledge-base and 3 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag ext ./git`, `rag ext ./ragit` and `rag ext ./rustc`.
+Now we have 1 empty knowledge-base and 3 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag merge ./git`, `rag merge ./ragit` and `rag merge ./rustc`.
 
 ## 3. Change Configs
 

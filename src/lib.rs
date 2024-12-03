@@ -1,7 +1,6 @@
 mod api_config;
 mod chunk;
 mod error;
-mod external;
 mod index;
 mod prompts;
 mod query;
@@ -16,17 +15,19 @@ pub use chunk::{
     merge_and_convert_chunks,
 };
 pub use error::Error;
-pub use external::ExternalIndex;
 pub use index::{
     AddMode,
     AddResult,
     BuildConfig,
+    CloneResult,
     Index,
     LoadMode,
     LsChunk,
     LsFile,
     LsImage,
     LsModel,
+    MergeMode,
+    MergeResult,
     ProcessedDoc,
     RecoverResult,
 };

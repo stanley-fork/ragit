@@ -1,0 +1,14 @@
+rag-merge(1)
+==========
+
+NAME
+----
+rag-merge - Merge another knowledge-base into the current base
+
+SYNOPSIS
+--------
+[verse]
+'rag merge' <path>
+
+DESCRIPTION
+-----------

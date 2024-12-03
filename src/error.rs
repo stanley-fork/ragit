@@ -1,4 +1,3 @@
-use crate::external::ExternalIndex;
 use crate::uid::Uid;
 pub use ragit_api::{Error as ApiError, JsonType};
 use ragit_fs::FileError;
@@ -20,7 +19,6 @@ pub enum Error {
     IndexNotFound,
     NoSuchChunk(Uid),
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
-    NoSuchExternalIndex { index: ExternalIndex },
     CorruptedFile(Path),
     NotImplemented(String),
     CliError(String),  // TODO: spans?

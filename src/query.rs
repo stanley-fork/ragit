@@ -143,7 +143,7 @@ pub async fn summaries_to_chunks(
                 "{}. {}\nsource: {}\nsummary: {}",
                 index + 1,
                 chunk.title,
-                chunk.render_source(),
+                chunk.file,
                 chunk.summary,
             )
         ).collect::<Vec<_>>().join("\n\n"),

@@ -58,11 +58,6 @@ pub struct Chunk {
     pub uid: Uid,
     pub build_info: ChunkBuildInfo,
     pub timestamp: i64,
-
-    /// If it belongs to an external base, the name of the
-    /// base is kept here.
-    #[serde(skip)]
-    pub external_base: Option<String>,
 }
 
 const COMPRESS_PREFIX: u8 = b'c';
@@ -142,19 +137,6 @@ pub fn save_to_file(
 }
 
 impl Chunk {
-    pub fn render_source(&self) -> String {
-        if let Some(external_base) = &self.external_base {
-            join(
-                external_base,
-                &self.file,
-            ).unwrap()
-        }
-
-        else {
-            self.file.to_string()
-        }
-    }
-
     pub(crate) async fn create_chunk_from(
         tokens: &[AtomicToken],
         config: &BuildConfig,
@@ -323,7 +305,6 @@ impl Chunk {
             uid: Uid::dummy(),
             build_info,
             timestamp: Local::now().timestamp(),
-            external_base: None,
         };
         let chunk_uid = Uid::new_chunk(&result);
         result.uid = chunk_uid;
@@ -398,7 +379,6 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         title: String::new(),
         uid: Uid::dummy(),
         build_info: ChunkBuildInfo::dummy(),
-        external_base: None,
     }
 }
 
