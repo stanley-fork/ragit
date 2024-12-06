@@ -42,6 +42,7 @@ use std::collections::{HashMap, HashSet};
 mod commands;
 mod config;
 pub mod file;
+mod ii;
 pub mod tfidf;
 
 pub use commands::{
@@ -54,14 +55,14 @@ pub use commands::{
     LsModel,
     MergeMode,
     MergeResult,
-    METADATA_FILE_NAME,
     RecoverResult,
 };
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::FileReader;
-pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_tfidf_file};
+pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_processed_doc};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
+pub const II_DIR_NAME: &str = "ii";
 pub const IMAGE_DIR_NAME: &str = "images";
 pub const FILE_INDEX_DIR_NAME: &str = "files";
 pub const INDEX_FILE_NAME: &str = "index.json";
@@ -288,13 +289,11 @@ impl Index {
     pub async fn load_chunks_or_tfidf(
         &self,
         query: &str,
-        ignored_chunks: Vec<Uid>,
     ) -> Result<Vec<Chunk>, Error> {
         if self.chunk_count > self.query_config.max_titles {
             let keywords = extract_keywords(query, &self.api_config, &self.get_prompt("extract_keyword")?).await?;
             let tfidf_results = self.run_tfidf(
                 keywords,
-                ignored_chunks,
                 self.query_config.max_summaries,
             )?;
             let mut chunks = Vec::with_capacity(tfidf_results.len());
@@ -313,10 +312,6 @@ impl Index {
             for chunk_path in self.get_all_chunk_files()? {
                 chunks.push(chunk::load_from_file(&chunk_path)?);
             }
-
-            chunks = chunks.into_iter().filter(
-                |chunk| !ignored_chunks.contains(&chunk.uid)
-            ).collect();
 
             Ok(chunks)
         }
@@ -514,23 +509,37 @@ impl Index {
     pub fn run_tfidf(
         &self,
         keywords: Keywords,
-
-        // 1. why not HashSet<Uid>?
-        // 2. for now, no code does something with this value
-        ignored_chunks: Vec<Uid>,
-        chunk_count: usize,
+        limit: usize,
     ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
         let mut tfidf_state = TfIdfState::new(&keywords);
 
-        for tfidf_file in self.get_all_tfidf_files()? {
-            consume_tfidf_file(
-                tfidf_file,
-                &ignored_chunks,
-                &mut tfidf_state,
-            )?;
+        // TODO: it must be configurable, or at least do much more experiment on this
+        let ii_coeff = 20;
+
+        if self.query_config.enable_ii && self.is_ii_built() {
+            for chunk_uid in self.get_search_candidates(
+                &tfidf_state.terms,
+                limit * ii_coeff,
+            )? {
+                let processed_doc = self.get_tfidf_by_chunk_uid(chunk_uid)?;
+                consume_processed_doc(
+                    processed_doc,
+                    &mut tfidf_state,
+                )?;
+            }
         }
 
-        Ok(tfidf_state.get_top(chunk_count))
+        else {
+            for tfidf_file in self.get_all_tfidf_files()? {
+                let processed_doc = tfidf::load_from_file(&tfidf_file)?;
+                consume_processed_doc(
+                    processed_doc,
+                    &mut tfidf_state,
+                )?;
+            }
+        }
+
+        Ok(tfidf_state.get_top(limit))
     }
 
     pub fn get_chunk_by_uid(&self, uid: Uid) -> Result<Chunk, Error> {
@@ -601,6 +610,8 @@ impl Index {
         )?)
     }
 
+    // TODO: `get_chunk_path`, `get_file_path`, `get_image_path` and `get_ii_path` are redundant
+
     // root_dir/.ragit/chunks/chunk_uid_prefix/chunk_uid_suffix.chunk
     fn get_chunk_path(root_dir: &Path, chunk_uid: Uid) -> Path {
         let chunks_at = join3(
@@ -638,7 +649,7 @@ impl Index {
         ).unwrap()
     }
 
-    // root_dir/.ragit/image_index/image_uid_prefix/image_uid_suffix
+    // root_dir/.ragit/images/image_uid_prefix/image_uid_suffix
     fn get_image_path(root_dir: &str, image_uid: Uid, extension: &str) -> Path {
         let images_at = join3(
             root_dir,
@@ -655,6 +666,23 @@ impl Index {
                 &image_uid_suffix,
                 extension,
             ).unwrap(),
+        ).unwrap()
+    }
+
+    // root_dir/.ragit/ii/term_hash_prefix/term_hash_suffix
+    fn get_ii_path(root_dir: &str, term_hash: String) -> Path {
+        let ii_at = join3(
+            root_dir,
+            &INDEX_DIR_NAME,
+            &II_DIR_NAME,
+        ).unwrap();
+        let term_hash_prefix = term_hash.get(0..2).unwrap().to_string();
+        let term_hash_suffix = term_hash.get(2..).unwrap().to_string();
+
+        join3(
+            &ii_at,
+            &term_hash_prefix,
+            &term_hash_suffix,
         ).unwrap()
     }
 

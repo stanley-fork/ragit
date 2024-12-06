@@ -1,0 +1,15 @@
+rag-ii-stat(1)
+==========
+
+NAME
+----
+rag-ii-stat - Show statistics of the inverted index
+
+SYNOPSIS
+--------
+[verse]
+'rag ii-stat'
+
+DESCRIPTION
+-----------
+NOTE: It's experimental

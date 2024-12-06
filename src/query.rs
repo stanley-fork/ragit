@@ -2,7 +2,6 @@ use crate::ApiConfig;
 use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
-use crate::uid::Uid;
 use ragit_api::{
     ChatRequest,
     JsonType,
@@ -24,12 +23,8 @@ pub use keyword::{Keywords, extract_keywords};
 pub async fn retrieve_chunks(
     query: &str,
     index: &Index,
-    ignored_chunks: Vec<Uid>,
 ) -> Result<Vec<Chunk>, Error> {
-    let mut chunks = index.load_chunks_or_tfidf(
-        query,
-        ignored_chunks,
-    ).await?;
+    let mut chunks = index.load_chunks_or_tfidf(query).await?;
 
     if chunks.len() > index.query_config.max_summaries {
         chunks = title_to_summaries(
@@ -55,11 +50,7 @@ pub async fn single_turn(
     query: &str,
     index: &Index,
 ) -> Result<String, Error> {
-    let chunks = retrieve_chunks(
-        query,
-        index,
-        vec![],
-    ).await?;
+    let chunks = retrieve_chunks(query, index).await?;
 
     if chunks.is_empty() {
         raw_request(

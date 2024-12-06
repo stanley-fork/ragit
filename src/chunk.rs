@@ -19,7 +19,6 @@ use ragit_fs::{
     WriteMode,
     create_dir_all,
     exists,
-    join,
     normalize,
     parent,
     read_bytes,

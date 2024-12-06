@@ -19,12 +19,11 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::io::Read;
 
-type Path = String;
 type Term = String;
 type Weight = f32;
 
 pub struct TfIdfState<DocId> {
-    terms: HashMap<Term, Weight>,
+    pub terms: HashMap<Term, Weight>,
     term_frequency: HashMap<(DocId, Term), f32>,
     document_frequency: HashMap<Term, usize>,
     docs: Vec<DocId>,
@@ -67,21 +66,14 @@ pub fn save_to_file(path: &str, chunk: &Chunk, root_dir: &str) -> Result<(), Err
     )?)
 }
 
-pub fn consume_tfidf_file(
-    path: Path,  // real path
-    ignored_chunks: &[Uid],
+pub fn consume_processed_doc(
+    processed_doc: ProcessedDoc,
     tfidf_state: &mut TfIdfState<Uid>,
 ) -> Result<(), Error> {
-    let processed_doc = load_from_file(&path)?;
-
-    // TODO: check this before loading processed_doc
-    if !ignored_chunks.contains(processed_doc.uid.as_ref().unwrap()) {
-        tfidf_state.consume(
-            processed_doc.uid.unwrap(),
-            &processed_doc,
-        );
-    }
-
+    tfidf_state.consume(
+        processed_doc.uid.unwrap(),
+        &processed_doc,
+    );
     Ok(())
 }
 
@@ -194,7 +186,7 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         self.docs.push(doc_id);
     }
 
-    pub fn get_top(&self, max_len: usize) -> Vec<TfIdfResult<DocId>> {
+    pub fn get_top(&self, limit: usize) -> Vec<TfIdfResult<DocId>> {
         let mut tfidfs: HashMap<DocId, f32> = HashMap::new();
 
         for (term, weight) in self.terms.iter() {
@@ -225,8 +217,8 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         let mut tfidfs: Vec<_> = tfidfs.into_iter().map(|(id, score)| TfIdfResult { id, score }).collect();
         tfidfs.sort_by(|TfIdfResult { score: a, .. }, TfIdfResult { score: b, .. }| b.partial_cmp(a).unwrap());  // rev sort
 
-        if tfidfs.len() > max_len {
-            tfidfs[..max_len].to_vec()
+        if tfidfs.len() > limit {
+            tfidfs[..limit].to_vec()
         } else {
             tfidfs
         }

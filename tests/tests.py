@@ -5,6 +5,7 @@ from cli import cli
 from clone import clone
 from end_to_end import end_to_end
 from external_bases import external_bases
+from ii import ii
 from images import images
 from images2 import images2
 from ls import ls
@@ -72,6 +73,9 @@ Commands
     ls                          run `ls` test
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
+
+    ii                          run `ii` test
+                                It creates an inverted index and test it.
 
     cat-file                    run `cat-file` test
 
@@ -146,6 +150,9 @@ if __name__ == "__main__":
         elif command == "ls":
             ls()
 
+        elif command == "ii":
+            ii()
+
         elif command == "cat_file":
             cat_file()
 
@@ -197,6 +204,7 @@ if __name__ == "__main__":
                 ("cli", cli),
                 ("many_chunks", many_chunks),
                 ("ls", ls),
+                ("ii", ii),
                 ("cat_file", cat_file),
                 ("images", images),
                 ("markdown_reader", markdown_reader),

@@ -30,6 +30,7 @@ pub use index::{
     MergeResult,
     ProcessedDoc,
     RecoverResult,
+    TfIdfResult,
 };
 pub use query::{
     QueryConfig,

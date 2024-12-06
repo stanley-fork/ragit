@@ -328,6 +328,39 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
             }
         },
+        Some("ii-build") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ii-build.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            index.build_ii()?;
+        },
+        Some("ii-reset") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ii-reset.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            index.reset_ii()?;
+        },
+        Some("ii-stat") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ii-stat.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            println!("{:?}", index.stat_ii()?);
+        },
         Some("init") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
 
@@ -829,11 +862,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
+            let started_at = std::time::Instant::now();
             let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();
+            println!("search keywords: {:?}", parsed_args.get_args());
+            println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
+
             let tfidf_results = index.run_tfidf(
                 keywords,
-                vec![],
                 index.query_config.max_summaries,
             )?;
             let mut chunks = Vec::with_capacity(tfidf_results.len());
@@ -843,8 +879,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 chunks.push(index.get_chunk_by_uid(uid)?);
             }
 
-            println!("search keywords: {:?}", parsed_args.get_args());
-            println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
             println!("found {} results", chunks.len());
 
             for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
@@ -854,6 +888,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("file: {}", chunk.file);
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
+            }
+
+            let ms_took = std::time::Instant::now().duration_since(started_at).as_millis();
+
+            if ms_took > 9999 {
+                println!("took {} seconds", ms_took / 1000);
+            }
+
+            else {
+                println!("took {ms_took} ms");
             }
         },
         Some("version") => {

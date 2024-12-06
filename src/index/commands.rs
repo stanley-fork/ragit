@@ -24,5 +24,4 @@ pub use ls::{
     LsModel,
 };
 pub use merge::{MergeMode, MergeResult};
-pub use meta::METADATA_FILE_NAME;
 pub use recover::RecoverResult;

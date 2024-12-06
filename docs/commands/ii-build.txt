@@ -1,0 +1,15 @@
+rag-ii-build(1)
+==========
+
+NAME
+----
+rag-ii-build - Build an inverted index
+
+SYNOPSIS
+--------
+[verse]
+'rag ii-build'
+
+DESCRIPTION
+-----------
+NOTE: It's experimental
