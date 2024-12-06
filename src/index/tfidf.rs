@@ -24,8 +24,9 @@ type Weight = f32;
 
 pub struct TfIdfState<DocId> {
     pub terms: HashMap<Term, Weight>,
-    term_frequency: HashMap<(DocId, Term), f32>,
+    term_frequency: HashMap<(DocId, Term), usize>,
     document_frequency: HashMap<Term, usize>,
+    document_len: HashMap<DocId, usize>,
     docs: Vec<DocId>,
 }
 
@@ -159,6 +160,7 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
             terms: keywords.tokenize(),
             term_frequency: HashMap::new(),
             document_frequency: HashMap::new(),
+            document_len: HashMap::new(),
             docs: vec![],
         }
     }
@@ -179,29 +181,41 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
 
             self.term_frequency.insert(
                 (doc_id.clone(), term.to_string()),
-                processed_doc.get(term).unwrap_or(0) as f32 / processed_doc.length() as f32,
+                processed_doc.get(term).unwrap_or(0),
             );
         }
 
+        self.document_len.insert(doc_id.clone(), processed_doc.length());
         self.docs.push(doc_id);
     }
 
     pub fn get_top(&self, limit: usize) -> Vec<TfIdfResult<DocId>> {
         let mut tfidfs: HashMap<DocId, f32> = HashMap::new();
 
+        // https://en.wikipedia.org/wiki/Okapi_BM25
+        let k = 1.2;
+        let b = 0.75;
+
+        if self.document_len.is_empty() {
+            return vec![];
+        }
+
+        let avg_len = self.document_len.values().sum::<usize>() as f32 / self.document_len.len() as f32;
+
         for (term, weight) in self.terms.iter() {
-            let idf = if self.docs.len() > 1 {
-                ((self.docs.len() as f32 + 1.0) / (*self.document_frequency.get(term).unwrap_or(&0) as f32 + 1.0)).log2()
-            } else {
-                1.0
-            };
+            let idf = ((self.docs.len() + 1) as f32 / (*self.document_frequency.get(term).unwrap_or(&0) + 1) as f32).log2();
+            let idf = idf.max(0.1);
 
             for doc in self.docs.iter() {
-                let tfidf = *self.term_frequency.get(&(doc.clone(), term.to_string())).unwrap_or(&0.0) * idf;
+                let t = *self.term_frequency.get(&(doc.clone(), term.to_string())).unwrap_or(&0) as f32;
 
-                if tfidf == 0.0 {
+                if t == 0.0 {
                     continue;
                 }
+
+                let len = *self.document_len.get(doc).unwrap() as f32;
+                let tf = (t * (k + 1.0)) / (t + k * (1.0 - b + b * (len / avg_len)));
+                let tfidf = tf * idf;
 
                 match tfidfs.get_mut(doc) {
                     Some(val) => {
