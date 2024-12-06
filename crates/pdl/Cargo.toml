@@ -1,0 +1,9 @@
+[package]
+name = "ragit-pdl"
+version = "0.2.0"
+edition = "2021"
+license = "MIT"
+description = "pdl parser for ragit"
+
+[dependencies]
+tera = "1.20.0"
