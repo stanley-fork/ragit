@@ -58,7 +58,9 @@ impl Index {
         }
 
         let mut result = result.into_iter().collect::<Vec<_>>();
-        result.sort_by(|(_, score_a), (_, score_b)| score_a.partial_cmp(score_b).unwrap_or(Ordering::Equal));
+
+        // It has to be sorted in reverse order
+        result.sort_by(|(_, score_a), (_, score_b)| score_b.partial_cmp(score_a).unwrap_or(Ordering::Equal));
 
         if result.len() > limit {
             result = result[..limit].to_vec();
