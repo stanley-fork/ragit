@@ -1,0 +1,14 @@
+rag-ls-terms(1)
+==========
+
+NAME
+----
+rag-ls-terms - Show information about search terms
+
+SYNOPSIS
+--------
+[verse]
+'rag ls-terms' [--term-only | --stat-only] [<uid>]
+
+DESCRIPTION
+-----------

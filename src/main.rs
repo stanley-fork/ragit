@@ -10,6 +10,7 @@ use ragit::{
     LoadMode,
     LsChunk,
     MergeMode,
+    ProcessedDoc,
     UidQuery,
     merge_and_convert_chunks,
     multi_turn,
@@ -653,6 +654,55 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("dollars_per_1b_output_tokens: {}", model.dollars_per_1b_output_tokens);
             }
         },
+        Some("ls-terms") => {
+            let parsed_args = ArgParser::new().optional_flag(&["--term-only", "--stat-only"]).args(ArgType::Query, ArgCount::Leq(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ls-terms.txt"));
+                return Ok(());
+            }
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let term_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--term-only";
+            let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+
+            let processed_doc = match parsed_args.get_args().get(0) {
+                Some(query_str) => {
+                    let query = index.uid_query(UidQuery::with_query(query_str.to_string()).file_or_chunk().no_staged_file())?;
+
+                    if query.has_multiple_matches() {
+                        return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{}`. Please give more specific query.", query.len(), query_str)));
+                    }
+
+                    else if query.is_empty() {
+                        return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{}`.", query_str)));
+                    }
+
+                    else if let Some((_, uid)) = query.get_processed_file() {
+                        index.get_tfidf_by_file_uid(uid)?
+                    }
+
+                    else if let Some(uid) = query.get_chunk_uid() {
+                        index.get_tfidf_by_chunk_uid(uid)?
+                    }
+
+                    else {
+                        unreachable!()
+                    }
+                },
+                None => {
+                    let mut result = ProcessedDoc::empty();
+
+                    for chunk_uid in index.get_all_chunk_uids()? {
+                        result.extend(&index.get_tfidf_by_chunk_uid(chunk_uid)?);
+                    }
+
+                    result
+                },
+            };
+
+            println!("{}", processed_doc.render(term_only, stat_only));
+            return Ok(());
+        },
         Some("merge") => {
             let parsed_args = ArgParser::new().optional_flag(&["--"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
@@ -816,7 +866,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         // TODO: I would like to introduce `-N=10` flag, which tells at most how many chunks to retrieve.
         //       but the ArgParser doesn't support that kinda arguments
         Some("tfidf") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--show"]).args(ArgType::Query, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
@@ -824,34 +874,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-
-            if parsed_args.get_flag(0).is_some() {
-                let query = index.uid_query(UidQuery::with_query(args[3].to_string()).file_or_chunk().no_staged_file())?;
-
-                let processed_doc = if query.has_multiple_matches() {
-                    return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{}`. Please give more specific query.", query.len(), &args[3])));
-                }
-
-                else if query.is_empty() {
-                    return Err(Error::UidQueryError(format!("There's no chunk or file that matches `{}`.", &args[3])));
-                }
-
-                else if let Some((_, uid)) = query.get_processed_file() {
-                    index.get_tfidf_by_file_uid(uid)?
-                }
-
-                else if let Some(uid) = query.get_chunk_uid() {
-                    index.get_tfidf_by_chunk_uid(uid)?
-                }
-
-                else {
-                    unreachable!()
-                };
-
-                println!("{}", processed_doc.render());
-                return Ok(());
-            }
-
             let started_at = std::time::Instant::now();
             let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();

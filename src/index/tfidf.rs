@@ -137,17 +137,34 @@ impl ProcessedDoc {
         self.length
     }
 
-    pub fn render(&self) -> String {
+    pub fn render(&self, term_only: bool, stat_only: bool) -> String {
         let mut lines = vec![];
-        lines.push(format!("uid: {}", if let Some(u) = &self.uid { u.to_string() } else { String::from("None (not from a single chunk)") }));
-        lines.push(format!("terms: {}", self.length));
-        lines.push(String::from("term-frequency:"));
+
+        if !term_only {
+            lines.push(format!(
+                "uid: {}, terms: {}, unique_terms: {}",
+                if let Some(u) = &self.uid { u.to_string() } else { String::from("None (not from a single chunk)") },
+                self.length,
+                self.term_frequency.len(),
+            ));
+        }
+
+        if stat_only {
+            return lines[0].clone();
+        }
+
+        if !term_only {
+            lines.push(String::from("term-frequency:"));
+        }
 
         let mut pairs: Vec<_> = self.term_frequency.iter().collect();
         pairs.sort_by_key(|(_, count)| usize::MAX - *count);
 
         for (term, count) in pairs.iter() {
-            lines.push(format!("    {term:?}: {count}"));
+            lines.push(format!(
+                "{}{term:?}: {count}",
+                if term_only { "" } else { "    " },
+            ));
         }
 
         lines.join("\n")

@@ -3,12 +3,11 @@ rag-tfidf(1)
 
 NAME
 ----
-rag-tfidf - Simulate tfidf search
+rag-tfidf - Run full-text search using its tfidf engine
 
 SYNOPSIS
 --------
 [verse]
-'rag tfidf' --show <uid>
 'rag tfidf' <keywords>
 
 DESCRIPTION
