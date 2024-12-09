@@ -156,12 +156,12 @@ def ls():
                 if (r := re.match(r"^chunks\:\s(\d+)$", line)) is not None:
                     assert int(r.group(1)) == len([chunk_uid for chunk_uid, file_uid_ in uid_map.items() if file_uid == file_uid_])
 
-    # step 7: `tfidf --show <CHUNK-UID>`
+    # step 7: `ls-terms <CHUNK-UID>`
     appeared_magic_word = set()
 
     for chunk_uid, file_uid in uid_map.items():
         for search_key in [chunk_uid, chunk_uid[:8]]:
-            tfidf_result = cargo_run(["tfidf", "--show", search_key], stdout=True)
+            tfidf_result = cargo_run(["ls-terms", search_key], stdout=True)
             file_name = file_map[file_uid]
 
             for magic_word in magic_words:
@@ -176,10 +176,10 @@ def ls():
 
     assert len(appeared_magic_word) == len(magic_words_map) 
 
-    # step 8: `tfidf --show <FILE-UID>`
+    # step 8: `ls-terms <FILE-UID>`
     for file_uid, file_name in file_map.items():
         for search_key in [file_uid, file_uid[:8], file_name]:
-            tfidf_result = cargo_run(["tfidf", "--show", search_key], stdout=True)
+            tfidf_result = cargo_run(["ls-terms", search_key], stdout=True)
 
             for magic_word in magic_words:
                 file_name_ = magic_words_map[magic_word]
