@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{ChunkBuildInfo, FileReader};
+use crate::index::{ChunkBuildInfo, FileReader, IIState};
 use crate::uid::Uid;
 use ragit_api::record::Record;
 use ragit_fs::{
@@ -90,6 +90,18 @@ impl Index {
                     &self.root_dir,
                 )?;
                 self.chunk_count += 1;
+
+                match self.ii_state {
+                    IIState::Complete => {
+                        self.add_chunk_to_ii(new_chunk.uid)?;
+                    },
+                    IIState::Ongoing(_)
+                    | IIState::Outdated => {
+                        self.ii_state = IIState::Outdated;
+                    },
+                    IIState::None => {},
+                }
+
                 self.save_to_file()?;
             }
 

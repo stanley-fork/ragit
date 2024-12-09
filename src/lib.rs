@@ -20,6 +20,7 @@ pub use index::{
     AddResult,
     BuildConfig,
     CloneResult,
+    IIState,
     Index,
     LoadMode,
     LsChunk,

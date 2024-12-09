@@ -1,3 +1,4 @@
+use crate::index::IIState;
 use crate::uid::Uid;
 pub use ragit_api::{Error as ApiError, JsonType};
 use ragit_fs::FileError;
@@ -34,6 +35,7 @@ pub enum Error {
         from: String,
         to: String,
     },
+    CannotUpdateII(IIState),
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.

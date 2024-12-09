@@ -18,6 +18,7 @@ use ragit_fs::{
     read_dir,
     remove_dir_all,
 };
+use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::cmp::Ordering;
 use std::collections::HashMap;
@@ -26,6 +27,24 @@ pub type Term = String;
 pub type Weight = f32;
 const AUTO_FLUSH: usize = 65536;  // TODO: make it configurable
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(tag = "type")]
+pub enum IIState {
+    /// Initial state. There's no ii at all.
+    None,
+
+    /// ii used to be `Complete` or `Ongoing`, but there're added or rßßemoved chunks.
+    Outdated,
+
+    /// ii is built and is usable.
+    Complete,
+
+    /// ii-building is still going on. `ii-build` commands will
+    /// start from this uid. `ii-build` ALWAYS processes chunks in
+    /// uid order.
+    Ongoing(Uid),
+}
+
 #[derive(Default)]
 struct IIBuildState {
     total_uid: usize,
@@ -33,9 +52,6 @@ struct IIBuildState {
     buffer_term: usize,
     buffer_flush: usize,
 }
-
-#[derive(Debug)]
-pub struct IIStat {}
 
 impl Index {
     pub fn get_search_candidates(
@@ -81,12 +97,43 @@ impl Index {
         }
     }
 
-    /// NOTE: It's VERY experimental. It's not even idempotent.
-    pub fn build_ii(&self) -> Result<(), Error> {
+    /// Very naive way of incremental ii-build.
+    /// It works only when `self.ii_state` is `IIState::Complete`.
+    pub fn add_chunk_to_ii(&mut self, uid: Uid) -> Result<(), Error> {
+        if self.ii_state == IIState::Complete {
+            let mut buffer = HashMap::new();
+            self.update_ii_buffer(&mut buffer, uid)?;
+            self.flush_ii_buffer(buffer)?;
+            Ok(())
+        }
+
+        else {
+            Err(Error::CannotUpdateII(self.ii_state))
+        }
+    }
+
+    pub fn build_ii(&mut self) -> Result<(), Error> {
+        match self.ii_state {
+            IIState::None => {},
+            IIState::Complete => {
+                return Ok(());
+            },
+            // TODO: resuming `Ongoing` ii-build is not implemented yet
+            IIState::Outdated | IIState::Ongoing(_) => {
+                self.reset_ii()?;
+            },
+        }
+
         let mut buffer = HashMap::with_capacity(AUTO_FLUSH);
         let mut state = IIBuildState::default();
+        let mut uid_check_point = None;
 
+        // TODO: it needs an assumption that `get_all_chunk_uids` sort the result by uid
         for uid in self.get_all_chunk_uids()? {
+            if uid_check_point.is_none() {
+                uid_check_point = Some(uid);
+            }
+
             self.update_ii_buffer(&mut buffer, uid)?;
             state.total_uid += 1;
             state.buffer_uid += 1;
@@ -94,6 +141,10 @@ impl Index {
             self.render_ii_build_dashboard(&state);
 
             if buffer.len() > AUTO_FLUSH {
+                self.ii_state = IIState::Ongoing(uid_check_point.unwrap());
+                uid_check_point = None;
+                self.save_to_file()?;
+
                 self.flush_ii_buffer(buffer)?;
                 buffer = HashMap::with_capacity(AUTO_FLUSH);
                 state.buffer_uid = 0;
@@ -101,10 +152,12 @@ impl Index {
             }
         }
 
+        self.ii_state = IIState::Complete;
+        self.save_to_file()?;
         Ok(())
     }
 
-    pub fn reset_ii(&self) -> Result<(), Error> {
+    pub fn reset_ii(&mut self) -> Result<(), Error> {
         let ii_path = join3(
             &self.root_dir,
             INDEX_DIR_NAME,
@@ -117,23 +170,13 @@ impl Index {
             }
         }
 
+        self.ii_state = IIState::None;
+        self.save_to_file()?;
         Ok(())
     }
 
-    /// For debugging the inverted index.
-    pub fn stat_ii(&self) -> Result<IIStat, Error> {
-        todo!()
-    }
-
     pub fn is_ii_built(&self) -> bool {
-        let ii_path = join3(
-            &self.root_dir,
-            INDEX_DIR_NAME,
-            II_DIR_NAME,
-        ).unwrap_or(String::new());
-        let entries = read_dir(&ii_path).unwrap_or(vec![]);
-
-        entries.len() > 0
+        self.ii_state == IIState::Complete
     }
 
     fn update_ii_buffer(&self, buffer: &mut HashMap<Term, Vec<Uid>>, uid: Uid) -> Result<(), Error> {

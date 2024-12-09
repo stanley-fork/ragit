@@ -59,6 +59,7 @@ pub use commands::{
 };
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::FileReader;
+pub use ii::IIState;
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_processed_doc};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
@@ -79,6 +80,9 @@ pub struct Index {
     pub processed_files: HashMap<Path, Uid>,
     pub curr_processing_file: Option<Path>,
     repo_url: Option<String>,
+
+    /// `ii` stands for `inverted-index`.
+    pub ii_state: IIState,
 
     // it's not used by code, but used by serde
     // users modify json file, which is deserialized to `ApiConfigRaw`,
@@ -132,22 +136,19 @@ impl Index {
         }
 
         create_dir_all(&index_dir)?;
-        create_dir_all(&Index::get_rag_path(
-            &root_dir,
-            &CONFIG_DIR_NAME.to_string(),
-        ))?;
-        create_dir_all(&Index::get_rag_path(
-            &root_dir,
-            &CHUNK_DIR_NAME.to_string(),
-        ))?;
-        create_dir_all(&Index::get_rag_path(
-            &root_dir,
-            &IMAGE_DIR_NAME.to_string(),
-        ))?;
-        create_dir_all(&Index::get_rag_path(
-            &root_dir,
-            &FILE_INDEX_DIR_NAME.to_string(),
-        ))?;
+
+        for dir in [
+            CONFIG_DIR_NAME,
+            CHUNK_DIR_NAME,
+            IMAGE_DIR_NAME,
+            FILE_INDEX_DIR_NAME,
+            II_DIR_NAME,
+        ] {
+            create_dir_all(&Index::get_rag_path(
+                &root_dir,
+                &dir.to_string(),
+            ))?;
+        }
 
         let build_config = BuildConfig::default();
         let query_config = QueryConfig::default();
@@ -166,6 +167,7 @@ impl Index {
             api_config,
             root_dir,
             repo_url: None,
+            ii_state: IIState::None,
             prompts: PROMPTS.clone(),
         };
 

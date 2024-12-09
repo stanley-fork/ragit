@@ -1,5 +1,6 @@
 use super::Index;
 use crate::error::Error;
+use crate::index::IIState;
 use ragit_fs::{exists, remove_file, set_extension};
 
 pub type Path = String;
@@ -22,6 +23,8 @@ impl Index {
         }
 
         else if self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.clone()) {
+            self.ii_state = IIState::Outdated;
+
             match self.processed_files.get(&rel_path).map(|uid| *uid) {
                 Some(file_uid) => {
                     for uid in self.get_chunks_of_file(file_uid)? {

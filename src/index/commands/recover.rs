@@ -3,6 +3,7 @@ use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
 use crate::error::Error;
 use crate::index::{
     FILE_INDEX_DIR_NAME,
+    IIState,
     INDEX_DIR_NAME,
     tfidf,
 };
@@ -170,6 +171,10 @@ impl Index {
                 WriteMode::CreateOrTruncate,
             )?;
             result.replaced_configs.push(String::from("api"));
+        }
+
+        if (result.removed_chunks > 0 || result.created_tfidfs > 0) && self.ii_state != IIState::None {
+            self.ii_state = IIState::Outdated;
         }
 
         Ok(result)

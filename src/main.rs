@@ -3,6 +3,7 @@ use ragit::{
     AddMode,
     AddResult,
     Error,
+    IIState,
     Index,
     INDEX_DIR_NAME,
     Keywords,
@@ -336,7 +337,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             index.build_ii()?;
         },
         Some("ii-reset") => {
@@ -347,19 +348,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             index.reset_ii()?;
-        },
-        Some("ii-stat") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
-
-            if parsed_args.show_help() {
-                println!("{}", include_str!("../docs/commands/ii-stat.txt"));
-                return Ok(());
-            }
-
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            println!("{:?}", index.stat_ii()?);
         },
         Some("init") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
@@ -867,6 +857,25 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let tokenized_keywords = keywords.tokenize();
             println!("search keywords: {:?}", parsed_args.get_args());
             println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
+
+            match index.ii_state {
+                IIState::None => if index.query_config.enable_ii {
+                    println!("inverted-index not found");
+                } else {
+                    println!("inverted-index disabled");
+                },
+                IIState::Complete => if index.query_config.enable_ii {
+                    println!("inverted-index found");
+                } else {
+                    println!("inverted-index found, but is disabled");
+                },
+                IIState::Ongoing(_)
+                | IIState::Outdated => if index.query_config.enable_ii {
+                    println!("inverted-index is corrupted. You may `rag ii-build` to build it from scratch.");
+                } else {
+                    println!("inverted-index is corrupted, but not enabled anyway.");
+                },
+            }
 
             let tfidf_results = index.run_tfidf(
                 keywords,
