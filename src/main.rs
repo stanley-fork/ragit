@@ -866,37 +866,41 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         // TODO: I would like to introduce `-N=10` flag, which tells at most how many chunks to retrieve.
         //       but the ArgParser doesn't support that kinda arguments
         Some("tfidf") => {
-            let parsed_args = ArgParser::new().args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only"]).args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
                 return Ok(());
             }
 
+            let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let started_at = std::time::Instant::now();
             let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();
-            println!("search keywords: {:?}", parsed_args.get_args());
-            println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
 
-            match index.ii_state {
-                IIState::None => if index.query_config.enable_ii {
-                    println!("inverted-index not found");
-                } else {
-                    println!("inverted-index disabled");
-                },
-                IIState::Complete => if index.query_config.enable_ii {
-                    println!("inverted-index found");
-                } else {
-                    println!("inverted-index found, but is disabled");
-                },
-                IIState::Ongoing(_)
-                | IIState::Outdated => if index.query_config.enable_ii {
-                    println!("inverted-index is corrupted. You may `rag ii-build` to build it from scratch.");
-                } else {
-                    println!("inverted-index is corrupted, but not enabled anyway.");
-                },
+            if !uid_only {
+                println!("search keywords: {:?}", parsed_args.get_args());
+                println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
+
+                match index.ii_state {
+                    IIState::None => if index.query_config.enable_ii {
+                        println!("inverted-index not found");
+                    } else {
+                        println!("inverted-index disabled");
+                    },
+                    IIState::Complete => if index.query_config.enable_ii {
+                        println!("inverted-index found");
+                    } else {
+                        println!("inverted-index found, but is disabled");
+                    },
+                    IIState::Ongoing(_)
+                    | IIState::Outdated => if index.query_config.enable_ii {
+                        println!("inverted-index is corrupted. You may `rag ii-build` to build it from scratch.");
+                    } else {
+                        println!("inverted-index is corrupted, but not enabled anyway.");
+                    },
+                }
             }
 
             let tfidf_results = index.run_tfidf(
@@ -910,9 +914,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 chunks.push(index.get_chunk_by_uid(uid)?);
             }
 
-            println!("found {} results", chunks.len());
+            if !uid_only {
+                println!("found {} results", chunks.len());
+            }
 
             for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
+                if uid_only {
+                    println!("{}", chunk.uid);
+                    continue;
+                }
+
                 println!("--------------------------");
                 println!("score: {}", tfidf.score);
                 println!("uid: {}", chunk.uid);
@@ -923,12 +934,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let ms_took = std::time::Instant::now().duration_since(started_at).as_millis();
 
-            if ms_took > 9999 {
-                println!("took {} seconds", ms_took / 1000);
-            }
+            if !uid_only {
+                if ms_took > 9999 {
+                    println!("took {} seconds", ms_took / 1000);
+                }
 
-            else {
-                println!("took {ms_took} ms");
+                else {
+                    println!("took {ms_took} ms");
+                }
             }
         },
         Some("version") => {
