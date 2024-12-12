@@ -29,7 +29,7 @@ const AUTO_FLUSH: usize = 65536;  // TODO: make it configurable
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(tag = "type")]
-pub enum IIState {
+pub enum IIStatus {
     /// Initial state. There's no ii at all.
     None,
 
@@ -98,9 +98,9 @@ impl Index {
     }
 
     /// Very naive way of incremental ii-build.
-    /// It works only when `self.ii_state` is `IIState::Complete`.
+    /// It works only when `self.ii_status` is `IIStatus::Complete`.
     pub fn add_chunk_to_ii(&mut self, uid: Uid) -> Result<(), Error> {
-        if self.ii_state == IIState::Complete {
+        if self.ii_status == IIStatus::Complete {
             let mut buffer = HashMap::new();
             self.update_ii_buffer(&mut buffer, uid)?;
             self.flush_ii_buffer(buffer)?;
@@ -108,18 +108,18 @@ impl Index {
         }
 
         else {
-            Err(Error::CannotUpdateII(self.ii_state))
+            Err(Error::CannotUpdateII(self.ii_status))
         }
     }
 
     pub fn build_ii(&mut self) -> Result<(), Error> {
-        match self.ii_state {
-            IIState::None => {},
-            IIState::Complete => {
+        match self.ii_status {
+            IIStatus::None => {},
+            IIStatus::Complete => {
                 return Ok(());
             },
             // TODO: resuming `Ongoing` ii-build is not implemented yet
-            IIState::Outdated | IIState::Ongoing(_) => {
+            IIStatus::Outdated | IIStatus::Ongoing(_) => {
                 self.reset_ii()?;
             },
         }
@@ -141,7 +141,7 @@ impl Index {
             self.render_ii_build_dashboard(&state);
 
             if buffer.len() > AUTO_FLUSH {
-                self.ii_state = IIState::Ongoing(uid_check_point.unwrap());
+                self.ii_status = IIStatus::Ongoing(uid_check_point.unwrap());
                 uid_check_point = None;
                 self.save_to_file()?;
 
@@ -152,7 +152,7 @@ impl Index {
             }
         }
 
-        self.ii_state = IIState::Complete;
+        self.ii_status = IIStatus::Complete;
         self.save_to_file()?;
         Ok(())
     }
@@ -170,13 +170,13 @@ impl Index {
             }
         }
 
-        self.ii_state = IIState::None;
+        self.ii_status = IIStatus::None;
         self.save_to_file()?;
         Ok(())
     }
 
     pub fn is_ii_built(&self) -> bool {
-        self.ii_state == IIState::Complete
+        self.ii_status == IIStatus::Complete
     }
 
     fn update_ii_buffer(&self, buffer: &mut HashMap<Term, Vec<Uid>>, uid: Uid) -> Result<(), Error> {

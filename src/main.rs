@@ -3,7 +3,7 @@ use ragit::{
     AddMode,
     AddResult,
     Error,
-    IIState,
+    IIStatus,
     Index,
     INDEX_DIR_NAME,
     Keywords,
@@ -351,6 +351,23 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             index.reset_ii()?;
+        },
+        Some("ii-status") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ii-status.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let status = match index.ii_status {
+                IIStatus::None => "not initialized",
+                IIStatus::Complete => "complete",
+                IIStatus::Outdated => "outdated",
+                IIStatus::Ongoing(_) => "interrupted",
+            };
+            println!("{status}");
         },
         Some("init") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
@@ -883,19 +900,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("search keywords: {:?}", parsed_args.get_args());
                 println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
 
-                match index.ii_state {
-                    IIState::None => if index.query_config.enable_ii {
+                match index.ii_status {
+                    IIStatus::None => if index.query_config.enable_ii {
                         println!("inverted-index not found");
                     } else {
                         println!("inverted-index disabled");
                     },
-                    IIState::Complete => if index.query_config.enable_ii {
+                    IIStatus::Complete => if index.query_config.enable_ii {
                         println!("inverted-index found");
                     } else {
                         println!("inverted-index found, but is disabled");
                     },
-                    IIState::Ongoing(_)
-                    | IIState::Outdated => if index.query_config.enable_ii {
+                    IIStatus::Ongoing(_)
+                    | IIStatus::Outdated => if index.query_config.enable_ii {
                         println!("inverted-index is corrupted. You may `rag ii-build` to build it from scratch.");
                     } else {
                         println!("inverted-index is corrupted, but not enabled anyway.");

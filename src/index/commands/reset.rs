@@ -1,6 +1,6 @@
 use super::Index;
 use crate::error::Error;
-use crate::index::{CHUNK_DIR_NAME, FILE_INDEX_DIR_NAME, II_DIR_NAME, IIState, IMAGE_DIR_NAME, INDEX_DIR_NAME};
+use crate::index::{CHUNK_DIR_NAME, FILE_INDEX_DIR_NAME, II_DIR_NAME, IIStatus, IMAGE_DIR_NAME, INDEX_DIR_NAME};
 use ragit_fs::{create_dir_all, join, join3, remove_dir_all};
 use std::collections::HashMap;
 
@@ -19,7 +19,7 @@ impl Index {
         self.staged_files = vec![];
         self.processed_files = HashMap::new();
         self.curr_processing_file = None;
-        self.ii_state = IIState::None;
+        self.ii_status = IIStatus::None;
 
         for inner in [
             CHUNK_DIR_NAME,

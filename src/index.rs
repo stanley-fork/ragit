@@ -59,7 +59,7 @@ pub use commands::{
 };
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::FileReader;
-pub use ii::IIState;
+pub use ii::IIStatus;
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_processed_doc};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
@@ -82,7 +82,7 @@ pub struct Index {
     repo_url: Option<String>,
 
     /// `ii` stands for `inverted-index`.
-    pub ii_state: IIState,
+    pub ii_status: IIStatus,
 
     // it's not used by code, but used by serde
     // users modify json file, which is deserialized to `ApiConfigRaw`,
@@ -167,7 +167,7 @@ impl Index {
             api_config,
             root_dir,
             repo_url: None,
-            ii_state: IIState::None,
+            ii_status: IIStatus::None,
             prompts: PROMPTS.clone(),
         };
 

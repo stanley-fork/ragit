@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{IIState, LoadMode};
+use crate::index::{IIStatus, LoadMode};
 use crate::uid::Uid;
 use ragit_fs::{
     join,
@@ -116,8 +116,8 @@ impl Index {
             self.processed_files.insert(new_file_path, *uid_other);
         }
 
-        if (result.added_chunks > 0 || result.removed_chunks > 0) && self.ii_state != IIState::None {
-            self.ii_state = IIState::Outdated;
+        if (result.added_chunks > 0 || result.removed_chunks > 0) && self.ii_status != IIStatus::None {
+            self.ii_status = IIStatus::Outdated;
         }
 
         Ok(result)

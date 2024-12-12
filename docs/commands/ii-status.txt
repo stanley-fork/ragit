@@ -1,0 +1,15 @@
+rag-ii-status(1)
+==========
+
+NAME
+----
+rag-ii-status - Show current status of inverted index
+
+SYNOPSIS
+--------
+[verse]
+'rag ii-status'
+
+DESCRIPTION
+-----------
+NOTE: It's experimental
