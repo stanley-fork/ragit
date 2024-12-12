@@ -130,7 +130,8 @@ impl FileReader {
 
             // prevent infinite loop
             if curr_sliding_window_size == curr_chunk_size {
-                self.buffer.pop_front().unwrap();
+                let token = self.buffer.pop_front().unwrap();
+                self.curr_buffer_size -= token.len(self.config.image_size);
             }
 
             for token in sliding_window_deque.into_iter() {
