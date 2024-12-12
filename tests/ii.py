@@ -1,12 +1,15 @@
 import os
 import re
-from utils import cargo_run, goto_root
+import shutil
+from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
 # In order to test invert indexes, we need a large enough dataset,
 # which is not randomly generated, and easy to fetch. For now, it's
 # using `docs/*.md` files, but need a bigger dataset.
 def ii():
     goto_root()
+    mk_and_cd_tmp_dir()
+    shutil.copytree("../docs", "docs")
     os.chdir("docs")
 
     if ".ragit" in os.listdir():
@@ -17,12 +20,14 @@ def ii():
     cargo_run(["config", "--set", "chunk_size", "512"])
     cargo_run(["config", "--set", "slide_len", "128"])
     cargo_run(["config", "--set", "enable_ii", "false"])
+    assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
 
     for file in os.listdir():
         if file.endswith(".md") and "prompt" not in file:
             cargo_run(["add", file])
 
     cargo_run(["build"])
+    assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
 
     # Strategy:
     # 1. There are an arbitrary number of chunks that contain `terms`.
@@ -59,6 +64,7 @@ def ii():
         answers[term] = uids
 
     cargo_run(["ii-build"])
+    assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
     cargo_run(["config", "--set", "enable_ii", "true"])
 
     for term in terms:
@@ -98,3 +104,11 @@ def ii():
 
     if min(zero_term, rare_term, common_term) == 0:
         raise Exception(f"The code is fine, but the dataset is not good enough. Please add terms for better coverage. Terms and appearances: { {term: len(answers[term]) for term in answers.keys()} }")
+
+    # incremental update of ii
+    write_string("self-introduction.txt", "Hi, my name is baehyunsol.")
+    cargo_run(["add", "self-introduction.txt"])
+    assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
+    cargo_run(["build"])
+    assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
+    assert "self-introduction.txt" in cargo_run(["tfidf", "Hi, my name is baehyunsol."], stdout=True)
