@@ -1,8 +1,12 @@
 use ragit::Error;
+use std::collections::HashMap;
 
 pub struct ArgParser {
     args: Option<(ArgType, ArgCount)>,
     flags: Vec<Flag>,
+
+    // `--N=20`, `--prefix=rust`
+    arg_flags: HashMap<String, ArgType>,
 }
 
 impl ArgParser {
@@ -10,6 +14,7 @@ impl ArgParser {
         ArgParser {
             args: None,
             flags: vec![],
+            arg_flags: HashMap::new(),
         }
     }
 
@@ -47,28 +52,32 @@ impl ArgParser {
         self
     }
 
-    // --flag1 --flag2 args
-    // see which group each flag belongs to and parse args
     pub fn parse(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
         let mut args = vec![];
         let mut flags = vec![None; self.flags.len()];
+        let mut arg_flags = HashMap::new();
+        let mut expecting_flag_arg: Option<(String, ArgType)> = None;
 
         if raw_args.get(0).map(|arg| arg.as_str()) == Some("--help") {
             return Ok(ParsedArgs {
-                args: vec![],
+                args,
                 flags: vec![],
+                arg_flags,
                 show_help: true,
             });
         }
 
-        let mut is_reading_flag = true;
-
         'raw_arg_loop: for raw_arg in raw_args.iter() {
-            if !raw_arg.starts_with("--") {
-                is_reading_flag = false;
+            if let Some((flag, arg_type)) = expecting_flag_arg {
+                expecting_flag_arg = None;
+                arg_type.parse(raw_arg)?;
+
+                if let Some(_) = arg_flags.insert(flag.clone(), raw_arg.to_string()) {
+                    return Err(Error::CliError(format!("{flag:?} is given multiple times")));
+                }
             }
 
-            if is_reading_flag {
+            if raw_arg.starts_with("--") {
                 for (flag_index, flag) in self.flags.iter().enumerate() {
                     if flag.values.contains(raw_arg) {
                         if flags[flag_index].is_none() {
@@ -77,12 +86,35 @@ impl ArgParser {
                         }
 
                         else {
-                            return Err(Error::CliError(format!("conflicting flags: {} vs {raw_arg}", flags[flag_index].clone().unwrap())));
+                            return Err(Error::CliError(format!("conflicting flags: {:?} vs {raw_arg:?}", flags[flag_index].clone().unwrap())));
                         }
                     }
                 }
 
-                return Err(Error::CliError(format!("unknown flag: {raw_arg}")));
+                if let Some(arg_type) = self.arg_flags.get(raw_arg) {
+                    expecting_flag_arg = Some((raw_arg.to_string(), *arg_type));
+                    continue;
+                }
+
+                if raw_arg.contains("=") {
+                    let splitted = raw_arg.splitn(2, '=').collect::<Vec<_>>();
+                    let flag = splitted[0];
+                    let flag_arg = splitted[1];
+
+                    if let Some(arg_type) = self.arg_flags.get(flag) {
+                        arg_type.parse(flag_arg)?;
+
+                        if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {
+                            return Err(Error::CliError(format!("{flag:?} is given multiple times")));
+                        }
+                    }
+
+                    else {
+                        return Err(Error::CliError(format!("unknown flag: {flag:?}")));
+                    }
+                }
+
+                return Err(Error::CliError(format!("unknown flag: {raw_arg:?}")));
             }
 
             else {
@@ -94,6 +126,10 @@ impl ArgParser {
                     return Err(Error::CliError(format!("unexpected argument: {raw_arg:?}")));
                 }
             }
+        }
+
+        if let Some((arg, _)) = expecting_flag_arg {
+            return Err(Error::CliError(format!("missing argument of {arg:?}")));
         }
 
         for i in 0..flags.len() {
@@ -126,6 +162,7 @@ impl ArgParser {
         Ok(ParsedArgs {
             args,
             flags,
+            arg_flags,
             show_help: false,
         })
     }
@@ -137,6 +174,7 @@ pub enum ArgCount {
     Exact(usize),
 }
 
+#[derive(Clone, Copy)]
 pub enum ArgType {
     String,
     Path,
@@ -160,6 +198,7 @@ pub struct Flag {
 pub struct ParsedArgs {
     args: Vec<String>,
     flags: Vec<Option<String>>,
+    arg_flags: HashMap<String, String>,
     show_help: bool,  // TODO: options for help messages
 }
 
