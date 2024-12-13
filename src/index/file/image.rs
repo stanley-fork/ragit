@@ -2,8 +2,9 @@ use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
 use crate::index::BuildConfig;
 use crate::uid::Uid;
-use ragit_api::ImageType;
 use ragit_fs::{extension, read_bytes, remove_file};
+use ragit_pdl::ImageType;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub type Path = String;
@@ -95,4 +96,10 @@ impl FileReaderImpl for ImageReader {
     fn key(&self) -> String {
         String::from("image_reader_v0")
     }
+}
+
+#[derive(Default, Deserialize, Serialize)]
+pub struct ImageDescription {
+    extracted_text: String,
+    explanation: String,
 }

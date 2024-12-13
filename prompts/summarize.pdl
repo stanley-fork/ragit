@@ -1,3 +1,7 @@
+<|schema|>
+
+{ title: str, summary: str { len_min: {{min_summary_len}}, len_max: {{max_summary_len}} } }
+
 <|system|>
 
 Your job is to title and summarize a chunk of text. The chunk is taken from a long, arbitrary document and is cut at an arbitrary point.{% if previous_summary %} You'll be given a chunk and a summary of a previous chunk.{% endif %}

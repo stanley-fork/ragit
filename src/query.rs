@@ -5,11 +5,15 @@ use crate::index::Index;
 use ragit_api::{
     ChatRequest,
     JsonType,
+    RecordAt,
+};
+use ragit_pdl::{
     Message,
     MessageContent,
-    RecordAt,
+    Pdl,
     Role,
-    messages_from_pdl,
+    escape_pdl_tokens,
+    parse_pdl,
 };
 use regex::Regex;
 use serde_json::Value;
@@ -27,7 +31,7 @@ pub async fn retrieve_chunks(
     let mut chunks = index.load_chunks_or_tfidf(query).await?;
 
     if chunks.len() > index.query_config.max_summaries {
-        chunks = title_to_summaries(
+        chunks = titles_to_summaries(
             query,
             chunks.into_iter().map(|c| c.into()).collect(),
             &index.api_config,
@@ -80,7 +84,7 @@ pub async fn multi_turn(
     ).await
 }
 
-pub async fn title_to_summaries(
+pub async fn titles_to_summaries(
     query: &str,
     chunks: Vec<Chunk>,
     api_config: &ApiConfig,
@@ -90,32 +94,41 @@ pub async fn title_to_summaries(
     tera_context.insert(
         "titles",
         &chunks.iter().enumerate().map(
-            |(index, chunk)| format!("{}. {}", index + 1, chunk.title)
+            |(index, chunk)| format!("{}. {}", index + 1, escape_pdl_tokens(&chunk.title))
         ).collect::<Vec<_>>().join("\n"),
     );
     tera_context.insert(
         "query",
-        query,
+        &escape_pdl_tokens(&query),
     );
 
-    let messages = messages_from_pdl(
-        pdl.to_string(),
-        tera_context,
+    let Pdl { messages, schema } = parse_pdl(
+        pdl,
+        &tera_context,
+        true,
+        true,
     )?;
-
-    let title_indices = get_array_of_numbers(
+    let request = ChatRequest {
         messages,
-        Some(1),
-
-        // rust uses 0-index and llm uses 1-index
-        Some(chunks.len() as i64),
-        None,
-        api_config,
-        "rerank_title",
-    ).await?;
+        frequency_penalty: None,
+        max_tokens: None,
+        temperature: None,
+        timeout: api_config.timeout,
+        max_retry: api_config.max_retry,
+        sleep_between_retries: api_config.sleep_between_retries,
+        api_key: api_config.api_key.clone(),
+        dump_pdl_at: api_config.create_pdl_path("rerank_title"),
+        model: api_config.model,
+        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+            |path| RecordAt { path, id: String::from("rerank_title") }
+        ),
+        schema,
+        schema_max_try: 3,
+    };
+    let title_indices = request.send_and_validate::<Vec<usize>>(vec![]).await?;
 
     Ok(chunks.into_iter().enumerate().filter(
-        |(index, _)| title_indices.contains(&((index + 1) as i64))
+        |(index, _)| title_indices.contains(&(index + 1))
     ).map(
         |(_, chunk)| chunk
     ).collect())
@@ -133,155 +146,51 @@ pub async fn summaries_to_chunks(
             |(index, chunk)| format!(
                 "{}. {}\nsource: {}\nsummary: {}",
                 index + 1,
-                chunk.title,
-                chunk.file,
-                chunk.summary,
+                escape_pdl_tokens(&chunk.title),
+                escape_pdl_tokens(&chunk.file),
+                escape_pdl_tokens(&chunk.summary),
             )
         ).collect::<Vec<_>>().join("\n\n"),
     );
     tera_context.insert(
         "query",
-        query,
+        &escape_pdl_tokens(&query),
     );
     tera_context.insert(
         "max_retrieval",
         &index.query_config.max_retrieval,
     );
 
-    let messages = messages_from_pdl(
-        index.get_prompt("rerank_summary")?,
-        tera_context,
+    let Pdl { messages, schema } = parse_pdl(
+        &index.get_prompt("rerank_summary")?,
+        &tera_context,
+        true,
+        true,
     )?;
-
-    let chunk_indices = get_array_of_numbers(
+    let request = ChatRequest {
         messages,
-        Some(1),
-
-        // rust uses 0-index and llm uses 1-index
-        Some(chunks.len() as i64),
-        Some(index.query_config.max_retrieval),
-        &index.api_config,
-        "rerank_summary",
-    ).await?;
-
-    Ok(chunks.into_iter().enumerate().filter(
-        |(index, _)| chunk_indices.contains(&((index + 1) as i64))
-    ).map(
-        |(_, chunk)| chunk
-    ).collect())
-}
-
-async fn get_array_of_numbers(
-    messages: Vec<Message>,
-    min_n: Option<i64>,
-    max_n: Option<i64>,
-    max_array_len: Option<usize>,
-    api_config: &ApiConfig,
-    log_title: &str,
-) -> Result<Vec<i64>, Error> {
-    let mut request = ChatRequest {
-        messages: messages.clone(),
         frequency_penalty: None,
         max_tokens: None,
         temperature: None,
-        timeout: api_config.timeout,
-        max_retry: api_config.max_retry,
-        sleep_between_retries: api_config.sleep_between_retries,
-        api_key: api_config.api_key.clone(),
-        dump_pdl_at: api_config.create_pdl_path(log_title),
-        model: api_config.model,
-        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
-            |path| RecordAt { path, id: String::from(log_title) }
+        timeout: index.api_config.timeout,
+        max_retry: index.api_config.max_retry,
+        sleep_between_retries: index.api_config.sleep_between_retries,
+        api_key: index.api_config.api_key.clone(),
+        dump_pdl_at: index.api_config.create_pdl_path("rerank_summary"),
+        model: index.api_config.model,
+        record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
+            |path| RecordAt { path, id: String::from("rerank_summary") }
         ),
+        schema,
+        schema_max_try: 3,
     };
+    let chunk_indices = request.send_and_validate::<Vec<usize>>(vec![]).await?;
 
-    let mut response = request.send().await?;
-    let mut response_text = response.get_message(0).unwrap();
-    let mut error_message = String::new();
-    let mut mistakes = 0;
-
-    let array_regex = Regex::new(r".*(\[\s*\d*(\s*\,\s*\d+)*\,?\s*\]).*").unwrap();
-    let mut array_of_numbers;
-
-    loop {
-        array_of_numbers = vec![];
-
-        if let Some(cap) = array_regex.captures(&response_text) {
-            let json_text = cap[1].to_string();
-
-            match serde_json::from_str::<Value>(&json_text) {
-                Ok(Value::Array(numbers)) => {
-                    let mut has_error = false;
-
-                    for number in numbers.iter() {
-                        match number.as_i64() {
-                            Some(n) => {
-                                array_of_numbers.push(n);
-
-                                if let Some(m) = max_n {
-                                    if n > m {
-                                        has_error = true;
-                                        error_message = format!("I see {n} in your array, which is not a valid number. The maximum number is {m}");
-                                    }
-                                }
-
-                                if let Some(m) = min_n {
-                                    if n < m {
-                                        has_error = true;
-                                        error_message = format!("I see {n} in your array, which is not a valid number. The minimum number is {m}");
-                                    }
-                                }
-                            },
-                            _ => {
-                                has_error = true;
-                                // TODO: for now, "which are the index of the titles." makes sense, but it would break something at someday
-                                error_message = String::from("I cannot parse your array. Please make sure that the array only contains numbers, which are the index of the titles.");
-                                break;
-                            },
-                        }
-                    }
-
-                    if let Some(len) = max_array_len {
-                        if array_of_numbers.len() > len {
-                            has_error = true;
-                            error_message = format!("I need an array which has less than {} elements. Please pick the most important {} elements.", len + 1, len);
-                        }
-                    }
-
-                    if !has_error {
-                        break;
-                    }
-                },
-                Ok(_) => unreachable!(),
-                Err(_) => {
-                    error_message = String::from("I cannot parse your array. Please give me the array in a valid json format.");
-                },
-            }
-        } else {
-            error_message = String::from("I cannot find a square bracket in your response. Please give me an array of numbers");
-        }
-
-        mistakes += 1;
-
-        // if a model is too stupid, it cannot create a valid json
-        if mistakes > 5 {
-            // default value: select first ones
-            return Ok((0..(messages.len().min(max_array_len.unwrap_or(usize::MAX)) as i64)).collect());
-        }
-
-        request.messages.push(Message {
-            role: Role::Assistant,
-            content: MessageContent::simple_message(response_text.to_string()),
-        });
-        request.messages.push(Message {
-            role: Role::User,
-            content: MessageContent::simple_message(error_message.clone()),
-        });
-        response = request.send().await?;
-        response_text = response.get_message(0).unwrap();
-    }
-
-    Ok(array_of_numbers)
+    Ok(chunks.into_iter().enumerate().filter(
+        |(index, _)| chunk_indices.contains(&(index + 1))
+    ).map(
+        |(_, chunk)| chunk
+    ).collect())
 }
 
 pub async fn answer_query_with_chunks(
@@ -293,23 +202,22 @@ pub async fn answer_query_with_chunks(
     let mut tera_context = tera::Context::new();
     tera_context.insert(
         "chunks",
-        &chunks,
+        &chunks,  // it's already escaped
     );
     tera_context.insert(
         "query",
-        query,
+        &escape_pdl_tokens(&query),
     );
 
-    let messages = messages_from_pdl(
-        pdl.to_string(),
-        tera_context,
+    let Pdl { messages, .. } = parse_pdl(
+        pdl,
+        &tera_context,
+        true,
+        true,
     )?;
 
     let request = ChatRequest {
         messages,
-        frequency_penalty: None,
-        max_tokens: None,
-        temperature: None,
         timeout: api_config.timeout,
         max_retry: api_config.max_retry,
         sleep_between_retries: api_config.sleep_between_retries,
@@ -319,6 +227,8 @@ pub async fn answer_query_with_chunks(
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("answer_query_with_chunks") }
         ),
+        schema: None,
+        ..ChatRequest::default()
     };
 
     let response = request.send().await?;
@@ -331,14 +241,16 @@ pub async fn rephrase_multi_turn(
     api_config: &ApiConfig,
     pdl: &str,
 ) -> Result<String, Error> {
-    let turns_json = Value::Array(turns.iter().map(|turn| Value::String(turn.to_string())).collect());
+    let turns_json = Value::Array(turns.iter().map(|turn| Value::String(escape_pdl_tokens(turn))).collect());
     let turns_json = String::from_utf8_lossy(&serde_json::to_vec_pretty(&turns_json)?).to_string();
     let mut tera_context = tera::Context::new();
     tera_context.insert("turns", &turns_json);
 
-    let messages = messages_from_pdl(
-        pdl.to_string(),
-        tera_context,
+    let Pdl { messages, schema } = parse_pdl(
+        pdl,
+        &tera_context,
+        true,
+        true,
     )?;
 
     let mut request = ChatRequest {
@@ -355,6 +267,8 @@ pub async fn rephrase_multi_turn(
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rephrase_multi_turn") }
         ),
+        schema,
+        schema_max_try: 3,
     };
 
     let mut response = request.send().await?;
@@ -438,17 +352,16 @@ pub async fn raw_request(
     pdl: &str,
 ) -> Result<String, Error> {
     let mut tera_context = tera::Context::new();
-    tera_context.insert("query", query);
+    tera_context.insert("query", &escape_pdl_tokens(&query));
 
-    let messages = messages_from_pdl(
-        pdl.to_string(),
-        tera_context,
+    let Pdl { messages, .. } = parse_pdl(
+        pdl,
+        &tera_context,
+        true,
+        true,
     )?;
     let request = ChatRequest {
         messages,
-        frequency_penalty: None,
-        max_tokens: None,
-        temperature: None,
         timeout: api_config.timeout,
         max_retry: api_config.max_retry,
         sleep_between_retries: api_config.sleep_between_retries,
@@ -458,6 +371,8 @@ pub async fn raw_request(
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("raw_request") }
         ),
+        schema: None,
+        ..ChatRequest::default()
     };
 
     let response = request.send().await?;

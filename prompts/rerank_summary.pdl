@@ -1,3 +1,7 @@
+<|schema|>
+
+[int { min: 1, max: {{max_index}} }] { len_max: {{max_summary_count}} }
+
 <|system|>
 
 Your job is to select documents that are relevant to user's query. You'll be given a query and titles and summaries of documents. You have to choose documents that look helpful to answer the query. You can select at most {{max_retrieval}} documents.

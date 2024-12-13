@@ -1,3 +1,7 @@
+<|schema|>
+
+{ extracted_text: str, explanation: str }
+
 <|system|>
 
 Your job is to generate a description for a given image. You have to create two fields: "extracted_text" and "explanation".

@@ -8,12 +8,7 @@ use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use ragit_api::{
     ChatRequest,
-    Message,
-    MessageContent,
     RecordAt,
-    Role,
-    encode_base64,
-    messages_from_pdl,
 };
 use ragit_fs::{
     WriteMode,
@@ -25,9 +20,16 @@ use ragit_fs::{
     set_extension,
     write_bytes,
 };
-use regex::Regex;
+use ragit_pdl::{
+    Message,
+    MessageContent,
+    Pdl,
+    Role,
+    encode_base64,
+    escape_pdl_tokens,
+    parse_pdl,
+};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 
@@ -152,7 +154,7 @@ impl Chunk {
         for token in tokens.iter() {
             match token {
                 AtomicToken::String { data, .. } => {
-                    chunk.push(data.to_string());
+                    chunk.push(escape_pdl_tokens(data));
                 },
                 AtomicToken::Image(Image { bytes, image_type, .. }) => {
                     chunk.push(format!("<|raw_media({}:{})|>", image_type.to_extension(), encode_base64(&bytes)));
@@ -161,39 +163,23 @@ impl Chunk {
         }
 
         context.insert("chunk", &chunk.concat());
+        context.insert("min_summary_len", &config.min_summary_len);
+        context.insert("max_summary_len", &config.max_summary_len);
 
         if let Some(previous_summary) = &previous_summary {
-            context.insert("previous_summary", previous_summary);
+            context.insert("previous_summary", &escape_pdl_tokens(previous_summary));
         }
 
-        let prompt = messages_from_pdl(
-            pdl.to_string(),
-            context,
+        let Pdl { messages, schema } = parse_pdl(
+            pdl,
+            &context,
+            true,
+            true,
         )?;
-        let mut request = ChatRequest {
-            api_key: api_config.api_key.clone(),
-            messages: prompt,
-            model: api_config.model,
-            frequency_penalty: None,
-            max_tokens: None,
-            max_retry: api_config.max_retry,
-            sleep_between_retries: api_config.sleep_between_retries,
-            timeout: api_config.timeout,
-            temperature: None,
-            record_api_usage_at: api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("create_chunk_from") }
-            ),
-            dump_pdl_at: api_config.create_pdl_path("create_chunk_from"),
-        };
-        let mut response = request.send().await?;
-        let mut response_text = response.get_message(0).unwrap();
-        let json_regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
-
         let mut data = vec![];
         let mut images = vec![];
         let mut char_len = 0;
         let mut image_count = 0;
-        let mut mistakes = 0;
 
         for r in tokens.iter() {
             match r {
@@ -210,95 +196,31 @@ impl Chunk {
         }
 
         let data = data.concat();
-
-        let (title, summary) = loop {
-            let error_message;
-
-            if let Some(cap) = json_regex.captures(&response_text) {
-                let json_text = cap[1].to_string();
-
-                match serde_json::from_str::<Value>(&json_text) {
-                    Ok(j) => match j {
-                        Value::Object(obj) if obj.len() == 2 => match (
-                            obj.get("title"), obj.get("summary")
-                        ) {
-                            (Some(title), Some(summary)) => match (title.as_str(), summary.as_str()) {
-                                (Some(title), Some(summary)) => {
-                                    let summary_len = summary.chars().count();
-
-                                    if summary_len < config.min_summary_len && char_len + image_count * config.image_size > config.min_summary_len * 2 {
-                                        error_message = format!("Your summary is too short. Make sure that it's at least {} characters long.", config.min_summary_len);
-                                    }
-
-                                    else if summary_len > config.max_summary_len {
-                                        error_message = format!("Your summary is too long. Make sure that it's less than {} characters long.", config.max_summary_len);
-                                    }
-
-                                    else if title.contains("\n") || summary.contains("\n") {
-                                        error_message = format!("Your output has a correct schema, but please don't include newline characters in your output.");
-                                    }
-
-                                    else {
-                                        break (title.to_string(), summary.to_string());
-                                    }
-                                },
-                                _ => {
-                                    error_message = String::from("Give me a json object with 2 keys: \"title\" and \"summary\". Make sure that both are string.");
-                                },
-                            },
-                            _ => {
-                                error_message = String::from("Give me a json object with 2 keys: \"title\" and \"summary\".");
-                            }, 
-                        },
-                        Value::Object(_) => {
-                            error_message = String::from("Please give me a json object that contains 2 keys: \"title\" and \"summary\". Don't add keys to give extra information, put all your information in those two fields.");
-                        },
-                        _ => {
-                            error_message = String::from("Give me a json object with 2 keys: \"title\" and \"summary\".");
-                        },
-                    },
-                    Err(_) => {
-                        error_message = String::from("I cannot parse your output. It seems like your output is not a valid json. Please give me a valid json.");
-                    },
-                }
-            }
-
-            else {
-                error_message = String::from("I cannot find curly braces in your response. Please give me a valid json output.");
-            }
-
-            mistakes += 1;
-
-            // if a model is too stupid, it cannot create title and summary
-            if mistakes > 5 {
-                let data_chars = data.chars().collect::<Vec<_>>();
-
-                // default values
-                break (
-                    String::from("untitled"),
-                    data_chars[..((config.min_summary_len + config.max_summary_len) / 2).min(data_chars.len())].into_iter().collect::<String>().replace("\n", " "),
-                );
-            }
-
-            request.messages.push(Message {
-                role: Role::Assistant,
-                content: MessageContent::simple_message(response_text.to_string()),
-            });
-            request.messages.push(Message {
-                role: Role::User,
-                content: MessageContent::simple_message(error_message),
-            });
-            response = request.send().await?;
-            response_text = response.get_message(0).unwrap();
+        let mut request = ChatRequest {
+            api_key: api_config.api_key.clone(),
+            messages,
+            model: api_config.model,
+            frequency_penalty: None,
+            max_tokens: None,
+            max_retry: api_config.max_retry,
+            sleep_between_retries: api_config.sleep_between_retries,
+            timeout: api_config.timeout,
+            temperature: None,
+            record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+                |path| RecordAt { path, id: String::from("create_chunk_from") }
+            ),
+            dump_pdl_at: api_config.create_pdl_path("create_chunk_from"),
+            schema,
+            schema_max_try: 3,
         };
-
+        let response = request.send_and_validate::<ChunkSchema>(ChunkSchema::dummy(&data, config.max_summary_len)).await?;
         let mut result = Chunk {
             data,
             images,
             char_len,
             image_count,
-            title,
-            summary,
+            title: response.title,
+            summary: response.summary,
             file: normalize(&file)?,
             index: file_index,
             uid: Uid::dummy(),
@@ -393,4 +315,19 @@ fn merge_overlapping_strings(s1: &[u8], s2: &[u8]) -> String {
     }
 
     format!("{}{}", String::from_utf8_lossy(s1), String::from_utf8_lossy(&s2[index..]).to_string())
+}
+
+#[derive(Deserialize)]
+struct ChunkSchema {
+    title: String,
+    summary: String,
+}
+
+impl ChunkSchema {
+    pub fn dummy(data: &str, len: usize) -> Self {
+        ChunkSchema {
+            title: String::from("untitled"),
+            summary: data.chars().take(len).collect(),
+        }
+    }
 }

@@ -1,3 +1,7 @@
+<|schema|>
+
+{ is_query: boolean, in_context: boolean, query: str }
+
 <|system|>
 
 Your job is to rephrase a query in a multi-turn conversation. You'll be given a json object containing a conversation.

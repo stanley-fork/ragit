@@ -1,6 +1,7 @@
 use crate::index::IIStatus;
 use crate::uid::Uid;
 pub use ragit_api::{Error as ApiError, JsonType};
+use ragit_pdl::Error as PdlError;
 use ragit_fs::FileError;
 use std::string::FromUtf8Error;
 
@@ -65,6 +66,9 @@ pub enum Error {
 
     // I'm too lazy to add all the variants of ragit_api::Error
     ApiError(ApiError),
+
+    // I'm too lazy to add all the variants of ragit_pdl::Error
+    PdlError(PdlError),
 }
 
 impl From<json::Error> for Error {
@@ -123,8 +127,16 @@ impl From<ApiError> for Error {
             ApiError::JsonError(e) => Error::JsonError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),
-            ApiError::InvalidImageType(e) => Error::InvalidImageType(e),
             e => Error::ApiError(e),
+        }
+    }
+}
+
+impl From<PdlError> for Error {
+    fn from(e: PdlError) -> Self {
+        match e {
+            PdlError::InvalidImageType(e) => Error::InvalidImageType(e),
+            e => Error::PdlError(e),
         }
     }
 }

@@ -1,6 +1,6 @@
 use chrono::DateTime;
 use chrono::offset::Local;
-use crate::{Error, Message};
+use crate::Error;
 use crate::json_type::JsonType;
 use json::JsonValue;
 use ragit_fs::{
@@ -8,6 +8,7 @@ use ragit_fs::{
     read_string,
     write_string,
 };
+use ragit_pdl::Message;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]

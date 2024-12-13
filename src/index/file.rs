@@ -3,8 +3,8 @@ use crate::chunk::{Chunk, ChunkBuildInfo};
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
-use ragit_api::MessageContent;
 use ragit_fs::extension;
+use ragit_pdl::MessageContent;
 use std::collections::{HashMap, VecDeque};
 
 mod image;
@@ -12,7 +12,7 @@ mod line_reader;
 mod markdown;
 mod plain_text;
 
-pub use image::{Image, ImageReader, normalize_image};
+pub use image::{Image, ImageDescription, ImageReader, normalize_image};
 pub use line_reader::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;

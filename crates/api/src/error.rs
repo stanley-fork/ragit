@@ -9,10 +9,9 @@ pub enum Error {
     },
     JsonObjectInvalidField(String),
     JsonObjectMissingField(String),
-    InvalidRole(String),
     InvalidModelKind(String),
-    InvalidPdlToken(String),
-    InvalidImageType(String),
+    PdlError(ragit_pdl::Error),
+    FileError(FileError),
 
     /// If you see this error, there must be a bug in this library
     NoTry,
@@ -26,24 +25,23 @@ pub enum Error {
     /// see <https://docs.rs/serde_json/latest/serde_json/struct.Error.html>
     JsonSerdeError(serde_json::Error),
 
-    FileError(FileError),
-
     /// see <https://docs.rs/tera/latest/tera/struct.Error.html>
     TeraError(tera::Error),
 
-    /// see <https://docs.rs/base64/latest/base64/enum.DecodeError.html>
-    Base64DecodeError(base64::DecodeError),
-
     WrongSchema(String),
-
     ServerError {
         status_code: u16,
         body: Result<String, reqwest::Error>,
     },
-
     UnsupportedMediaFormat {
         extension: Option<String>,
     },
+}
+
+impl From<ragit_pdl::Error> for Error {
+    fn from(e: ragit_pdl::Error) -> Error {
+        Error::PdlError(e)
+    }
 }
 
 impl From<FileError> for Error {
@@ -73,11 +71,5 @@ impl From<serde_json::Error> for Error {
 impl From<tera::Error> for Error {
     fn from(e: tera::Error) -> Error {
         Error::TeraError(e)
-    }
-}
-
-impl From<base64::DecodeError> for Error {
-    fn from(e: base64::DecodeError) -> Error {
-        Error::Base64DecodeError(e)
     }
 }

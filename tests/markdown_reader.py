@@ -125,3 +125,6 @@ def markdown_reader():
     cargo_run(["add", "sample5.md"])
     cargo_run(["build"], timeout=20.0)
     cargo_run(["check"])
+
+    # If pdl-escaping was successful, summay of its chunk must have this substring
+    assert "<|media(PATH/TO/YOUR/MEDIA/FILE)|>" in cargo_run(["ls-chunks", "sample5.md"], stdout=True)

@@ -7,12 +7,7 @@ use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywor
 use crate::uid::{self, Uid};
 use ragit_api::{
     ChatRequest,
-    Message,
-    MessageContent,
     RecordAt,
-    Role,
-    encode_base64,
-    messages_from_pdl,
 };
 use ragit_fs::{
     WriteMode,
@@ -33,6 +28,14 @@ use ragit_fs::{
     set_extension,
     write_bytes,
     write_string,
+};
+use ragit_pdl::{
+    Message,
+    MessageContent,
+    Pdl,
+    Role,
+    encode_base64,
+    parse_pdl,
 };
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -58,7 +61,7 @@ pub use commands::{
     RecoverResult,
 };
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
-pub use file::FileReader;
+pub use file::{FileReader, ImageDescription};
 pub use ii::IIStatus;
 pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_processed_doc};
 
@@ -415,9 +418,11 @@ impl Index {
         context.insert("image_type", "png");
         context.insert("image_bytes", &image_bytes);
         let pdl = self.get_prompt("describe_image")?;
-        let messages = messages_from_pdl(
-            pdl.to_string(),
-            context,
+        let Pdl { messages, schema } = parse_pdl(
+            &pdl,
+            &context,
+            true,
+            true,
         )?;
         let mut mistakes = 0;
 
@@ -435,69 +440,10 @@ impl Index {
                 |path| RecordAt { path, id: String::from("describe_image") }
             ),
             dump_pdl_at: self.api_config.create_pdl_path("describe_image"),
+            schema,
+            schema_max_try: 3,
         };
-        let mut response = request.send().await?;
-        let mut response_text = response.get_message(0).unwrap();
-        let json_regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
-
-        let result = loop {
-            let error_message;
-
-            if let Some(cap) = json_regex.captures(&response_text) {
-                let json_text = cap[1].to_string();
-
-                match serde_json::from_str::<Value>(&json_text) {
-                    Ok(j) => match j {
-                        Value::Object(ref obj) if obj.len() == 2 => match (
-                            obj.get("extracted_text"), obj.get("explanation"),
-                        ) {
-                            (Some(extracted), Some(explanation)) => match (extracted.as_str(), explanation.as_str()) {
-                                (Some(_), Some(_)) => {
-                                    break j.clone();
-                                },
-                                _ => {
-                                    error_message = String::from("Please make sure that both values of the object are string.");
-                                },
-                            },
-                            _ => {
-                                error_message = String::from("Give me a json object with 2 keys: \"extracted_text\" and \"explanation\". Make sure that both are string.");
-                            },
-                        },
-                        _ => {
-                            error_message = String::from("Give me a json object with 2 keys: \"extracted_text\" and \"explanation\". Make sure that both are string.");
-                        },
-                    },
-                    _ => {
-                        error_message = String::from("I cannot parse your output. It seems like your output is not a valid json. Please give me a valid json.");
-                    },
-                }
-            }
-
-            else {
-                error_message = String::from("I cannot find curly braces in your response. Please give me a valid json output.");
-            }
-
-            mistakes += 1;
-
-            // if a model is too stupid, it cannot create title and summary
-            if mistakes > 5 {
-                break vec![
-                    (String::from("extracted_text"), Value::String(String::new())),
-                    (String::from("explanation"), Value::String(String::new())),
-                ].into_iter().collect::<Value>();
-            }
-
-            request.messages.push(Message {
-                role: Role::Assistant,
-                content: MessageContent::simple_message(response_text.to_string()),
-            });
-            request.messages.push(Message {
-                role: Role::User,
-                content: MessageContent::simple_message(error_message),
-            });
-            response = request.send().await?;
-            response_text = response.get_message(0).unwrap();
-        };
+        let result = request.send_and_validate::<ImageDescription>(ImageDescription::default()).await?;
 
         write_bytes(
             &description_path,

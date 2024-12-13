@@ -1,4 +1,5 @@
 use clap::Parser;
+use ragit_pdl::Pdl;
 use std::str::FromStr;
 
 #[derive(Parser)]
@@ -43,6 +44,9 @@ struct Args {
 
     #[arg(long, default_value = None)]
     frequency_penalty: Option<f64>,
+
+    #[arg(long, default_value_t = false)]
+    strict_mode: bool,
 }
 
 // TODO: interactive ui like ollama
@@ -50,7 +54,14 @@ struct Args {
 async fn main() {
     let args = Args::parse();
 
-    let messages = ragit_api::messages_from_file(&args.input, tera::Context::new()).unwrap();
+    let Pdl { messages, schema } = ragit_pdl::parse_pdl_from_file(
+        &args.input,
+        &tera::Context::new(),
+        args.strict_mode,
+
+        // TODO: escape input
+        false,  // is_escaped
+    ).unwrap();
     let model = ragit_api::ChatModel::from_str(&args.model).unwrap();
     let timeout = match &args.timeout {
         t if t == "d" => Some(model.api_timeout()),
@@ -72,11 +83,17 @@ async fn main() {
 
         // TODO: make it configurable
         record_api_usage_at: None,
+        schema: schema.clone(),
+        schema_max_try: 3,
     };
 
-    let response = request.send().await.unwrap();
+    let response = if schema.is_none() {
+        request.send().await.unwrap().get_message(0).unwrap().to_string()
+    } else {
+        request.send_and_validate::<serde_json::Value>(serde_json::Value::Null).await.unwrap().to_string()
+    };
 
     if args.output == "STDOUT" {
-        println!("{}", response.get_message(0).unwrap());
+        println!("{response}");
     }
 }

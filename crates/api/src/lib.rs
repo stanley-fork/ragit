@@ -10,18 +10,9 @@ mod utils;
 pub use crate::api_key::load_api_key;
 pub use crate::api_provider::ApiProvider;
 pub use crate::chat::{
-    ImageType,
-    MediaMessageBuilder,
-    Message,
-    MessageContent,
     ModelKind as ChatModel,
     Request as ChatRequest,
     Response as ChatResponse,
-    Role,
-    message_contents_to_json_array,
-    message_contents_to_string,
-    messages_from_file,
-    messages_from_pdl,
 };
 pub use crate::error::Error;
 pub use crate::image::{
@@ -35,4 +26,3 @@ pub use crate::image::{
 };
 pub use crate::json_type::JsonType;
 pub use crate::record::RecordAt;
-pub use crate::utils::{decode_base64, encode_base64};

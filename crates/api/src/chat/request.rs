@@ -1,6 +1,6 @@
-use super::{ModelKind, Response};
+use super::{ModelKind, Response, message_to_json};
 use async_std::task;
-use crate::{ApiProvider, Error, Message, Role};
+use crate::{ApiProvider, Error};
 use crate::record::{
     RecordAt,
     dump_pdl,
@@ -8,6 +8,8 @@ use crate::record::{
 };
 use json::JsonValue;
 use ragit_fs::write_log;
+use ragit_pdl::{Message, Role, Schema};
+use serde::de::DeserializeOwned;
 use std::time::{Duration, Instant};
 
 #[derive(Clone, Debug)]
@@ -34,6 +36,15 @@ pub struct Request {
 
     /// It dumps the AI conversation in pdl format. See README file to know what pdl is.
     pub dump_pdl_at: Option<String>,
+
+    /// It can force LLMs to create a json output with a given schema.
+    /// You have to call `send_and_validate` instead of `send` if you want
+    /// to force the schema.
+    pub schema: Option<Schema>,
+
+    /// If LLMs fail to generate a valid schema `schema_max_try` times,
+    /// it returns a default value. If it's 0, it wouldn't call LLM at all!
+    pub schema_max_try: usize,
 }
 
 impl Request {
@@ -69,7 +80,7 @@ impl Request {
                 let mut messages = JsonValue::new_array();
 
                 for message in self.messages.iter() {
-                    messages.push(message.to_json(self.model.get_api_provider())).unwrap();
+                    messages.push(message_to_json(message, self.model.get_api_provider())).unwrap();
                 }
 
                 result.insert("messages", messages).unwrap();
@@ -100,7 +111,7 @@ impl Request {
                     }
 
                     else {
-                        messages.push(message.to_json(ApiProvider::Anthropic)).unwrap();
+                        messages.push(message_to_json(message, ApiProvider::Anthropic)).unwrap();
                     }
                 }
 
@@ -130,7 +141,32 @@ impl Request {
         }
     }
 
+    /// It panics if `schema` field is missing.
+    /// It doesn't tell you whether the default value is used or not.
+    pub async fn send_and_validate<T: DeserializeOwned>(&self, default: T) -> Result<T, Error> {
+        let mut state = self.clone();
+        let mut messages = self.messages.clone();
+
+        for _ in 0..state.schema_max_try {
+            state.messages = messages.clone();
+            let response = state.send().await?;
+            let response = response.get_message(0).unwrap();
+
+            match state.schema.as_ref().unwrap().validate(&response) {
+                Ok(v) => {
+                    return Ok(serde_json::from_value::<T>(v)?);
+                },
+                Err(error_message) => {
+                    messages.push(Message::simple_message(Role::User, error_message));
+                },
+            }
+        }
+
+        Ok(default)
+    }
+
     /// NOTE: this function dies ocassionally, for no reason.
+    ///
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub fn blocking_send(&self) -> Result<Response, Error> {
         futures::executor::block_on(self.send())
@@ -306,6 +342,8 @@ impl Default for Request {
             sleep_between_retries: 6_000,
             record_api_usage_at: None,
             dump_pdl_at: None,
+            schema: None,
+            schema_max_try: 3,
         }
     }
 }

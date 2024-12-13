@@ -1,10 +1,7 @@
-use super::MessageContent;
-use crate::Error;
-use ragit_fs::{extension, read_bytes};
+use crate::error::Error;
 use regex::Regex;
-use serde::Serialize;
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ImageType {
     Jpeg,
     Png,
@@ -62,52 +59,6 @@ impl ImageType {
             ImageType::Gif => "gif",
             ImageType::Webp => "webp",
         }
-    }
-}
-
-pub struct MediaMessageBuilder {
-    /// It infers the media-type from file extensions.
-    pub paths: Vec<String>,
-
-    /// prompt that follows the images
-    pub prompt: Option<String>,
-}
-
-impl MediaMessageBuilder {
-    pub fn build(
-        &self,
-    ) -> Result<Vec<MessageContent>, Error> {
-        let mut content = vec![];
-
-        for path in self.paths.iter() {
-            match extension(path)? {
-                Some(ext) => match ext.to_ascii_lowercase() {
-                    ext if ImageType::from_extension(&ext).is_ok() => {
-                        let bytes = read_bytes(path)?;
-
-                        // TODO: auto-resize
-
-                        content.push(MessageContent::Image {
-                            image_type: ImageType::from_extension(&ext).unwrap(),
-                            bytes,
-                        });
-                    },
-                    ext if ext == "pdf" => todo!(),
-                    ext => {
-                        return Err(Error::UnsupportedMediaFormat { extension: Some(ext.to_string()) });
-                    },
-                },
-                None => {
-                    return Err(Error::UnsupportedMediaFormat { extension: None });
-                },
-            }
-        }
-
-        if let Some(prompt) = &self.prompt {
-            content.push(MessageContent::String(prompt.to_string()));
-        }
-
-        Ok(content)
     }
 }
 
