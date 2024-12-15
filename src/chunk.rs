@@ -150,21 +150,29 @@ impl Chunk {
     ) -> Result<Self, Error> {
         let mut context = tera::Context::new();
         let mut chunk = vec![];
+        let mut approx_data_len = 0;
 
         for token in tokens.iter() {
             match token {
                 AtomicToken::String { data, .. } => {
+                    approx_data_len += data.chars().count();
                     chunk.push(escape_pdl_tokens(data));
                 },
                 AtomicToken::Image(Image { bytes, image_type, .. }) => {
+                    approx_data_len += 10;
                     chunk.push(format!("<|raw_media({}:{})|>", image_type.to_extension(), encode_base64(&bytes)));
                 },
             }
         }
 
         context.insert("chunk", &chunk.concat());
-        context.insert("min_summary_len", &config.min_summary_len);
         context.insert("max_summary_len", &config.max_summary_len);
+
+        // It's ridiculous to ask for 300 characters from a 10 characters chunk.
+        context.insert(
+            "min_summary_len",
+            &config.min_summary_len.min(approx_data_len / 2),
+        );
 
         if let Some(previous_summary) = &previous_summary {
             context.insert("previous_summary", &escape_pdl_tokens(previous_summary));
