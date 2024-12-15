@@ -325,8 +325,8 @@ impl Schema {
         let re = match &self.r#type {
             SchemaType::Integer => Regex::new(r"^[^0-9]*([0-9]+)[^0-9]*$").unwrap(),
             SchemaType::Float => Regex::new(r"^[^0-9]*([0-9]+(?:\.[0-9]+)?)[^0-9]*$").unwrap(),
-            SchemaType::Array(_) => Regex::new(r"[^\[\]]*(\[.*\])[^\[\]]*").unwrap(),
-            SchemaType::Object(_) => Regex::new(r"[^\[\]]*(\[.*\])[^\[\]]*").unwrap(),
+            SchemaType::Array(_) => Regex::new(r"(?s)[^\[\]]*(\[.*\])[^\[\]]*").unwrap(),
+            SchemaType::Object(_) => Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap(),
             SchemaType::String => unreachable!(),
             SchemaType::Boolean => unreachable!(),
             SchemaType::Null => unreachable!(),

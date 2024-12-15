@@ -157,6 +157,7 @@ impl Request {
                     return Ok(serde_json::from_value::<T>(v)?);
                 },
                 Err(error_message) => {
+                    messages.push(Message::simple_message(Role::Assistant, response.to_string()));
                     messages.push(Message::simple_message(Role::User, error_message));
                 },
             }
