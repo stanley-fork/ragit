@@ -110,7 +110,12 @@ pub fn parse_pdl(
     let mut curr_role = None;
     let mut line_buffer = vec![];
 
-    for line in tera_rendered.lines() {
+    // simple hack: Adding this line to the content makes the code
+    // handle the last turn correctly. Since this fake turn is empty,
+    // it will be removed later.
+    let last_line = "<|assistant|>";
+
+    for line in tera_rendered.lines().chain(std::iter::once(last_line)) {
         let trimmed = line.trim();
 
         // maybe a turn-separator
@@ -156,7 +161,7 @@ pub fn parse_pdl(
                                     },
                                 };
 
-                                match into_message_contents(&raw_contents) {
+                                match into_message_contents(&raw_contents, is_escaped) {
                                     Ok(t) => {
                                         messages.push(Message {
                                             role: role.into(),
@@ -189,25 +194,13 @@ pub fn parse_pdl(
                         return Err(Error::InvalidTurnSeparator(t.to_string()));
                     }
 
-                    if is_escaped {
-                        line_buffer.push(unescape_pdl_tokens(line));
-                    }
-
-                    else {
-                        line_buffer.push(line.to_string());
-                    }
+                    line_buffer.push(line.to_string());
                 },
             }
         }
 
         else {
-            if is_escaped {
-                line_buffer.push(unescape_pdl_tokens(line));
-            }
-
-            else {
-                line_buffer.push(line.to_string());
-            }
+            line_buffer.push(line.to_string());
         }
     }
 
@@ -237,7 +230,7 @@ pub fn unescape_pdl_tokens(s: &str) -> String {  // TODO: use `Cow` type
     s.replace("&lt;", "<").replace("&amp;", "&")
 }
 
-fn into_message_contents(s: &str) -> Result<Vec<MessageContent>, Error> {
+fn into_message_contents(s: &str, is_escaped: bool) -> Result<Vec<MessageContent>, Error> {
     let bytes = s.as_bytes().iter().map(|b| *b).collect::<Vec<_>>();
     let mut index = 0;
     let mut result = vec![];
@@ -250,7 +243,13 @@ fn into_message_contents(s: &str) -> Result<Vec<MessageContent>, Error> {
                     if !string_buffer.is_empty() {
                         match String::from_utf8(string_buffer.clone()) {
                             Ok(s) => {
-                                result.push(MessageContent::String(s));
+                                if is_escaped {
+                                    result.push(MessageContent::String(unescape_pdl_tokens(&s)));
+                                }
+
+                                else {
+                                    result.push(MessageContent::String(s));
+                                }
                             },
                             Err(e) => {
                                 return Err(e.into());
@@ -277,7 +276,14 @@ fn into_message_contents(s: &str) -> Result<Vec<MessageContent>, Error> {
                 if !string_buffer.is_empty() {
                     match String::from_utf8(string_buffer) {
                         Ok(s) => {
-                            result.push(MessageContent::String(s));
+                            if is_escaped {
+                                result.push(MessageContent::String(unescape_pdl_tokens(&s)));
+                            }
+
+                            else {
+                                result.push(MessageContent::String(s));
+                            }
+
                             break;
                         },
                         Err(e) => {
