@@ -283,14 +283,14 @@ fn into_message_contents(s: &str, is_escaped: bool) -> Result<Vec<MessageContent
                             else {
                                 result.push(MessageContent::String(s));
                             }
-
-                            break;
                         },
                         Err(e) => {
                             return Err(e.into());
                         },
                     }
                 }
+
+                break;
             },
         }
 
