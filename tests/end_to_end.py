@@ -111,7 +111,7 @@ def end_to_end(test_model: str):
     has_ragit_in_tfidf = False
 
     for chunk_uid in chunk_uids:
-        tfidf_dump = cargo_run(["tfidf", "--show", chunk_uid], stdout=True)
+        tfidf_dump = cargo_run(["ls-terms", chunk_uid], stdout=True)
         has_ragit_in_tfidf = has_ragit_in_tfidf or "ragit" in tfidf_dump
 
     assert has_ragit_in_tfidf
