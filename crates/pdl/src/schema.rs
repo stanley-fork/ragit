@@ -10,6 +10,9 @@ mod parse;
 
 pub use parse::{SchemaParseError, parse_schema};
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum SchemaType {
     Integer,
@@ -359,9 +362,9 @@ impl Schema {
         }
     }
 
-    pub fn default_array(r#type: Schema) -> Self {
+    pub fn default_array(r#type: Option<Schema>) -> Self {
         Schema {
-            r#type: SchemaType::Array(Some(Box::new(r#type))),
+            r#type: SchemaType::Array(r#type.map(|t| Box::new(t))),
             constraint: None,
         }
     }
@@ -406,7 +409,7 @@ impl Schema {
                     return Err(SchemaParseError::InvalidConstraint(format!("`min` ({min_}) is greater than `max` ({max_}).")));
                 }
 
-                if matches!(ty, SchemaType::Integer) || matches!(ty, SchemaType::Array(_)) {
+                if matches!(ty, SchemaType::String) || matches!(ty, SchemaType::Array(_)) {
                     if constraint.min.is_some() && min_ < 0 {
                         return Err(SchemaParseError::InvalidConstraint(format!("`min` is supposed to be a positive integer, but is {min_}")));
                     }
@@ -511,26 +514,26 @@ fn get_schema_type(v: &Value) -> SchemaType {
 fn check_range<T: PartialOrd + FromStr + ToString + Display>(schema: SchemaType, constraint: &Option<Constraint>, n: T) -> Result<(), SchemaError> where <T as FromStr>::Err: Debug {
     // It's okay to unwrap values because `Constraint` is always validated at creation.
     if let Some(constraint) = constraint {
-        if let Constraint { min: Some(min), max } = &constraint {
+        if let Constraint { min: Some(min), .. } = &constraint {
             let min = min.parse::<T>().unwrap();
 
             if n < min {
                 return Err(SchemaError::RangeError {
                     s1: String::from(if schema.is_number() { "small" } else { "short" }),
                     s2: String::from(if schema.is_number() { "is at least" } else { "has at least" }),
-                    s3: if schema.is_number() { n.to_string() } else if schema.is_array() { format!("{n} elements") } else { format!("{n} characters") },
+                    s3: if schema.is_number() { min.to_string() } else if schema.is_array() { format!("{min} elements") } else { format!("{min} characters") },
                 });
             }
         }
 
-        if let Constraint { min, max: Some(max) } = &constraint {
+        if let Constraint { max: Some(max), .. } = &constraint {
             let max = max.parse::<T>().unwrap();
 
             if n > max {
                 return Err(SchemaError::RangeError {
                     s1: String::from(if schema.is_number() { "big" } else { "long" }),
                     s2: String::from(if schema.is_number() { "is at most" } else { "has at most" }),
-                    s3: if schema.is_number() { n.to_string() } else if schema.is_array() { format!("{n} elements") } else { format!("{n} characters") },
+                    s3: if schema.is_number() { max.to_string() } else if schema.is_array() { format!("{max} elements") } else { format!("{max} characters") },
                 });
             }
         }

@@ -13,7 +13,7 @@ pub enum SchemaParseError {
 }
 
 #[derive(Clone, Debug)]
-enum Token {
+pub enum Token {
     Literal(String),
     Integer(i64),
     Float(f64),
@@ -38,7 +38,7 @@ impl fmt::Display for Token {
 }
 
 #[derive(Clone, Debug)]
-enum GroupKind {
+pub enum GroupKind {
     Brace,
     Parenthesis,
     Bracket,
@@ -249,11 +249,17 @@ fn token_to_schema(tokens: &[Token], index: &mut usize) -> Result<Schema, Schema
             tokens: inner,
         }) => {
             let mut inner_index = 0;
-            let inner_type = token_to_schema(&inner, &mut inner_index)?;
+            let inner_type = if inner.is_empty() {
+                None
+            } else {
+                let res = token_to_schema(&inner, &mut inner_index)?;
 
-            if inner_index < inner.len() {
-                return Err(SchemaParseError::UnexpectedToken(inner[inner_index].clone()));
-            }
+                if inner_index < inner.len() {
+                    return Err(SchemaParseError::UnexpectedToken(inner[inner_index].clone()));
+                }
+
+                Some(res)
+            };
 
             Schema::default_array(inner_type)
         },
