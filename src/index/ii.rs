@@ -152,6 +152,11 @@ impl Index {
             }
         }
 
+        if !buffer.is_empty() {
+            self.flush_ii_buffer(buffer)?;
+        }
+
+        self.render_ii_build_dashboard(&state);
         self.ii_status = IIStatus::Complete;
         self.save_to_file()?;
         Ok(())
