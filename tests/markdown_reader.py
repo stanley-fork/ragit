@@ -19,6 +19,7 @@ sample3 = "\n".join([
     "aa",
 ])
 
+# fixed by 05714cd0
 sample4 = """
 
 <!--
@@ -70,7 +71,7 @@ kube-scheduler [flags]
 
 """
 
-# not fixed yet
+# fixed by fe26f156
 sample5 = """
 2. some title
   - some sentence
