@@ -12,6 +12,7 @@ from ls import ls
 from many_chunks import many_chunks
 from markdown_reader import markdown_reader
 from migrate import migrate
+from prompts import prompts
 from ragit_api import ragit_api
 from recover import recover
 from subdir import subdir
@@ -95,7 +96,11 @@ Commands
                                 are reproduced in this test. If you find a new one, please
                                 add that to this test.
 
-    subdir                     run `subdir` test
+    prompts [model=dummy]       run `prompts` test
+                                It's the smallest set of commands that parses and executes
+                                all the `.pdl` files in `prompts/` directory.
+
+    subdir                      run `subdir` test
                                 It checks whether `ragit` is smart enough to find `.ragit/`
                                 in any directory.
 
@@ -169,6 +174,10 @@ if __name__ == "__main__":
         elif command == "markdown_reader":
             markdown_reader()
 
+        elif command == "prompts":
+            test_model = test_model or "dummy"
+            prompts(model=test_model)
+
         elif command == "subdir":
             subdir()
 
@@ -214,6 +223,9 @@ if __name__ == "__main__":
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
+                ("prompts dummy", lambda: prompts(model="dummy")),
+                ("prompts gpt-4o-mini", lambda: prompts(model="gpt-4o-mini")),
+                ("prompts claude-3.5-sonnet", lambda: prompts(model="claude-3.5-sonnet")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available
