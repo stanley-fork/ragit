@@ -101,6 +101,17 @@ pub async fn titles_to_summaries(
         "query",
         &escape_pdl_tokens(&query),
     );
+    tera_context.insert(
+        "max_index",
+        &chunks.len(),
+    );
+
+    // It's good to allow LLMs choose as many chunks as possible.
+    // But allowing it to choose all the chunks might lead to an infinite loop.
+    tera_context.insert(
+        "max_retrieval",
+        &(chunks.len() - 1),
+    );
 
     let Pdl { messages, schema } = parse_pdl(
         pdl,
@@ -159,6 +170,10 @@ pub async fn summaries_to_chunks(
     tera_context.insert(
         "max_retrieval",
         &index.query_config.max_retrieval,
+    );
+    tera_context.insert(
+        "max_index",
+        &chunks.len(),
     );
 
     let Pdl { messages, schema } = parse_pdl(

@@ -1,6 +1,6 @@
 <|schema|>
 
-[int { min: 1, max: {{max_index}} }] { len_max: {{max_title_count}} }
+[int { min: 1, max: {{max_index}} }] { len_max: {{max_retrieval}} }
 
 <|system|>
 
