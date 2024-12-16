@@ -1,10 +1,18 @@
 // First and foremost goal of schema validation is to give nice error messages to LLMs.
 
+use lazy_static::lazy_static;
 use regex::Regex;
 use serde_json::Value;
 use std::collections::HashSet;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
+
+lazy_static! {
+    static ref UNIQUE_INTEGER: Regex = Regex::new(r"^[^0-9]*([0-9]+)[^0-9]*$").unwrap();
+    static ref UNIQUE_FLOAT: Regex = Regex::new(r"^[^0-9]*([0-9]+(?:\.[0-9]+)?)[^0-9]*$").unwrap();
+    static ref UNIQUE_ARRAY: Regex = Regex::new(r"(?s)[^\[\]]*(\[.*\])[^\[\]]*").unwrap();
+    static ref UNIQUE_OBJECT: Regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
+}
 
 mod parse;
 
@@ -326,10 +334,10 @@ impl Schema {
         }
 
         let re = match &self.r#type {
-            SchemaType::Integer => Regex::new(r"^[^0-9]*([0-9]+)[^0-9]*$").unwrap(),
-            SchemaType::Float => Regex::new(r"^[^0-9]*([0-9]+(?:\.[0-9]+)?)[^0-9]*$").unwrap(),
-            SchemaType::Array(_) => Regex::new(r"(?s)[^\[\]]*(\[.*\])[^\[\]]*").unwrap(),
-            SchemaType::Object(_) => Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap(),
+            SchemaType::Integer => &UNIQUE_INTEGER as &Regex,
+            SchemaType::Float => &UNIQUE_FLOAT,
+            SchemaType::Array(_) => &UNIQUE_ARRAY,
+            SchemaType::Object(_) => &UNIQUE_OBJECT,
             SchemaType::String => unreachable!(),
             SchemaType::Boolean => unreachable!(),
             SchemaType::Null => unreachable!(),

@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use ragit_fs::read_string;
 use regex::bytes::Regex;
 
@@ -15,6 +16,11 @@ pub use role::{PdlRole, Role};
 pub use schema::Schema;
 use schema::parse_schema;
 pub use util::{decode_base64, encode_base64};
+
+lazy_static! {
+    static ref MEDIA_RE: Regex = Regex::new(r"^media\((.+)\)$").unwrap();
+    static ref RAW_MEDIA_RE: Regex = Regex::new(r"^raw_media\(([a-zA-Z0-9]+):([^:]+)\)$").unwrap();
+}
 
 #[derive(Clone, Debug)]
 pub struct Pdl {
@@ -306,8 +312,8 @@ fn into_message_contents(s: &str, is_escaped: bool) -> Result<Vec<MessageContent
 fn try_parse_inline_block(bytes: &[u8], index: usize) -> Result<Option<(ImageType, Vec<u8>, usize)>, Error> {
     match try_get_pdl_token(bytes, index) {
         Some((token, new_index)) => {
-            let media_re = Regex::new(r"^media\((.+)\)$").unwrap();
-            let raw_media_re = Regex::new(r"^raw_media\(([a-zA-Z0-9]+):([^:]+)\)$").unwrap();
+            let media_re = &MEDIA_RE;
+            let raw_media_re = &RAW_MEDIA_RE;
 
             if let Some(cap) = raw_media_re.captures(token) {
                 let image_type = String::from_utf8_lossy(&cap[1]).to_string();

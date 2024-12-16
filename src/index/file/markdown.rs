@@ -2,12 +2,18 @@ use super::{AtomicToken, FileReaderImpl, Image};
 use crate::error::Error;
 use crate::index::BuildConfig;
 use crate::uid::Uid;
+use lazy_static::lazy_static;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use ragit_pdl::ImageType;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+
+lazy_static! {
+    static ref FENCE_RE: Regex = Regex::new(r"(\s*)(\`{3,}|\~{3,})([^`]*)").unwrap();
+    static ref DEF_RE: Regex = Regex::new(r"\s{0,3}\[([^\[\]]{1,999})\]\s?\:\s?(.+)").unwrap();
+}
 
 pub struct MarkdownReader {
     path: String,
@@ -192,8 +198,7 @@ enum StringOrImage {
 
 // https://github.github.com/gfm/#fenced-code-blocks
 fn parse_code_fence(line: &str) -> Option<CodeFence> {
-    let fence_re = Regex::new(r"(\s*)(\`{3,}|\~{3,})([^`]*)").unwrap();
-    fence_re.captures(line).map(
+    FENCE_RE.captures(line).map(
         |cap| {
             let indent = cap[1].len();
             let fence = cap[2].to_string();
@@ -219,8 +224,7 @@ fn match_fences(start: &CodeFence, end: &CodeFence) -> bool {
 // https://github.github.com/gfm/#link-reference-definition
 // TODO: it cannot handle multi-line link reference definitions
 fn parse_link_reference_definition(line: &str) -> Option<(String, String)> {
-    let def_re = Regex::new(r"\s{0,3}\[([^\[\]]{1,999})\]\s?\:\s?(.+)").unwrap();
-    let result = def_re.captures(line).map(
+    let result = DEF_RE.captures(line).map(
         |cap| (
             normalize_link_label(&cap[1]),
             cap[2].trim().to_string(),

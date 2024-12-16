@@ -251,6 +251,9 @@ pub async fn answer_query_with_chunks(
     Ok(response.get_message(0).unwrap().to_string())
 }
 
+// TODO: What's wrong with this function? It seems like this function hasn't been tested for a while.
+// 1. Use `request.send_and_validate`
+// 2. Add test cases for this function.
 pub async fn rephrase_multi_turn(
     turns: Vec<String>,
     api_config: &ApiConfig,

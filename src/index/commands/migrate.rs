@@ -2,6 +2,7 @@ use super::Index;
 use crate::error::Error;
 use crate::index::{INDEX_DIR_NAME, INDEX_FILE_NAME};
 use flate2::read::GzDecoder;
+use lazy_static::lazy_static;
 use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
@@ -27,6 +28,12 @@ use std::io::Read;
 use std::str::FromStr;
 
 pub type Path = String;
+
+lazy_static! {
+    static ref FILE_UID_RE: Regex = Regex::new(r"^(\d{8})_([0-9a-f]{48})[0-9a-f]{16}$").unwrap();
+    static ref UID_RE: Regex = Regex::new(r"[0-9a-z]{64}").unwrap();
+    static ref VERSION_RE: Regex = Regex::new(r"(\d{0,4})\.(\d{0,4})\.(\d{0,4})(?:-([a-zA-Z0-9]+))?").unwrap();
+}
 
 impl Index {
     /// It reads version info at `root/.ragit/index.json`. Make sure that the
@@ -140,8 +147,8 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     )?;
     let j = read_string(&index_at)?;
     let mut j = serde_json::from_str::<Value>(&j)?;
-    let file_uid_re = Regex::new(r"^(\d{8})_([0-9a-f]{48})[0-9a-f]{16}$").unwrap();
-    let uid_re = Regex::new(r"[0-9a-z]{64}").unwrap();
+    let file_uid_re = &FILE_UID_RE;
+    let uid_re = &UID_RE;
     let mut processed_files_cache;
 
     match &mut j {
@@ -435,7 +442,7 @@ impl FromStr for VersionInfo {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<VersionInfo, Error> {
-        let version_re = Regex::new(r"(\d{0,4})\.(\d{0,4})\.(\d{0,4})(?:-([a-zA-Z0-9]+))?").unwrap();
+        let version_re = &VERSION_RE;
 
         match version_re.captures(s) {
             Some(cap) => {
