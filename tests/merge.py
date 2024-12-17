@@ -104,7 +104,7 @@ def merge():
     assert count_chunks() == chunk_count
 
     for i in range(7):
-        assert cargo_run(["cat-file", f"sub{min(i // 3 + 1, 1)}/doc_{i}.txt"], stdout=True).strip() == docs[i]
+        assert cargo_run(["cat-file", f"sub{min(i // 3 + 1, 2)}/doc_{i}.txt"], stdout=True).strip() == docs[i]
 
     for _ in range(2):
         for term, doc in terms_map.items():

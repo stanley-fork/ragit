@@ -80,6 +80,8 @@ impl ArgParser {
                 if let Some(_) = arg_flags.insert(flag.clone(), raw_arg.to_string()) {
                     return Err(Error::CliError(format!("{flag:?} is given multiple times")));
                 }
+
+                continue;
             }
 
             if raw_arg.starts_with("--") {
