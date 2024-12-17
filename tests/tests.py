@@ -12,6 +12,7 @@ from images2 import images2
 from ls import ls
 from many_chunks import many_chunks
 from markdown_reader import markdown_reader
+from merge import merge
 from migrate import migrate
 from prompts import prompts
 from ragit_api import ragit_api
@@ -41,8 +42,11 @@ Commands
 
     external_bases              run `external_bases` test
                                 It creates bunch of knowledge-bases and run
-                                `rag ext` on them. It also checks whether `rag tfidf`
+                                `rag merge` on them. It also checks whether `rag tfidf`
                                 can successfully retrieve a chunk from multiple knowledge-bases.
+
+    merge                       run `merge` test
+                                It's like `external_bases` test, but with `--prefix` option.
 
     add_and_rm                  run `add_and_rm` test
                                 It runs tons of `rag add` and `rag rm` with
@@ -138,6 +142,9 @@ if __name__ == "__main__":
         elif command == "external_bases":
             external_bases()
 
+        elif command == "merge":
+            merge()
+
         elif command == "add_and_rm":
             add_and_rm()
 
@@ -228,6 +235,7 @@ if __name__ == "__main__":
                 ("subdir", subdir),
                 ("cargo_tests", cargo_tests),
                 ("tfidf", tfidf),
+                ("merge", merge),
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
