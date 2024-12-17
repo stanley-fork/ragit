@@ -80,7 +80,7 @@ Commands
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
 
-    empty                       run `empty` test
+    empty [model=dummy]         run `empty` test
                                 It sees if ragit can handle an empty file correctly.
 
     ii                          run `ii` test
@@ -191,7 +191,7 @@ if __name__ == "__main__":
 
         elif command == "prompts":
             test_model = test_model or "dummy"
-            prompts(model=test_model)
+            prompts(test_model=test_model)
 
         elif command == "subdir":
             subdir()
@@ -239,11 +239,11 @@ if __name__ == "__main__":
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
-                ("prompts dummy", lambda: prompts(model="dummy")),
-                ("prompts gpt-4o-mini", lambda: prompts(model="gpt-4o-mini")),
-                ("prompts claude-3.5-sonnet", lambda: prompts(model="claude-3.5-sonnet")),
-                ("empty dummy", lambda: empty(model="dummy")),
-                ("empty gpt-4o-mini", lambda: empty(model="gpt-4o-mini")),
+                ("prompts dummy", lambda: prompts(test_model="dummy")),
+                ("prompts gpt-4o-mini", lambda: prompts(test_model="gpt-4o-mini")),
+                ("prompts claude-3.5-sonnet", lambda: prompts(test_model="claude-3.5-sonnet")),
+                ("empty dummy", lambda: empty(test_model="dummy")),
+                ("empty gpt-4o-mini", lambda: empty(test_model="gpt-4o-mini")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available

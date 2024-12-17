@@ -5,7 +5,7 @@
 import shutil
 from utils import cargo_run, count_chunks, goto_root, mk_and_cd_tmp_dir, write_string
 
-def prompts(model: str):
+def prompts(test_model: str):
     goto_root()
     mk_and_cd_tmp_dir()
     shutil.copyfile("../tests/images/hello_world.webp", "sample.webp")
@@ -25,7 +25,7 @@ def prompts(model: str):
     cargo_run(["config", "--set", "strict_file_reader", "true"])
     cargo_run(["config", "--set", "chunk_size", "1000"])
     cargo_run(["config", "--set", "slide_len", "200"])
-    cargo_run(["config", "--set", "model", model])
+    cargo_run(["config", "--set", "model", test_model])
     cargo_run(["config", "--set", "dump_log", "true"])
     cargo_run(["add", "sample.md", "main.rs"])
     cargo_run(["check"])
