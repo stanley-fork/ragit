@@ -3,6 +3,7 @@ from cargo_tests import cargo_tests
 from cat_file import cat_file
 from cli import cli
 from clone import clone
+from empty import empty
 from end_to_end import end_to_end
 from external_bases import external_bases
 from ii import ii
@@ -74,6 +75,9 @@ Commands
     ls                          run `ls` test
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
+
+    empty                       run `empty` test
+                                It sees if ragit can handle an empty file correctly.
 
     ii                          run `ii` test
                                 It creates an inverted index and test it.
@@ -155,6 +159,10 @@ if __name__ == "__main__":
         elif command == "ls":
             ls()
 
+        elif command == "empty":
+            test_model = test_model or "dummy"
+            empty(test_model)
+
         elif command == "ii":
             ii()
 
@@ -226,6 +234,8 @@ if __name__ == "__main__":
                 ("prompts dummy", lambda: prompts(model="dummy")),
                 ("prompts gpt-4o-mini", lambda: prompts(model="gpt-4o-mini")),
                 ("prompts claude-3.5-sonnet", lambda: prompts(model="claude-3.5-sonnet")),
+                ("empty dummy", lambda: empty(model="dummy")),
+                ("empty gpt-4o-mini", lambda: empty(model="gpt-4o-mini")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available
