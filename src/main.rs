@@ -721,7 +721,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             return Ok(());
         },
         Some("merge") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--"]).arg_flag("--prefix", ArgType::Path).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/merge.txt"));
@@ -734,7 +734,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             for base in bases.iter() {
                 index.merge(
                     base.to_string(),
-                    None,  // prefix  // TODO: make it configurable
+                    parsed_args.arg_flags.get("--prefix").map(|p| p.to_string()),
                     MergeMode::Ignore,  // TODO: make it configurable
                     false,  // quiet  // TODO: make it configurable
                 )?;

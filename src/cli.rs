@@ -42,6 +42,11 @@ impl ArgParser {
         self
     }
 
+    pub fn arg_flag(&mut self, flag: &str, arg_type: ArgType) -> &mut Self {
+        self.arg_flags.insert(flag.to_string(), arg_type);
+        self
+    }
+
     // the first flag is the default value
     pub fn flag_with_default(&mut self, flags: &[&str]) -> &mut Self {
         self.flags.push(Flag {
@@ -198,7 +203,7 @@ pub struct Flag {
 pub struct ParsedArgs {
     args: Vec<String>,
     flags: Vec<Option<String>>,
-    arg_flags: HashMap<String, String>,
+    pub arg_flags: HashMap<String, String>,
     show_help: bool,  // TODO: options for help messages
 }
 
