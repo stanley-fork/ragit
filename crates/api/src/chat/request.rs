@@ -1,5 +1,6 @@
 use super::{ModelKind, Response, message_to_json};
 use async_std::task;
+use chrono::Local;
 use crate::{ApiProvider, Error};
 use crate::record::{
     RecordAt,
@@ -7,7 +8,7 @@ use crate::record::{
     record_api_usage,
 };
 use json::JsonValue;
-use ragit_fs::write_log;
+use ragit_fs::{WriteMode, join, write_log, write_string};
 use ragit_pdl::{Message, Role, Schema};
 use serde::de::DeserializeOwned;
 use std::time::{Duration, Instant};
@@ -36,6 +37,9 @@ pub struct Request {
 
     /// It dumps the AI conversation in pdl format. See <https://crates.io/crates/ragit-pdl> to read about pdl.
     pub dump_pdl_at: Option<String>,
+
+    /// It's a directory, not a file. If given, it dumps `dir/request-<timestamp>.json` and `dir/response-<timestamp>.json`.
+    pub dump_json_at: Option<String>,
 
     /// It can force LLMs to create a json output with a given schema.
     /// You have to call `send_and_validate` instead of `send` if you want
@@ -201,7 +205,16 @@ impl Request {
         let mut curr_error = Error::NoTry;
 
         let post_url = self.model.get_api_provider().get_chat_api_url().unwrap();
-        let body = self.build_json_body().dump();
+        let body = self.build_json_body();
+
+        if let Err(e) = self.dump_json(&body, "request") {
+            write_log(
+                "dump_json",
+                &format!("dump_json(\"request\", ..) failed with {e:?}"),
+            );
+        }
+
+        let body = body.dump();
         let api_key = self.get_api_key();
         write_log(
             "chat_request::send",
@@ -239,53 +252,72 @@ impl Request {
             match response {
                 Ok(response) => match response.status().as_u16() {
                     200 => match response.text().await {
-                        Ok(text) => match Response::from_str(&text, self.model.get_api_provider()) {
-                            Ok(result) => {
-
-                                if let Some(key) = &self.record_api_usage_at {
-                                    if let Err(e) = record_api_usage(
-                                        key,
-                                        result.get_prompt_token_count() as u64,
-                                        result.get_output_token_count() as u64,
-                                        self.model.dollars_per_1b_input_tokens(),
-                                        self.model.dollars_per_1b_output_tokens(),
-                                        false,
-                                    ) {
+                        Ok(text) => {
+                            match json::parse(&text) {
+                                Ok(v) => match self.dump_json(&v, "response") {
+                                    Err(e) => {
                                         write_log(
-                                            "record_api_usage",
-                                            &format!("record_api_usage({key:?}, ..) failed with {e:?}"),
+                                            "dump_json",
+                                            &format!("dump_json(\"response\", ..) failed with {e:?}"),
                                         );
+                                    },
+                                    Ok(_) => {},
+                                },
+                                Err(e) => {
+                                    write_log(
+                                        "dump_json",
+                                        &format!("dump_json(\"response\", ..) failed with {e:?}"),
+                                    );
+                                },
+                            }
+
+                            match Response::from_str(&text, self.model.get_api_provider()) {
+                                Ok(result) => {
+                                    if let Some(key) = &self.record_api_usage_at {
+                                        if let Err(e) = record_api_usage(
+                                            key,
+                                            result.get_prompt_token_count() as u64,
+                                            result.get_output_token_count() as u64,
+                                            self.model.dollars_per_1b_input_tokens(),
+                                            self.model.dollars_per_1b_output_tokens(),
+                                            false,
+                                        ) {
+                                            write_log(
+                                                "record_api_usage",
+                                                &format!("record_api_usage({key:?}, ..) failed with {e:?}"),
+                                            );
+                                        }
                                     }
-                                }
 
-                                if let Some(path) = &self.dump_pdl_at {
-                                    if let Err(e) = dump_pdl(
-                                        &self.messages,
-                                        &result.get_message(0).map(|m| m.to_string()).unwrap_or(String::new()),
-                                        path,
-                                        format!(
-                                            "model: {}, input_tokens: {}, output_tokens: {}, took: {}ms",
-                                            self.model.to_human_friendly_name(),
-                                            result.get_prompt_token_count(),
-                                            result.get_output_token_count(),
-                                            Instant::now().duration_since(started_at.clone()).as_millis(),
-                                        ),
-                                    ) {
-                                        write_log(
-                                            "dump_pdl",
-                                            &format!("dump_pdl({path:?}, ..) failed with {e:?}"),
-                                        );
+                                    if let Some(path) = &self.dump_pdl_at {
+                                        if let Err(e) = dump_pdl(
+                                            &self.messages,
+                                            &result.get_message(0).map(|m| m.to_string()).unwrap_or(String::new()),
+                                            path,
+                                            format!(
+                                                "model: {}, input_tokens: {}, output_tokens: {}, took: {}ms",
+                                                self.model.to_human_friendly_name(),
+                                                result.get_prompt_token_count(),
+                                                result.get_output_token_count(),
+                                                Instant::now().duration_since(started_at.clone()).as_millis(),
+                                            ),
+                                        ) {
+                                            write_log(
+                                                "dump_pdl",
+                                                &format!("dump_pdl({path:?}, ..) failed with {e:?}"),
+                                            );
 
-                                        // TODO: should it return an error?
-                                        //       the api call was successful
+                                            // TODO: should it return an error?
+                                            //       the api call was successful
+                                        }
                                     }
-                                }
 
-                                return Ok(result);
-                            },
-                            Err(e) => {
-                                curr_error = e;
-                            },
+                                    return Ok(result);
+                                },
+                                Err(e) => {
+                                    curr_error = e;
+                                },
+                            }
                         },
                         Err(e) => {
                             curr_error = Error::ReqwestError(e);
@@ -326,6 +358,18 @@ impl Request {
     fn get_api_key(&self) -> String {
         self.api_key.clone().unwrap_or_else(|| self.model.get_api_provider().get_api_key_from_env())
     }
+
+    fn dump_json(&self, j: &JsonValue, header: &str) -> Result<(), Error> {
+        if let Some(dir) = &self.dump_json_at {
+            let path = join(
+                &dir,
+                &format!("{header}-{}.json", Local::now().to_rfc3339()),
+            )?;
+            write_string(&path, &j.pretty(4), WriteMode::AlwaysCreate)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl Default for Request {
@@ -343,6 +387,7 @@ impl Default for Request {
             sleep_between_retries: 6_000,
             record_api_usage_at: None,
             dump_pdl_at: None,
+            dump_json_at: None,
             schema: None,
             schema_max_try: 3,
         }

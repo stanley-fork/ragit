@@ -218,6 +218,7 @@ impl Chunk {
                 |path| RecordAt { path, id: String::from("create_chunk_from") }
             ),
             dump_pdl_at: api_config.create_pdl_path("create_chunk_from"),
+            dump_json_at: api_config.dump_log_at.clone(),
             schema,
             schema_max_try: 3,
         };

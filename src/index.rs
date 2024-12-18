@@ -440,6 +440,7 @@ impl Index {
                 |path| RecordAt { path, id: String::from("describe_image") }
             ),
             dump_pdl_at: self.api_config.create_pdl_path("describe_image"),
+            dump_json_at: self.api_config.dump_log_at.clone(),
             schema,
             schema_max_try: 3,
         };

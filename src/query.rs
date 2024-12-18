@@ -129,6 +129,7 @@ pub async fn titles_to_summaries(
         sleep_between_retries: api_config.sleep_between_retries,
         api_key: api_config.api_key.clone(),
         dump_pdl_at: api_config.create_pdl_path("rerank_title"),
+        dump_json_at: api_config.dump_log_at.clone(),
         model: api_config.model,
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rerank_title") }
@@ -192,6 +193,7 @@ pub async fn summaries_to_chunks(
         sleep_between_retries: index.api_config.sleep_between_retries,
         api_key: index.api_config.api_key.clone(),
         dump_pdl_at: index.api_config.create_pdl_path("rerank_summary"),
+        dump_json_at: index.api_config.dump_log_at.clone(),
         model: index.api_config.model,
         record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rerank_summary") }
@@ -238,6 +240,7 @@ pub async fn answer_query_with_chunks(
         sleep_between_retries: api_config.sleep_between_retries,
         api_key: api_config.api_key.clone(),
         dump_pdl_at: api_config.create_pdl_path("answer_query_with_chunks"),
+        dump_json_at: api_config.dump_log_at.clone(),
         model: api_config.model,
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("answer_query_with_chunks") }
@@ -281,6 +284,7 @@ pub async fn rephrase_multi_turn(
         sleep_between_retries: api_config.sleep_between_retries,
         api_key: api_config.api_key.clone(),
         dump_pdl_at: api_config.create_pdl_path("rephrase_multi_turn"),
+        dump_json_at: api_config.dump_log_at.clone(),
         model: api_config.model,
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rephrase_multi_turn") }
@@ -385,6 +389,7 @@ pub async fn raw_request(
         sleep_between_retries: api_config.sleep_between_retries,
         api_key: api_config.api_key.clone(),
         dump_pdl_at: api_config.create_pdl_path("raw_request"),
+        dump_json_at: api_config.dump_log_at.clone(),
         model: api_config.model,
         record_api_usage_at: api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("raw_request") }

@@ -93,6 +93,7 @@ pub async fn extract_keywords(
             |path| RecordAt { path, id: String::from("extract_keywords") }
         ),
         dump_pdl_at: api_config.create_pdl_path("extract_keywords"),
+        dump_json_at: api_config.dump_log_at.clone(),
         schema,
         schema_max_try: 3,
     };
