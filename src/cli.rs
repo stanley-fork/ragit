@@ -114,6 +114,8 @@ impl ArgParser {
                         if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {
                             return Err(Error::CliError(format!("{flag:?} is given multiple times")));
                         }
+
+                        continue;
                     }
 
                     else {
@@ -181,7 +183,7 @@ pub enum ArgCount {
     Exact(usize),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum ArgType {
     String,
     Path,

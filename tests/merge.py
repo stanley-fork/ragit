@@ -102,7 +102,7 @@ def merge():
     os.chdir("base3")
     cargo_run(["init"])
     cargo_run(["merge", "../sub-base1", "--prefix", "sub1"])
-    cargo_run(["merge", "../sub-base2", "--prefix", "sub2"])
+    cargo_run(["merge", "../sub-base2", "--prefix=sub2"])
     cargo_run(["check"])
 
     # some checks
