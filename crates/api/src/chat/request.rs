@@ -34,7 +34,7 @@ pub struct Request {
     pub sleep_between_retries: u64,
     pub record_api_usage_at: Option<RecordAt>,
 
-    /// It dumps the AI conversation in pdl format. See README file to know what pdl is.
+    /// It dumps the AI conversation in pdl format. See <https://crates.io/crates/ragit-pdl> to read about pdl.
     pub dump_pdl_at: Option<String>,
 
     /// It can force LLMs to create a json output with a given schema.
