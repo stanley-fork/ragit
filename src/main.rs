@@ -89,18 +89,26 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let add_mode = AddMode::parse_flag(&parsed_args.get_flag(0).unwrap()).unwrap();
             let dry_run = parsed_args.get_flag(1).is_some();
 
-            if dry_run {
-                return Err(Error::NotImplemented(String::from("rag add --dry-run")));
-            }
-
             let files = parsed_args.get_args();
             let (mut added, mut updated, mut ignored) = (0, 0, 0);
 
+            // if it's `--reject` mode, it first runs with `--dry-run` mode.
+            // if the dry_run has no problem, then it actually runs
             for path in files.iter() {
-                match index.add_file(path, add_mode)? {
+                match index.add_file(
+                    path,
+                    add_mode,
+                    dry_run || add_mode == AddMode::Reject,
+                )? {
                     AddResult::Added => { added += 1; },
                     AddResult::Updated => { updated += 1; },
                     AddResult::Ignored => { ignored += 1; },
+                }
+            }
+
+            if add_mode == AddMode::Reject && !dry_run {
+                for path in files.iter() {
+                    index.add_file(path, add_mode, dry_run)?;
                 }
             }
 
@@ -720,7 +728,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             return Ok(());
         },
         Some("merge") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--ignore", "--force", "--interactive", "--reject"]).arg_flag("--prefix", ArgType::Path).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--ignore", "--force", "--interactive", "--reject"]).optional_flag(&["--dry-run"]).arg_flag("--prefix", ArgType::Path).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/merge.txt"));
@@ -730,14 +738,30 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let bases = parsed_args.get_args();
             let merge_mode = MergeMode::parse_flag(&parsed_args.get_flag(0).unwrap_or(String::from("--ignore"))).unwrap();
+            let dry_run = parsed_args.get_flag(1).is_some();
 
+            // if it's `--reject` mode, it first runs with `--dry-run` mode.
+            // if the dry_run has no problem, then it actually runs
             for base in bases.iter() {
                 index.merge(
                     base.to_string(),
                     parsed_args.arg_flags.get("--prefix").map(|p| p.to_string()),
                     merge_mode,
                     false,  // quiet  // TODO: make it configurable
+                    dry_run || merge_mode == MergeMode::Reject,
                 )?;
+            }
+
+            if merge_mode == MergeMode::Reject && !dry_run {
+                for base in bases.iter() {
+                    index.merge(
+                        base.to_string(),
+                        parsed_args.arg_flags.get("--prefix").map(|p| p.to_string()),
+                        merge_mode,
+                        false,  // quiet  // TODO: make it configurable
+                        dry_run,
+                    )?;
+                }
             }
 
             index.save_to_file()?;

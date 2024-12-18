@@ -62,6 +62,7 @@ impl Index {
         prefix: Option<Path>,
         merge_mode: MergeMode,
         quiet: bool,
+        dry_run: bool,
     ) -> Result<MergeResult, Error> {
         let mut result = MergeResult::default();
         let mut old_images = HashSet::new();
@@ -101,7 +102,10 @@ impl Index {
 
                 result.overriden_files += 1;
                 result.removed_chunks += self.get_chunks_of_file(*uid_self)?.len();
-                self.remove_file(new_file_path.clone())?;
+
+                if !dry_run {
+                    self.remove_file(new_file_path.clone())?;
+                }
             }
 
             else {
@@ -120,10 +124,13 @@ impl Index {
             for new_chunk_uid in new_chunk_uids.iter() {
                 let mut new_chunk = other.get_chunk_by_uid(*new_chunk_uid)?;
                 result.added_chunks += 1;
-                self.chunk_count += 1;
                 new_chunk.file = new_file_path.clone();
                 new_chunk.uid = Uid::new_chunk(&new_chunk);
                 modified_new_chunk_uids.push(new_chunk.uid);
+
+                if !dry_run {
+                    self.chunk_count += 1;
+                }
 
                 for image in new_chunk.images.iter() {
                     let image_self = Index::get_image_path(
@@ -174,24 +181,28 @@ impl Index {
                 // the image may or may not be overriden (later by `for old_image in old_images.iter`).
                 // but its tfidf file is created before the description is overriden and is looking at
                 // the older version of the description.
-                chunk::save_to_file(
-                    &Index::get_chunk_path(
+                if !dry_run {
+                    chunk::save_to_file(
+                        &Index::get_chunk_path(
+                            &self.root_dir,
+                            new_chunk.uid,
+                        ),
+                        &new_chunk,
+                        self.build_config.compression_threshold,
+                        self.build_config.compression_level,
                         &self.root_dir,
-                        new_chunk.uid,
-                    ),
-                    &new_chunk,
-                    self.build_config.compression_threshold,
-                    self.build_config.compression_level,
-                    &self.root_dir,
-                )?;
+                    )?;
+                }
 
                 if !quiet {
                     self.render_merge_dashboard(&result);
                 }
             }
 
-            self.add_file_index(new_file_uid, &modified_new_chunk_uids)?;
-            self.processed_files.insert(new_file_path, new_file_uid);
+            if !dry_run {
+                self.add_file_index(new_file_uid, &modified_new_chunk_uids)?;
+                self.processed_files.insert(new_file_path, new_file_uid);
+            }
         }
 
         for old_image in old_images.iter() {
@@ -248,7 +259,7 @@ impl Index {
             result.overriden_images += 1;
         }
 
-        if (result.added_chunks > 0 || result.removed_chunks > 0) && self.ii_status != IIStatus::None {
+        if !dry_run && (result.added_chunks > 0 || result.removed_chunks > 0) && self.ii_status != IIStatus::None {
             self.ii_status = IIStatus::Outdated;
         }
 

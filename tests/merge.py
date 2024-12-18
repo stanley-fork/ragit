@@ -137,11 +137,12 @@ def merge():
     cargo_run(["check"])
 
     # a failed merge should not affect the base
-    assert count_files() == (7, 0, 7)
+    assert count_files() == (10, 0, 10)
 
     # with `--force`, the merge should be successful
     cargo_run(["merge", "../sub-base1", "--prefix", "sub1", "--force"])
     cargo_run(["check"])
 
-    # a failed merge should not affect the base
-    assert count_files() == (7, 0, 7)
+    # the merge was successful, but the count does not change because
+    # the files are the same
+    assert count_files() == (10, 0, 10)

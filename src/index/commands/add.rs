@@ -46,6 +46,7 @@ impl Index {
         &mut self,
         path: &str,  // real_path
         mode: AddMode,
+        dry_run: bool,
     ) -> Result<AddResult, Error> {
         let rel_path = Index::get_rel_path(&self.root_dir, &path.to_string())?;
 
@@ -62,8 +63,11 @@ impl Index {
                 }
 
                 else if self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.to_string()) {
-                    self.remove_file(path.to_string())?;
-                    self.staged_files.push(rel_path);
+                    if !dry_run {
+                        self.remove_file(path.to_string())?;
+                        self.staged_files.push(rel_path);
+                    }
+
                     return Ok(AddResult::Updated);
                 }
             },
@@ -76,8 +80,11 @@ impl Index {
                 else if let Some(prev_hash) = self.processed_files.get(&rel_path) {
                     if let Ok(hash) = Uid::new_file(&self.root_dir, path) {
                         if &hash != prev_hash {
-                            self.remove_file(path.to_string())?;
-                            self.staged_files.push(rel_path);
+                            if !dry_run {
+                                self.remove_file(path.to_string())?;
+                                self.staged_files.push(rel_path);
+                            }
+
                             return Ok(AddResult::Updated);
                         }
 
@@ -89,15 +96,21 @@ impl Index {
                     else {  // the file is deleted
                         // 1. deletion is also a modification
                         // 2. adding a non-existent file is not an error
-                        self.remove_file(path.to_string())?;
-                        self.staged_files.push(rel_path);
+                        if !dry_run {
+                            self.remove_file(path.to_string())?;
+                            self.staged_files.push(rel_path);
+                        }
+
                         return Ok(AddResult::Updated);
                     }
                 }
 
                 else if self.curr_processing_file == Some(path.to_string()) {
-                    self.remove_file(path.to_string())?;
-                    self.staged_files.push(rel_path);
+                    if !dry_run {
+                        self.remove_file(path.to_string())?;
+                        self.staged_files.push(rel_path);
+                    }
+
                     return Ok(AddResult::Updated);
                 }
             },
@@ -113,7 +126,10 @@ impl Index {
             },
         }
 
-        self.staged_files.push(rel_path);
+        if !dry_run {
+            self.staged_files.push(rel_path);
+        }
+
         Ok(AddResult::Added)
     }
 }
