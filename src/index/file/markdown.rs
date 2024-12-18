@@ -1,4 +1,4 @@
-use super::{AtomicToken, FileReaderImpl, Image};
+use super::{AtomicToken, FileReaderImpl, Image, normalize_image};
 use crate::error::Error;
 use crate::index::BuildConfig;
 use crate::uid::Uid;
@@ -163,9 +163,10 @@ impl MarkdownReader {
                             continue;
                         },
                     };
+                    let bytes = normalize_image(bytes, ImageType::from_extension(&extension(&url).unwrap_or(Some(String::from("png"))).unwrap_or(String::from("png"))).unwrap_or(ImageType::Png))?;
                     let uid = Uid::new_image(&bytes);
                     self.tokens.push(AtomicToken::Image(Image {
-                        image_type: ImageType::from_extension(&extension(&url).unwrap_or(Some(String::from("png"))).unwrap_or(String::from("png"))).unwrap_or(ImageType::Png),
+                        image_type: ImageType::Png,
                         bytes,
                         uid,
                     }));

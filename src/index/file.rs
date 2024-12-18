@@ -149,13 +149,11 @@ impl FileReader {
             chunk_deque.push_back(token);
         }
 
-        let mut tokens = merge_tokens(chunk_deque);
+        let tokens = merge_tokens(chunk_deque);
 
-        for token in tokens.iter_mut() {
+        for token in tokens.iter() {
             if let AtomicToken::Image(Image { uid, bytes, image_type }) = token {
-                let normalized = normalize_image(bytes.clone(), *image_type)?;
-                self.images.insert(*uid, normalized.clone());
-                *bytes = normalized;
+                self.images.insert(*uid, bytes.clone());
             }
         }
 
