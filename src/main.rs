@@ -78,7 +78,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
     match args.get(1).map(|arg| arg.as_str()) {
         Some("add") => {
-            let parsed_args = ArgParser::new().flag_with_default(&["--ignore", "--auto", "--force"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().flag_with_default(&["--ignore", "--auto", "--force", "--reject"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/add.txt"));
@@ -94,7 +94,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let files = parsed_args.get_args();
-
             let (mut added, mut updated, mut ignored) = (0, 0, 0);
 
             for path in files.iter() {
@@ -721,7 +720,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             return Ok(());
         },
         Some("merge") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--"]).arg_flag("--prefix", ArgType::Path).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--ignore", "--force", "--interactive", "--reject"]).arg_flag("--prefix", ArgType::Path).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/merge.txt"));
@@ -730,12 +729,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let bases = parsed_args.get_args();
+            let merge_mode = MergeMode::parse_flag(&parsed_args.get_flag(0).unwrap_or(String::from("--ignore"))).unwrap();
 
             for base in bases.iter() {
                 index.merge(
                     base.to_string(),
                     parsed_args.arg_flags.get("--prefix").map(|p| p.to_string()),
-                    MergeMode::Ignore,  // TODO: make it configurable
+                    merge_mode,
                     false,  // quiet  // TODO: make it configurable
                 )?;
             }

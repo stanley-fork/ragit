@@ -37,6 +37,8 @@ pub enum Error {
         to: String,
     },
     CannotUpdateII(IIStatus),
+    AddConflict(Path),
+    MergeConflict(Uid),
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.

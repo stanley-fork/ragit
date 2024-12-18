@@ -43,6 +43,11 @@ def add_and_rm():
     total, staged, processed = count_files()
     assert (total, staged, processed) == (5, 5, 0)
 
+    # step 1.2: adding the same file multiple times
+    parse_add_output(["--force", "1.txt", "1.txt", "1.txt"])
+    total, staged, processed = count_files()
+    assert (total, staged, processed) == (5, 5, 0)
+
     # step 2: add files after `rag build`
     cargo_run(["build"])
     added, updated, ignored = parse_add_output(["--auto", *all_files])
@@ -68,6 +73,12 @@ def add_and_rm():
 
     added, updated, ignored = parse_add_output(["--force", *all_files])
     assert (added, updated, ignored) == (0, 5, 0)
+
+    # step 3.1: `--reject` fails, but doesn't affect the state
+    #           It's not supposed to add `5.txt` even though the file is new.
+    assert cargo_run(["add", "--reject", "5.txt", *all_files], check=False) != 0
+    assert count_files() == (5, 5, 0)
+    cargo_run(["check"])
 
     write_string("5.txt", "5")
     all_files.append("5.txt")

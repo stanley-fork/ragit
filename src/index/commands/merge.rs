@@ -4,16 +4,42 @@ use crate::error::Error;
 use crate::index::{IIStatus, LoadMode};
 use crate::uid::Uid;
 use ragit_fs::{
+    copy_file,
+    create_dir_all,
+    exists,
     join,
     normalize,
+    parent,
 };
+use std::collections::HashSet;
 
 pub type Path = String;
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum MergeMode {
-    Override,
+    /// If two bases have chunks of the same file, it chooses the ones in the merged base.
+    Force,
+
+    /// If two bases have chunks of the same file, it chooses the ones in the merging base.
     Ignore,
+
+    /// If two bases have chunks of the same file, it asks the user to choose which.
     Interactive,
+
+    /// If two bases have chunks of the same file, it dies.
+    Reject,
+}
+
+impl MergeMode {
+    pub fn parse_flag(flag: &str) -> Option<Self> {
+        match flag {
+            "--force" => Some(MergeMode::Force),
+            "--ignore" => Some(MergeMode::Ignore),
+            "--interactive" => Some(MergeMode::Interactive),
+            "--reject" => Some(MergeMode::Reject),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Default)]
@@ -38,18 +64,21 @@ impl Index {
         quiet: bool,
     ) -> Result<MergeResult, Error> {
         let mut result = MergeResult::default();
+        let mut old_images = HashSet::new();
         let other = Index::load(path, LoadMode::OnlyJson)?;
 
         for (rel_path, uid_other) in other.processed_files.iter() {
             let mut new_file_path = rel_path.clone();
+            let mut new_file_uid = *uid_other;
 
             if let Some(prefix) = &prefix {
                 new_file_path = normalize(&join(prefix, rel_path)?)?;
+                new_file_uid = Uid::update_file_uid(*uid_other, rel_path, &new_file_path);
             }
 
             if let Some(uid_self) = self.processed_files.get(&new_file_path) {
                 match merge_mode {
-                    MergeMode::Override => {},
+                    MergeMode::Force => {},
                     MergeMode::Ignore => {
                         result.ignored_files += 1;
                         continue;
@@ -64,6 +93,9 @@ impl Index {
                             result.ignored_files += 1;
                             continue;
                         }
+                    },
+                    MergeMode::Reject => {
+                        return Err(Error::MergeConflict(*uid_self));
                     },
                 }
 
@@ -82,24 +114,70 @@ impl Index {
 
             let new_chunk_uids = other.get_chunks_of_file(*uid_other)?;
 
+            // `merge` operation changes chunks' paths and that changes chunks' uids
+            let mut modified_new_chunk_uids = Vec::with_capacity(new_chunk_uids.len());
+
             for new_chunk_uid in new_chunk_uids.iter() {
                 let mut new_chunk = other.get_chunk_by_uid(*new_chunk_uid)?;
                 result.added_chunks += 1;
                 self.chunk_count += 1;
-
-                // TODO: By modifying `.file`,
-                //       `Uid::new_chunk(&new_chunk) != new_chunk.uid` anymore...
-                //       It wouldn't cause any problem, but is a bit ugly...
                 new_chunk.file = new_file_path.clone();
+                new_chunk.uid = Uid::new_chunk(&new_chunk);
+                modified_new_chunk_uids.push(new_chunk.uid);
 
                 for image in new_chunk.images.iter() {
-                    // TODO: merge images
+                    let image_self = Index::get_image_path(
+                        &self.root_dir,
+                        *image,
+                        "png",
+                    );
+
+                    if !exists(&image_self) {
+                        let image_self = Index::get_image_path(
+                            &self.root_dir,
+                            *image,
+                            "png",
+                        );
+                        let desc_self = Index::get_image_path(
+                            &self.root_dir,
+                            *image,
+                            "json",
+                        );
+                        let image_other = Index::get_image_path(
+                            &other.root_dir,
+                            *image,
+                            "png",
+                        );
+                        let desc_other = Index::get_image_path(
+                            &other.root_dir,
+                            *image,
+                            "json",
+                        );
+                        let parent = parent(&image_self)?;
+
+                        if !exists(&parent) {
+                            create_dir_all(&parent)?;
+                        }
+
+                        copy_file(&image_other, &image_self)?;
+                        copy_file(&desc_other, &desc_self)?;
+                        result.added_images += 1;
+                    }
+
+                    else {
+                        old_images.insert(*image);
+                    }
                 }
 
+                // There's a small catch.
+                // If `self` and `other` have the same image with different descriptions,
+                // the image may or may not be overriden (later by `for old_image in old_images.iter`).
+                // but its tfidf file is created before the description is overriden and is looking at
+                // the older version of the description.
                 chunk::save_to_file(
                     &Index::get_chunk_path(
                         &self.root_dir,
-                        *new_chunk_uid,
+                        new_chunk.uid,
                     ),
                     &new_chunk,
                     self.build_config.compression_threshold,
@@ -112,8 +190,62 @@ impl Index {
                 }
             }
 
-            self.add_file_index(*uid_other, &new_chunk_uids)?;
-            self.processed_files.insert(new_file_path, *uid_other);
+            self.add_file_index(new_file_uid, &modified_new_chunk_uids)?;
+            self.processed_files.insert(new_file_path, new_file_uid);
+        }
+
+        for old_image in old_images.iter() {
+            match merge_mode {
+                MergeMode::Force => {},
+                MergeMode::Ignore => {
+                    result.ignored_images += 1;
+                    continue;
+                },
+                MergeMode::Interactive => {
+                    if !ask_merge(
+                        self,
+                        *old_image,
+                        &other,
+                        *old_image,
+                    )? {
+                        result.ignored_images += 1;
+                        continue;
+                    }
+                },
+                MergeMode::Reject => {
+                    return Err(Error::MergeConflict(*old_image));
+                },
+            }
+
+            let image_self = Index::get_image_path(
+                &self.root_dir,
+                *old_image,
+                "png",
+            );
+            let desc_self = Index::get_image_path(
+                &self.root_dir,
+                *old_image,
+                "json",
+            );
+            let image_other = Index::get_image_path(
+                &other.root_dir,
+                *old_image,
+                "png",
+            );
+            let desc_other = Index::get_image_path(
+                &other.root_dir,
+                *old_image,
+                "json",
+            );
+            let parent = parent(&image_self)?;
+
+            if !exists(&parent) {
+                create_dir_all(&parent)?;
+            }
+
+            copy_file(&image_other, &image_self)?;
+            copy_file(&desc_other, &desc_self)?;
+            result.overriden_images += 1;
         }
 
         if (result.added_chunks > 0 || result.removed_chunks > 0) && self.ii_status != IIStatus::None {

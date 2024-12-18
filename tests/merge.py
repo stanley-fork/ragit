@@ -1,5 +1,6 @@
 import os
 from random import seed as rand_seed
+import shutil
 from utils import (
     cargo_run,
     count_chunks,
@@ -15,17 +16,20 @@ def merge():
     goto_root()
     mk_and_cd_tmp_dir()
     docs = [" ".join([rand_word() for _ in range(1000)]) for _ in range(7)]
-    terms_map = {doc.split(" ")[0]: f"doc_{i}.txt" for i, doc in enumerate(docs)}
+    docs[-1] += "\n\n![image](empty.png)"
+    terms_map = {doc.split(" ")[0]: f"doc_{i}.md" for i, doc in enumerate(docs)}
 
     # base1: a base with 7 documents
     os.mkdir("base1")
     os.chdir("base1")
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
+    cargo_run(["config", "--set", "strict_file_reader", "true"])
+    shutil.copy2("../../tests/images/empty.png", "empty.png")
 
     for i, doc in enumerate(docs):
-        write_string(f"doc_{i}.txt", doc)
-        cargo_run(["add", f"doc_{i}.txt"])
+        write_string(f"doc_{i}.md", doc)
+        cargo_run(["add", f"doc_{i}.md"])
 
     cargo_run(["build"])
     cargo_run(["check"])
@@ -39,8 +43,8 @@ def merge():
     cargo_run(["config", "--set", "model", "dummy"])
 
     for i, doc in enumerate(docs[:3]):
-        write_string(f"doc_{i}.txt", doc)
-        cargo_run(["add", f"doc_{i}.txt"])
+        write_string(f"doc_{i}.md", doc)
+        cargo_run(["add", f"doc_{i}.md"])
 
     cargo_run(["build"])
     cargo_run(["check"])
@@ -51,10 +55,11 @@ def merge():
     os.chdir("sub-base2")
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
+    shutil.copy2("../../tests/images/empty.png", "empty.png")
 
     for i, doc in enumerate(docs[3:]):
-        write_string(f"doc_{i + 3}.txt", doc)
-        cargo_run(["add", f"doc_{i + 3}.txt"])
+        write_string(f"doc_{i + 3}.md", doc)
+        cargo_run(["add", f"doc_{i + 3}.md"])
 
     cargo_run(["build"])
     cargo_run(["check"])
@@ -73,7 +78,8 @@ def merge():
     assert count_chunks() == chunk_count
 
     for i in range(7):
-        assert cargo_run(["cat-file", f"doc_{i}.txt"], stdout=True).strip() == docs[i]
+        # some docs include images, which cannot be handled by `cat-file`. so we compare only the first 1000 characters
+        assert cargo_run(["cat-file", f"doc_{i}.md"], stdout=True).strip()[:1000] == docs[i][:1000]
 
     for _ in range(2):
         for term, doc in terms_map.items():
@@ -104,7 +110,8 @@ def merge():
     assert count_chunks() == chunk_count
 
     for i in range(7):
-        assert cargo_run(["cat-file", f"sub{min(i // 3 + 1, 2)}/doc_{i}.txt"], stdout=True).strip() == docs[i]
+        # some docs include images, which cannot be handled by `cat-file`. so we compare only the first 1000 characters
+        assert cargo_run(["cat-file", f"sub{min(i // 3 + 1, 2)}/doc_{i}.md"], stdout=True).strip()[:1000] == docs[i][:1000]
 
     for _ in range(2):
         for term, doc in terms_map.items():
@@ -126,7 +133,14 @@ def merge():
     assert count_files() == (10, 0, 10)
 
     # merging the same base with the same prefix should fail
-    assert cargo_run(["merge", "../sub-base1", "--prefix", "sub1"], check=False) != 0
+    assert cargo_run(["merge", "../sub-base1", "--prefix", "sub1", "--reject"], check=False) != 0
+    cargo_run(["check"])
+
+    # a failed merge should not affect the base
+    assert count_files() == (7, 0, 7)
+
+    # with `--force`, the merge should be successful
+    cargo_run(["merge", "../sub-base1", "--prefix", "sub1", "--force"])
     cargo_run(["check"])
 
     # a failed merge should not affect the base

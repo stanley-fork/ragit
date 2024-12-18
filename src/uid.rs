@@ -118,12 +118,14 @@ impl Uid {
     pub fn new_file(root_dir: &str, path: &str) -> Result<Self, Error> {
         let size = file_size(path)?;
         let rel_path = Index::get_rel_path(&root_dir.to_string(), &path.to_string())?;
-        let mut hasher = Sha3_256::new();
-        hasher.update(rel_path.as_bytes());
+        let mut file_path_hasher = Sha3_256::new();
+        file_path_hasher.update(rel_path.as_bytes());
+        let file_path_uid = format!("{:064x}", file_path_hasher.finalize()).parse::<Uid>().unwrap();
+        let mut file_content_hasher = Sha3_256::new();
 
         if size < 32 * 1024 * 1024 {
             let bytes = read_bytes(path)?;
-            hasher.update(&bytes);
+            file_content_hasher.update(&bytes);
         }
 
         else {
@@ -132,7 +134,7 @@ impl Uid {
 
             loop {
                 let bytes = read_bytes_offset(path, offset, offset + block_size)?;
-                hasher.update(&bytes);
+                file_content_hasher.update(&bytes);
                 offset += block_size;
 
                 if offset >= size {
@@ -141,11 +143,28 @@ impl Uid {
             }
         }
 
-        let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+        let mut result = format!("{:064x}", file_content_hasher.finalize()).parse::<Uid>().unwrap();
+        result ^= file_path_uid;
         result.low &= Uid::METADATA_MASK;
         result.low |= Uid::FILE_TYPE;
         result.low |= (size as u128) & 0xffff_ffff;
         Ok(result)
+    }
+
+    // TODO: this function has to be tested
+    pub fn update_file_uid(mut old: Uid, old_path: &str, new_path: &str) -> Self {
+        let mut old_path_hasher = Sha3_256::new();
+        old_path_hasher.update(old_path.as_bytes());
+        let mut old_path_uid = format!("{:064x}", old_path_hasher.finalize()).parse::<Uid>().unwrap();
+        old_path_uid.low &= Uid::METADATA_MASK;
+        let mut new_path_hasher = Sha3_256::new();
+        new_path_hasher.update(new_path.as_bytes());
+        let mut new_path_uid = format!("{:064x}", new_path_hasher.finalize()).parse::<Uid>().unwrap();
+        new_path_uid.low &= Uid::METADATA_MASK;
+
+        old ^= old_path_uid;
+        old ^= new_path_uid;
+        old
     }
 
     pub(crate) fn from_prefix_and_suffix(prefix: &str, suffix: &str) -> Result<Self, Error> {
@@ -206,6 +225,24 @@ impl FromStr for Uid {
                 _ => Err(Error::InvalidUid(s.to_string())),
             }
         }
+    }
+}
+
+impl std::ops::BitXor for Uid {
+    type Output = Self;
+
+    fn bitxor(self, rhs: Self) -> Self {
+        Uid {
+            low: self.low ^ rhs.low,
+            high: self.high ^ rhs.high,
+        }
+    }
+}
+
+impl std::ops::BitXorAssign for Uid {
+    fn bitxor_assign(&mut self, rhs: Self) {
+        self.low ^= rhs.low;
+        self.high ^= rhs.high;
     }
 }
 

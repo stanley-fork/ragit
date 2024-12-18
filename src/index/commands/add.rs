@@ -9,12 +9,15 @@ pub enum AddMode {
     /// If the file is already in the index, it force updates file.
     Force,
 
-    /// if the file is already in the index, it first checks whether the file has been modified
+    /// If the file is already in the index, it first checks whether the file has been modified
     /// the file is force updated only if modified
     Auto,
 
-    /// if the files is already in the index, nothing happens
+    /// If the files is already in the index, nothing happens
     Ignore,
+
+    /// If the file is already in the index, it does nothing and returns an error.
+    Reject,
 }
 
 impl AddMode {
@@ -23,6 +26,7 @@ impl AddMode {
             "--force" => Some(AddMode::Force),
             "--auto" => Some(AddMode::Auto),
             "--ignore" => Some(AddMode::Ignore),
+            "--reject" => Some(AddMode::Reject),
             _ => None,
         }
     }
@@ -100,6 +104,11 @@ impl Index {
             AddMode::Ignore => {
                 if self.staged_files.contains(&rel_path) || self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.to_string()) {
                     return Ok(AddResult::Ignored);
+                }
+            },
+            AddMode::Reject => {
+                if self.staged_files.contains(&rel_path) || self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.to_string()) {
+                    return Err(Error::AddConflict(rel_path.to_string()));
                 }
             },
         }

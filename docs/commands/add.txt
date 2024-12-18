@@ -8,7 +8,7 @@ rag-add - Add files to the staging area
 SYNOPSIS
 --------
 [verse]
-'rag add' [--auto | --force | --ignore] [--dry-run] <files>...
+'rag add' [--auto | --force | --ignore | --reject] [--dry-run] <files>...
 
 DESCRIPTION
 -----------
@@ -18,7 +18,7 @@ This command adds files to the staging area. Then you have to run `rag build`
 to generate chunks from the files in the staging area. If a file is already staged,
 nothing happens.
 
-`--auto`, `--force` and `--ignore` options decide what to do when a file you're
+`--auto`, `--force`, `--ignore` and `--reject` options decide what to do when a file you're
 adding is already processed. With `--auto` option, it checks whether the file has
 been modified since the chunks were generated. If it's modified, it removes the chunks
 and moves the file back to the staging area. Otherwise nothing happens. With `--force`
@@ -26,3 +26,6 @@ option, it always removes the chunks and moves the file back to the staging area
 with `--ignore` option, nothing happens. The default option is `--ignore`.
 
 NOTE: `dry-run` is not implemented yet.
+
+NOTE: `--reject` is implemented, but is half-broken. It doesn't clean up the base after
+rejection.
