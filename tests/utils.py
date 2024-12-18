@@ -89,6 +89,15 @@ def parse_add_output(args: list[str], rag_check=True) -> Tuple[int, int, int]:
     added, updated, ignored = re.search(r"(\d+)\sadded\sfiles\,\s(\d+)\supdated\sfiles\,\s(\d+)\signored\sfiles", first_line).groups()
     return int(added), int(updated), int(ignored)
 
+def parse_tfidf_output(args: list[str]) -> int:
+    output = cargo_run(["tfidf"] + args, stdout=True)
+
+    for line in output.split("\n"):
+        if (r := re.match(r"^found\s(\d+)\sresults$", line)) is not None:
+            return int(r.group(1))
+
+    raise Exception("no result found")
+
 def rand_word() -> str:
     if random() < 0.5:
         return "".join([chr(randint(65, 90)) for _ in range(randint(8, 16))])

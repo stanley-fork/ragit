@@ -189,12 +189,21 @@ pub enum ArgType {
     Path,
     Command,
     Query,  // uid or path
+    Integer,
 }
 
 impl ArgType {
     pub fn parse(&self, arg: &str) -> Result<String, Error> {
-        // for now, there's no parsing error
-        Ok(arg.to_string())
+        match self {
+            ArgType::Integer => match arg.parse::<i64>() {
+                Ok(_) => Ok(arg.to_string()),
+                Err(e) => Err(Error::ParseIntError(e)),
+            },
+            ArgType::String
+            | ArgType::Path
+            | ArgType::Command  // TODO: validator for ArgType::Command
+            | ArgType::Query => Ok(arg.to_string()),
+        }
     }
 }
 

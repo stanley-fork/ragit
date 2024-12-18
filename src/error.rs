@@ -62,6 +62,9 @@ pub enum Error {
     /// see <https://docs.rs/url/latest/url/enum.ParseError.html>
     UrlParseError(url::ParseError),
 
+    /// see <https://doc.rust-lang.org/stable/std/num/struct.ParseIntError.html>
+    ParseIntError(std::num::ParseIntError),
+
     FileError(FileError),
     StdIoError(std::io::Error),
     Utf8Error(FromUtf8Error),

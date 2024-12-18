@@ -904,10 +904,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Index::reset_hard(&root_dir?)?;
             }
         },
-        // TODO: I would like to introduce `-N=10` flag, which tells at most how many chunks to retrieve.
-        //       but the ArgParser doesn't support that kinda arguments
         Some("tfidf") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--uid-only"]).args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only"]).arg_flag("--limit", ArgType::Integer).args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
@@ -919,6 +917,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let started_at = std::time::Instant::now();
             let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();
+            let limit = parsed_args.arg_flags.get("--limit").map(|s| s.to_string()).unwrap_or(String::from("10")).parse::<i64>().unwrap().max(0) as usize;
 
             if !uid_only {
                 println!("search keywords: {:?}", parsed_args.get_args());
@@ -946,7 +945,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let tfidf_results = index.run_tfidf(
                 keywords,
-                index.query_config.max_summaries,
+                limit,
             )?;
             let mut chunks = Vec::with_capacity(tfidf_results.len());
 
