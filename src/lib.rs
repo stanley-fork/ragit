@@ -31,7 +31,7 @@ pub use index::{
     MergeResult,
     ProcessedDoc,
     RecoverResult,
-    TfIdfResult,
+    TfidfResult,
 };
 pub use query::{
     QueryConfig,

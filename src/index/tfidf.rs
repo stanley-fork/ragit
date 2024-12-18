@@ -22,7 +22,7 @@ use std::io::Read;
 type Term = String;
 type Weight = f32;
 
-pub struct TfIdfState<DocId> {
+pub struct TfidfState<DocId> {
     pub terms: HashMap<Term, Weight>,
     term_frequency: HashMap<(DocId, Term), usize>,
     document_frequency: HashMap<Term, usize>,
@@ -31,7 +31,7 @@ pub struct TfIdfState<DocId> {
 }
 
 #[derive(Clone)]
-pub struct TfIdfResult<DocId: Clone> {
+pub struct TfidfResult<DocId: Clone> {
     pub id: DocId,
     pub score: f32,
 }
@@ -69,7 +69,7 @@ pub fn save_to_file(path: &str, chunk: &Chunk, root_dir: &str) -> Result<(), Err
 
 pub fn consume_processed_doc(
     processed_doc: ProcessedDoc,
-    tfidf_state: &mut TfIdfState<Uid>,
+    tfidf_state: &mut TfidfState<Uid>,
 ) -> Result<(), Error> {
     tfidf_state.consume(
         processed_doc.uid.unwrap(),
@@ -171,9 +171,9 @@ impl ProcessedDoc {
     }
 }
 
-impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
+impl<DocId: Clone + Eq + Hash> TfidfState<DocId> {
     pub fn new(keywords: &Keywords) -> Self {
-        TfIdfState {
+        TfidfState {
             terms: keywords.tokenize(),
             term_frequency: HashMap::new(),
             document_frequency: HashMap::new(),
@@ -206,7 +206,7 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
         self.docs.push(doc_id);
     }
 
-    pub fn get_top(&self, limit: usize) -> Vec<TfIdfResult<DocId>> {
+    pub fn get_top(&self, limit: usize) -> Vec<TfidfResult<DocId>> {
         let mut tfidfs: HashMap<DocId, f32> = HashMap::new();
 
         // https://en.wikipedia.org/wiki/Okapi_BM25
@@ -245,8 +245,8 @@ impl<DocId: Clone + Eq + Hash> TfIdfState<DocId> {
             }
         }
 
-        let mut tfidfs: Vec<_> = tfidfs.into_iter().map(|(id, score)| TfIdfResult { id, score }).collect();
-        tfidfs.sort_by(|TfIdfResult { score: a, .. }, TfIdfResult { score: b, .. }| b.partial_cmp(a).unwrap());  // rev sort
+        let mut tfidfs: Vec<_> = tfidfs.into_iter().map(|(id, score)| TfidfResult { id, score }).collect();
+        tfidfs.sort_by(|TfidfResult { score: a, .. }, TfidfResult { score: b, .. }| b.partial_cmp(a).unwrap());  // rev sort
 
         if tfidfs.len() > limit {
             tfidfs[..limit].to_vec()

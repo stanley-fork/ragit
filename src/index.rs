@@ -63,7 +63,7 @@ pub use commands::{
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, ImageDescription};
 pub use ii::IIStatus;
-pub use tfidf::{ProcessedDoc, TfIdfResult, TfIdfState, consume_processed_doc};
+pub use tfidf::{ProcessedDoc, TfidfResult, TfidfState, consume_processed_doc};
 
 pub const CONFIG_DIR_NAME: &str = "configs";
 pub const II_DIR_NAME: &str = "ii";
@@ -458,8 +458,8 @@ impl Index {
         &self,
         keywords: Keywords,
         limit: usize,
-    ) -> Result<Vec<TfIdfResult<Uid>>, Error> {
-        let mut tfidf_state = TfIdfState::new(&keywords);
+    ) -> Result<Vec<TfidfResult<Uid>>, Error> {
+        let mut tfidf_state = TfidfState::new(&keywords);
 
         // TODO: it must be configurable, or at least do much more experiment on this
         let ii_coeff = 20;
