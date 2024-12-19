@@ -1,11 +1,19 @@
 import os
 import re
 import shutil
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    count_chunks,
+    goto_root,
+    ls_recursive,
+    mk_and_cd_tmp_dir,
+    rand_word,
+    write_string,
+)
 
 # In order to test invert indexes, we need a large enough dataset,
 # which is not randomly generated, and easy to fetch. For now, it's
-# using `docs/*.md` files, but need a bigger dataset.
+# using `docs/*` files, but need a bigger dataset.
 def ii():
     goto_root()
     mk_and_cd_tmp_dir()
@@ -21,13 +29,13 @@ def ii():
     cargo_run(["config", "--set", "slide_len", "128"])
     cargo_run(["config", "--set", "enable_ii", "false"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
-
-    for file in os.listdir():
-        if file.endswith(".md") and "prompt" not in file:
-            cargo_run(["add", file])
+    cargo_run(["add", *(ls_recursive("md") + ls_recursive("txt"))])
 
     cargo_run(["build"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
+
+    if count_chunks() < 1000:
+        raise Exception("The dataset is not big enough. Please make sure that there are more than 1000 chunks.")
 
     # Strategy:
     # 1. There are an arbitrary number of chunks that contain `terms`.
@@ -40,27 +48,20 @@ def ii():
     # 4. Result from 2 is the answer and result from 3 is an 'approximation'.
     #    It's goal is to make sure that the approximation is close enough.
     # 5. Rules
-    #    - Answer has >= 10 chunks, Approximation has >= 10 chunks.
-    #      - The top 3 of each other must be included in the top 10 of the other.
-    #    - Answer has < 10 chunks, Approximation has < 10 chunks.
+    #    - If answer has >= 10 chunks and approximation has >= 10 chunks,
+    #      - the top 3 of each other must be included in the top 10 of the other.
+    #    - If answer has < 10 chunks and approximation has < 10 chunks,
     #      - The set of chunks must be the same.
     #    - Otherwise,
     #      - Error
-    terms = [
-        "",
-        "pdf", "media", "ragit", "core", "prompt",
-        "pdf, media",
-        "ragit, core",
-        "ragit, rag",
-        "prompt, engineer, auto",
-        "verylongstring", "설마 이런 단어는 안 나오겠지?", "🦫",
-    ]
+    terms = generate_terms()
     answers = {}
     approximations = {}
 
     for term in terms:
-        uids = cargo_run(["tfidf", term, "--uid-only"], stdout=True)
+        uids = cargo_run(["tfidf", term, "--uid-only", "--limit=10"], stdout=True)
         uids = [uid for uid in uids.split("\n") if re.match(r"^[0-9a-z]{64}$", uid)]
+        assert len(uids) <= 10
         answers[term] = uids
 
     cargo_run(["ii-build"])
@@ -68,42 +69,30 @@ def ii():
     cargo_run(["config", "--set", "enable_ii", "true"])
 
     for term in terms:
-        uids = cargo_run(["tfidf", term, "--uid-only"], stdout=True)
+        uids = cargo_run(["tfidf", term, "--uid-only", "--limit=10"], stdout=True)
         uids = [uid for uid in uids.split("\n") if re.match(r"^[0-9a-z]{64}$", uid)]
+        assert len(uids) <= 10
         approximations[term] = uids
-
-    zero_term, rare_term, common_term = 0, 0, 0
 
     for term in terms:
         answer = answers[term]
         approximation = approximations[term]
 
-        if len(answer) >= 10:
-            common_term += 1
-
-            if len(approximation) >= 10:
+        if len(answer) == 10:
+            if len(approximation) == 10:
                 for i in range(3):
-                    assert answer[i] in approximation[:10]
-                    assert approximation[i] in answer[:10]
+                    assert answer[i] in approximation
+                    assert approximation[i] in answer
 
             else:
                 raise AssertionError(f"len(answer)={len(answer)}, len(approximation)={len(approximation)}")
 
         else:
-            if len(answer) == 0:
-                zero_term += 1
-
-            else:
-                rare_term += 1
-
-            if len(approximation) >= 10:
+            if len(approximation) == 10:
                 raise AssertionError(f"len(answer)={len(answer)}, len(approximation)={len(approximation)}")
 
             else:
                 assert set(answer) == set(approximation)
-
-    if min(zero_term, rare_term, common_term) == 0:
-        raise Exception(f"The code is fine, but the dataset is not good enough. Please add terms for better coverage. Terms and appearances: { {term: len(answers[term]) for term in answers.keys()} }")
 
     # incremental update of ii
     write_string("self-introduction.txt", "Hi, my name is baehyunsol.")
@@ -112,3 +101,39 @@ def ii():
     cargo_run(["build"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
     assert "self-introduction.txt" in cargo_run(["tfidf", "Hi, my name is baehyunsol."], stdout=True)
+
+def generate_terms():
+    dictionary = []
+    words = set()
+
+    for line in cargo_run(["ls-terms"], stdout=True).split("\n"):
+        if (r := re.match(r"^\s*\"([0-9a-zA-Z가-힣]+)\"\:\s*(\d+)$", line)) is not None:
+            dictionary.append((r.group(1), int(r.group(2))))
+            words.add(r.group(1))
+
+    dictionary.sort(key=lambda x: x[1], reverse=True)
+    dictionary = [term for term, _ in dictionary]
+
+    if len(dictionary) < 100:
+        raise Exception("The dataset is not big enough. Please make sure that there are more than 100 terms.")
+
+    frequent_terms = dictionary[:5]
+    less_frequent_terms = dictionary[len(dictionary) // 2:len(dictionary) // 2 + 5]
+    rare_terms = dictionary[-5:]
+    never_terms = []
+
+    while len(never_terms) < 5:
+        term = rand_word()
+
+        if term not in words:
+            never_terms.append(term)
+
+    return [
+        *less_frequent_terms,
+        *rare_terms,
+        *never_terms,
+        " ".join(less_frequent_terms),
+        " ".join(rare_terms),
+        *[" ".join([frequent_terms[i], less_frequent_terms[i], rare_terms[i]]) for i in range(5)],
+        *[" ".join([frequent_terms[i], less_frequent_terms[i]]) for i in range(5)],
+    ]

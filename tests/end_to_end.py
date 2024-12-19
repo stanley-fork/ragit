@@ -3,31 +3,18 @@ import shutil
 from random import randint, seed as rand_seed
 import re
 from subprocess import TimeoutExpired
-from utils import cargo_run, count_chunks, count_files, goto_root
+from utils import cargo_run, count_chunks, count_files, goto_root, ls_recursive
 
 def end_to_end(test_model: str):
     rand_seed(0)
     goto_root()
     os.chdir("docs")
-    md_files = []
-    txt_files = []
-
-    for file in os.listdir():
-        if not file.endswith(".md"):
-            continue
-
-        md_files.append(file)
-
-    for file in os.listdir("commands"):
-        if not file.endswith(".txt"):
-            continue
-
-        txt_files.append(os.path.join("commands", file))
+    files = ls_recursive("txt") + ls_recursive("md")
 
     if ".ragit" in os.listdir():
         cargo_run(["reset", "--hard"])
 
-    assert len(md_files) > 2  # `rag build` has to take at least 5 seconds
+    assert len(files) > 2  # `rag build` has to take at least 5 seconds
     cargo_run(["init"])
     cargo_run(["check"])
 
@@ -58,27 +45,24 @@ def end_to_end(test_model: str):
     cargo_run(["config", "--get-all"])
 
     # step 2: add the files
-    cargo_run(["add", *md_files])
-    cargo_run(["add", *txt_files])
+    cargo_run(["add", *files])
     cargo_run(["check"])
     file_count, _, _ = count_files()
 
-    assert file_count == len(md_files) + len(txt_files)
+    assert file_count == len(files)
 
     # step 2.1: rm all the files and add the files again
-    cargo_run(["rm", *md_files])
-    cargo_run(["rm", *txt_files])
+    cargo_run(["rm", *files])
     cargo_run(["check"])
     file_count, _, _ = count_files()
 
     assert file_count == 0
 
-    cargo_run(["add", *md_files])
-    cargo_run(["add", *txt_files])
+    cargo_run(["add", *files])
     cargo_run(["check"])
     file_count, _, _ = count_files()
 
-    assert file_count == len(md_files) + len(txt_files)
+    assert file_count == len(files)
 
     # step 3: build: pause and resume
     try:
@@ -120,10 +104,10 @@ def end_to_end(test_model: str):
     file_count_prev, _, _ = count_files()
     chunk_count_prev = count_chunks()
 
-    assert file_count_prev == len(md_files) + len(txt_files)
+    assert file_count_prev == len(files)
 
     # step 7: rm
-    cargo_run(["rm", md_files[0]])
+    cargo_run(["rm", files[0]])
     cargo_run(["check"])
     file_count_next, _, _ = count_files()
     chunk_count_next = count_chunks()
@@ -132,7 +116,7 @@ def end_to_end(test_model: str):
     assert chunk_count_prev > chunk_count_next
 
     # step 8: add again
-    cargo_run(["add", md_files[0]])
+    cargo_run(["add", files[0]])
     cargo_run(["check"])
     file_count, _, _ = count_files()
     chunk_count = count_chunks()
@@ -147,19 +131,19 @@ def end_to_end(test_model: str):
     assert chunk_count_prev == chunk_count
 
     # step 9: multiple `add` operations with different flags
-    cargo_run(["add", "--ignore", md_files[0]])
+    cargo_run(["add", "--ignore", files[0]])
     cargo_run(["check"])
     chunk_count_new = count_chunks()
 
     assert chunk_count == chunk_count_new
 
-    cargo_run(["add", "--auto", md_files[0]])
+    cargo_run(["add", "--auto", files[0]])
     cargo_run(["check"])
     chunk_count_new = count_chunks()
 
     assert chunk_count == chunk_count_new
 
-    cargo_run(["add", "--force", md_files[0]])
+    cargo_run(["add", "--force", files[0]])
     cargo_run(["check"])
     chunk_count_new = count_chunks()
 

@@ -98,6 +98,23 @@ def parse_tfidf_output(args: list[str]) -> int:
 
     raise Exception("no result found")
 
+def ls_recursive(ext: str, path: Optional[list[str]] = None) -> list[str]:
+    result = []
+
+    if path is None:
+        path = []
+
+    for f in os.listdir():
+        if os.path.isdir(f):
+            os.chdir(f)
+            result += ls_recursive(ext, path + [f])
+            os.chdir("..")
+
+        elif f.endswith(f".{ext}"):
+            result.append(os.path.join(*path, f))
+
+    return result
+
 def rand_word() -> str:
     if random() < 0.5:
         return "".join([chr(randint(65, 90)) for _ in range(randint(8, 16))])
