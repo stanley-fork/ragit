@@ -351,7 +351,7 @@ fn try_get_pdl_token(bytes: &[u8], mut index: usize) -> Option<(&[u8], usize)> {
             loop {
                 match (bytes.get(index), bytes.get(index + 1)) {
                     (Some(b'|'), Some(b'>')) => {
-                        return Some((&bytes[(old_index + 2)..index], index + 1));
+                        return Some((&bytes[(old_index + 2)..index], index + 2));
                     },
                     (_, Some(b'|')) => {
                         index += 1;
@@ -371,7 +371,16 @@ fn try_get_pdl_token(bytes: &[u8], mut index: usize) -> Option<(&[u8], usize)> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{Message, MessageContent, Pdl, Role, parse_pdl_from_file};
+    use crate::{
+        ImageType,
+        Message,
+        MessageContent,
+        Pdl,
+        Role,
+        decode_base64,
+        parse_pdl,
+        parse_pdl_from_file,
+    };
     use ragit_fs::{WriteMode, write_string};
 
     // more thorough test suites are in `tests/`
@@ -393,7 +402,7 @@ Write me a sudoku-solver.
             WriteMode::CreateOrTruncate,
         ).unwrap();
 
-        let Pdl { messages, .. } = parse_pdl_from_file(
+        let Pdl { messages, schema } = parse_pdl_from_file(
             "/tmp/test_messages.tera",
             &tera::Context::new(),
             true,
@@ -416,6 +425,43 @@ Write me a sudoku-solver.
                     ],
                 },
             ],
+        );
+        assert_eq!(
+            schema,
+            None,
+        );
+    }
+
+    #[test]
+    fn media_content_test() {
+        let Pdl { messages, schema } = parse_pdl(
+"
+<|user|>
+
+<|raw_media(png:HiMyNameIsBaehyunsol)|>
+",
+            &tera::Context::new(),
+            true,
+            true,
+        ).unwrap();
+
+        assert_eq!(
+            messages,
+            vec![
+                Message {
+                    role: Role::User,
+                    content: vec![
+                        MessageContent::Image {
+                            image_type: ImageType::Png,
+                            bytes: decode_base64("HiMyNameIsBaehyunsol").unwrap(),
+                        },
+                    ],
+                },
+            ],
+        );
+        assert_eq!(
+            schema,
+            None,
         );
     }
 }
