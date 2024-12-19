@@ -1,10 +1,10 @@
 use super::{
     종성_REV,
-    종성s,
+    종성S,
     중성_REV,
-    중성s,
+    중성S,
     초성_REV,
-    초성s,
+    초성S,
 };
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -29,9 +29,9 @@ impl 한글 {
         let 종성 = ((c - 44032) % 588 % 28) as usize;
 
         한글 {
-            초성: 초성s[초성],
-            중성: 중성s[중성],
-            종성: if 종성 == 0 { None } else { Some(종성s[종성 - 1]) },
+            초성: 초성S[초성],
+            중성: 중성S[중성],
+            종성: if 종성 == 0 { None } else { Some(종성S[종성 - 1]) },
         }
     }
 

@@ -35,12 +35,10 @@ mod constants;
 
 pub use char::한글;
 pub use constants::{
-    CONSONANTS,
-    VOWELS,
     종성_REV,
-    종성s,
+    종성S,
     중성_REV,
-    중성s,
+    중성S,
     초성_REV,
-    초성s,
+    초성S,
 };

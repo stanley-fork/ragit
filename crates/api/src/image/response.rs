@@ -90,7 +90,7 @@ pub struct GetResponse {
 }
 
 impl GetResponse {
-    pub fn from_json(j: &JsonValue, api_provider: ApiProvider) -> Result<Self, Error> {
+    pub fn from_json(j: &JsonValue, _: ApiProvider) -> Result<Self, Error> {
         match j {
             JsonValue::Object(j) => {
                 let logs = if let Some(logs) = j.get("logs") {

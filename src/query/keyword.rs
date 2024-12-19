@@ -6,16 +6,11 @@ use ragit_api::{
     RecordAt,
 };
 use ragit_pdl::{
-    Message,
-    MessageContent,
     Pdl,
-    Role,
     escape_pdl_tokens,
     parse_pdl,
 };
-use regex::Regex;
 use serde::Deserialize;
-use serde_json::Value;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq)]
@@ -79,7 +74,7 @@ pub async fn extract_keywords(
         true,
     )?;
 
-    let mut request = ChatRequest {
+    let request = ChatRequest {
         api_key: api_config.api_key.clone(),
         messages,
         model: api_config.model,

@@ -4,8 +4,6 @@ mod request;
 mod response;
 
 pub use message::{
-    message_contents_to_json_array,
-    message_contents_to_string,
     message_to_json,
 };
 pub use model_kind::ModelKind;

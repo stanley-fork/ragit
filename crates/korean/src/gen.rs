@@ -1,4 +1,4 @@
-use crate::hangul::{종성s, 중성s, 한글};
+use crate::hangul::{종성S, 중성S, 한글};
 use crate::jamo::자모;
 use std::collections::HashMap;
 
@@ -66,8 +66,8 @@ fn disassemble_자모s(rules: Vec<(TermKind, Vec<Vec<&str>>)>) -> Vec<(TermKind,
 
 // (종성Term, [[은, 이, 을, 과]]) -> (Any, [[ㄱ, ㄴ, ㄷ, ...], [은, 이, 을, 과]])
 fn flatten_term_kinds(mut rules: Vec<(TermKind, Vec<Vec<Vec<자모>>>)>) -> Vec<(TermKind, Vec<Vec<Vec<자모>>>)> {
-    let 중성_자모s = 중성s.iter().map(|j| vec![자모::중성(*j)]).collect::<Vec<_>>();
-    let 종성_자모s = 종성s.iter().map(|j| vec![자모::종성(*j)]).collect::<Vec<_>>();
+    let 중성_자모s = 중성S.iter().map(|j| vec![자모::중성(*j)]).collect::<Vec<_>>();
+    let 종성_자모s = 종성S.iter().map(|j| vec![자모::종성(*j)]).collect::<Vec<_>>();
 
     for (term, suffixes) in rules.iter_mut() {
         match term {

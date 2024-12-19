@@ -166,7 +166,7 @@ pub fn record_api_usage(
     };
 
     match tracker.0.get_mut(&at.id) {
-        Some(mut records) => {
+        Some(records) => {
             records.push(new_record);
 
             if clean_up_records {

@@ -21,10 +21,7 @@ use ragit_fs::{
     write_bytes,
 };
 use ragit_pdl::{
-    Message,
-    MessageContent,
     Pdl,
-    Role,
     encode_base64,
     escape_pdl_tokens,
     parse_pdl,
@@ -204,7 +201,7 @@ impl Chunk {
         }
 
         let data = data.concat();
-        let mut request = ChatRequest {
+        let request = ChatRequest {
             api_key: api_config.api_key.clone(),
             messages,
             model: api_config.model,

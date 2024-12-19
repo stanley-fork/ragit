@@ -30,14 +30,10 @@ use ragit_fs::{
     write_string,
 };
 use ragit_pdl::{
-    Message,
-    MessageContent,
     Pdl,
-    Role,
     encode_base64,
     parse_pdl,
 };
-use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
@@ -424,9 +420,8 @@ impl Index {
             true,
             true,
         )?;
-        let mut mistakes = 0;
 
-        let mut request = ChatRequest {
+        let request = ChatRequest {
             messages,
             api_key: self.api_config.api_key.clone(),
             model: self.api_config.model,

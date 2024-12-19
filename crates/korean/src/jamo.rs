@@ -1,5 +1,4 @@
 use crate::hangul::한글;
-use std::fmt;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum 자모 {

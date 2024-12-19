@@ -152,7 +152,7 @@ impl FileReader {
         let tokens = merge_tokens(chunk_deque);
 
         for token in tokens.iter() {
-            if let AtomicToken::Image(Image { uid, bytes, image_type }) = token {
+            if let AtomicToken::Image(Image { uid, bytes, .. }) = token {
                 self.images.insert(*uid, bytes.clone());
             }
         }
