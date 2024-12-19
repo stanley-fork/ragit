@@ -75,6 +75,7 @@ async fn main() {
         temperature: args.temperature,
         api_key: args.api_key,
         dump_pdl_at: if args.output != "STDOUT" { Some(args.output.clone()) } else { None },
+        dump_json_at: None,
         max_retry: args.max_retry,
         max_tokens: args.max_tokens,
         timeout,
