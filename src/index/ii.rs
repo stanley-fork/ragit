@@ -184,7 +184,7 @@ impl Index {
         self.ii_status == IIStatus::Complete
     }
 
-    fn update_ii_buffer(&self, buffer: &mut HashMap<Term, Vec<Uid>>, uid: Uid) -> Result<(), Error> {
+    pub(crate) fn update_ii_buffer(&self, buffer: &mut HashMap<Term, Vec<Uid>>, uid: Uid) -> Result<(), Error> {
         let tfidf = self.get_tfidf_by_chunk_uid(uid)?;
 
         for term in tfidf.term_frequency.keys() {
@@ -201,7 +201,7 @@ impl Index {
         Ok(())
     }
 
-    fn flush_ii_buffer(&self, buffer: HashMap<Term, Vec<Uid>>) -> Result<(), Error> {
+    pub(crate) fn flush_ii_buffer(&self, buffer: HashMap<Term, Vec<Uid>>) -> Result<(), Error> {
         for (term, uids) in buffer.into_iter() {
             let term_hash = hash(&term);
             let ii_path = Index::get_ii_path(&self.root_dir, term_hash);

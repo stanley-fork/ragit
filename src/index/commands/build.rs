@@ -12,6 +12,7 @@ use ragit_fs::{
     write_bytes,
 };
 use sha3::{Digest, Sha3_256};
+use std::collections::HashMap;
 
 impl Index {
     pub async fn build(&mut self) -> Result<(), Error> {
@@ -22,6 +23,7 @@ impl Index {
         hasher.update(prompt.as_bytes());
         let prompt_hash = hasher.finalize();
         let prompt_hash = format!("{prompt_hash:064x}");
+        let mut ii_buffer = HashMap::new();
 
         while let Some(doc) = self.staged_files.pop() {
             let real_path = Index::get_data_path(
@@ -93,7 +95,7 @@ impl Index {
 
                 match self.ii_status {
                     IIStatus::Complete => {
-                        self.add_chunk_to_ii(new_chunk.uid)?;
+                        self.update_ii_buffer(&mut ii_buffer, new_chunk.uid)?;
                     },
                     IIStatus::Ongoing(_)
                     | IIStatus::Outdated => {
@@ -107,6 +109,8 @@ impl Index {
 
             let file_uid = Uid::new_file(&self.root_dir, &real_path)?;
             self.add_file_index(file_uid, &uids)?;
+            self.flush_ii_buffer(ii_buffer)?;
+            ii_buffer = HashMap::new();
             self.processed_files.insert(doc.clone(), file_uid);
             self.curr_processing_file = None;
             self.save_to_file()?;
