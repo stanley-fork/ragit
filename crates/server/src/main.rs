@@ -9,19 +9,19 @@
 - GET `ROOT/{user-name}/{repo-name}/prompt/{prompt-name}`
   - 200: text/plain
   - 404
-- GET `ROOT/{user-name}/{repo-name}/chunk-list`
+- GET `ROOT/{user-name}/{repo-name}/chunk-list/{uid-prefix}`
   - 200: application/json
   - 404
 - GET `ROOT/{user-name}/{repo-name}/chunk/{chunk-uid}`
   - 200: application/octet-stream
   - 404
-- GET `ROOT/{user-name}/{repo-name}/image-list`
+- GET `ROOT/{user-name}/{repo-name}/image-list/{uid-prefix}`
   - 200: application/json
   - 404
-- GET `ROOT/{user-name}/{repo-name}/image/{image-name}`
+- GET `ROOT/{user-name}/{repo-name}/image/{image-uid}`
   - 200: image/png
   - 404
-- GET `ROOT/{user-name}/{repo-name}/image-desc/{image-name}`
+- GET `ROOT/{user-name}/{repo-name}/image-desc/{image-uid}`
   - 200: application/json
   - 404
 - GET `ROOT/{user-name}/{repo-name}/meta`
@@ -74,6 +74,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chunk-list"))
+        .and(warp::path::param::<String>())
         .map(get_chunk_list);
 
     let get_chunk_handler = warp::get()
@@ -87,6 +88,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("image-list"))
+        .and(warp::path::param::<String>())
         .map(get_image_list);
 
     let get_image_handler = warp::get()

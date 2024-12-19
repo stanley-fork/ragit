@@ -5,6 +5,7 @@ use ragit_fs::{
     file_name,
     join,
     join3,
+    join4,
     read_bytes,
     read_dir,
     read_string,
@@ -73,29 +74,59 @@ pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> 
     }
 }
 
-pub fn get_chunk_list(user: String, repo: String) -> Box<dyn Reply> {
-    todo!()
-}
-
-pub fn get_chunk(user: String, repo: String, chunk_uid: String) -> Box<dyn Reply> {
-    todo!()
-}
-
-pub fn get_image_list(user: String, repo: String) -> Box<dyn Reply> {
+pub fn get_chunk_list(user: String, repo: String, prefix: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
-    let image_path = join(
+    let chunk_path = join3(
         &rag_path,
-        "images",
+        "chunks",
+        &prefix,
     ).unwrap();
 
-    match read_dir(&image_path) {
-        Ok(images) => Box::new(json(
-            &images.iter().filter_map(
-                |image| match extension(image) {
-                    Ok(Some(png)) if png == "png" => file_name(image).ok(),
+    match read_dir(&chunk_path) {
+        Ok(chunks) => Box::new(json(
+            &chunks.iter().filter_map(
+                |chunk| match extension(chunk) {
+                    Ok(Some(e)) if e == "chunk" => file_name(chunk).ok().map(|suffix| format!("{prefix}{suffix}")),
                     _ => None,
                 }
             ).collect::<Vec<String>>(),
+        )),
+        Err(_) => Box::new(json::<Vec<String>>(&vec![])),
+    }
+}
+
+pub fn get_chunk(user: String, repo: String, uid: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+    let prefix = match uid.get(0..2) {
+        Some(p) => p.to_string(),
+        None => {
+            return Box::new(with_status(
+                String::new(),
+                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+            ));
+        },
+    };
+    let suffix = match uid.get(2..) {
+        Some(s) => s.to_string(),
+        None => {
+            return Box::new(with_status(
+                String::new(),
+                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+            ));
+        },
+    };
+    let chunk_path = join4(
+        &rag_path,
+        "chunks",
+        &prefix,
+        &format!("{suffix}.chunk"),
+    ).unwrap();
+
+    match read_bytes(&chunk_path) {
+        Ok(bytes) => Box::new(with_header(
+            bytes,
+            "Content-Type",
+            "application/octet-stream",
         )),
         Err(_) => Box::new(with_status(
             String::new(),
@@ -104,12 +135,52 @@ pub fn get_image_list(user: String, repo: String) -> Box<dyn Reply> {
     }
 }
 
-pub fn get_image(user: String, repo: String, image: String) -> Box<dyn Reply> {
+pub fn get_image_list(user: String, repo: String, prefix: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
     let image_path = join3(
         &rag_path,
         "images",
-        &format!("{image}.png"),
+        &prefix,
+    ).unwrap();
+
+    match read_dir(&image_path) {
+        Ok(images) => Box::new(json(
+            &images.iter().filter_map(
+                |image| match extension(image) {
+                    Ok(Some(png)) if png == "png" => file_name(image).ok().map(|suffix| format!("{prefix}{suffix}")),
+                    _ => None,
+                }
+            ).collect::<Vec<String>>(),
+        )),
+        Err(_) => Box::new(json::<Vec<String>>(&vec![])),
+    }
+}
+
+pub fn get_image(user: String, repo: String, uid: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+    let prefix = match uid.get(0..2) {
+        Some(p) => p.to_string(),
+        None => {
+            return Box::new(with_status(
+                String::new(),
+                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+            ));
+        },
+    };
+    let suffix = match uid.get(2..) {
+        Some(s) => s.to_string(),
+        None => {
+            return Box::new(with_status(
+                String::new(),
+                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+            ));
+        },
+    };
+    let image_path = join4(
+        &rag_path,
+        "images",
+        &prefix,
+        &format!("{suffix}.png"),
     ).unwrap();
 
     match read_bytes(&image_path) {
@@ -125,17 +196,36 @@ pub fn get_image(user: String, repo: String, image: String) -> Box<dyn Reply> {
     }
 }
 
-pub fn get_image_desc(user: String, repo: String, image: String) -> Box<dyn Reply> {
+pub fn get_image_desc(user: String, repo: String, uid: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
-    let image_path = join3(
+    let prefix = match uid.get(0..2) {
+        Some(p) => p.to_string(),
+        None => {
+            return Box::new(with_status(
+                String::new(),
+                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+            ));
+        },
+    };
+    let suffix = match uid.get(2..) {
+        Some(s) => s.to_string(),
+        None => {
+            return Box::new(with_status(
+                String::new(),
+                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+            ));
+        },
+    };
+    let image_path = join4(
         &rag_path,
         "images",
-        &format!("{image}.json"),
+        &prefix,
+        &format!("{suffix}.json"),
     ).unwrap();
 
-    match read_string(&image_path) {
-        Ok(j) => Box::new(with_header(
-            j,
+    match read_bytes(&image_path) {
+        Ok(bytes) => Box::new(with_header(
+            bytes,
             "Content-Type",
             "application/json",
         )),
