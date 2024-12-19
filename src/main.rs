@@ -235,6 +235,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
+            if root_dir.is_ok() {
+                return Err(Error::CannotClone(String::from("You're already inside a knowledge-base. You cannot clone another knowledge-base here.")));
+            }
+
             let args = parsed_args.get_args();
             Index::clone(
                 args[0].clone(),

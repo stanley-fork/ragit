@@ -36,6 +36,7 @@ pub enum Error {
         from: String,
         to: String,
     },
+    CannotClone(String),
     CannotUpdateII(IIStatus),
     AddConflict(Path),
     MergeConflict(Uid),

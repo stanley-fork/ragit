@@ -1,7 +1,7 @@
 use super::Index;
 use crate::{INDEX_DIR_NAME, chunk};
 use crate::error::Error;
-use crate::index::commands::meta::METADATA_FILE_NAME;
+use crate::index::{LoadMode, commands::meta::METADATA_FILE_NAME};
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
@@ -72,6 +72,7 @@ impl Index {
             &index_json,
             WriteMode::CreateOrTruncate,
         )?;
+        index = Index::load(repo_name.clone(), LoadMode::Minimum)?;
 
         // It has to download images before chunks because `chunk::save_to_file` requires
         // image descriptions.
@@ -169,6 +170,9 @@ impl Index {
         )?;
         index.repo_url = Some(url.to_string());
         index.save_to_file()?;
+
+        // it has to create file index
+        let res = index.recover()?;
         Ok(result)
     }
 
