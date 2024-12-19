@@ -9,7 +9,7 @@ def cargo_tests():
     subprocess.run(["cargo", "test", "--release"], check=True)
     os.chdir("crates")
 
-    for crate in ["api", "fs", "korean", "server"]:
+    for crate in ["api", "fs", "korean", "pdl", "server"]:
         os.chdir(crate)
 
         try:
