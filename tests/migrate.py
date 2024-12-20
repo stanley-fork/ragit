@@ -38,12 +38,12 @@ def migrate():
     # step 2. init and build rag index
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
-    cargo_run(["add", "sample1.md", "sample2.md", "sample3.md"])
-    # cargo_run(["add", "sample1.md", "sample2.md", "sample3.md", "sample4.md"])
+    cargo_run(["add", "sample0.md", "sample1.md", "sample2.md", "sample3.md"])
     cargo_run(["build"])
     cargo_run(["check"])
 
     checkout("0.2.0")
+    assert cargo_run(["check"], check=False) != 0
     cargo_run(["migrate"])
     cargo_run(["check"])
     assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)
