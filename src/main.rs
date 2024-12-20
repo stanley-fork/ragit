@@ -119,7 +119,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         // FIXME: this is a temporary command, only to test the migration function
         //        I have to come up with better policies and cli for migration
         Some("migrate") => {
-            Index::migrate(&root_dir?)?;
+            let root_dir = root_dir?;
+            Index::migrate(&root_dir)?;
+            let mut index = Index::load(root_dir, LoadMode::Minimum)?;
+            index.recover()?;
+            index.save_to_file()?;
         },
         Some("build") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;

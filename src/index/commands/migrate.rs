@@ -17,6 +17,7 @@ use ragit_fs::{
     read_string,
     remove_dir_all,
     rename,
+    set_extension,
     write_bytes,
     write_string,
 };
@@ -77,6 +78,9 @@ impl Index {
     /// If the original knowledge-base perfect and there's no compatibility issue but
     /// the client doesn't know that, this function may fail but there's no problem
     /// using the knowledge-base.
+    ///
+    /// It assumes that `recover` is run after `migrate`. It doesn't do any operation
+    /// that can be handled by `recover`.
     pub fn migrate(root_dir: &Path) -> Result<(), Error> {
         let base_version = Index::check_ragit_version(root_dir)?;
         let client_version_str = crate::VERSION.to_string();
@@ -154,6 +158,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
     match &mut j {
         Value::Object(ref mut index) => {
             index.insert(String::from("ragit_version"), "0.2.0".into());
+            index.insert(String::from("ii_status"), Value::Object(vec![(String::from("type"), String::from("None").into())].into_iter().collect()));
 
             if index.remove("chunk_files").is_none() {
                 return Err(Error::BrokenIndex(String::from("`index.json` is missing `chunk_files` field.")));
@@ -273,24 +278,16 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                                     return Err(Error::BrokenIndex(String::from("A corrupted chunk.")));
                                 },
                             };
+                            obj.remove("file");
+                            obj.remove("index");
+                            obj.insert(String::from("source"), Value::Object(vec![
+                                (String::from("type"), String::from("File").into()),
+                                (String::from("path"), file_name.clone().into()),
 
-                            // 0.1.1 uses 1-based index
-                            match obj.get_mut("index") {
-                                Some(ref mut index) => match index.as_u64() {
-                                    Some(n) => {
-                                        **index = Value::from(n - 1);
-                                    },
-                                    None => {
-                                        return Err(Error::JsonTypeError {
-                                            expected: JsonType::Usize,
-                                            got: (&**index).into(),
-                                        });
-                                    },
-                                },
-                                None => {
-                                    return Err(Error::BrokenIndex(String::from("A corrupted chunk.")));
-                                },
-                            }
+                                // ragit 0.1.1 uses 1-base index
+                                (String::from("index"), (file_index - 1).into()),
+                            ].into_iter().collect()));
+                            obj.insert(String::from("searchable"), true.into());
 
                             match obj.get("uid") {
                                 Some(uid) => match uid.as_str() {
@@ -348,7 +345,7 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
                         },
                         _ => {
                             return Err(Error::JsonTypeError {
-                                expected: JsonType::Array,
+                                expected: JsonType::Object,
                                 got: (&*chunk).into(),
                             });
                         },
@@ -407,6 +404,14 @@ fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo
             WriteMode::AlwaysCreate,
         )?;
     }
+
+    update_configs(
+        &root_dir,
+        vec![
+            ConfigUpdate::add("query", "enable_ii", true),
+            ConfigUpdate::remove("build", "chunks_per_json"),
+        ],
+    )?;
 
     Ok(())
 }
@@ -504,4 +509,85 @@ impl Ord for VersionInfo {
     fn cmp(&self, other: &VersionInfo) -> cmp::Ordering {
         self.partial_cmp(other).unwrap()
     }
+}
+
+enum ConfigUpdate {
+    Add {
+        file: String,
+        key: String,
+        value: Value,
+    },
+    Remove {
+        file: String,
+        key: String,
+    },
+}
+
+impl ConfigUpdate {
+    pub fn add<T: Into<Value>>(file: &str, key: &str, value: T) -> Self {
+        ConfigUpdate::Add {
+            file: file.to_string(),
+            key: key.to_string(),
+            value: value.into(),
+        }
+    }
+
+    pub fn remove(file: &str, key: &str) -> Self {
+        ConfigUpdate::Remove {
+            file: file.to_string(),
+            key: key.to_string(),
+        }
+    }
+
+    pub fn get_file(&self) -> String {
+        match self {
+            ConfigUpdate::Add { file, .. } => file.to_string(),
+            ConfigUpdate::Remove { file, .. } => file.to_string(),
+        }
+    }
+}
+
+fn update_configs(root_dir: &str, updates: Vec<ConfigUpdate>) -> Result<(), Error> {
+    let configs_at = join3(
+        root_dir,
+        ".ragit",
+        "configs",
+    )?;
+
+    for update in updates.into_iter() {
+        let json_at = join(
+            &configs_at,
+            &set_extension(
+                &update.get_file(),
+                "json",
+            )?,
+        )?;
+        let j = read_string(&json_at)?;
+        let mut v = serde_json::from_str::<Value>(&j)?;
+
+        match &mut v {
+            Value::Object(ref mut obj) => match update {
+                ConfigUpdate::Add { key, value, .. } => {
+                    obj.insert(key, value);
+                },
+                ConfigUpdate::Remove { key, .. } => {
+                    obj.remove(&key);
+                },
+            },
+            _ => {
+                return Err(Error::JsonTypeError {
+                    expected: JsonType::Object,
+                    got: (&v).into(),
+                });
+            },
+        }
+
+        write_bytes(
+            &json_at,
+            &serde_json::to_vec_pretty(&v)?,
+            WriteMode::CreateOrTruncate,
+        )?;
+    }
+
+    Ok(())
 }
