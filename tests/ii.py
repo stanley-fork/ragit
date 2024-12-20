@@ -13,12 +13,12 @@ from utils import (
 
 # In order to test invert indexes, we need a large enough dataset,
 # which is not randomly generated, and easy to fetch. For now, it's
-# using `docs/*` files, but need a bigger dataset.
+# using `src/*` files, but need a bigger dataset.
 def ii():
     goto_root()
     mk_and_cd_tmp_dir()
-    shutil.copytree("../docs", "docs")
-    os.chdir("docs")
+    shutil.copytree("../src", "src")
+    os.chdir("src")
 
     if ".ragit" in os.listdir():
         cargo_run(["reset", "--hard"])
@@ -29,13 +29,14 @@ def ii():
     cargo_run(["config", "--set", "slide_len", "128"])
     cargo_run(["config", "--set", "enable_ii", "false"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
-    cargo_run(["add", *(ls_recursive("md") + ls_recursive("txt"))])
+    cargo_run(["add", *(ls_recursive("rs") + ls_recursive("txt"))])
 
     cargo_run(["build"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
 
-    if count_chunks() < 1000:
-        raise Exception("The dataset is not big enough. Please make sure that there are more than 1000 chunks.")
+    # TODO: I want it to be at least 1000 chunks, but I don't have such dataset.
+    if count_chunks() < 500:
+        raise Exception("The dataset is not big enough. Please make sure that there are more than 500 chunks.")
 
     # Strategy:
     # 1. There are an arbitrary number of chunks that contain `terms`.
