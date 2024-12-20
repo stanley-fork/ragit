@@ -10,6 +10,7 @@ pub const API_CONFIG_FILE_NAME: &str = "api.json";
 // it's later converted to `ApiConfig` by `Index`
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ApiConfigRaw {
+    // I recommend you use env var, instead of this.
     pub api_key: Option<String>,
 
     // run `rag ls --models` to see the list

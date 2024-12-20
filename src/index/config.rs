@@ -18,7 +18,6 @@ pub struct BuildConfig {
 
     pub min_summary_len: usize,
     pub max_summary_len: usize,
-    pub chunks_per_json: usize,
 
     // If it's set, `rag build` panics if there's any error with a file.
     // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
@@ -42,7 +41,6 @@ impl Default for BuildConfig {
             image_size: 2_000,
             min_summary_len: 200,
             max_summary_len: 1000,
-            chunks_per_json: 64,
             strict_file_reader: false,
             compression_threshold: 2048,
             compression_level: 3,

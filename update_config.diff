@@ -1,0 +1,88 @@
+diff --git a/docs/config.md b/docs/config.md
+index ef16227..8a86158 100644
+--- a/docs/config.md
++++ b/docs/config.md
+@@ -24,9 +24,8 @@ A recommended way of reading/writing config is `rag config` command.
+ // image_size: 2000,
+ // min_summary_len: 200,
+ // max_summary_len: 1000,
+-// chunks_per_json: 64,
+ // strict_file_reader: false,
+-// compression_threshold: 65536,
++// compression_threshold: 2048,
+ // compression_level: 3,
+ struct BuildConfig {
+     // it's not a max_chunk_size, and it's impossible to make every chunk have the same size because
+@@ -43,7 +42,6 @@ struct BuildConfig {
+ 
+     min_summary_len: usize,
+     max_summary_len: usize,
+-    chunks_per_json: usize,
+ 
+     // If it's set, `rag build` panics if there's any error with a file.
+     // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
+@@ -63,15 +61,21 @@ struct BuildConfig {
+ // max_titles: 32,
+ // max_summaries: 10,
+ // max_retrieval: 3,
++// enable_ii: true,
+ struct QueryConfig {
+-    // if there are more than this amount of chunks, it runs tf-idf to select chunks
++    /// If there are more than this amount of chunks, it runs tf-idf to select chunks.
+     max_titles: usize,
+ 
+-    // if there are more than this amount of chunks, it runs `rerank_title` prompt to select chunks
++    /// If there are more than this amount of chunks, it runs `rerank_title` prompt to select chunks.
+     max_summaries: usize,
+ 
+-    // if there are more than this amount of chunks, it runs `rerank_summary` prompt to select chunks
++    /// If there are more than this amount of chunks, it runs `rerank_summary` prompt to select chunks.
+     max_retrieval: usize,
++
++    /// If it's enabled, it uses an inverted index when running tf-idf search.
++    /// It doesn't automatically build an inverted index when it's missing. You
++    /// have to run `rag ii build` manually to build the index.
++    enable_ii: bool,
+ }
+ 
+ // default values
+@@ -84,6 +88,7 @@ struct QueryConfig {
+ // sleep_after_llm_call: None,
+ // model: "llama3.1-70b-groq",
+ struct ApiConfig {
++    // I recommend you use env var, instead of this.
+     api_key: Option<String>,
+ 
+     // run `rag ls --models` to see the list
+diff --git a/src/api_config.rs b/src/api_config.rs
+index f080c88..ae44257 100644
+--- a/src/api_config.rs
++++ b/src/api_config.rs
+@@ -10,6 +10,7 @@ pub const API_CONFIG_FILE_NAME: &str = "api.json";
+ // it's later converted to `ApiConfig` by `Index`
+ #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+ pub struct ApiConfigRaw {
++    // I recommend you use env var, instead of this.
+     pub api_key: Option<String>,
+ 
+     // run `rag ls --models` to see the list
+diff --git a/src/index/config.rs b/src/index/config.rs
+index 0b75523..01d4da9 100644
+--- a/src/index/config.rs
++++ b/src/index/config.rs
+@@ -18,7 +18,6 @@ pub struct BuildConfig {
+ 
+     pub min_summary_len: usize,
+     pub max_summary_len: usize,
+-    pub chunks_per_json: usize,
+ 
+     // If it's set, `rag build` panics if there's any error with a file.
+     // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
+@@ -42,7 +41,6 @@ impl Default for BuildConfig {
+             image_size: 2_000,
+             min_summary_len: 200,
+             max_summary_len: 1000,
+-            chunks_per_json: 64,
+             strict_file_reader: false,
+             compression_threshold: 2048,
+             compression_level: 3,
