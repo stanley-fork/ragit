@@ -33,6 +33,8 @@ pub use index::{
     ProcessedDoc,
     RecoverResult,
     TfidfResult,
+    VersionInfo,
+    get_compatibility_warning,
 };
 pub use query::{
     QueryConfig,

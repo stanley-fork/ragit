@@ -1,0 +1,15 @@
+rag-migrate(1)
+==========
+
+NAME
+----
+rag-migrate - Migrate old knowledge-base to newer one.
+
+SYNOPSIS
+--------
+[verse]
+'rag migrate'
+
+DESCRIPTION
+-----------
+You can use this command to upgrade an old version of knowledge-base.

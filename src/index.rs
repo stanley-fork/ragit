@@ -55,6 +55,8 @@ pub use commands::{
     MergeMode,
     MergeResult,
     RecoverResult,
+    VersionInfo,
+    get_compatibility_warning,
 };
 pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
 pub use file::{FileReader, ImageDescription};
@@ -239,18 +241,8 @@ impl Index {
         let mut result = serde_json::from_str::<Index>(&index_json)?;
         result.root_dir = root_dir;
 
-        if result.ragit_version != crate::VERSION {
-            // TODO: what here?
-            // 1. a user prompt asking to run migration
-            // 2. ignore. the user has to explicitly run migration
-            // 3. a warning message, but no action. the user has to explicitly run migration
-            // 4. always run migration
-            //
-            // The problem is that
-            // 1. a version mismatch would be very often.
-            // 2. a compatibility issue would be very rare.
-            // 3. it's not always possible for the client to tell whether there's an issue or not
-            // 4. migration is expensive
+        if let Some(warn) = get_compatibility_warning(&result.ragit_version, crate::VERSION) {
+            println!("Warning: {warn}");
         }
 
         Ok(result)

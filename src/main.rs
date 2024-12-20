@@ -13,6 +13,7 @@ use ragit::{
     MergeMode,
     ProcessedDoc,
     UidQuery,
+    get_compatibility_warning,
     merge_and_convert_chunks,
     multi_turn,
     single_turn,
@@ -116,15 +117,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
             println!("{added} added files, {updated} updated files, {ignored} ignored files");
         },
-        // FIXME: this is a temporary command, only to test the migration function
-        //        I have to come up with better policies and cli for migration
-        Some("migrate") => {
-            let root_dir = root_dir?;
-            Index::migrate(&root_dir)?;
-            let mut index = Index::load(root_dir, LoadMode::Minimum)?;
-            index.recover()?;
-            index.save_to_file()?;
-        },
         Some("build") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
 
@@ -199,6 +191,17 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let root_dir = root_dir?;
             let recover = parsed_args.get_flag(0).is_some();
+
+            if let Ok(index_version) = Index::check_ragit_version(&root_dir) {
+                if recover && get_compatibility_warning(
+                    &index_version.to_string(),
+                    ragit::VERSION,
+                ).is_some() {
+                    if Index::migrate(&root_dir).is_ok() {
+                        println!("migrated from `{index_version}` to `{}`", ragit::VERSION);
+                    }
+                }
+            }
 
             match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
                 Ok(mut index) => if index.curr_processing_file.is_some() && recover {
@@ -830,6 +833,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 _ => unreachable!(),
             }
+        },
+        Some("migrate") => {
+            let parsed_args = ArgParser::new().parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/migrate.txt"));
+                return Ok(());
+            }
+
+            let root_dir = root_dir?;
+            Index::migrate(&root_dir)?;
+            let mut index = Index::load(root_dir, LoadMode::Minimum)?;
+            index.recover()?;
+            index.save_to_file()?;
         },
         Some("query") => {
             let parsed_args = ArgParser::new().optional_flag(&["--interactive", "-i"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;

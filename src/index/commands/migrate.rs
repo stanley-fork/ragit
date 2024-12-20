@@ -39,7 +39,7 @@ lazy_static! {
 impl Index {
     /// It reads version info at `root/.ragit/index.json`. Make sure that the
     /// file exists and `index.json` has `"ragit_version" field.`
-    fn check_ragit_version(root_dir: &Path) -> Result<VersionInfo, Error> {
+    pub fn check_ragit_version(root_dir: &Path) -> Result<VersionInfo, Error> {
         let index_at = join3(
             root_dir,
             INDEX_DIR_NAME,
@@ -433,10 +433,40 @@ fn load_chunks_0_1_1(path: &str) -> Result<Value, Error> {
     }
 }
 
+pub fn get_compatibility_warning(
+    index_version: &str,
+    ragit_version: &str,
+) -> Option<String> {
+    let index_version = match index_version.parse::<VersionInfo>() {
+        Ok(v) => v,
+        Err(_) => {
+            return Some(format!("Unable to parse the version of the knowledge-base. It's {index_version}"));
+        },
+    };
+    let ragit_version = match ragit_version.parse::<VersionInfo>() {
+        Ok(v) => v,
+        Err(_) => {
+            return Some(format!("Unable to parse the current version of ragit_version. It's {ragit_version}"));
+        },
+    };
+
+    if ragit_version < index_version {
+        Some(format!("Ragit's version is older than the knowledge-base. Please update ragit_version."))
+    }
+
+    else if (ragit_version.major > 0 || ragit_version.minor > 1) && index_version.major == 0 && index_version.minor == 1 {
+        Some(format!("The knowledge-base is outdated. Please run `rag migrate`."))
+    }
+
+    else {
+        None
+    }
+}
+
 // This is an internal representation of versions. I don't think it's the best
 // way to manage versions. There must be better ways and I need more research on those.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
-struct VersionInfo {
+pub struct VersionInfo {
     major: u16,
     minor: u16,
     patch: u16,

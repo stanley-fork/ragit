@@ -24,4 +24,5 @@ pub use ls::{
     LsModel,
 };
 pub use merge::{MergeMode, MergeResult};
+pub use migrate::{VersionInfo, get_compatibility_warning};
 pub use recover::RecoverResult;
