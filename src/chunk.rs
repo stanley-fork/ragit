@@ -367,8 +367,8 @@ impl ChunkSchema {
     \"summary\": {:?}
 {}",
             '{',
-            self.title,
-            self.summary,
+            escape_pdl_tokens(&self.title),
+            escape_pdl_tokens(&self.summary),
             '}',
         )
     }
