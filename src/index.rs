@@ -537,13 +537,14 @@ impl Index {
     }
 
     pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Result<Path, Error> {
-        Ok(diff(
+        // It has to normalize the output because `diff` behaves differently on windows and unix.
+        Ok(normalize(&diff(
             // in order to calc diff, it needs a full path
             &normalize(
                 &into_abs_path(real_path)?,
             )?,
             &normalize(root_dir)?,
-        )?)
+        )?)?)
     }
 
     // TODO: `get_chunk_path`, `get_file_path`, `get_image_path` and `get_ii_path` are redundant

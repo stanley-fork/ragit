@@ -337,6 +337,7 @@ pub fn diff(path: &str, base: &str) -> Result<String, FileError> {
 
 pub fn normalize(path: &str) -> Result<String, FileError> {
     let mut result = vec![];
+    let path = path.replace("\\", "/");
 
     for component in path.split("/") {
         match component {
