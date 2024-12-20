@@ -57,7 +57,7 @@ impl Index {
                     previous_summary.clone(),
                     file_index,
                 ).await?;
-                previous_summary = Some(new_chunk.summary.clone());
+                previous_summary = Some((new_chunk.clone(), (&new_chunk).into()));
                 let new_chunk_uid = new_chunk.uid;
                 let new_chunk_path = Index::get_chunk_path(&self.root_dir, new_chunk_uid);
                 uids.push(new_chunk_uid);

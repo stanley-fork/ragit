@@ -1,5 +1,5 @@
 use super::BuildConfig;
-use crate::chunk::{Chunk, ChunkBuildInfo};
+use crate::chunk::{Chunk, ChunkBuildInfo, ChunkSchema};
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
@@ -88,7 +88,7 @@ impl FileReader {
         index: &Index,
         pdl: &str,
         build_info: ChunkBuildInfo,
-        previous_summary: Option<String>,
+        previous_turn: Option<(Chunk, ChunkSchema)>,
 
         // index IN a file, not OF a file
         file_index: usize,
@@ -158,6 +158,7 @@ impl FileReader {
         }
 
         let chunk = Chunk::create_chunk_from(
+            index,
             &tokens,
             &self.config,
             self.rel_path.clone(),
@@ -165,7 +166,7 @@ impl FileReader {
             &index.api_config,
             pdl,
             build_info,
-            previous_summary,
+            previous_turn,
         ).await;
 
         if let Some(ms) = index.api_config.sleep_after_llm_call {

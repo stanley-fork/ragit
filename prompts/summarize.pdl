@@ -4,18 +4,26 @@
 
 <|system|>
 
-Your job is to title and summarize a chunk of text. The chunk is taken from a long, arbitrary document and is cut at an arbitrary point.{% if previous_summary %} You'll be given a chunk and a summary of a previous chunk.{% endif %}
+In each turn, you'll be given a chunk of text. Your job is to title and summarize the chunk. The chunk is taken from a long, arbitrary document and is cut at an arbitrary point.
 
 Give me your response in a json object, which has 2 fields: "title" and "summary". Both have string types.
 
 Make sure to always use English, no matter what language the chunk uses.
 
+{% if previous_request %}
+
 <|user|>
 
-{% if previous_summary %}
+{{previous_request|safe}}
 
-Summary of the previous chunk: {{previous_summary|safe}}
+<|assistant|>
 
-Chunk: {% endif %}
+{{previous_response|safe}}
+
+{% endif %}
+
+<|user|>
 
 {{chunk|safe}}
+
+<|assistant|>

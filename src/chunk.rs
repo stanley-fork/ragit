@@ -142,6 +142,7 @@ pub fn save_to_file(
 
 impl Chunk {
     pub(crate) async fn create_chunk_from(
+        index: &Index,
         tokens: &[AtomicToken],
         config: &BuildConfig,
         file: String,
@@ -149,7 +150,7 @@ impl Chunk {
         api_config: &ApiConfig,
         pdl: &str,
         build_info: ChunkBuildInfo,
-        previous_summary: Option<String>,
+        previous_turn: Option<(Chunk, ChunkSchema)>,
     ) -> Result<Self, Error> {
         let mut context = tera::Context::new();
         let mut chunk = vec![];
@@ -171,14 +172,16 @@ impl Chunk {
         context.insert("chunk", &chunk.concat());
         context.insert("max_summary_len", &config.max_summary_len);
 
-        // It's ridiculous to ask for 300 characters from a 10 characters chunk.
+        // It's ridiculous to ask for a 300 characters summary from a 10 characters chunk.
         context.insert(
             "min_summary_len",
             &config.min_summary_len.min(approx_data_len / 2),
         );
 
-        if let Some(previous_summary) = &previous_summary {
-            context.insert("previous_summary", &escape_pdl_tokens(previous_summary));
+        if let Some((previous_chunk, previous_schema)) = &previous_turn {
+            let previous_request = previous_chunk.clone().into_renderable(index)?.data;
+            context.insert("previous_request", &previous_request);
+            context.insert("previous_response", &previous_schema.render());
         }
 
         let Pdl { messages, schema } = parse_pdl(
@@ -343,8 +346,8 @@ fn merge_overlapping_strings(s1: &[u8], s2: &[u8]) -> String {
     format!("{}{}", String::from_utf8_lossy(s1), String::from_utf8_lossy(&s2[index..]).to_string())
 }
 
-#[derive(Deserialize)]
-struct ChunkSchema {
+#[derive(Clone, Deserialize)]
+pub struct ChunkSchema {
     title: String,
     summary: String,
 }
@@ -354,6 +357,28 @@ impl ChunkSchema {
         ChunkSchema {
             title: String::from("untitled"),
             summary: data.chars().take(len).collect(),
+        }
+    }
+
+    pub fn render(&self) -> String {
+        format!(
+"{}
+    \"title\": {:?},
+    \"summary\": {:?}
+{}",
+            '{',
+            self.title,
+            self.summary,
+            '}',
+        )
+    }
+}
+
+impl From<&Chunk> for ChunkSchema {
+    fn from(chunk: &Chunk) -> ChunkSchema {
+        ChunkSchema {
+            title: chunk.title.clone(),
+            summary: chunk.summary.clone(),
         }
     }
 }
