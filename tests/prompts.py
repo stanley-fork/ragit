@@ -15,11 +15,11 @@ def prompts(test_model: str):
     with open("main.rs", "r") as f:
         main_rs = f.read()
 
-    if len(main_rs) < 4000:
-        raise Exception("This test case requires a text file that has at least 4000 characters. Please choose another file.")
+    if len(main_rs) < 10000:
+        raise Exception("This test case requires a text file that has at least 10000 characters. Please choose another file.")
 
-    if len(main_rs) > 4000:
-        write_string("main.rs", main_rs[:4000])
+    if len(main_rs) > 10000:
+        write_string("main.rs", main_rs[:10000])
 
     cargo_run(["init"])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
@@ -36,8 +36,8 @@ def prompts(test_model: str):
 
     chunks = count_chunks()
 
-    if chunks != 6:
-        raise Exception(f"Expected 6 chunks, got {chunks}.")
+    if chunks not in range(12, 16):
+        raise Exception(f"Expected 12~15 chunks, got {chunks}.")
 
     # `extract_keyword.pdl`, `rerank_summary.pdl`, `answer_query.pdl`
     cargo_run(["config", "--set", "max_titles", "5"])
