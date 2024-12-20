@@ -28,7 +28,7 @@ impl Chunk {
         }
 
         Ok(RenderableChunk {
-            source: self.file.clone(),
+            source: self.render_source(),
             data,
         })
     }

@@ -1,5 +1,6 @@
 use super::Index;
 use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
+use crate::chunk::ChunkSource;
 use crate::error::Error;
 use crate::index::{
     FILE_INDEX_DIR_NAME,
@@ -55,19 +56,26 @@ impl Index {
             let chunk_ = chunk::load_from_file(&chunk_file)?;
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
 
-            if !self.processed_files.contains_key(&chunk_.file) {
-                // Recover B
-                remove_file(&chunk_file)?;
+            match &chunk_.source {
+                ChunkSource::File { path, .. } => {
+                    if !self.processed_files.contains_key(path) {
+                        // Recover B
+                        remove_file(&chunk_file)?;
 
-                if exists(&tfidf_file) {
-                    remove_file(&tfidf_file)?;
-                }
+                        if exists(&tfidf_file) {
+                            remove_file(&tfidf_file)?;
+                        }
 
-                result.removed_chunks += 1;
-                continue;
+                        result.removed_chunks += 1;
+                        continue;
+                    }
+                },
+                ChunkSource::Chunks(chunks) => {
+                    // TODO: if it's pointing to a chunk that's removed, it also has to be removed
+                },
             }
 
-            let corrupted_tfidf_file = exists(&tfidf_file) && tfidf::load_from_file(&tfidf_file).is_err() || !exists(&tfidf_file);
+            let corrupted_tfidf_file = !exists(&tfidf_file) || tfidf::load_from_file(&tfidf_file).is_err();
 
             if corrupted_tfidf_file {
                 chunk::save_to_file(
@@ -80,13 +88,15 @@ impl Index {
                 result.created_tfidfs += 1;
             }
 
-            match processed_files.get_mut(&chunk_.file) {
-                Some(chunks) => {
-                    chunks.push((chunk_.uid, chunk_.index));
-                },
-                None => {
-                    processed_files.insert(chunk_.file.clone(), vec![(chunk_.uid, chunk_.index)]);
-                },
+            if let ChunkSource::File { path, index } = &chunk_.source {
+                match processed_files.get_mut(path) {
+                    Some(chunks) => {
+                        chunks.push((chunk_.uid, *index));
+                    },
+                    None => {
+                        processed_files.insert(path.clone(), vec![(chunk_.uid, *index)]);
+                    },
+                }
             }
 
             chunk_count += 1;

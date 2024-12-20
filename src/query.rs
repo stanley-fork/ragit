@@ -159,7 +159,7 @@ pub async fn summaries_to_chunks(
                 "{}. {}\nsource: {}\nsummary: {}",
                 index + 1,
                 escape_pdl_tokens(&chunk.title),
-                escape_pdl_tokens(&chunk.file),
+                escape_pdl_tokens(&chunk.render_source()),
                 escape_pdl_tokens(&chunk.summary),
             )
         ).collect::<Vec<_>>().join("\n\n"),

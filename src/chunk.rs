@@ -32,9 +32,11 @@ use std::io::Read;
 
 mod build_info;
 mod renderable;
+mod source;
 
 pub use build_info::ChunkBuildInfo;
 pub use renderable::RenderableChunk;
+pub use source::ChunkSource;
 
 pub const CHUNK_DIR_NAME: &str = "chunks";
 
@@ -51,11 +53,15 @@ pub struct Chunk {
     pub title: String,
     pub summary: String,
 
-    pub file: String,  // rel path
-    pub index: usize,  // index in the file
+    pub source: ChunkSource,
     pub uid: Uid,
     pub build_info: ChunkBuildInfo,
     pub timestamp: i64,
+
+    /// Chunks built from `rag build` are always searchable.
+    /// Some chunks (e.g. summary of the entire knowledge-base) have no
+    /// `data` and must be excluded in default RAG pipeline.
+    pub searchable: bool,
 }
 
 const COMPRESS_PREFIX: u8 = b'c';
@@ -227,8 +233,8 @@ impl Chunk {
             image_count,
             title: response.title,
             summary: response.summary,
-            file: normalize(&file)?,
-            index: file_index,
+            source: ChunkSource::File { path: normalize(&file)?, index: file_index },
+            searchable: true,
             uid: Uid::dummy(),
             build_info,
             timestamp: Local::now().timestamp(),
@@ -237,6 +243,13 @@ impl Chunk {
         result.uid = chunk_uid;
         Ok(result)
     }
+
+    pub fn render_source(&self) -> String {
+        match &self.source {
+            ChunkSource::File { path, .. } => path.to_string(),
+            ChunkSource::Chunks(_) => todo!(),
+        }
+    }
 }
 
 pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
@@ -244,8 +257,13 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
     let mut curr_chunks = HashMap::new();
 
     for chunk in chunks.into_iter() {
-        merge_candidates.insert((chunk.file.clone(), chunk.index + 1));
-        assert!(curr_chunks.insert((chunk.file.clone(), chunk.index), chunk).is_none());
+        match &chunk.source {
+            ChunkSource::File { path, index } => {
+                merge_candidates.insert((path.clone(), *index + 1));
+                assert!(curr_chunks.insert((path.clone(), *index), chunk).is_none());
+            },
+            ChunkSource::Chunks(_) => {},  // it's unsearchable
+        }
     }
 
     // it has to merge from left to right
@@ -272,8 +290,10 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
 }
 
 fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
-    assert_eq!(pre.file, post.file);
-    assert_eq!(pre.index + 1, post.index);
+    let ChunkSource::File { path: pre_path, index: pre_index } = pre.source.clone() else { unreachable!() };
+    let ChunkSource::File { path: post_path, index: post_index } = post.source.clone() else { unreachable!() };
+    assert_eq!(pre_path, post_path);
+    assert_eq!(pre_index + 1, post_index);
     let Chunk {
         data: data_pre,
         images: images_pre,
@@ -282,8 +302,6 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
     let Chunk {
         data: data_post,
         images: images_post,
-        file,
-        index,
         ..
     } = post;
 
@@ -297,9 +315,11 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         data: new_data,
         images: new_images,
         image_count: 0,  // TODO: count images
-        file,
-        index,
+        source: ChunkSource::File { path: post_path, index: post_index },
         timestamp: Local::now().timestamp(),
+
+        // if source is `File`, it must be searchable
+        searchable: true,
 
         // TODO: is it okay to leave these fields empty?
         summary: String::new(),

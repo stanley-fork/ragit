@@ -54,7 +54,15 @@ pub fn load_from_file(path: &str) -> Result<ProcessedDoc, Error> {
 }
 
 pub fn save_to_file(path: &str, chunk: &Chunk, root_dir: &str) -> Result<(), Error> {
-    let tfidf = ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack(root_dir)?);
+    let tfidf = if chunk.searchable {
+        ProcessedDoc::new(chunk.uid.clone(), &chunk.into_tfidf_haystack(root_dir)?)
+    } else {
+        ProcessedDoc {
+            uid: Some(chunk.uid),
+            term_frequency: HashMap::new(),
+            length: 0,
+        }
+    };
     let result = serde_json::to_vec(&tfidf)?;
     let mut compressed = vec![];
     let mut gz = GzEncoder::new(&result[..], Compression::best());
@@ -326,7 +334,7 @@ impl Chunk {
 
         Ok(format!(
             "{}\n{}\n{}\n{}\n{}",
-            self.file,
+            self.render_source(),
             self.title,
             self.title,
             self.summary,

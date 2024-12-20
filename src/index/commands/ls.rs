@@ -1,5 +1,5 @@
 use super::Index;
-use crate::chunk::{self, Chunk};
+use crate::chunk::{self, Chunk, ChunkSource};
 use crate::error::Error;
 use crate::uid::Uid;
 use ragit_api::JsonType;
@@ -19,8 +19,7 @@ pub struct LsChunk {
     pub title: String,
     pub summary: String,
     pub character_len: usize,
-    pub file: String,
-    pub index: usize,
+    pub source: ChunkSource,
     pub uid: Uid,
 }
 
@@ -30,8 +29,7 @@ impl From<Chunk> for LsChunk {
             title: c.title.clone(),
             summary: c.summary.clone(),
             character_len: c.data.chars().count(),
-            file: c.file.clone(),
-            index: c.index,
+            source: c.source.clone(),
             uid: c.uid,
         }
     }

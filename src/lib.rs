@@ -12,6 +12,7 @@ pub use api_config::{ApiConfig, ApiConfigRaw};
 pub use chunk::{
     Chunk,
     ChunkBuildInfo,
+    ChunkSource,
     merge_and_convert_chunks,
 };
 pub use error::Error;

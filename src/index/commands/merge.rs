@@ -56,6 +56,7 @@ pub struct MergeResult {
 }
 
 impl Index {
+    // TODO: it only merges chunks that are `ChunkSource::File`. It has to handle `ChunkSource::Chunks`.
     pub fn merge(
         &mut self,
         path: Path,
@@ -124,7 +125,7 @@ impl Index {
             for new_chunk_uid in new_chunk_uids.iter() {
                 let mut new_chunk = other.get_chunk_by_uid(*new_chunk_uid)?;
                 result.added_chunks += 1;
-                new_chunk.file = new_file_path.clone();
+                new_chunk.source.set_path(new_file_path.clone());
                 new_chunk.uid = Uid::new_chunk(&new_chunk);
                 modified_new_chunk_uids.push(new_chunk.uid);
 

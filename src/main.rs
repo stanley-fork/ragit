@@ -2,6 +2,7 @@ use async_recursion::async_recursion;
 use ragit::{
     AddMode,
     AddResult,
+    ChunkSource,
     Error,
     IIStatus,
     Index,
@@ -160,7 +161,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     chunks.push(index.get_chunk_by_uid(chunk_uid)?);
                 }
 
-                chunks.sort_by_key(|chunk| chunk.index);
+                chunks.sort_by_key(|chunk| chunk.source.sortable_string());
                 let chunks = merge_and_convert_chunks(&index, chunks)?;
 
                 match chunks.len() {
@@ -450,7 +451,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     index.list_chunks(
                         &|_| true,  // no filter
                         &|c| c,  // no map
-                        &|chunk: &LsChunk| format!("{}-{:08}", chunk.file, chunk.index),  // sort by file
+                        &|chunk: &LsChunk| chunk.source.sortable_string(),  // sort by source
                     )?
                 },
             };
@@ -462,7 +463,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 println!("----------");
-                println!("{}th chunk of {}", chunk.index, chunk.file);
+
+                match &chunk.source {
+                    ChunkSource::File { path, index } => {
+                        println!("{index}th chunk of {path}");
+                    },
+                    ChunkSource::Chunks(_) => {
+                        println!("");  // TODO
+                    },
+                }
+
                 println!("uid: {}", chunk.uid);
                 println!("character_len: {}", chunk.character_len);
                 println!("title: {}", chunk.title);
@@ -971,7 +981,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("--------------------------");
                 println!("score: {}", tfidf.score);
                 println!("uid: {}", chunk.uid);
-                println!("file: {}", chunk.file);
+                println!("source: {}", chunk.render_source());
                 println!("title: {}", chunk.title);
                 println!("summary: {}", chunk.summary);
             }

@@ -97,7 +97,7 @@ impl Uid {
 
     pub fn new_chunk(chunk: &Chunk) -> Self {
         let mut hasher = Sha3_256::new();
-        hasher.update(format!("{}{}{}{}{}", chunk.file, chunk.index, chunk.title, chunk.summary, chunk.data).as_bytes());
+        hasher.update(format!("{}{}{}{}", chunk.source.hash_str(), chunk.title, chunk.summary, chunk.data).as_bytes());
         let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
         result.low &= Uid::METADATA_MASK;
         result.low |= Uid::CHUNK_TYPE;
