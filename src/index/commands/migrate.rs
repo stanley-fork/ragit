@@ -112,7 +112,7 @@ impl Index {
                 let tmp_index_dir = join(&tmp_dir, INDEX_DIR_NAME)?;
                 copy_dir(&index_dir, &tmp_index_dir)?;
 
-                match migrate_0_1_1_to_0_2_0(base_version, client_version, &tmp_dir) {
+                match migrate_0_1_1_to_0_2_0(&tmp_dir) {
                     Ok(()) => {
                         remove_dir_all(&index_dir)?;
                         rename(&tmp_index_dir, &index_dir)?;
@@ -143,7 +143,7 @@ fn create_tmp_dir() -> Result<Path, Error> {
     Ok(dir_name)
 }
 
-fn migrate_0_1_1_to_0_2_0(base_version: VersionInfo, client_version: VersionInfo, root_dir: &Path) -> Result<(), Error> {
+fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
     let index_at = join3(
         root_dir,
         ".ragit",

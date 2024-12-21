@@ -58,7 +58,9 @@ impl Index {
             code: None,
             url: url.as_str().into(),
         })?;
-        let mut index = Index::new(repo_name.clone())?;
+
+        // create an empty index
+        Index::new(repo_name.clone())?;
 
         let index_url = url.join("index/")?;
         let index_json = request_binary_file(index_url.as_str()).await?;
@@ -72,7 +74,7 @@ impl Index {
             &index_json,
             WriteMode::CreateOrTruncate,
         )?;
-        index = Index::load(repo_name.clone(), LoadMode::Minimum)?;
+        let mut index = Index::load(repo_name.clone(), LoadMode::Minimum)?;
 
         // It has to download images before chunks because `chunk::save_to_file` requires
         // image descriptions.
@@ -172,7 +174,7 @@ impl Index {
         index.save_to_file()?;
 
         // it has to create file index
-        let res = index.recover()?;
+        index.recover()?;
         Ok(result)
     }
 
