@@ -32,7 +32,7 @@ def mk_and_cd_tmp_dir():
     os.chdir(dir_name)
 
 def write_string(path: str, content: str):
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(content)
 
 def cargo_run(
@@ -51,6 +51,7 @@ def cargo_run(
     if stdout or stderr:
         kwargs["capture_output"] = True
         kwargs["text"] = True
+        kwargs["encoding"] = "utf-8"
 
     result = subprocess.run(args, **kwargs)
 
