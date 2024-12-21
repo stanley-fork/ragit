@@ -228,7 +228,14 @@ impl Chunk {
             schema,
             schema_max_try: 3,
         };
-        let response = request.send_and_validate::<ChunkSchema>(ChunkSchema::dummy(&data, config.max_summary_len)).await?;
+
+        // some apis reject empty requests
+        let response = if data.is_empty() {
+            ChunkSchema::empty()
+        } else {
+            request.send_and_validate::<ChunkSchema>(ChunkSchema::dummy(&data, config.max_summary_len)).await?
+        };
+
         let mut result = Chunk {
             data,
             images,
@@ -357,6 +364,13 @@ impl ChunkSchema {
         ChunkSchema {
             title: String::from("untitled"),
             summary: data.chars().take(len).collect(),
+        }
+    }
+
+    pub fn empty() -> Self {
+        ChunkSchema {
+            title: String::from("an empty chunk"),
+            summary: String::from("this is an empty chunk"),
         }
     }
 
