@@ -1,5 +1,7 @@
 use crate::api_provider::ApiProvider;
 use crate::error::Error;
+use ragit_pdl::Message;
+use std::io::{Read, Write, stdin, stdout};
 use std::str::FromStr;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -27,9 +29,15 @@ pub enum ModelKind {
     /// 2. always returns 'dummy' to a request
     /// 3. needs no network
     Dummy,
+
+    /// for test
+    /// 1. doesn't require api key
+    /// 2. copies string from stdin
+    /// 3. needs no network
+    Stdin,
 }
 
-const ALL_MODELS: [ModelKind; 16] = [
+const ALL_MODELS: [ModelKind; 17] = [
     ModelKind::Llama90BGroq,
     ModelKind::Llama70BGroq,
     ModelKind::Llama11BGroq,
@@ -46,6 +54,7 @@ const ALL_MODELS: [ModelKind; 16] = [
     ModelKind::Gpt4OMini,
     ModelKind::Phi14BOllama,
     ModelKind::Dummy,
+    ModelKind::Stdin,
 ];
 
 impl ModelKind {
@@ -73,6 +82,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => "gpt-4o-mini",
             ModelKind::Phi14BOllama => "phi3:14b",
             ModelKind::Dummy => "dummy",
+            ModelKind::Stdin => "stdin",
         }
     }
 
@@ -94,6 +104,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => "gpt-4o-mini",
             ModelKind::Phi14BOllama => "phi-3-14b-ollama",
             ModelKind::Dummy => "dummy",
+            ModelKind::Stdin => "stdin",
         }
     }
 
@@ -119,6 +130,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => 128000,
             ModelKind::Phi14BOllama => 8192,
             ModelKind::Dummy => usize::MAX,
+            ModelKind::Stdin => usize::MAX,
         }
     }
 
@@ -143,6 +155,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => true,
             ModelKind::Phi14BOllama => false,
             ModelKind::Dummy => true,
+            ModelKind::Stdin => false,
         }
     }
 
@@ -167,6 +180,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => 60_000,
             ModelKind::Phi14BOllama => 60_000,
             ModelKind::Dummy => u64::MAX,
+            ModelKind::Stdin => u64::MAX,
         }
     }
 
@@ -189,6 +203,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => 150,
             ModelKind::Phi14BOllama => 0,
             ModelKind::Dummy => 0,
+            ModelKind::Stdin => 0,
         }
     }
 
@@ -210,6 +225,7 @@ impl ModelKind {
             ModelKind::Gpt4OMini => 600,
             ModelKind::Phi14BOllama => 0,
             ModelKind::Dummy => 0,
+            ModelKind::Stdin => 0,
         }
     }
 
@@ -231,6 +247,30 @@ impl ModelKind {
             ModelKind::Gpt4OMini => ApiProvider::OpenAi,
             ModelKind::Phi14BOllama => ApiProvider::Ollama,
             ModelKind::Dummy => ApiProvider::Dummy,
+            ModelKind::Stdin => ApiProvider::Dummy,
+        }
+    }
+
+    pub fn get_dummy_response(&self, messages: &[Message]) -> String {
+        match self {
+            ModelKind::Dummy => String::from("dummy"),
+            ModelKind::Stdin => {
+                for message in messages.iter() {
+                    println!(
+                        "<|{:?}|>\n\n{}\n\n",
+                        message.role,
+                        message.content.iter().map(|c| c.to_string()).collect::<Vec<String>>().join(""),
+                    );
+                }
+
+                print!("<|Assistant|>\n\n>>> ");
+                stdout().flush().unwrap();
+
+                let mut s = String::new();
+                stdin().read_to_string(&mut s).unwrap();
+                s
+            },
+            _ => unreachable!(),
         }
     }
 }

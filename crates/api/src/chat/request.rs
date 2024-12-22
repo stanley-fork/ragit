@@ -180,10 +180,12 @@ impl Request {
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub async fn send(&self) -> Result<Response, Error> {
         if self.model.get_api_provider() == ApiProvider::Dummy {
+            let response = self.model.get_dummy_response(&self.messages);
+
             if let Some(path) = &self.dump_pdl_at {
                 if let Err(e) = dump_pdl(
                     &self.messages,
-                    "dummy",
+                    &response,
                     path,
                     String::from("model: dummy, input_tokens: 0, output_tokens: 0, took: 0ms"),
                 ) {
@@ -197,7 +199,7 @@ impl Request {
                 }
             }
 
-            return Ok(Response::dummy(String::from("dummy")));
+            return Ok(Response::dummy(response));
         }
 
         let started_at = Instant::now();
