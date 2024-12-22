@@ -4,8 +4,8 @@ use std::str::FromStr;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ModelKind {
-    // TODO: llama 3 70B vs llama 3.1 70B
-    //       Llama3170B sounds like 3.1T model
+    // TODO: llama 3 70B vs llama 3.3 70B
+    //       Llama3370B sounds like 3.3T model
     Llama90BGroq,
     Llama70BGroq,
     Llama11BGroq,
@@ -56,7 +56,7 @@ impl ModelKind {
     pub fn to_api_friendly_name(&self) -> &'static str {
         match self {
             ModelKind::Llama90BGroq => "llama-3.2-90b-vision-preview",
-            ModelKind::Llama70BGroq => "llama-3.1-70b-versatile",
+            ModelKind::Llama70BGroq => "llama-3.3-70b-versatile",
             ModelKind::Llama11BGroq => "llama-3.2-11b-vision-preview",
             ModelKind::Llama8BGroq => "llama-3.1-8b-instant",
             ModelKind::Gemma9BGroq => "gemma-9b-it",
@@ -79,7 +79,7 @@ impl ModelKind {
     pub fn to_human_friendly_name(&self) -> &'static str {
         match self {
             ModelKind::Llama90BGroq => "llama3.2-90b-groq",
-            ModelKind::Llama70BGroq => "llama3.1-70b-groq",
+            ModelKind::Llama70BGroq => "llama3.3-70b-groq",
             ModelKind::Llama11BGroq => "llama3.2-11b-groq",
             ModelKind::Llama8BGroq => "llama3.1-8b-groq",
             ModelKind::Gemma9BGroq => "gemma-9b-groq",
@@ -180,9 +180,9 @@ impl ModelKind {
             ModelKind::Gemma9BGroq => 200,
             ModelKind::Llama3BGroq => 60,
             ModelKind::Llama1BGroq => 40,
-            ModelKind::CommandRPlus => 3000,
-            ModelKind::CommandR => 500,
-            ModelKind::Haiku => 1000,
+            ModelKind::CommandRPlus => 2500,
+            ModelKind::CommandR => 150,
+            ModelKind::Haiku => 800,
             ModelKind::Sonnet => 3000,
             ModelKind::Opus => 15000,
             ModelKind::Gpt4O => 2500,
@@ -201,13 +201,13 @@ impl ModelKind {
             ModelKind::Gemma9BGroq => 200,
             ModelKind::Llama3BGroq => 60,
             ModelKind::Llama1BGroq => 40,
-            ModelKind::CommandRPlus => 15000,
-            ModelKind::CommandR => 1500,
-            ModelKind::Haiku => 5000,
+            ModelKind::CommandRPlus => 10000,
+            ModelKind::CommandR => 600,
+            ModelKind::Haiku => 4000,
             ModelKind::Sonnet => 15000,
             ModelKind::Opus => 75000,
             ModelKind::Gpt4O => 10000,
-            ModelKind::Gpt4OMini => 750,
+            ModelKind::Gpt4OMini => 600,
             ModelKind::Phi14BOllama => 0,
             ModelKind::Dummy => 0,
         }

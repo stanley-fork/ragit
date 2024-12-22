@@ -17,9 +17,9 @@ struct Args {
     #[arg(short, long, default_value_t = String::from("STDOUT"))]
     output: String,
 
-    /// claude-3.5-haiku | claude-3.5-sonnet | llama3.1-8b-groq | llama3.1-70b-groq
+    /// claude-3.5-haiku | claude-3.5-sonnet | llama3.1-8b-groq | llama3.3-70b-groq
     /// | gpt-4o | gpt-4o-mini
-    #[arg(short, long, default_value_t = String::from("llama3.1-70b-groq"))]
+    #[arg(short, long, default_value_t = String::from("llama3.3-70b-groq"))]
     model: String,
 
     #[arg(long, default_value = None)]

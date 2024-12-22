@@ -39,7 +39,7 @@ impl Default for ApiConfigRaw {
             sleep_between_retries: 20_000,
             timeout: Some(90_000),
             sleep_after_llm_call: None,
-            model: String::from("llama3.1-70b-groq"),
+            model: String::from("llama3.3-70b-groq"),
         }
     }
 }

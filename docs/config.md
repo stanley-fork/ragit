@@ -86,7 +86,7 @@ struct QueryConfig {
 // sleep_between_retries: 20000,
 // timeout: 90000,
 // sleep_after_llm_call: None,
-// model: "llama3.1-70b-groq",
+// model: "llama3.3-70b-groq",
 struct ApiConfig {
     // I recommend you use env var, instead of this.
     api_key: Option<String>,
