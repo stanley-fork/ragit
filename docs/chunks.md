@@ -14,16 +14,6 @@ Once a file is processed, `rag query` can use the chunks from the file. `rag que
 
 There's another special stage. You can see the term `curr_processing_file` in the source code. Once `rag build` pops a file from the staging area, the file is marked as "curr_processing_file". "curr_processing_file" doesn't belong to "processed_files" and "staged files" until it's fully processed. It matters when you interrupt `rag build`. When you interrupt it, all the chunks of the "curr_processing_file" are discarded, and the "curr_processing_file" goes back to the staging area. Chunks of the "processed_files" will be kept safely.
 
-## Chunk Files
+## Data format
 
-You can see the term `chunk_file` in the source code. Chunks have to be stored somewhere in the disk. It's not a good idea to create a file for each chunk. So, multiple chunks are stored in a file, in a json format. We call the files `chunk_file`. You can find chunk files in `.ragit/chunks` directory. There, you'll find two different files with the same name but different extensions: `.chunks` and `.tfidf`. `.chunks` file stores the actual data, and `.tfidf` stores index for tfidf scores. Both files must have the same chunks, in the same order. `.tfidf` files are lazily generated, meaning that a file may or may not exist. But you don't have to care about it at all! Ragit is smart enough to manage `.tfidf` files unnoticeably.
-
-`.tfidf` files are always compressed, and `.chunks` files are compressed depending on its size. You can configure the size threshold and compression level.
-
-The name of each chunk file is an xor-ed value of all the chunks' uids a file has. It complicates the code (it has to rename a chunk file everytime a chunk is added/removed), but is useful in some cases. For example, one can compare 2 different knowledge-bases and easily see which chunks they have in common.
-
-## Chunk Index
-
-If you're not a contributor, you don't have to worry what chunk index is.
-
-You can see the term `chunk_index` in the source code. Chunk index is used for optimizations. It makes it easier to find which chunk_file a chunk belongs to using a uid. You'll see the index files in `.ragit/chunk_index`. There you'll see a scary list of files with short-names. Each file is a `chunk_uid -> chunk_file` map. For example, if a uid of a chunk is "abcdefg", you have to read "ab.json" in the chunk_index directory. In the json file, there must be an entry `"abcdefg": chunk_file_it_belongs_to`.
+Chunks are saved in a content-addressable way. It's like git's object files. You can find the chunk files in `.ragit/chunks/`, a file per chunk. The first 2 characters of a chunk's uid is the directory name of the chunk file, and the remaining characters in uid consist its file name. For example, if its uid is `abcdef0123`, you'll find the chunk file at `.ragit/chunks/ab/cdef0123.chunk`.
