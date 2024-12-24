@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use ragit_fs::read_string;
+use ragit_fs::{extension, join, parent, read_bytes, read_string};
 use regex::bytes::Regex;
 
 mod error;
@@ -87,6 +87,7 @@ pub fn parse_pdl_from_file(
     parse_pdl(
         &read_string(path)?,
         context,
+        &parent(path)?,
         strict_mode,
         is_escaped,
     )
@@ -95,6 +96,7 @@ pub fn parse_pdl_from_file(
 pub fn parse_pdl(
     s: &str,
     context: &tera::Context,
+    curr_dir: &str,
 
     // If it's not set, it would never return `Err`.
     strict_mode: bool,
@@ -167,7 +169,7 @@ pub fn parse_pdl(
                                     },
                                 };
 
-                                match into_message_contents(&raw_contents, is_escaped) {
+                                match into_message_contents(&raw_contents, is_escaped, curr_dir) {
                                     Ok(t) => {
                                         messages.push(Message {
                                             role: role.into(),
@@ -236,7 +238,7 @@ pub fn unescape_pdl_tokens(s: &str) -> String {  // TODO: use `Cow` type
     s.replace("&lt;", "<").replace("&amp;", "&")
 }
 
-fn into_message_contents(s: &str, is_escaped: bool) -> Result<Vec<MessageContent>, Error> {
+fn into_message_contents(s: &str, is_escaped: bool, curr_dir: &str) -> Result<Vec<MessageContent>, Error> {
     let bytes = s.as_bytes().iter().map(|b| *b).collect::<Vec<_>>();
     let mut index = 0;
     let mut result = vec![];
@@ -244,7 +246,7 @@ fn into_message_contents(s: &str, is_escaped: bool) -> Result<Vec<MessageContent
 
     loop {
         match bytes.get(index) {
-            Some(b'<') => match try_parse_inline_block(&bytes, index) {
+            Some(b'<') => match try_parse_inline_block(&bytes, index, curr_dir) {
                 Ok(Some((image_type, bytes, new_index))) => {
                     if !string_buffer.is_empty() {
                         match String::from_utf8(string_buffer.clone()) {
@@ -309,7 +311,7 @@ fn into_message_contents(s: &str, is_escaped: bool) -> Result<Vec<MessageContent
 // 1. It returns `Ok(Some(_))` if it's a valid inline block.
 // 2. It returns `Ok(None)` if it's not an inline block.
 // 3. It returns `Err(_)` if it's an inline block, but there's an error (syntax error, image type error, file error, ...).
-fn try_parse_inline_block(bytes: &[u8], index: usize) -> Result<Option<(ImageType, Vec<u8>, usize)>, Error> {
+fn try_parse_inline_block(bytes: &[u8], index: usize, curr_dir: &str) -> Result<Option<(ImageType, Vec<u8>, usize)>, Error> {
     match try_get_pdl_token(bytes, index) {
         Some((token, new_index)) => {
             let media_re = &MEDIA_RE;
@@ -324,11 +326,10 @@ fn try_parse_inline_block(bytes: &[u8], index: usize) -> Result<Option<(ImageTyp
 
             else if let Some(cap) = media_re.captures(token) {
                 let path = &cap[1];
+                let file = join(curr_dir, &String::from_utf8_lossy(path).to_string())?;
 
-                // TODO
-                // 1. Path is relative from pdl file, or pwd (if there's no pdl file).
-                // 2. It infers ImageType from file extension, and it doesn't validate the bytes
-                todo!()
+                // TODO: handle pdf files
+                Ok(Some((ImageType::from_extension(&extension(&file)?.unwrap_or(String::new()))?, read_bytes(&file)?, new_index)))
             }
 
             else {

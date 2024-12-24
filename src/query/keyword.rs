@@ -70,6 +70,7 @@ pub async fn extract_keywords(
     let Pdl { messages, schema } = parse_pdl(
         pdl,
         &context,
+        "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;

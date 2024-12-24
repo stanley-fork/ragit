@@ -116,6 +116,7 @@ pub async fn titles_to_summaries(
     let Pdl { messages, schema } = parse_pdl(
         pdl,
         &tera_context,
+        "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
@@ -180,6 +181,7 @@ pub async fn summaries_to_chunks(
     let Pdl { messages, schema } = parse_pdl(
         &index.get_prompt("rerank_summary")?,
         &tera_context,
+        "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
@@ -229,6 +231,7 @@ pub async fn answer_query_with_chunks(
     let Pdl { messages, .. } = parse_pdl(
         pdl,
         &tera_context,
+        "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
@@ -270,6 +273,7 @@ pub async fn rephrase_multi_turn(
     let Pdl { messages, schema } = parse_pdl(
         pdl,
         &tera_context,
+        "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
@@ -379,6 +383,7 @@ pub async fn raw_request(
     let Pdl { messages, .. } = parse_pdl(
         pdl,
         &tera_context,
+        "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
