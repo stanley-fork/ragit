@@ -115,10 +115,11 @@ def generate_terms():
     dictionary.sort(key=lambda x: x[1], reverse=True)
     dictionary = [term for term, _ in dictionary]
 
-    if len(dictionary) < 100:
-        raise Exception("The dataset is not big enough. Please make sure that there are more than 100 terms.")
+    if len(dictionary) < 500:
+        raise Exception("The dataset is not big enough. Please make sure that there are more than 500 terms.")
 
-    frequent_terms = dictionary[:5]
+    very_frequent_terms = dictionary[:5]
+    frequent_terms = dictionary[len(dictionary) // 20:len(dictionary) // 20 + 5]
     less_frequent_terms = dictionary[len(dictionary) // 2:len(dictionary) // 2 + 5]
     rare_terms = dictionary[-5:]
     never_terms = []
@@ -130,11 +131,13 @@ def generate_terms():
             never_terms.append(term)
 
     return [
+        *frequent_terms,
         *less_frequent_terms,
         *rare_terms,
         *never_terms,
+        " ".join(frequent_terms),
         " ".join(less_frequent_terms),
         " ".join(rare_terms),
-        *[" ".join([frequent_terms[i], less_frequent_terms[i], rare_terms[i]]) for i in range(5)],
-        *[" ".join([frequent_terms[i], less_frequent_terms[i]]) for i in range(5)],
+        *[" ".join([very_frequent_terms[i], less_frequent_terms[i], rare_terms[i]]) for i in range(5)],
+        *[" ".join([very_frequent_terms[i], less_frequent_terms[i]]) for i in range(5)],
     ]
