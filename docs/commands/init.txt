@@ -12,3 +12,4 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
+If there's already a knowledge-base, it does nothing and returns with status code 0.

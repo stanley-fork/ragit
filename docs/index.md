@@ -2,6 +2,14 @@
 
 RAGIT (rag-it) is a git-like software that turns your local files into a knowledge-base. The main goal of this project is to make knowledge-bases easy-to-create and easy-to-share.
 
+```
+rag init;
+rag add **/*.txt
+rag add **/*.md;
+rag build;
+rag query "What makes ragit special?";
+```
+
 ## Why another RAG framework?
 
 RAGIT is very different from the other RAG frameworks.

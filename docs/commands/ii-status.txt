@@ -12,4 +12,7 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-NOTE: It's experimental
+It returns one of 4 variants: "not initialized", "complete", "outdated" or "interrupted".
+
+If it's "outdated" or "interrupted", you have to run `rag ii-reset` and `rag ii-build`. There's
+no way to recover from such states.

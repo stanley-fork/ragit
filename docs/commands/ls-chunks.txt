@@ -8,7 +8,14 @@ rag-ls-chunks - Show information about chunks
 SYNOPSIS
 --------
 [verse]
-'rag ls-chunks' [--name-only | --uid-only] [<uid>]
+'rag ls-chunks' [--uid-only | --stat-only] [<uid>]
 
 DESCRIPTION
 -----------
+Run `rag help uid-query` to read how uid-query works. If the uid is of a chunk,
+if shows the information about the chunk. If it's a file, it shows the information
+about the chunks of the file. If it's an image, it dies.
+
+If it's ambiguous (e.g. prefix is short and matches multiple chunks), it shows the
+information about all the matched chunks. I don't like this behavior and is likely to
+change later.

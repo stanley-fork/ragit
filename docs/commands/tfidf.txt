@@ -8,7 +8,7 @@ rag-tfidf - Run full-text search using its tfidf engine
 SYNOPSIS
 --------
 [verse]
-'rag tfidf' <keywords>
+'rag tfidf' [--uid-only] <keywords>
 
 DESCRIPTION
 -----------

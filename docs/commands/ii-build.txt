@@ -12,4 +12,4 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-NOTE: It's experimental
+It builds an inverted index, which makes text-retrieval much faster.

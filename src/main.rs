@@ -338,6 +338,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Some("quick-guide") => {
                     println!("{}", include_str!("../docs/quick_guide.md"));
                 },
+                Some("uid-query") => {
+                    println!("{}", include_str!("../docs/uid_query.md"));
+                },
                 Some(command) => {
                     let mut new_args = args.clone();
                     new_args[1] = command.to_string();

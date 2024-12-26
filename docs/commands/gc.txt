@@ -8,8 +8,9 @@ rag-gc - Clean up unnecessary files
 SYNOPSIS
 --------
 [verse]
-'rag gc' --logs
+'rag gc' [--logs | --images]
 
 DESCRIPTION
 -----------
 `rag gc --logs` removes all the logs in `.ragit/logs`.
+`rag gc --images` removes all the images in `.ragit/images`.

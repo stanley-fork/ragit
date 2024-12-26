@@ -14,5 +14,10 @@ DESCRIPTION
 -----------
 Like `git clone`, it clones a knowledge-base and copies it to a newly created directory.
 
-`rag clone` is for cloning query-only knowledge-bases. You cannot clone a half-built knowledge-base
-and continue building it.
+You can think of 2 use cases of `rag clone`
+
+1. Clone a complete knowledge-base and query it.
+2. Clone a half-built knowledge-base and continue building it. Or, you can clone multiple half-built ones and merge them.
+
+Ragit will support both use cases, but the second one is not stable yet. Cloning a half-built base is not tested yet, and
+`rag merge` is still heavily under construction.

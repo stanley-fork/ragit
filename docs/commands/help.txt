@@ -10,15 +10,20 @@ Work with an existing knowledge-base
     add
     build
     gc
+    ii-build
+    ii-reset
     rm
     reset
 
 Get information about a knowledge-base
-    check
+    cat-file
     config
+    ii-status
     ls-chunks
     ls-files
+    ls-images
     ls-models
+    ls-terms
     meta
 
 Query a knowledge-base
@@ -29,3 +34,4 @@ ragit also has extra tutorial commands
     rag help chunks
     rag help config-reference
     rag help quick-guide
+    rag help uid-query

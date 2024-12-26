@@ -115,7 +115,7 @@ playground
        ╰ index.json
 ```
 
-Now we have 1 empty knowledge-base and 3 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag merge ./git`, `rag merge ./ragit` and `rag merge ./rustc`.
+Now we have 1 empty knowledge-base and 3 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag merge ./git --prefix=git`, `rag merge ./ragit --prefix=ragit` and `rag merge ./rustc --prefix=rustc`.
 
 ## 3. Change Configs
 
@@ -127,7 +127,11 @@ Let's say you have free credits for Anthropic. By running `rag config --set mode
 
 Run `rag config --get-all` to see all the keys and values.
 
-## 4. Ask questions on a Knowledge-Base
+## 4. Build an inverted-index
+
+[Inverted-index](https://en.wikipedia.org/wiki/Inverted_index) is a special kind of data structure that makes full-text searching much faster. By running `rag ii-build`, you can build an inverted index. Once you're done, run `rag ii-status` and see if it says "complete". If so, you're good to go. Text retrieval will get much faster.
+
+## 5. Ask questions on a Knowledge-Base
 
 Asking query is straight forward: `rag query "Tell me how the rust compiler uses git"`
 

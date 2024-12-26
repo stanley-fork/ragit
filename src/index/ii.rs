@@ -33,7 +33,7 @@ pub enum IIStatus {
     /// Initial state. There's no ii at all.
     None,
 
-    /// ii used to be `Complete` or `Ongoing`, but there're added or rßßemoved chunks.
+    /// ii used to be `Complete` or `Ongoing`, but there're added or removed chunks.
     Outdated,
 
     /// ii is built and is usable.

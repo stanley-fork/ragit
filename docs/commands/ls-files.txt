@@ -12,3 +12,9 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
+Run `rag help uid-query` to read how uid-query works. If the uid is of a chunk
+or an image, it dies.
+
+If multiple files are matched, it shows the information about all the matched files.
+This behavior may change later. It would allow matching multiple files if the query
+is path-prefix-matching (though it's not implemented yet), but not if it's uid-matching.
