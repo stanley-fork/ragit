@@ -113,6 +113,16 @@ if __name__ == "__main__":
             result_at = "./sample/tera",
         )
 
+    elif arg in ["neovim", "nvim"]:
+        load(
+            git_url = "https://github.com/neovim/neovim",
+            docs_at = "./neovim/runtime/doc",
+            repo_name = "neovim",
+            file_ext = [".txt"],
+            result_tmp = "./sample/doc",
+            result_at = "./sample/neovim",
+        )
+
     elif arg == "nix":
         load(
             git_url = "https://github.com/NixOS/nix",
