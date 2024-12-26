@@ -442,6 +442,7 @@ Write me a sudoku-solver.
 <|raw_media(png:HiMyNameIsBaehyunsol)|>
 ",
             &tera::Context::new(),
+            ".",  // there's no `<|media|>`
             true,
             true,
         ).unwrap();
