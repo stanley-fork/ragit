@@ -16,6 +16,7 @@ use ragit_pdl::{
     parse_pdl,
 };
 use regex::Regex;
+use serde::Deserialize;
 use serde_json::Value;
 
 mod config;
@@ -257,9 +258,23 @@ pub async fn answer_query_with_chunks(
     Ok(response.get_message(0).unwrap().to_string())
 }
 
-// TODO: What's wrong with this function? It seems like this function hasn't been tested for a while.
-// 1. Use `request.send_and_validate`
-// 2. Add test cases for this function.
+#[derive(Deserialize)]
+pub struct MultiTurnSchema {
+    is_query: bool,
+    in_context: bool,
+    query: String,
+}
+
+impl Default for MultiTurnSchema {
+    fn default() -> Self {
+        MultiTurnSchema {
+            is_query: false,
+            in_context: false,
+            query: String::new(),
+        }
+    }
+}
+
 pub async fn rephrase_multi_turn(
     turns: Vec<String>,
     api_config: &ApiConfig,
@@ -296,75 +311,10 @@ pub async fn rephrase_multi_turn(
         schema,
         schema_max_try: 3,
     };
+    let multi_turn_schema = request.send_and_validate::<MultiTurnSchema>(MultiTurnSchema::default()).await?;
 
-    let mut response = request.send().await?;
-    let mut response_text = response.get_message(0).unwrap();
-    let json_regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
-    let mut mistakes = 0;
-
-    let (is_query, query) = loop {
-        let error_message;
-
-        if let Some(cap) = json_regex.captures(&response_text) {
-            let json_text = cap[1].to_string();
-
-            match serde_json::from_str::<Value>(&json_text) {
-                Ok(j) => match j {
-                    Value::Object(obj) => match (
-                        obj.get("is_query"),
-                        obj.get("query"),
-                    ) {
-                        (Some(Value::Bool(false)), _) => {
-                            break (false, String::new());
-                        },
-                        (Some(Value::Bool(true)), Some(query)) => match query.as_str() {
-                            Some(s) => {
-                                break (true, s.to_string());
-                            },
-                            None => {
-                                error_message = format!("The value of \"query\" must be a string, not {}", format!("{:?}", JsonType::from(query)).to_ascii_lowercase());
-                            },
-                        },
-                        (_, _) => {
-                            error_message = String::from("Give me a json object with 3 keys: \"is_query\", \"in_context\" and \"query\". \"is_query\" and \"in_context\" are booleans and \"query\" is a string.");
-                        },
-                    },
-                    _ => {
-                        error_message = String::from("Give me a json object with 3 keys: \"is_query\", \"in_context\" and \"query\". \"is_query\" and \"in_context\" are booleans and \"query\" is a string.");
-                    },
-                },
-                Err(_) => {
-                    error_message = String::from("I cannot parse your output. It seems like your output is not a valid json. Please give me a valid json.");
-                },
-            }
-        }
-
-        else {
-            error_message = String::from("I cannot find curly braces in your response. Please give me a valid json output.");
-        }
-
-        mistakes += 1;
-
-        // if a model is too stupid, it cannot follow the instructions
-        if mistakes > 5 {
-            // default values
-            break (false, String::new());
-        }
-
-        request.messages.push(Message {
-            role: Role::Assistant,
-            content: MessageContent::simple_message(response_text.to_string()),
-        });
-        request.messages.push(Message {
-            role: Role::User,
-            content: MessageContent::simple_message(error_message),
-        });
-        response = request.send().await?;
-        response_text = response.get_message(0).unwrap();
-    };
-
-    if is_query {
-        Ok(query)
+    if multi_turn_schema.is_query {
+        Ok(multi_turn_schema.query)
     }
 
     else {
