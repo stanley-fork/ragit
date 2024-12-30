@@ -6,7 +6,9 @@ use lazy_static::lazy_static;
 use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
+    basename,
     copy_dir,
+    copy_file,
     create_dir_all,
     exists,
     extension,
@@ -16,6 +18,7 @@ use ragit_fs::{
     read_dir,
     read_string,
     remove_dir_all,
+    remove_file,
     rename,
     set_extension,
     write_bytes,
@@ -81,7 +84,7 @@ impl Index {
     ///
     /// It assumes that `recover` is run after `migrate`. It doesn't do any operation
     /// that can be handled by `recover`.
-    pub fn migrate(root_dir: &Path) -> Result<(), Error> {
+    pub fn migrate(root_dir: &Path) -> Result<Option<(VersionInfo, VersionInfo)>, Error> {
         let base_version = Index::check_ragit_version(root_dir)?;
         let client_version_str = crate::VERSION.to_string();
         let client_version = client_version_str.parse::<VersionInfo>()?;
@@ -100,7 +103,7 @@ impl Index {
         }
 
         else if base_version == client_version {
-            Ok(())
+            Ok(None)
         }
 
         else {
@@ -117,7 +120,7 @@ impl Index {
                         remove_dir_all(&index_dir)?;
                         rename(&tmp_index_dir, &index_dir)?;
                         remove_dir_all(&tmp_dir)?;
-                        Ok(())
+                        Ok(Some((base_version, client_version)))
                     },
                     Err(e) => {
                         remove_dir_all(&tmp_dir)?;
@@ -250,6 +253,33 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
                 for chunk in chunks.iter_mut() {
                     match chunk {
                         Value::Object(ref mut obj) => {
+                            match obj.get("images") {
+                                Some(Value::Array(images)) if images.len() > 0 => {
+                                    let mut new_images: Vec<Value> = Vec::with_capacity(images.len());
+
+                                    for image in images.iter() {
+                                        match image {
+                                            Value::String(uid) => {
+                                                let uid = uid.to_string();
+                                                new_images.push(vec![
+                                                    (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+                                                    (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
+                                                ].into_iter().collect());
+                                            },
+                                            v => {
+                                                return Err(Error::JsonTypeError {
+                                                    expected: JsonType::String,
+                                                    got: v.into(),
+                                                });
+                                            },
+                                        }
+                                    }
+
+                                    obj.insert(String::from("images"), new_images.into());
+                                },
+                                _ => {},
+                            }
+
                             let file_name = match obj.get("file") {
                                 Some(file_name) => match file_name.as_str() {
                                     Some(file_name) => file_name.to_string(),
@@ -361,6 +391,42 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
         }
     }
 
+    let image_dir = join3(
+        root_dir,
+        ".ragit",
+        "images",
+    )?;
+
+    for image_file in read_dir(&image_dir)? {
+        let curr_ext = extension(&image_file)?.unwrap_or(String::new());
+
+        if curr_ext != "png" && curr_ext != "json" {
+            continue;
+        }
+
+        let uid = basename(&image_file)?;
+        let image_at = join(
+            &image_dir,
+            &uid.get(0..2).unwrap(),
+        )?;
+
+        if !exists(&image_at) {
+            create_dir_all(&image_at)?;
+        }
+
+        copy_file(
+            &image_file,
+            &join(
+                &image_at,
+                &set_extension(
+                    &uid.get(2..).unwrap(),
+                    &curr_ext,
+                )?,
+            )?,
+        )?;
+        remove_file(&image_file)?;
+    }
+
     remove_dir_all(&join3(
         root_dir,
         ".ragit",
@@ -410,6 +476,7 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
         vec![
             ConfigUpdate::add("query", "enable_ii", true),
             ConfigUpdate::remove("build", "chunks_per_json"),
+            ConfigUpdate::update_if("api", "model", "llama3.1-70b-groq", "llama3.3-70b-groq"),
         ],
     )?;
 
@@ -551,6 +618,12 @@ enum ConfigUpdate {
         file: String,
         key: String,
     },
+    UpdateIf {
+        file: String,
+        key: String,
+        pre: Value,
+        post: Value,
+    },
 }
 
 impl ConfigUpdate {
@@ -569,10 +642,20 @@ impl ConfigUpdate {
         }
     }
 
+    pub fn update_if<T: Into<Value>, U: Into<Value>>(file: &str, key: &str, pre: T, post: U) -> Self {
+        ConfigUpdate::UpdateIf {
+            file: file.to_string(),
+            key: key.to_string(),
+            pre: pre.into(),
+            post: post.into(),
+        }
+    }
+
     pub fn get_file(&self) -> String {
         match self {
             ConfigUpdate::Add { file, .. } => file.to_string(),
             ConfigUpdate::Remove { file, .. } => file.to_string(),
+            ConfigUpdate::UpdateIf { file, .. } => file.to_string(),
         }
     }
 }
@@ -602,6 +685,14 @@ fn update_configs(root_dir: &str, updates: Vec<ConfigUpdate>) -> Result<(), Erro
                 },
                 ConfigUpdate::Remove { key, .. } => {
                     obj.remove(&key);
+                },
+                ConfigUpdate::UpdateIf { key, pre, post, .. } => {
+                    match obj.get(&key) {
+                        Some(v) if v == &pre => {
+                            obj.insert(key, post);
+                        },
+                        _ => {},
+                    }
                 },
             },
             _ => {

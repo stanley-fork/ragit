@@ -197,8 +197,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     &index_version.to_string(),
                     ragit::VERSION,
                 ).is_some() {
-                    if Index::migrate(&root_dir).is_ok() {
-                        println!("migrated from `{index_version}` to `{}`", ragit::VERSION);
+                    if let Ok(Some((v1, v2))) = Index::migrate(&root_dir) {
+                        println!("migrated from `{v1}` to `{v2}`");
                     }
                 }
             }
@@ -846,9 +846,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let root_dir = root_dir?;
-            Index::migrate(&root_dir)?;
+
+            if let Some((v1, v2)) = Index::migrate(&root_dir)? {
+                println!("migrated from `{v1}` to `{v2}`");
+            }
+
             let mut index = Index::load(root_dir, LoadMode::Minimum)?;
-            index.recover()?;
+            let recover_result = index.recover()?;
+
+            if !recover_result.is_empty() {
+                println!("recovered from a corrupted knowledge-base: {recover_result:?}");
+            }
+
             index.save_to_file()?;
         },
         Some("query") => {

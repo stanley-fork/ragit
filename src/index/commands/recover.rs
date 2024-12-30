@@ -34,6 +34,15 @@ pub struct RecoverResult {
     staged_files: Vec<String>,
 }
 
+impl RecoverResult {
+    pub fn is_empty(&self) -> bool {
+        self.removed_chunks == 0
+        && self.created_tfidfs == 0
+        && self.replaced_configs.is_empty()
+        && self.staged_files.is_empty()
+    }
+}
+
 impl Index {
     /// This is `recover` of `rag check --recover`. It tries its best to make the index usable.
     ///
