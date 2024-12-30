@@ -1,4 +1,3 @@
-from images import sample_markdown
 from markdown_reader import sample1, sample2, sample3
 import shutil
 import subprocess
@@ -29,16 +28,15 @@ def migrate():
     write_string("sample2.md", sample2)
     write_string("sample3.md", sample3)
 
-    # NOTE: v 0.1.1 itself has a bug and I cannot fix that
-    # shutil.copyfile("../tests/images/empty.png", "sample2.png")
-    # shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
-    # shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
-    # write_string("sample4.md", sample_markdown)
+    shutil.copyfile("../tests/images/empty.png", "sample2.png")
+    shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
+    shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
+    write_string("sample4.md", "image1: ![sample2](sample2.png)\nimage2: ![sample5](sample5.jpg)\nimage3: ![sample6](sample6.webp)")
 
     # step 2. init and build rag index
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
-    cargo_run(["add", "sample0.md", "sample1.md", "sample2.md", "sample3.md"])
+    cargo_run(["add", "sample0.md", "sample1.md", "sample2.md", "sample3.md", "sample4.md"])
     cargo_run(["build"])
     cargo_run(["check"])
 
