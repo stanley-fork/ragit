@@ -55,4 +55,4 @@ pub use uid::{Uid, UidQuery, UidQueryResult};
 //
 // Feel free to use whatever rules for your branches. But please keep version numbers
 // distinguishable, so that chunks generated from your branches can easily be identified.
-pub const VERSION: &str = "0.2.0";
+pub const VERSION: &str = "0.2.1-dev";
