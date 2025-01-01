@@ -43,4 +43,20 @@ impl ChunkSource {
             ChunkSource::Chunks(_) => format!("chunks: {}", self.hash_str()),
         }
     }
+
+    pub fn render(&self) -> String {
+        match self {
+            ChunkSource::File { path, index } => format!(
+                "{} chunk of {path}",
+                // it's 0-base
+                match index {
+                    0 => String::from("1st"),
+                    1 => String::from("2nd"),
+                    2 => String::from("3rd"),
+                    n => format!("{}th", n + 1),
+                },
+            ),
+            ChunkSource::Chunks(_) => todo!(),
+        }
+    }
 }

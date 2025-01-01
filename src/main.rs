@@ -2,7 +2,6 @@ use async_recursion::async_recursion;
 use ragit::{
     AddMode,
     AddResult,
-    ChunkSource,
     Error,
     IIStatus,
     Index,
@@ -12,11 +11,11 @@ use ragit::{
     LsChunk,
     MergeMode,
     ProcessedDoc,
+    QueryTurn,
     UidQuery,
     get_compatibility_warning,
     merge_and_convert_chunks,
-    multi_turn,
-    single_turn,
+    query,
 };
 use ragit_fs::{
     basename,
@@ -473,16 +472,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 println!("----------");
-
-                match &chunk.source {
-                    ChunkSource::File { path, index } => {
-                        println!("{index}th chunk of {path}");
-                    },
-                    ChunkSource::Chunks(_) => {
-                        println!("");  // TODO
-                    },
-                }
-
+                println!("{}", chunk.render_source());
                 println!("uid: {}", chunk.uid);
                 println!("character_len: {}", chunk.character_len);
                 println!("title: {}", chunk.title);
@@ -861,7 +851,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
         },
         Some("query") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--interactive", "-i"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
+            // TODO: `ArgParser` only accepts flags that start with "--". So "-i" doesn't work.
+            let parsed_args = ArgParser::new().optional_flag(&["--interactive", "--multi-turn", "-i"]).args(ArgType::String, ArgCount::Geq(0)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/query.txt"));
@@ -871,38 +862,38 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
 
             if parsed_args.get_flag(0).is_some() {
-                let mut conversation = vec![];
+                let mut history = vec![];
 
                 loop {
                     let mut curr_input = String::new();
                     print!(">>> ");
                     std::io::stdout().flush()?;
                     std::io::stdin().read_line(&mut curr_input)?;
-                    conversation.push(curr_input);
-
-                    let result = if conversation.len() == 1 {
-                        single_turn(
-                            &conversation[0],
-                            &index,
-                        ).await?
-                    } else {
-                        multi_turn(
-                            conversation.clone(),
-                            &index,
-                        ).await?
-                    };
-
-                    println!("{result}");
-                    conversation.push(result);
+                    let response = query(
+                        &curr_input,
+                        history.clone(),
+                        &index,
+                    ).await?;
+                    println!("{}", response.response);
+                    history.push(QueryTurn::new(curr_input, response));
                 }
             }
 
             else {
-                let result = single_turn(
+                let response = query(
                     &parsed_args.get_args_exact(1)?[0],
+                    vec![],  // no history
                     &index,
                 ).await?;
-                println!("{result}");
+                println!("{}", response.response);
+
+                if !response.retrieved_chunks.is_empty() {
+                    println!("\n---- sources ----");
+
+                    for chunk in response.retrieved_chunks.iter() {
+                        println!("{}", chunk.render_source());
+                    }
+                }
             }
         },
         Some("remove") | Some("rm") => {

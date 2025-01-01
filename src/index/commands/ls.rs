@@ -23,6 +23,12 @@ pub struct LsChunk {
     pub uid: Uid,
 }
 
+impl LsChunk {
+    pub fn render_source(&self) -> String {
+        self.source.render()
+    }
+}
+
 impl From<Chunk> for LsChunk {
     fn from(c: Chunk) -> LsChunk {
         LsChunk {

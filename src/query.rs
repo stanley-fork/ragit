@@ -4,18 +4,13 @@ use crate::error::Error;
 use crate::index::Index;
 use ragit_api::{
     ChatRequest,
-    JsonType,
     RecordAt,
 };
 use ragit_pdl::{
-    Message,
-    MessageContent,
     Pdl,
-    Role,
     escape_pdl_tokens,
     parse_pdl,
 };
-use regex::Regex;
 use serde::Deserialize;
 use serde_json::Value;
 
@@ -24,6 +19,25 @@ mod keyword;
 
 pub use config::{QueryConfig, QUERY_CONFIG_FILE_NAME};
 pub use keyword::{Keywords, extract_keywords};
+
+#[derive(Clone, Debug)]
+pub struct QueryResponse {
+    pub multi_turn_schema: Option<MultiTurnSchema>,
+    pub retrieved_chunks: Vec<Chunk>,
+    pub response: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct QueryTurn {
+    pub query: String,
+    pub response: QueryResponse,
+}
+
+impl QueryTurn {
+    pub fn new(query: String, response: QueryResponse) -> Self {
+        QueryTurn { query, response }
+    }
+}
 
 pub async fn retrieve_chunks(
     query: &str,
@@ -51,38 +65,66 @@ pub async fn retrieve_chunks(
     Ok(chunks)
 }
 
+/// A simple version of `query`, in case you're asking only a single question.
 pub async fn single_turn(
-    query: &str,
+    q: &str,
     index: &Index,
 ) -> Result<String, Error> {
-    let chunks = retrieve_chunks(query, index).await?;
-
-    if chunks.is_empty() {
-        raw_request(
-            query,
-            &index.api_config,
-            &index.get_prompt("raw")?,
-        ).await
-    }
-
-    else {
-        answer_query_with_chunks(
-            query,
-            merge_and_convert_chunks(index, chunks)?,
-            &index.api_config,
-            &index.get_prompt("answer_query")?,
-        ).await
-    }
+    let result = query(q, vec![], index).await?;
+    Ok(result.response)
 }
 
-pub async fn multi_turn(
-    turns: Vec<String>,
+pub async fn query(
+    q: &str,
+    history: Vec<QueryTurn>,
     index: &Index,
-) -> Result<String, Error> {
-    single_turn(
-        &rephrase_multi_turn(turns, &index.api_config, &index.get_prompt("multi_turn")?).await?,
-        index,
-    ).await
+) -> Result<QueryResponse, Error> {
+    let (multi_turn_schema, query) = if history.is_empty() {
+        (None, q.to_string())
+    } else {
+        let multi_turn_schema = rephrase_multi_turn(
+            select_turns_for_context(&history, q),
+            &index.api_config,
+            &index.get_prompt("multi_turn")?,
+        ).await?;
+        let query = if multi_turn_schema.is_query {
+            multi_turn_schema.query.clone()
+        } else {
+            q.to_string()
+        };
+
+        (Some(multi_turn_schema), query)
+    };
+    let chunks = retrieve_chunks(&query, index).await?;
+
+    let response = if chunks.is_empty() {
+        let mut history_turns = Vec::with_capacity(history.len() * 2);
+
+        for h in history.iter() {
+            history_turns.push(h.query.clone());
+            history_turns.push(h.response.response.clone());
+        }
+
+        raw_request(
+            q,
+            history_turns,
+            &index.api_config,
+            &index.get_prompt("raw")?,
+        ).await?
+    } else {
+        answer_query_with_chunks(
+            &query,
+            merge_and_convert_chunks(index, chunks.clone())?,
+            &index.api_config,
+            &index.get_prompt("answer_query")?,
+        ).await?
+    };
+
+    Ok(QueryResponse {
+        multi_turn_schema,
+        retrieved_chunks: chunks,
+        response,
+    })
 }
 
 pub async fn titles_to_summaries(
@@ -258,11 +300,18 @@ pub async fn answer_query_with_chunks(
     Ok(response.get_message(0).unwrap().to_string())
 }
 
-#[derive(Deserialize)]
+/// Ragit supports multi-turn conversations. Since the pipeline
+/// can handle only 1 query at a time, a multi-turn conversation
+/// has to be rephrased into a single query. Ragit uses a
+/// prompt to do that. This struct is a result of the prompt.
+/// If `is_query` is set, the rephrasing is successful and you
+/// can find the query in `query`. Otherwise, the last turn of
+/// the conversation is not a query.
+#[derive(Clone, Debug, Deserialize)]
 pub struct MultiTurnSchema {
-    is_query: bool,
-    in_context: bool,
-    query: String,
+    pub is_query: bool,
+    pub in_context: bool,
+    pub query: String,
 }
 
 impl Default for MultiTurnSchema {
@@ -279,7 +328,7 @@ pub async fn rephrase_multi_turn(
     turns: Vec<String>,
     api_config: &ApiConfig,
     pdl: &str,
-) -> Result<String, Error> {
+) -> Result<MultiTurnSchema, Error> {
     let turns_json = Value::Array(turns.iter().map(|turn| Value::String(escape_pdl_tokens(turn))).collect());
     let turns_json = String::from_utf8_lossy(&serde_json::to_vec_pretty(&turns_json)?).to_string();
     let mut tera_context = tera::Context::new();
@@ -293,7 +342,7 @@ pub async fn rephrase_multi_turn(
         true,
     )?;
 
-    let mut request = ChatRequest {
+    let request = ChatRequest {
         messages,
         frequency_penalty: None,
         max_tokens: None,
@@ -311,24 +360,19 @@ pub async fn rephrase_multi_turn(
         schema,
         schema_max_try: 3,
     };
-    let multi_turn_schema = request.send_and_validate::<MultiTurnSchema>(MultiTurnSchema::default()).await?;
 
-    if multi_turn_schema.is_query {
-        Ok(multi_turn_schema.query)
-    }
-
-    else {
-        Ok(turns.last().unwrap().to_string())
-    }
+    Ok(request.send_and_validate::<MultiTurnSchema>(MultiTurnSchema::default()).await?)
 }
 
 pub async fn raw_request(
     query: &str,
+    history: Vec<String>,
     api_config: &ApiConfig,
     pdl: &str,
 ) -> Result<String, Error> {
     let mut tera_context = tera::Context::new();
     tera_context.insert("query", &escape_pdl_tokens(&query));
+    tera_context.insert("history", &history.iter().map(|h| escape_pdl_tokens(h)).collect::<Vec<_>>());
 
     let Pdl { messages, .. } = parse_pdl(
         pdl,
@@ -355,4 +399,26 @@ pub async fn raw_request(
 
     let response = request.send().await?;
     Ok(response.get_message(0).unwrap().to_string())
+}
+
+fn select_turns_for_context(history: &[QueryTurn], query: &str) -> Vec<String> {
+    match history.len() {
+        0 => unreachable!(),
+        1 => vec![
+            history[0].query.to_string(),
+            history[0].response.response.to_string(),
+            query.to_string(),
+        ],
+        _ => {
+            // case 1: last turn was in-context query
+            //         -> use the rephrased query of the last turn
+            // case 2: last turn was non-context query
+            //         -> use the query of the last turn
+            // case 3: last turn was in-context non-query
+            //         -> TODO
+            // case 4: last turn was non-context non-query
+            //         -> use the query of the last turn
+            todo!()
+        },
+    }
 }

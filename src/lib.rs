@@ -38,9 +38,13 @@ pub use index::{
 };
 pub use query::{
     QueryConfig,
+    QueryResponse,
+    QueryTurn,
     Keywords,
+    extract_keywords,
+    query,
+    retrieve_chunks,
     single_turn,
-    multi_turn,
 };
 pub use uid::{Uid, UidQuery, UidQueryResult};
 

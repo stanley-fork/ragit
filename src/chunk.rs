@@ -256,10 +256,7 @@ impl Chunk {
     }
 
     pub fn render_source(&self) -> String {
-        match &self.source {
-            ChunkSource::File { path, .. } => path.to_string(),
-            ChunkSource::Chunks(_) => todo!(),
-        }
+        self.source.render()
     }
 }
 
