@@ -4,3 +4,4 @@ Cargo.lock
 __pycache__
 target
 ragit-server-logs*
+tests/result.json

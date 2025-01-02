@@ -247,13 +247,14 @@ if __name__ == "__main__":
 
             started_at = datetime.now()
             has_error = False
-            results = {
-                "_meta": {
+            result = {
+                "meta": {
                     "complete": False,
                     "started_at": str(started_at),
                     "commit": get_commit_hash(),
                     "platform": get_platform_info(),
                 },
+                "tests": {},
             }
             tests = [
                 ("add_and_rm", add_and_rm),
@@ -297,14 +298,14 @@ if __name__ == "__main__":
 
                 except Exception as e:
                     has_error = True
-                    results[name] = {
+                    result["tests"][name] = {
                         "pass": False,
                         "error": str(e) + "\n" + traceback.format_exc(),
                         "elapsed_ms": int((time.time() - start) * 1000),
                     }
 
                 else:
-                    results[name] = {
+                    result["tests"][name] = {
                         "pass": True,
                         "error": None,
                         "elapsed_ms": int((time.time() - start) * 1000),
@@ -317,20 +318,19 @@ if __name__ == "__main__":
                     goto_root()
                     os.chdir("tests")
 
-                    with open("results.json", "w") as f:
-                        result = json.dumps(results, indent=4)
-                        f.write(result)
+                    with open("result.json", "w") as f:
+                        f.write(json.dumps(result, indent=4))
 
             ended_at = datetime.now()
-            results["_meta"]["ended_at"] = str(ended_at)
-            results["_meta"]["elapsed_ms"] = (ended_at - started_at).seconds * 1000 + (ended_at - started_at).microseconds // 1000
-            results["_meta"]["complete"] = True
+            result["meta"]["ended_at"] = str(ended_at)
+            result["meta"]["elapsed_ms"] = (ended_at - started_at).seconds * 1000 + (ended_at - started_at).microseconds // 1000
+            result["meta"]["complete"] = True
             goto_root()
             os.chdir("tests")
-            result = json.dumps(results, indent=4)
+            result = json.dumps(result, indent=4)
             print(result)
 
-            with open("results.json", "w") as f:
+            with open("result.json", "w") as f:
                 f.write(result)
 
             if has_error:
