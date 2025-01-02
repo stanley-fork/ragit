@@ -116,7 +116,7 @@ impl Index {
             &self.root_dir,
             &INDEX_DIR_NAME,
             &FILE_INDEX_DIR_NAME,
-        )?)? {
+        )?, false)? {
             remove_dir_all(&dir)?;
         }
 

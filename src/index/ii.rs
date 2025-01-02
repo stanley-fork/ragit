@@ -128,7 +128,6 @@ impl Index {
         let mut state = IIBuildState::default();
         let mut uid_check_point = None;
 
-        // TODO: it needs an assumption that `get_all_chunk_uids` sort the result by uid
         for uid in self.get_all_chunk_uids()? {
             if uid_check_point.is_none() {
                 uid_check_point = Some(uid);
@@ -169,7 +168,7 @@ impl Index {
             II_DIR_NAME,
         )?;
 
-        for dir in read_dir(&ii_path)? {
+        for dir in read_dir(&ii_path, false)? {
             if is_dir(&dir) {
                 remove_dir_all(&dir)?;
             }

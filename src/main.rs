@@ -1049,8 +1049,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 fn find_root() -> Result<String, Error> {
     let mut curr = String::from(".");
 
+    // FIXME: why is it allocating Vec twice?
     loop {
-        let curr_files_ = read_dir(&curr)?;
+        let curr_files_ = read_dir(&curr, false)?;
         let mut curr_files = Vec::with_capacity(curr_files_.len());
 
         for f in curr_files_.iter() {

@@ -35,7 +35,7 @@ use std::str::FromStr;
 ///
 /// The first 192 bits (128 of `high` + 64 of `low`) are from the hash function, and
 /// the remaining bits are for metadata.
-#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Uid {
     high: u128,
     low: u128,
@@ -286,48 +286,58 @@ impl std::ops::BitXorAssign for Uid {
 }
 
 impl Index {
+    /// The result is sorted by uid.
+    /// Sorting 1) makes the result deterministic and 2) some functions rely on this behavior.
     pub fn get_all_chunk_uids(&self) -> Result<Vec<Uid>, Error> {
         let mut result = vec![];
 
-        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?)? {
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &CHUNK_DIR_NAME)?, false)? {
             let prefix = file_name(&internal)?;
 
             if !is_dir(&internal) {
                 continue;
             }
 
-            for chunk_file in read_dir(&internal)? {
+            for chunk_file in read_dir(&internal, false)? {
                 if extension(&chunk_file).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
                     result.push(Uid::from_prefix_and_suffix(&prefix, &file_name(&chunk_file)?)?);
                 }
             }
         }
 
+        result.sort();
         Ok(result)
     }
 
+    /// The result is sorted by uid.
+    /// Sorting 1) makes the result deterministic and 2) some functions rely on this behavior.
     pub fn get_all_image_uids(&self) -> Result<Vec<Uid>, Error> {
         let mut result = vec![];
 
-        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?)? {
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &IMAGE_DIR_NAME)?, false)? {
             let prefix = file_name(&internal)?;
 
             if !is_dir(&internal) {
                 continue;
             }
 
-            for image_file in read_dir(&internal)? {
+            for image_file in read_dir(&internal, false)? {
                 if extension(&image_file).unwrap_or(None).unwrap_or(String::new()) == "png" {
                     result.push(Uid::from_prefix_and_suffix(&prefix, &file_name(&image_file)?)?);
                 }
             }
         }
 
+        result.sort();
         Ok(result)
     }
 
+    /// The result is sorted by uid.
+    /// Sorting 1) makes the result deterministic and 2) some functions rely on this behavior.
     pub fn get_all_file_uids(&self) -> Vec<Uid> {
-        self.processed_files.values().map(|uid| *uid).collect()
+        let mut result: Vec<Uid> = self.processed_files.values().map(|uid| *uid).collect();
+        result.sort();
+        result
     }
 
     pub fn uid_query(&self, q: UidQuery) -> Result<UidQueryResult, Error> {
@@ -350,11 +360,11 @@ impl Index {
                         &self.root_dir,
                         INDEX_DIR_NAME,
                         CHUNK_DIR_NAME,
-                    )?).unwrap_or(vec![]) {
+                    )?, false).unwrap_or(vec![]) {
                         let chunk_prefix = file_name(&chunk_dir)?;
 
                         if chunk_prefix.starts_with(&q.query) {
-                            for chunk_file in read_dir(&chunk_dir)? {
+                            for chunk_file in read_dir(&chunk_dir, false)? {
                                 if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
                                     continue;
                                 }
@@ -370,11 +380,11 @@ impl Index {
                         &self.root_dir,
                         INDEX_DIR_NAME,
                         FILE_INDEX_DIR_NAME,
-                    )?).unwrap_or(vec![]) {
+                    )?, false).unwrap_or(vec![]) {
                         let file_index_prefix = file_name(&file_index_dir)?;
 
                         if file_index_prefix.starts_with(&q.query) {
-                            for file_index in read_dir(&file_index_dir)? {
+                            for file_index in read_dir(&file_index_dir, false)? {
                                 file_uids.push(Uid::from_prefix_and_suffix(&file_index_prefix, &file_name(&file_index)?)?);
                             }
                         }
@@ -386,11 +396,11 @@ impl Index {
                         &self.root_dir,
                         INDEX_DIR_NAME,
                         IMAGE_DIR_NAME,
-                    )?).unwrap_or(vec![]) {
+                    )?, false).unwrap_or(vec![]) {
                         let image_prefix = file_name(&image_dir)?;
 
                         if image_prefix.starts_with(&q.query) {
-                            for image_file in read_dir(&image_dir)? {
+                            for image_file in read_dir(&image_dir, false)? {
                                 if extension(&image_file)?.unwrap_or(String::new()) != "png" {
                                     continue;
                                 }
@@ -409,7 +419,7 @@ impl Index {
                         INDEX_DIR_NAME,
                         CHUNK_DIR_NAME,
                         &q.query,
-                    )?).unwrap_or(vec![]) {
+                    )?, false).unwrap_or(vec![]) {
                         if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
                             continue;
                         }
@@ -424,7 +434,7 @@ impl Index {
                         INDEX_DIR_NAME,
                         FILE_INDEX_DIR_NAME,
                         &q.query,
-                    )?).unwrap_or(vec![]) {
+                    )?, false).unwrap_or(vec![]) {
                         file_uids.push(Uid::from_prefix_and_suffix(&q.query, &file_name(&file_index)?)?);
                     }
                 }
@@ -435,7 +445,7 @@ impl Index {
                         INDEX_DIR_NAME,
                         IMAGE_DIR_NAME,
                         &q.query,
-                    )?).unwrap_or(vec![]) {
+                    )?, false).unwrap_or(vec![]) {
                         if extension(&image_file)?.unwrap_or(String::new()) != "png" {
                             continue;
                         }
@@ -477,7 +487,7 @@ impl Index {
                             INDEX_DIR_NAME,
                             CHUNK_DIR_NAME,
                             &prefix,
-                        )?).unwrap_or(vec![]) {
+                        )?, false).unwrap_or(vec![]) {
                             if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
                                 continue;
                             }
@@ -516,7 +526,7 @@ impl Index {
                             INDEX_DIR_NAME,
                             FILE_INDEX_DIR_NAME,
                             &prefix,
-                        )?).unwrap_or(vec![]) {
+                        )?, false).unwrap_or(vec![]) {
                             let file_index = file_name(&file_index)?;
 
                             if file_index.starts_with(&suffix) {
@@ -554,7 +564,7 @@ impl Index {
                             INDEX_DIR_NAME,
                             IMAGE_DIR_NAME,
                             &prefix,
-                        )?).unwrap_or(vec![]) {
+                        )?, false).unwrap_or(vec![]) {
                             if extension(&image_file)?.unwrap_or(String::new()) != "png" {
                                 continue;
                             }
@@ -598,10 +608,18 @@ impl Index {
             processed_files.insert((processed_files_rev.get(uid).unwrap().to_string(), *uid));
         }
 
+        let mut processed_files: Vec<(String, Uid)> = processed_files.into_iter().collect();
+
+        // the result has to be deterministic 
+        chunks.sort();
+        images.sort();
+        processed_files.sort();
+        staged_files.sort();
+
         Ok(UidQueryResult {
             chunks,
             images,
-            processed_files: processed_files.into_iter().collect(),
+            processed_files,
             staged_files,
         })
     }

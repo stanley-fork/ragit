@@ -219,7 +219,7 @@ pub fn copy_dir(src: &str, dst: &str) -> Result<(), FileError> {
     create_dir_all(dst)?;
 
     // TODO: how about links?
-    for e in read_dir(src)? {
+    for e in read_dir(src, false)? {
         let new_dst = join(dst, &basename(&e)?)?;
 
         if is_dir(&e) {
@@ -264,7 +264,7 @@ pub fn file_size(path: &str) -> Result<u64, FileError> {
     }
 }
 
-pub fn read_dir(path: &str) -> Result<Vec<String>, FileError> {
+pub fn read_dir(path: &str, sort: bool) -> Result<Vec<String>, FileError> {
     match fs::read_dir(path) {
         Err(e) => Err(FileError::from_std(e, path)),
         Ok(entries) => {
@@ -283,7 +283,10 @@ pub fn read_dir(path: &str) -> Result<Vec<String>, FileError> {
                 }
             }
 
-            result.sort();
+            if sort {
+                result.sort();
+            }
+
             Ok(result)
         }
     }
@@ -442,54 +445,4 @@ pub enum FileErrorKind {
     CannotDiffPath(String, String),
     Unknown(String),
     OsStrErr(OsString),
-}
-
-/// The extension is case insensitive
-pub fn get_files_by_extension(
-    dir: &str,
-    ext: &str,
-) -> Vec<String> {
-    let mut result = vec![];
-    let mut files = match read_dir(dir) {
-        Ok(files) => files,
-        _ => {
-            return vec![];
-        },
-    };
-
-    files.sort();
-
-    for file in files.iter() {
-        match extension(&file) {
-            Ok(Some(curr_ext)) if &curr_ext.to_ascii_lowercase() == ext => {
-                result.push(file_name(file).unwrap());
-            },
-            _ => {},
-        }
-    }
-
-    result
-}
-
-pub fn get_sub_directories(path: &str) -> Vec<String> {
-    match read_dir(path) {
-        Err(_) => vec![],
-        Ok(files) => files.into_iter().filter(|f| is_dir(f)).collect(),
-    }
-}
-
-pub fn get_sub_directories_recursive(path: &str) -> Vec<String> {
-    match read_dir(path) {
-        Err(_) => vec![],
-        Ok(files) => {
-            let sub_dirs = files.into_iter().filter(|f| is_dir(f)).collect::<Vec<String>>();
-
-            let sub_sub = sub_dirs.iter().map(|dir| get_sub_directories_recursive(dir)).collect::<Vec<Vec<String>>>().concat();
-
-            vec![
-                sub_dirs,
-                sub_sub,
-            ].concat()
-        },
-    }
 }

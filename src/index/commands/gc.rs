@@ -23,7 +23,7 @@ impl Index {
         );
         let mut count = 0;
 
-        for file in read_dir(&logs_at)? {
+        for file in read_dir(&logs_at, false)? {
             count += 1;
             remove_file(&file)?;
         }

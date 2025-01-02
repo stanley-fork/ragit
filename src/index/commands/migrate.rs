@@ -241,7 +241,7 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
         root_dir,
         ".ragit",
         "chunks",
-    )?)? {
+    )?, false)? {
         if extension(&chunk_file)?.unwrap_or(String::new()) != "chunks" {
             continue;
         }
@@ -397,7 +397,7 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
         "images",
     )?;
 
-    for image_file in read_dir(&image_dir)? {
+    for image_file in read_dir(&image_dir, false)? {
         let curr_ext = extension(&image_file)?.unwrap_or(String::new());
 
         if curr_ext != "png" && curr_ext != "json" {
