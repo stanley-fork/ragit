@@ -24,14 +24,44 @@ import os
 import sys
 from utils import clean, goto_root
 
-def get_git_commit_hash():
+def get_commit_hash():
     try:
-        import git
-        repo = git.Repo(search_parent_directories=True)
-        return repo.head.object.hexsha
+        import subprocess
+        return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
 
-    except:
-        return "please install `git` package"
+    except Exception as e:
+        return f"cannot get commit_hash: {e}"
+
+def get_platform_info() -> dict[str, str]:
+    result = {}
+
+    try:
+        import subprocess
+        result["cargo_version"] = subprocess.run(["cargo", "version"], capture_output=True, text=True, check=True).stdout.strip()
+
+    except Exception as e:
+        result["cargo_version"] = f"cannot get cargo_version: {e}"
+
+    try:
+        result["rustc_version"] = subprocess.run(["rustc", "--version"], capture_output=True, text=True, check=True).stdout.strip()
+
+    except Exception as e:
+        result["rustc_version"] = f"cannot get rustc_version: {e}"
+
+    try:
+        import platform
+        result["python_version"] = platform.python_version()
+
+    except Exception as e:
+        result["python_version"] = f"cannot get python_version: {e}"
+
+    try:
+        result["platform"] = platform.platform()
+
+    except Exception as e:
+        result["platform"] = f"cannot get platform: {e}"
+
+    return result
 
 help_message = """
 Commands
@@ -210,15 +240,19 @@ if __name__ == "__main__":
             cargo_tests()
 
         elif command == "all":
+            from datetime import datetime
             import json
             import time
             import traceback
 
-            start_all = time.time()
+            started_at = datetime.now()
             has_error = False
             results = {
                 "_meta": {
                     "complete": False,
+                    "started_at": str(started_at),
+                    "commit": get_commit_hash(),
+                    "platform": get_platform_info(),
                 },
             }
             tests = [
@@ -287,8 +321,9 @@ if __name__ == "__main__":
                         result = json.dumps(results, indent=4)
                         f.write(result)
 
-            results["_meta"]["version"] = get_git_commit_hash()
-            results["_meta"]["elapsed_ms"] = int((time.time() - start_all) * 1000)
+            ended_at = datetime.now()
+            results["_meta"]["ended_at"] = str(ended_at)
+            results["_meta"]["elapsed_ms"] = (ended_at - started_at).seconds * 1000 + (ended_at - started_at).microseconds // 1000
             results["_meta"]["complete"] = True
             goto_root()
             os.chdir("tests")
