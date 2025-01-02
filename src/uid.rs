@@ -41,6 +41,13 @@ pub struct Uid {
     low: u128,
 }
 
+pub enum UidType {
+    Chunk,
+    Image,
+    File,
+    Group,
+}
+
 lazy_static! {
     // full or prefix
     static ref UID_RE: Regex = Regex::new(r"^([0-9a-z]{1,64})$").unwrap();
@@ -87,6 +94,7 @@ impl Uid {
     const CHUNK_TYPE: u128 = (0x1 << 32);
     const IMAGE_TYPE: u128 = (0x2 << 32);
     const FILE_TYPE: u128 = (0x3 << 32);
+    const GROUP_TYPE: u128 = (0x4 << 32);
 
     pub(crate) fn dummy() -> Self {
         Uid {
@@ -151,6 +159,25 @@ impl Uid {
         Ok(result)
     }
 
+    pub fn new_group(uids: &[Uid]) -> Result<Self, Error> {
+        let mut result = Uid::dummy();
+        let mut child_count = 0;
+
+        for uid in uids.iter() {
+            result ^= *uid;
+
+            match uid.get_uid_type() {
+                UidType::Group => { child_count += uid.get_data_size(); },
+                _ => { child_count += 1; },
+            }
+        }
+
+        result.low &= Uid::METADATA_MASK;
+        result.low |= Uid::GROUP_TYPE;
+        result.low |= (child_count as u128) & 0xffff_ffff;
+        Ok(result)
+    }
+
     // TODO: this function has to be tested
     pub fn update_file_uid(mut old: Uid, old_path: &str, new_path: &str) -> Self {
         let mut old_path_hasher = Sha3_256::new();
@@ -192,6 +219,18 @@ impl Uid {
 
     pub(crate) fn get_suffix(&self) -> String {
         format!("{:030x}{:032x}", self.high & 0xff_ffff_ffff_ffff_ffff_ffff_ffff_ffff, self.low)
+    }
+
+    pub(crate) fn get_uid_type(&self) -> UidType {
+        let field = (self.low >> 32) & 0xf;
+
+        match field {
+            Uid::CHUNK_TYPE => UidType::Chunk,
+            Uid::IMAGE_TYPE => UidType::Image,
+            Uid::FILE_TYPE => UidType::File,
+            Uid::GROUP_TYPE => UidType::Group,
+            _ => unreachable!(),
+        }
     }
 
     pub(crate) fn get_data_size(&self) -> usize {
