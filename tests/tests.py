@@ -257,6 +257,7 @@ if __name__ == "__main__":
                 "tests": {},
             }
             tests = [
+                ("cargo_tests", cargo_tests),
                 ("add_and_rm", add_and_rm),
                 ("recover", recover),
                 ("clone", clone),
@@ -268,7 +269,6 @@ if __name__ == "__main__":
                 ("images", images),
                 ("markdown_reader", markdown_reader),
                 ("subdir", subdir),
-                ("cargo_tests", cargo_tests),
                 ("tfidf", tfidf),
                 ("merge", merge),
                 ("external_bases", external_bases),
