@@ -135,7 +135,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let query = parsed_args.get_args_exact(1)?[0].clone();
             let query_result = index.uid_query(UidQuery::with_query(query.clone()).file_or_chunk())?;
 
@@ -312,7 +312,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!("removed {removed} log files");
                 },
                 "--images" => {
-                    let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+                    let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_images()?;
                     println!("removed {removed} files");
                 },
@@ -381,7 +381,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let status = match index.ii_status {
                 IIStatus::None => "not initialized",
                 IIStatus::Complete => "complete",
@@ -414,7 +414,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let chunks = match parsed_args.get_args().get(0) {
                 Some(arg) => {
                     let query = index.uid_query(UidQuery::with_query(arg.to_string()).file_or_chunk())?;
@@ -490,7 +490,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let files = match parsed_args.get_args().get(0) {
                 Some(arg) => {
                     let query = index.uid_query(UidQuery::with_query(arg.to_string()).file_only())?;
@@ -580,7 +580,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let images = match parsed_args.get_args().get(0) {
                 Some(arg) => {
                     let query = index.uid_query(UidQuery::with_query(arg.to_string()))?;
@@ -699,7 +699,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("{}", include_str!("../docs/commands/ls-terms.txt"));
                 return Ok(());
             }
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let term_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--term-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
 
@@ -859,7 +859,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
             if parsed_args.get_flag(0).is_some() {
                 let mut history = vec![];
@@ -951,7 +951,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let started_at = std::time::Instant::now();
             let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();
