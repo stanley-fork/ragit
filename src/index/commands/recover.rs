@@ -23,6 +23,7 @@ use ragit_fs::{
     write_bytes,
 };
 use std::collections::HashMap;
+use std::fmt;
 
 pub type Path = String;
 
@@ -40,6 +41,19 @@ impl RecoverResult {
         && self.created_tfidfs == 0
         && self.replaced_configs.is_empty()
         && self.staged_files.is_empty()
+    }
+}
+
+impl fmt::Display for RecoverResult {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(
+            fmt,
+            "{} chunks removed, {} tfidfs created, {} configs replaced, {} files staged",
+            self.removed_chunks,
+            self.created_tfidfs,
+            self.replaced_configs.len(),
+            self.staged_files.len(),
+        )
     }
 }
 

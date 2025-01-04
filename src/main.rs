@@ -208,7 +208,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let recover_result = index.recover()?;
                     index.save_to_file()?;
                     index.check()?;
-                    println!("recovered from a corrupted knowledge-base: {recover_result:?}");
+                    println!("recovered from a corrupted knowledge-base: {recover_result}");
                 } else {
                     match index.check() {
                         Ok(()) => {
@@ -218,7 +218,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                             let recover_result = index.recover()?;
                             index.save_to_file()?;
                             index.check()?;
-                            println!("recovered from a corrupted knowledge-base: {recover_result:?}");
+                            println!("recovered from a corrupted knowledge-base: {recover_result}");
                         } else {
                             return Err(e);
                         }
@@ -229,7 +229,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let recover_result = index.recover()?;
                     index.save_to_file()?;
                     index.check()?;
-                    println!("recovered from a corrupted knowledge-base: {recover_result:?}");
+                    println!("recovered from a corrupted knowledge-base: {recover_result}");
                 } else {
                     return Err(e);
                 },
@@ -846,7 +846,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let recover_result = index.recover()?;
 
             if !recover_result.is_empty() {
-                println!("recovered from a corrupted knowledge-base: {recover_result:?}");
+                println!("recovered from a corrupted knowledge-base: {recover_result}");
             }
 
             index.save_to_file()?;
