@@ -87,7 +87,7 @@ pub async fn query(
             &index.api_config,
             &index.get_prompt("multi_turn")?,
         ).await?;
-        let query = if multi_turn_schema.is_query {
+        let query = if multi_turn_schema.is_query && multi_turn_schema.in_context {
             multi_turn_schema.query.clone()
         } else {
             q.to_string()
@@ -410,15 +410,50 @@ fn select_turns_for_context(history: &[QueryTurn], query: &str) -> Vec<String> {
             query.to_string(),
         ],
         _ => {
-            // case 1: last turn was in-context query
-            //         -> use the rephrased query of the last turn
-            // case 2: last turn was non-context query
-            //         -> use the query of the last turn
-            // case 3: last turn was in-context non-query
-            //         -> TODO
-            // case 4: last turn was non-context non-query
-            //         -> use the query of the last turn
-            todo!()
+            let last_turn = history.last().unwrap();
+
+            match &last_turn.response.multi_turn_schema {
+                None => vec![
+                    last_turn.query.to_string(),
+                    last_turn.response.response.to_string(),
+                    query.to_string(),
+                ],
+                // use rephrased query if in-context
+                Some(MultiTurnSchema {
+                    is_query: true,
+                    in_context: true,
+                    query: rephrased_query,
+                }) => vec![
+                    rephrased_query.to_string(),
+                    last_turn.response.response.to_string(),
+                    query.to_string(),
+                ],
+                // still in context, but is not a query (e.g. greetings)
+                Some(MultiTurnSchema {
+                    is_query: false,
+                    in_context: true,
+                    query: _,
+                }) => {
+                    let before_last_turn = history.get(history.len() - 2).unwrap();
+
+                    vec![
+                        before_last_turn.query.to_string(),
+                        before_last_turn.response.response.to_string(),
+                        last_turn.query.to_string(),
+                        last_turn.response.response.to_string(),
+                        query.to_string(),
+                    ]
+                },
+                // start a new context
+                Some(MultiTurnSchema {
+                    in_context: false,
+                    ..
+                }) => vec![
+                    last_turn.query.to_string(),
+                    last_turn.response.response.to_string(),
+                    query.to_string(),
+                ],
+            }
         },
     }
 }

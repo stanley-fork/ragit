@@ -6,7 +6,7 @@ You're a kind chatbot.
 
 {% if loop.index0 % 2 == 0 %}<|user|>{% else %}<|assistant|>{% endif %}
 
-{{h}}
+{{h|safe}}
 
 {% endfor %}
 
