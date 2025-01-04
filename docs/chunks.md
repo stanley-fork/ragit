@@ -6,9 +6,9 @@ A chunk is a basic building block of a knowledge-base. Ragit splits data files i
 
 You build a knowledge-base from raw data files, like `.md`, `.txt`, `.pdf`... There are 3 kinds of files: unstaged files, staged files and processed files. If you're familiar with git, you must be familiar with the word "stage". Yes that's it.
 
-When you first run `rag init`, an empty knowledge-base is created. There's no staged file and no processed file. You then have to run `rag add` to stage files. For example, `rag add *.txt` will add all the text files in the directory to the staging area. `rag add` doesn't care whether the file actually exists or not. `rag add file_that_does_not_exist` would work perfectly and just add the file to the staging area.
+Ragit tries to be as git-like as possible. Staged files are like those in git and processed files are like committed files in git. You run `rag add *.txt` or `rag add --all` to stage files. `rag add` respects `.ragignore` file in the root directory (where `.ragit/` exists). `rag build` pops files from the staging area, create chunks for the file, then mark the file as "processed".
 
-When you run `rag build`, it pops a file from the staging area, creates chunks for the file, then mark the file as "processed". So, "processed files" are the files who have chunks and ready to be queried. `rag build` does care whether the file actually exists. If you run `rag add file_that_does_not_exist; rag build`, `rag add` would succeed and `rag build` would fail.
+If the file you're trying to `add` is already processed, its behavior depends on whether the file is modified since the last `rag build`. If it has been modified, it's staged again. The previously created chunks are not removed until `rag build` is run. If it hasn't been modified, it's not staged. It's not staged even when `--force` is set. In order to stage such file, you first have to run `rag remove <FILE>`.
 
 Once a file is processed, `rag query` can use the chunks from the file. `rag query` doesn't care whether the original file exists or not. Chunks have all the information that `rag query` needs, and it doesn't try to look for the original file. That means you can delete the original files after `rag build` is complete.
 

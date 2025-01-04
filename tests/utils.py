@@ -80,16 +80,6 @@ def count_images() -> int:
     first_line = images.split("\n")[0]
     return int(re.search(r"^(\d+)\simages", first_line).group(1))
 
-def parse_add_output(args: list[str], rag_check=True) -> Tuple[int, int, int]:
-    output = cargo_run(["add"] + args, stdout=True)
-
-    if rag_check:
-        cargo_run(["check"])
-
-    first_line = output.split("\n")[0]
-    added, updated, ignored = re.search(r"(\d+)\sadded\sfiles\,\s(\d+)\supdated\sfiles\,\s(\d+)\signored\sfiles", first_line).groups()
-    return int(added), int(updated), int(ignored)
-
 def parse_tfidf_output(args: list[str]) -> int:
     output = cargo_run(["tfidf"] + args, stdout=True)
 

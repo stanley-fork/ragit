@@ -38,7 +38,10 @@ pub enum Error {
     },
     CannotClone(String),
     CannotUpdateII(IIStatus),
-    AddConflict(Path),
+    CannotAddFile {
+        file: String,  // rel_path
+        message: String,
+    },
     MergeConflict(Uid),
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,

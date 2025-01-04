@@ -1,7 +1,6 @@
 use async_recursion::async_recursion;
 use ragit::{
     AddMode,
-    AddResult,
     Error,
     IIStatus,
     Index,
@@ -79,42 +78,44 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
     match args.get(1).map(|arg| arg.as_str()) {
         Some("add") => {
-            let parsed_args = ArgParser::new().flag_with_default(&["--ignore", "--auto", "--force", "--reject"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--reject", "--force"]).optional_flag(&["--all"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/add.txt"));
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            let add_mode = AddMode::parse_flag(&parsed_args.get_flag(0).unwrap()).unwrap();
-            let dry_run = parsed_args.get_flag(1).is_some();
+            let root_dir = root_dir?;
+            let mut index = Index::load(root_dir.clone(), LoadMode::QuickCheck)?;
+            let add_mode = parsed_args.get_flag(0).map(|flag| AddMode::parse_flag(&flag)).unwrap_or(None);
+            let all = parsed_args.get_flag(1).is_some();
+            let dry_run = parsed_args.get_flag(2).is_some();
+            let ignore_file = index.read_ignore_file()?;
 
-            let files = parsed_args.get_args();
-            let (mut added, mut updated, mut ignored) = (0, 0, 0);
+            let mut files = parsed_args.get_args();
+
+            if all {
+                if !files.is_empty() {
+                    return Err(Error::CliError(format!("You cannot use `--all` options with paths.")));
+                }
+
+                files.push(root_dir.clone());
+            }
 
             // if it's `--reject` mode, it first runs with `--dry-run` mode.
             // if the dry_run has no problem, then it actually runs
-            for path in files.iter() {
-                match index.add_file(
-                    path,
-                    add_mode,
-                    dry_run || add_mode == AddMode::Reject,
-                )? {
-                    AddResult::Added => { added += 1; },
-                    AddResult::Updated => { updated += 1; },
-                    AddResult::Ignored => { ignored += 1; },
-                }
+            let result = index.add_files(
+                &files,
+                add_mode,
+                dry_run || add_mode == Some(AddMode::Reject),
+                &ignore_file,
+            )?;
+
+            if add_mode == Some(AddMode::Reject) && !dry_run {
+                index.add_files(&files, add_mode, dry_run, &ignore_file)?;
             }
 
-            if add_mode == AddMode::Reject && !dry_run {
-                for path in files.iter() {
-                    index.add_file(path, add_mode, dry_run)?;
-                }
-            }
-
-            index.save_to_file()?;
-            println!("{added} added files, {updated} updated files, {ignored} ignored files");
+            println!("{result}");
         },
         Some("build") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;

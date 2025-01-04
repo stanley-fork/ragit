@@ -8,24 +8,37 @@ rag-add - Add files to the staging area
 SYNOPSIS
 --------
 [verse]
-'rag add' [--auto | --force | --ignore | --reject] [--dry-run] <files>...
+'rag add' [--force | --reject] [--dry-run] [--all | <files>...]
 
 DESCRIPTION
 -----------
-Run `rag help chunks` to read documents on chunks and files.
+Run `rag help chunks` to read documents on chunks and files. It also explains
+what staging area and processed files are.
 
 This command adds files to the staging area. Then you have to run `rag build`
-to generate chunks from the files in the staging area. If a file is already staged,
-nothing happens.
+to generate chunks from the files in the staging area.
 
-`--auto`, `--force`, `--ignore` and `--reject` options decide what to do when a file you're
-adding is already processed. With `--auto` option, it checks whether the file has
-been modified since the chunks were generated. If it's modified, it removes the chunks
-and moves the file back to the staging area. Otherwise nothing happens. With `--force`
-option, it always removes the chunks and moves the file back to the staging area. And
-with `--ignore` option, nothing happens. The default option is `--ignore`.
+Below is the behavior of this command according to the flag.
 
-NOTE: `dry-run` is not implemented yet.
+1. `rag add`
 
-NOTE: `--reject` is implemented, but is half-broken. It doesn't clean up the base after
-rejection.
+|           | processed/modified | processed/not-modified |    staged    |    new    |  n exist  |
+|-----------|--------------------|------------------------|--------------|-----------|-----------|
+| ignore    | ignore             | ignore                 | ignore       | ignore    | error     |
+| n ignore  | stage              | ignore                 | ignore       | stage     | error     |
+
+2. `rag add --reject`
+
+|           | processed/modified | processed/not-modified |    staged    |    new    |  n exist  |
+|-----------|--------------------|------------------------|--------------|-----------|-----------|
+| ignore    | error              | error                  | error        | error     | error     |
+| n ignore  | error              | error                  | error        | stage     | error     |
+
+If any file is erroneous, `rag add --reject` does not alter the knowledge-base.
+
+3. `rag add --force`
+
+|           | processed/modified | processed/not-modified |    staged    |    new    |  n exist  |
+|-----------|--------------------|------------------------|--------------|-----------|-----------|
+| ignore    | stage              | ignore                 | ignore       | stage     | error     |
+| n ignore  | stage              | ignore                 | ignore       | stage     | error     |
