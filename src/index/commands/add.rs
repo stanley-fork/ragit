@@ -2,7 +2,8 @@ use super::Index;
 use crate::INDEX_DIR_NAME;
 use crate::error::Error;
 use crate::uid::Uid;
-use ragit_fs::{exists, is_dir, join, read_dir};
+use ragit_fs::{exists, is_dir, join, read_dir, read_string};
+use regex::Regex;
 use std::fmt;
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
@@ -82,7 +83,7 @@ impl Index {
             }
 
             else if is_dir(file) {
-                for (ignored, sub) in walk_tree_with_ignore_file(file, ignore)? {
+                for (ignored, sub) in ignore.walk_tree(&self.root_dir, file)? {
                     if ignored {
                         match mode {
                             None => {
@@ -103,7 +104,7 @@ impl Index {
                 }
             }
 
-            else if has_to_be_ignored(file, ignore)? {
+            else if ignore.is_match(&self.root_dir, file) {
                 match mode {
                     None => {
                         result.ignored += 1;
@@ -192,7 +193,18 @@ impl Index {
     }
 
     pub fn read_ignore_file(&self) -> Result<Ignore, Error> {
-        Ok(Ignore {})  // TODO
+        let ignore_file_at = join(
+            &self.root_dir,
+            ".ragignore",
+        )?;
+
+        if !exists(&ignore_file_at) {
+            Ok(Ignore::new())
+        }
+
+        else {
+            Ok(Ignore::parse(&read_string(&ignore_file_at)?))
+        }
     }
 }
 
@@ -208,36 +220,119 @@ fn is_implicitly_ignored_file(rel_path: &str) -> bool {
     }
 }
 
-// TODO
-pub struct Ignore {}
-
-fn walk_tree_with_ignore_file(
-    dir: &str,
-    ignore: &Ignore,
-) -> Result<Vec<(bool, String)>, Error> {
-    let mut result = vec![];
-    walk_tree_with_ignore_file_worker(dir, ignore, &mut result)?;
-    Ok(result)
+pub struct Ignore {
+    patterns: Vec<IgnorePattern>,
 }
 
-fn walk_tree_with_ignore_file_worker(
-    file: &str,
-    ignore: &Ignore,
-    buffer: &mut Vec<(bool, String)>,
-) -> Result<(), Error> {
-    if is_dir(file) {
-        for entry in read_dir(file, false)? {
-            walk_tree_with_ignore_file_worker(&entry, ignore, buffer)?;
+impl Ignore {
+    pub fn new() -> Self {
+        Ignore {
+            patterns: vec![],
         }
     }
 
-    else {
-        buffer.push((has_to_be_ignored(file, ignore)?, file.to_string()));
+    // like `.gitignore`, `.ragignore` never fails to parse
+    pub fn parse(s: &str) -> Self {
+        let mut patterns = vec![];
+
+        for line in s.lines() {
+            let t = line.trim();
+
+            if t.is_empty() || t.starts_with("#") {
+                continue;
+            }
+
+            let mut t = t.to_string();
+
+            if !t.starts_with("/") {
+                t = format!("**/{t}");
+            }
+
+            patterns.push(IgnorePattern::parse(&t));
+        }
+
+        Ignore { patterns }
     }
 
-    Ok(())
+    pub fn walk_tree(&self, root_dir: &str, dir: &str) -> Result<Vec<(bool, String)>, Error> {
+        let mut result = vec![];
+        self.walk_tree_worker(root_dir, dir, &mut result)?;
+        Ok(result)
+    }
+
+    fn walk_tree_worker(&self, root_dir: &str, file: &str, buffer: &mut Vec<(bool, String)>) -> Result<(), Error> {
+        if is_dir(file) {
+            if self.is_match(root_dir, file) {
+                buffer.push((true, file.to_string()));
+            }
+
+            else {
+                for entry in read_dir(file, false)? {
+                    self.walk_tree_worker(root_dir, &entry, buffer)?;
+                }
+            }
+        }
+
+        else {
+            buffer.push((self.is_match(root_dir, file), file.to_string()));
+        }
+
+        Ok(())
+    }
+
+    pub fn is_match(&self, root_dir: &str, file: &str) -> bool {
+        let Ok(rel_path) = Index::get_rel_path(&root_dir.to_string(), &file.to_string()) else { return false; };
+
+        for pattern in self.patterns.iter() {
+            if pattern.is_match(&rel_path) {
+                return true;
+            }
+        }
+
+        false
+    }
 }
 
-fn has_to_be_ignored(file: &str, ignore: &Ignore) -> Result<bool, Error> {
-    Ok(false)  // TODO
+pub struct IgnorePattern {
+    // TODO: I need a smarter implementation
+    r: Regex,
+}
+
+impl IgnorePattern {
+    // TODO: I need a smarter implementation
+    pub fn parse(pattern: &str) -> Self {
+        let replaces = vec![
+            (r"^\*\*$", r".+"),
+            (r"^\*\*/", r"([^/]+/)_ast"),
+            (r"/\*\*$", r"(/[^/]+)_ast"),
+            (r"/\*\*/", r"/([^/]+/)_ast"),
+
+            (r"^\*$", r"[^/]+"),
+            (r"/\*$", r"/[^/]+"),
+        ];
+
+        let mut pattern = pattern.replace("_", "_und");
+        pattern = pattern.replace("+", "_pls");
+        pattern = pattern.replace(".", "_dot");
+        pattern = pattern.replace("[", "_opn");
+        pattern = pattern.replace("]", "_cls");
+
+        for (bef, aft) in replaces.iter() {
+            let bef = Regex::new(bef).unwrap();
+            pattern = bef.replace_all(&pattern, *aft).to_string();
+        }
+
+        pattern = pattern.replace("_ast", "*");
+        pattern = pattern.replace("_cls", "]");
+        pattern = pattern.replace("_opn", "[");
+        pattern = pattern.replace("_dot", "\\.");
+        pattern = pattern.replace("_pls", "\\+");
+        pattern = pattern.replace("_und", "_");
+        IgnorePattern { r: Regex::new(&pattern).unwrap() }
+    }
+
+    // `path` must be a normalized, relative path
+    pub fn is_match(&self, path: &str) -> bool {
+        self.r.is_match(path)
+    }
 }

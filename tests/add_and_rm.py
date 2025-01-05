@@ -84,10 +84,7 @@ def add_and_rm():
             write_string("new.txt", "hi")
 
             if j == 0:
-                # TODO: `.ragignore` is not implemented yet and cannot be tested
-                #       remove `continue` after it's implemented
                 write_string("../.ragignore", f"{i}_{j}/*")
-                os.chdir(".."); continue;
 
             for file, rr in zip(files, r):
                 files_before = count_files()
