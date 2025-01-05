@@ -30,6 +30,12 @@ impl Index {
                 &self.root_dir,
                 &doc,
             );
+            let file_uid = Uid::new_file(&self.root_dir, &real_path)?;
+
+            if self.processed_files.contains_key(&doc) {
+                self.remove_file(real_path.clone())?;
+                self.save_to_file()?;
+            }
 
             let mut fd = FileReader::new(
                 doc.clone(),
@@ -107,7 +113,6 @@ impl Index {
                 self.save_to_file()?;
             }
 
-            let file_uid = Uid::new_file(&self.root_dir, &real_path)?;
             self.add_file_index(file_uid, &uids)?;
             self.flush_ii_buffer(ii_buffer)?;
             ii_buffer = HashMap::new();

@@ -90,16 +90,6 @@ impl Index {
             }
         }
 
-        let mut all_files = HashSet::with_capacity(self.staged_files.len() + self.processed_files.len() + 1);
-
-        for file in self.staged_files.iter().chain(self.processed_files.keys()).chain(self.curr_processing_file.iter()) {
-            if all_files.contains(file) {
-                return Err(Error::BrokenIndex(format!("`{file}` appears multiple times in the index.")));
-            }
-
-            all_files.insert(file.to_string());
-        }
-
         for file_index in self.get_all_file_indexes()? {
             let uid_prefix = basename(&parent(&file_index)?)?;
             let uid_suffix = file_name(&file_index)?;

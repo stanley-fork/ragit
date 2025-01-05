@@ -99,7 +99,7 @@ impl Index {
                         }
                     }
 
-                    unfolded_files.push(Index::get_rel_path(&self.root_dir, file)?);
+                    unfolded_files.push(Index::get_rel_path(&self.root_dir, &sub)?);
                 }
             }
 
@@ -129,9 +129,7 @@ impl Index {
         let mut ignored_file: Option<String> = None;  // for an error message
 
         for file in unfolded_files.iter() {
-            // NOTE: ragit never allows you to add files in `.ragit/`
-            // FIXME: `.starts_with` is for strings, not for paths. It works for most cases, but not always
-            if file.starts_with(INDEX_DIR_NAME) {
+            if is_implicitly_ignored_file(file) {
                 result.ignored += 1;
                 ignored_file = Some(file.to_string());
             }
@@ -187,6 +185,7 @@ impl Index {
 
         if !dry_run {
             self.staged_files.extend(newly_staged_files);
+            self.save_to_file()?;
         }
 
         Ok(result)
@@ -194,6 +193,18 @@ impl Index {
 
     pub fn read_ignore_file(&self) -> Result<Ignore, Error> {
         Ok(Ignore {})  // TODO
+    }
+}
+
+// It should now allow users to add files in `.ragit/`, or any other file
+// that's directly related to ragit
+fn is_implicitly_ignored_file(rel_path: &str) -> bool {
+    let splitted = rel_path.split("/").map(|s| s.to_string()).collect::<Vec<_>>();
+
+    match splitted.first().map(|s| s.as_str()) {
+        Some(ragit) if ragit == INDEX_DIR_NAME => true,
+        Some(".ragignore") if splitted.len() == 1 => true,
+        _ => false,
     }
 }
 

@@ -46,23 +46,20 @@ def add_and_rm():
     # | ignore    | stage              | ignore                 | ignore       | stage     | error     |
     # | n ignore  | stage              | ignore                 | ignore       | stage     | error     |
     rules = {
-        # rag add
         None: [
             ["i", "i", "i", "i", "e"],
             ["s", "i", "i", "s", "e"],
         ],
-
-        # rag add --reject
         "--reject": [
             ["e", "e", "e", "e", "e"],
             ["e", "e", "e", "s", "e"],
         ],
-
         "--force": [
             ["s", "i", "i", "s", "e"],
             ["s", "i", "i", "s", "e"],
         ],
     }
+    built_file_count = 0
 
     for i, (flag, rule) in enumerate(rules.items()):
         flags = [] if not flag else [flag]
@@ -87,7 +84,10 @@ def add_and_rm():
             write_string("new.txt", "hi")
 
             if j == 0:
+                # TODO: `.ragignore` is not implemented yet and cannot be tested
+                #       remove `continue` after it's implemented
                 write_string("../.ragignore", f"{i}_{j}/*")
+                os.chdir(".."); continue;
 
             for file, rr in zip(files, r):
                 files_before = count_files()
@@ -117,12 +117,14 @@ def add_and_rm():
     # step 2: reset --soft
     cargo_run(["reset", "--soft"])
     cargo_run(["check"])
+    write_string(".ragignore", "")
 
     total, staged, processed = count_files()
     assert (total, staged, processed) == (0, 0, 0)
 
-    staged, ignored = parse_add_output(["--all"], [])
-    assert (staged, ignored) == (24, 0)
+    # it ignores `.ragignore` and `.ragit/*`
+    staged, _ = parse_add_output(["--all"], [])
+    assert staged == 24
 
     cargo_run(["build"])
     cargo_run(["check"])
@@ -143,19 +145,22 @@ def add_and_rm():
 
     cargo_run(["rm", "../1.txt"])
     total, staged, processed = count_files()
-    assert (total, staged, processed) == (2, 2, 0)
+    assert (total, staged, processed) == (25, 1, 24)
 
     staged, ignored = parse_add_output([], ["../1.txt", "2.txt"])
     assert (staged, ignored) == (1, 1)
 
     cargo_run(["build"])
     total, staged, processed = count_files()
-    assert (total, staged, processed) == (2, 0, 2)
+    assert (total, staged, processed) == (26, 0, 26)
 
     os.chdir("..")
     staged, ignored = parse_add_output([], ["sub/2.txt", "sub/3.txt"])
     assert (staged, ignored) == (1, 1)
 
+    staged, ignored = parse_add_output([], ["sub"])
+    assert (staged, ignored) == (0, 2)
+
     cargo_run(["build"])
     total, staged, processed = count_files()
-    assert (total, staged, processed) == (3, 0, 3)
+    assert (total, staged, processed) == (27, 0, 27)

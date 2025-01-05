@@ -130,32 +130,7 @@ def end_to_end(test_model: str):
 
     assert chunk_count_prev == chunk_count
 
-    # step 9: multiple `add` operations with different flags
-    cargo_run(["add", "--ignore", files[0]])
-    cargo_run(["check"])
-    chunk_count_new = count_chunks()
-
-    assert chunk_count == chunk_count_new
-
-    cargo_run(["add", "--auto", files[0]])
-    cargo_run(["check"])
-    chunk_count_new = count_chunks()
-
-    assert chunk_count == chunk_count_new
-
-    cargo_run(["add", "--force", files[0]])
-    cargo_run(["check"])
-    chunk_count_new = count_chunks()
-
-    assert chunk_count > chunk_count_new
-
-    cargo_run(["build"])
-    cargo_run(["check"])
-    chunk_count_new = count_chunks()
-
-    assert chunk_count == chunk_count_new
-
-    # step 10: break the knowledge-base and run `--recover`
+    # step 9: break the knowledge-base and run `--recover`
     os.chdir(".ragit/files")
     assert len(os.listdir()) > 0
 
@@ -167,6 +142,6 @@ def end_to_end(test_model: str):
     cargo_run(["check", "--recover"])
     cargo_run(["check"])
 
-    # step 11: query
+    # step 10: query
     cargo_run(["gc", "--logs"])
     cargo_run(["query", "What makes ragit special?"])

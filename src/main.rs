@@ -78,7 +78,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
     match args.get(1).map(|arg| arg.as_str()) {
         Some("add") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--reject", "--force"]).optional_flag(&["--all"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--reject", "--force"]).optional_flag(&["--all"]).optional_flag(&["--dry-run"]).args(ArgType::Path, ArgCount::Geq(0)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/add.txt"));
@@ -96,10 +96,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             if all {
                 if !files.is_empty() {
-                    return Err(Error::CliError(format!("You cannot use `--all` options with paths.")));
+                    return Err(Error::CliError(String::from("You cannot use `--all` options with paths.")));
                 }
 
                 files.push(root_dir.clone());
+            }
+
+            else if files.is_empty() {
+                return Err(Error::CliError(String::from("Please specify which files to add.")));
             }
 
             // if it's `--reject` mode, it first runs with `--dry-run` mode.

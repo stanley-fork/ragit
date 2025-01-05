@@ -39,7 +39,7 @@ def external_bases():
             prefixes[prefix] = file_name
             write_string(file_name, long_doc)
 
-            cargo_run(["add", "--auto", file_name])
+            cargo_run(["add", file_name])
             cargo_run(["check"])
 
         try:
