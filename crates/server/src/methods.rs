@@ -6,7 +6,9 @@ mod get;
 
 pub use get::{
     get_chunk,
+    get_chunk_count,
     get_chunk_list,
+    get_chunk_list_all,
     get_config,
     get_image,
     get_image_desc,

@@ -74,6 +74,32 @@ pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> 
     }
 }
 
+pub fn get_chunk_count(user: String, repo: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+    let index_path = join(&rag_path, "index.json").unwrap();
+
+    if !exists(&index_path) {
+        return Box::new(with_status(
+            String::new(),
+            StatusCode::from_u16(404).unwrap(),
+        ));
+    }
+
+    let index_json = read_string(&index_path).unwrap_or(String::from("{}"));
+    let index = serde_json::from_str::<Value>(&index_json).unwrap_or(Value::Object(Map::new()));
+
+    match index {
+        Value::Object(obj) => match obj.get("chunk_count") {
+            Some(Value::Number(n)) => match n.as_u64() {
+                Some(n) => Box::new(json(&n)),
+                _ => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
+            },
+            _ => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
+        },
+        _ => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
+    }
+}
+
 pub fn get_chunk_list(user: String, repo: String, prefix: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
     let chunk_path = join3(
@@ -95,6 +121,33 @@ pub fn get_chunk_list(user: String, repo: String, prefix: String) -> Box<dyn Rep
     }
 }
 
+pub fn get_chunk_list_all(user: String, repo: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+    let chunk_parents = join(
+        &rag_path,
+        "chunks",
+    ).unwrap_or(String::new());
+    let mut result = vec![];
+
+    for prefix in 0..255 {
+        let prefix = format!("{prefix:02x}");
+        let chunks_at = join(
+            &chunk_parents,
+            &prefix,
+        ).unwrap_or(String::new());
+
+        if exists(&chunks_at) {
+            for chunk in read_dir(&chunks_at, false).unwrap_or(vec![]) {
+                if extension(&chunk).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
+                    result.push(format!("{prefix}{}", file_name(&chunk).unwrap()));
+                }
+            }
+        }
+    }
+
+    Box::new(json(&result))
+}
+
 pub fn get_chunk(user: String, repo: String, uid: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
     let prefix = match uid.get(0..2) {
@@ -102,7 +155,7 @@ pub fn get_chunk(user: String, repo: String, uid: String) -> Box<dyn Reply> {
         None => {
             return Box::new(with_status(
                 String::new(),
-                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+                StatusCode::from_u16(400).unwrap(),
             ));
         },
     };
@@ -111,7 +164,7 @@ pub fn get_chunk(user: String, repo: String, uid: String) -> Box<dyn Reply> {
         None => {
             return Box::new(with_status(
                 String::new(),
-                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+                StatusCode::from_u16(400).unwrap(),
             ));
         },
     };
@@ -163,7 +216,7 @@ pub fn get_image(user: String, repo: String, uid: String) -> Box<dyn Reply> {
         None => {
             return Box::new(with_status(
                 String::new(),
-                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+                StatusCode::from_u16(400).unwrap(),
             ));
         },
     };
@@ -172,7 +225,7 @@ pub fn get_image(user: String, repo: String, uid: String) -> Box<dyn Reply> {
         None => {
             return Box::new(with_status(
                 String::new(),
-                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+                StatusCode::from_u16(400).unwrap(),
             ));
         },
     };
@@ -203,7 +256,7 @@ pub fn get_image_desc(user: String, repo: String, uid: String) -> Box<dyn Reply>
         None => {
             return Box::new(with_status(
                 String::new(),
-                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+                StatusCode::from_u16(400).unwrap(),
             ));
         },
     };
@@ -212,7 +265,7 @@ pub fn get_image_desc(user: String, repo: String, uid: String) -> Box<dyn Reply>
         None => {
             return Box::new(with_status(
                 String::new(),
-                StatusCode::from_u16(404).unwrap(),  // TODO: another error code
+                StatusCode::from_u16(400).unwrap(),
             ));
         },
     };
@@ -256,6 +309,14 @@ pub fn get_meta(user: String, repo: String) -> Box<dyn Reply> {
 pub fn get_version(user: String, repo: String) -> Box<dyn Reply> {
     let rag_path = get_rag_path(&user, &repo);
     let index_path = join(&rag_path, "index.json").unwrap();
+
+    if !exists(&index_path) {
+        return Box::new(with_status(
+            String::new(),
+            StatusCode::from_u16(404).unwrap(),
+        ));
+    }
+
     let index_json = read_string(&index_path).unwrap_or(String::from("{}"));
     let index = serde_json::from_str::<Value>(&index_json).unwrap_or(Value::Object(Map::new()));
 
@@ -267,11 +328,11 @@ pub fn get_version(user: String, repo: String) -> Box<dyn Reply> {
                     "Content-Type",
                     "text/plain",
                 )),
-                None => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),  // TODO: another error code
+                None => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
             },
-            None => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),
+            None => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
         },
-        _ => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),  // TODO: another error code
+        _ => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
     }
 }
 

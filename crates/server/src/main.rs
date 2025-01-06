@@ -1,37 +1,54 @@
 /*
-- GET `ROOT/{user-name}/{repo-name}/index`
-  - returns index.json
+- GET `/{user-name}/{repo-name}/index`
   - 200: application/json
+    - index.json
   - 404
-- GET `ROOT/{user-name}/{repo-name}/config/{config-name}`
+- GET `/{user-name}/{repo-name}/config/{config-name}`
   - 200: application/json
+    - {config-name}.json
   - 404
-- GET `ROOT/{user-name}/{repo-name}/prompt/{prompt-name}`
+- GET `/{user-name}/{repo-name}/prompt/{prompt-name}`
   - 200: text/plain
+    - {prompt-name}.pdl
   - 404
-- GET `ROOT/{user-name}/{repo-name}/chunk-list/{uid-prefix}`
+- GET `/{user-name}/{repo-name}/chunk-count`
   - 200: application/json
+    - an integer
+  - 404, 500
+- GET `/{user-name}/{repo-name}/chunk-list/{uid-prefix}`
+  - 200: application/json
+    - array[string]
+- GET `/{user-name}/{repo-name}/chunk-list`
+  - 200: application/json
+    - array[string]
   - 404
-- GET `ROOT/{user-name}/{repo-name}/chunk/{chunk-uid}`
+- GET `/{user-name}/{repo-name}/chunk/{chunk-uid}`
   - 200: application/octet-stream
-  - 404
-- GET `ROOT/{user-name}/{repo-name}/image-list/{uid-prefix}`
+    - a chunk
+    - you have to use `chunk::load_from_file()` to deserialize this data
+  - 400, 404
+- GET `/{user-name}/{repo-name}/image-list/{uid-prefix}`
   - 200: application/json
-  - 404
-- GET `ROOT/{user-name}/{repo-name}/image/{image-uid}`
+    - array[string]
+- GET `/{user-name}/{repo-name}/image/{image-uid}`
   - 200: image/png
-  - 404
-- GET `ROOT/{user-name}/{repo-name}/image-desc/{image-uid}`
+  - 400, 404
+- GET `/{user-name}/{repo-name}/image-desc/{image-uid}`
+  - 200: application/json
+    - { extracted_text: string, explanation: string }
+  - 400, 404
+- GET `/{user-name}/{repo-name}/meta`
   - 200: application/json
   - 404
-- GET `ROOT/{user-name}/{repo-name}/meta`
-  - 200: application/json
-  - 404
-- GET `ROOT/{user-name}/{repo-name}/version`
+- GET `/{user-name}/{repo-name}/version`
   - 200: text/plain
+    - "{major}.{minor}.{patch}"
+    - "{major}.{minor}.{patch}-dev"
   - 404
-- GET `ROOT/version`
+- GET `/version`
   - 200: text/plain
+    - "{major}.{minor}.{patch}"
+    - "{major}.{minor}.{patch}-dev"
 */
 
 use crate::methods::*;
@@ -70,12 +87,25 @@ async fn main() {
         .and(warp::path::param::<String>())
         .map(get_prompt);
 
+    let get_chunk_count_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chunk-count"))
+        .map(get_chunk_count);
+
     let get_chunk_list_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chunk-list"))
         .and(warp::path::param::<String>())
         .map(get_chunk_list);
+
+    let get_chunk_list_all_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chunk-list"))
+        .and(warp::path::end())
+        .map(get_chunk_list_all);
 
     let get_chunk_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -128,7 +158,9 @@ async fn main() {
             .or(get_index_handler)
             .or(get_config_handler)
             .or(get_prompt_handler)
+            .or(get_chunk_count_handler)
             .or(get_chunk_list_handler)
+            .or(get_chunk_list_all_handler)
             .or(get_chunk_handler)
             .or(get_image_list_handler)
             .or(get_image_handler)
