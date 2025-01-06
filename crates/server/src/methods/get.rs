@@ -82,7 +82,7 @@ pub fn get_chunk_list(user: String, repo: String, prefix: String) -> Box<dyn Rep
         &prefix,
     ).unwrap();
 
-    match read_dir(&chunk_path) {
+    match read_dir(&chunk_path, false) {
         Ok(chunks) => Box::new(json(
             &chunks.iter().filter_map(
                 |chunk| match extension(chunk) {
@@ -143,7 +143,7 @@ pub fn get_image_list(user: String, repo: String, prefix: String) -> Box<dyn Rep
         &prefix,
     ).unwrap();
 
-    match read_dir(&image_path) {
+    match read_dir(&image_path, false) {
         Ok(images) => Box::new(json(
             &images.iter().filter_map(
                 |image| match extension(image) {
