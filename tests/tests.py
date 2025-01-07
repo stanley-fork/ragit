@@ -245,17 +245,6 @@ if __name__ == "__main__":
             import time
             import traceback
 
-            started_at = datetime.now()
-            has_error = False
-            result = {
-                "meta": {
-                    "complete": False,
-                    "started_at": str(started_at),
-                    "commit": get_commit_hash(),
-                    "platform": get_platform_info(),
-                },
-                "tests": {},
-            }
             tests = [
                 ("cargo_tests", cargo_tests),
                 ("add_and_rm", add_and_rm),
@@ -290,6 +279,27 @@ if __name__ == "__main__":
                 ("ragit_api phi-3-14b-ollama", lambda: ragit_api(test_model="phi-3-14b-ollama")),
                 ("migrate", migrate),
             ]
+            started_at = datetime.now()
+            has_error = False
+            result = {
+                "meta": {
+                    "complete": False,
+                    "started_at": str(started_at),
+                    "commit": get_commit_hash(),
+                    "platform": get_platform_info(),
+                },
+                "tests": {},
+                "result": {
+                    "total": len(tests),
+                    "complete": 0,
+                    "pass": 0,
+                    "fail": 0,
+                    "remaining": len(tests),
+                },
+            }
+
+            with open("result.json", "w") as f:
+                f.write(json.dumps(result, indent=4))
 
             for name, test in tests:
                 try:
@@ -303,6 +313,7 @@ if __name__ == "__main__":
                         "error": str(e) + "\n" + traceback.format_exc(),
                         "elapsed_ms": int((time.time() - start) * 1000),
                     }
+                    result["result"]["fail"] += 1
 
                 else:
                     result["tests"][name] = {
@@ -310,8 +321,12 @@ if __name__ == "__main__":
                         "error": None,
                         "elapsed_ms": int((time.time() - start) * 1000),
                     }
+                    result["result"]["pass"] += 1
 
                 finally:
+                    result["result"]["complete"] += 1
+                    result["result"]["remaining"] -= 1
+
                     if not no_clean:
                         clean()
 
