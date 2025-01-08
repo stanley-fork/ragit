@@ -301,7 +301,7 @@ if __name__ == "__main__":
             with open("result.json", "w") as f:
                 f.write(json.dumps(result, indent=4))
 
-            for name, test in tests:
+            for seq, (name, test) in enumerate(tests):
                 try:
                     start = time.time()
                     test()
@@ -309,6 +309,7 @@ if __name__ == "__main__":
                 except Exception as e:
                     has_error = True
                     result["tests"][name] = {
+                        "seq": seq,
                         "pass": False,
                         "error": str(e) + "\n" + traceback.format_exc(),
                         "elapsed_ms": int((time.time() - start) * 1000),
@@ -317,6 +318,7 @@ if __name__ == "__main__":
 
                 else:
                     result["tests"][name] = {
+                        "seq": seq,
                         "pass": True,
                         "error": None,
                         "elapsed_ms": int((time.time() - start) * 1000),
