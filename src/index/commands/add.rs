@@ -220,6 +220,7 @@ fn is_implicitly_ignored_file(rel_path: &str) -> bool {
     }
 }
 
+// TODO: maybe another crate? or at least another module
 pub struct Ignore {
     patterns: Vec<IgnorePattern>,
 }
@@ -334,5 +335,43 @@ impl IgnorePattern {
     // `path` must be a normalized, relative path
     pub fn is_match(&self, path: &str) -> bool {
         self.r.is_match(path)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::IgnorePattern;
+
+    #[test]
+    fn ignore_test() {
+        let sample = vec![
+            (
+                "abc",
+                vec![
+                    "abc",
+                    "abc/",
+                    "a/abc",
+                ],
+                vec![
+                    // I'm not sure about gitignore, but ragignore will never allow this
+                    "/abc",
+                    "abc/a",
+                    "ab",
+                ],
+            ),
+            // TODO: more cases
+        ];
+
+        for (pattern, matched, not_matched) in sample {
+            let pattern = IgnorePattern::parse(pattern);
+
+            for path in matched {
+                assert!(pattern.is_match(path));
+            }
+
+            for path in not_matched {
+                assert!(!pattern.is_match(path));
+            }
+        }
     }
 }
