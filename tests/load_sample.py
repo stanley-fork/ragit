@@ -123,14 +123,51 @@ if __name__ == "__main__":
             result_at = "./sample/neovim",
         )
 
+    elif arg == "nu":
+        load(
+            git_url = "https://github.com/nushell/nushell.github.io",
+            docs_at = "./nushell.github.io/commands",
+            repo_name = "nushell.github.io",
+            file_ext = [".md", ".png"],
+            result_tmp = "./sample/commands",
+            result_at = "./sample/nushell-commands",
+        )
+        init()
+        load(
+            git_url = "https://github.com/nushell/nushell.github.io",
+            docs_at = "./nushell.github.io/cookbook",
+            repo_name = "nushell.github.io",
+            file_ext = [".md", ".png"],
+            result_tmp = "./sample/cookbook",
+            result_at = "./sample/nushell-cookbook",
+        )
+        init()
+        load(
+            git_url = "https://github.com/nushell/nushell.github.io",
+            docs_at = "./nushell.github.io/book",
+            repo_name = "nushell.github.io",
+            file_ext = [".md", ".png"],
+            result_tmp = "./sample/book",
+            result_at = "./sample/nushell-book",
+        )
+        init()
+
+        if os.path.exists("./sample/nushell"):
+            shutil.rmtree("./sample/nushell")
+
+        os.mkdir("./sample/nushell")
+        os.rename("./sample/nushell-commands", "./sample/nushell/commands")
+        os.rename("./sample/nushell-cookbook", "./sample/nushell/cookbook")
+        os.rename("./sample/nushell-book", "./sample/nushell/book")
+
     elif arg == "nix":
         load(
             git_url = "https://github.com/NixOS/nix",
-            docs_at = "./nix/doc/manual/src",
+            docs_at = "./nix/doc/manual/source",
             repo_name = "nix",
             file_ext = [".md"],
-            result_tmp = "./sample/src",
-            result_at = "./sample/os"
+            result_tmp = "./sample/source",
+            result_at = "./sample/nixos"
         )
         init()
         load(
@@ -147,7 +184,7 @@ if __name__ == "__main__":
             shutil.rmtree("./sample/nix")
 
         os.mkdir("./sample/nix")
-        os.rename("./sample/os", "./sample/nix/os")
+        os.rename("./sample/nixos", "./sample/nix/os")
         os.rename("./sample/nixpkgs", "./sample/nix/nixpkgs")
 
     else:
