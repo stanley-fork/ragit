@@ -116,7 +116,7 @@ Commands
     ii                          run `ii` test
                                 It creates an inverted index and test it.
 
-    cat-file                    run `cat-file` test
+    cat_file                    run `cat_file` test
 
     images                      run `images` test
                                 It creates a markdown file with images and check
