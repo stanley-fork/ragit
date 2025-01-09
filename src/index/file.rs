@@ -182,25 +182,17 @@ impl FileReader {
                 return Ok(());
             }
 
-            self.try_fill_buffer()?;
+            self.inner.load_tokens()?;
+
+            for token in self.inner.pop_all_tokens()? {
+                self.curr_buffer_size += token.len(self.config.image_size);
+                self.buffer.push_back(token);
+            }
 
             if !self.inner.has_more_to_read() {
                 return Ok(());
             }
         }
-    }
-
-    fn try_fill_buffer(&mut self) -> Result<bool, Error> {  // returns whether something has been pushed to the buffer
-        self.inner.load_tokens()?;
-        let mut has_tokens = false;
-
-        for token in self.inner.pop_all_tokens()? {
-            has_tokens = true;
-            self.curr_buffer_size += token.len(self.config.image_size);
-            self.buffer.push_back(token);
-        }
-
-        Ok(has_tokens)
     }
 
     pub fn file_reader_key(&self) -> String {
