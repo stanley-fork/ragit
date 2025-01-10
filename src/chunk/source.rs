@@ -9,6 +9,10 @@ pub enum ChunkSource {
     /// `path` is a relative path.
     File { path: String, index: usize },
 
+    /// TODO: There's an error with this variant: `serde_json` cannot deserialize this.
+    ///       The crate can handle u128, but it seems like it cannot handle u128 inside
+    ///       a tagged enum. Several issues on this are open on github, and there's even
+    ///       a [fix](https://github.com/serde-rs/serde/pull/2781), but it's not merged yet.
     /// Summary of multiple chunks.
     Chunks { uids: Vec<Uid> },
 }
