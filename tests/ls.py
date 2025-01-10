@@ -1,3 +1,4 @@
+import json
 import os
 from random import randint, seed as rand_seed
 import re
@@ -246,3 +247,20 @@ def ls():
         for search_key in [image_uid, image_uid[:8]]:
             ls_image_result = cargo_run(["ls-images", search_key], stdout=True)
             assert "1 images" in ls_image_result
+
+    # step 14: make sure that `--json` option makes the output a valid json
+    sample_chunk_uid = list(uid_map.keys())[0]
+    sample_file_uid = list(uid_map.values())[0]
+
+    for flag in [
+        [],
+        ["--stat-only"],
+        ["--uid-only"],
+    ]:
+        for query in [
+            [],
+            [sample_chunk_uid],
+            [sample_file_uid],
+        ]:
+            stdout = cargo_run(["ls-chunks", "--json"] + flag + query, stdout=True)
+            json.loads(stdout)
