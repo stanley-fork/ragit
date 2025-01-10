@@ -58,7 +58,7 @@ pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> 
     let prompt_path = join3(
         &rag_path,
         "prompts",
-        &format!("{prompt}.json"),
+        &format!("{prompt}.pdl"),
     ).unwrap();
 
     match read_string(&prompt_path) {
