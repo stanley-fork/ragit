@@ -1,5 +1,5 @@
 use super::Index;
-use crate::chunk::{self, Chunk, ChunkSource};
+use crate::chunk::{self, Chunk};
 use crate::error::Error;
 use crate::uid::Uid;
 use ragit_api::JsonType;
@@ -13,33 +13,7 @@ use ragit_fs::{
 use serde::Serialize;
 use serde_json::Value;
 
-/// Convenient type for `ls-chunks`
-#[derive(Clone, Debug, Serialize)]
-pub struct LsChunk {
-    pub title: String,
-    pub summary: String,
-    pub character_len: usize,
-    pub source: ChunkSource,
-    pub uid: Uid,
-}
-
-impl LsChunk {
-    pub fn render_source(&self) -> String {
-        self.source.render()
-    }
-}
-
-impl From<Chunk> for LsChunk {
-    fn from(c: Chunk) -> LsChunk {
-        LsChunk {
-            title: c.title.clone(),
-            summary: c.summary.clone(),
-            character_len: c.data.chars().count(),
-            source: c.source.clone(),
-            uid: c.uid,
-        }
-    }
-}
+pub type LsChunk = Chunk;
 
 /// Convenient type for `ls-files`
 #[derive(Clone, Debug, Serialize)]

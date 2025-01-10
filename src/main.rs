@@ -410,7 +410,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("ls-chunks") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--uid-only", "--stat-only"]).args(ArgType::Query, ArgCount::Leq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only", "--stat-only"]).optional_flag(&["--json"]).args(ArgType::Query, ArgCount::Leq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-chunks.txt"));
@@ -419,6 +419,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let json_mode = parsed_args.get_flag(1).is_some();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let chunks = match parsed_args.get_args().get(0) {
                 Some(arg) => {
@@ -444,7 +445,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
 
                     if !uid_only {
-                        println!("{} chunks", chunks.len());
+                        if !json_mode {
+                            println!("{} chunks", chunks.len());
+                        }
+
+                        else if stat_only {
+                            println!("{}\"chunks\": {}{}", "{", chunks.len(), "}");
+                        }
                     }
 
                     if stat_only {
@@ -455,7 +462,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 None => {
                     if !uid_only {
-                        println!("{} chunks", index.chunk_count);
+                        if !json_mode {
+                            println!("{} chunks", index.chunk_count);
+                        }
+
+                        else if stat_only {
+                            println!("{}\"chunks\": {}{}", "{", index.chunk_count, "}");
+                        }
                     }
 
                     if stat_only {
@@ -470,18 +483,40 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
             };
 
-            for chunk in chunks.iter() {
+            if json_mode {
                 if uid_only {
-                    println!("{}", chunk.uid);
-                    continue;
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                            &chunks.iter().map(
+                                |chunk| chunk.uid.to_string()
+                            ).collect::<Vec<_>>(),
+                        )?).to_string(),
+                    );
                 }
 
-                println!("----------");
-                println!("{}", chunk.render_source());
-                println!("uid: {}", chunk.uid);
-                println!("character_len: {}", chunk.character_len);
-                println!("title: {}", chunk.title);
-                println!("summary: {}", chunk.summary);
+                else {
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(&chunks)?).to_string(),
+                    );
+                }
+            }
+
+            else {
+                for chunk in chunks.iter() {
+                    if uid_only {
+                        println!("{}", chunk.uid);
+                        continue;
+                    }
+
+                    println!("----------");
+                    println!("{}", chunk.render_source());
+                    println!("uid: {}", chunk.uid);
+                    println!("character_len: {}", chunk.char_len);
+                    println!("title: {}", chunk.title);
+                    println!("summary: {}", chunk.summary);
+                }
             }
         },
         Some("ls-files") => {
