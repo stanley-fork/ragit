@@ -10,7 +10,7 @@ pub enum ChunkSource {
     File { path: String, index: usize },
 
     /// Summary of multiple chunks.
-    Chunks(Vec<Uid>),
+    Chunks { uids: Vec<Uid> },
 }
 
 impl ChunkSource {
@@ -18,10 +18,10 @@ impl ChunkSource {
     pub fn hash_str(&self) -> String {
         match self {
             ChunkSource::File { path, index } => format!("{path}{index}"),
-            ChunkSource::Chunks(chunk_uids) => {
+            ChunkSource::Chunks { uids } => {
                 let mut result = Uid::dummy();
 
-                for chunk_uid in chunk_uids.iter() {
+                for chunk_uid in uids.iter() {
                     result ^= *chunk_uid;
                 }
 
@@ -37,10 +37,17 @@ impl ChunkSource {
         }
     }
 
+    pub fn unwrap_index(&self) -> usize {
+        match self {
+            ChunkSource::File { index, .. } => *index,
+            _ => unreachable!(),
+        }
+    }
+
     pub fn sortable_string(&self) -> String {
         match self {
             ChunkSource::File { path, index } => format!("file: {path}-{index:09}"),
-            ChunkSource::Chunks(_) => format!("chunks: {}", self.hash_str()),
+            ChunkSource::Chunks { .. } => format!("chunks: {}", self.hash_str()),
         }
     }
 
@@ -56,7 +63,7 @@ impl ChunkSource {
                     n => format!("{}th", n + 1),
                 },
             ),
-            ChunkSource::Chunks(_) => todo!(),
+            ChunkSource::Chunks { uids } => todo!(),
         }
     }
 }

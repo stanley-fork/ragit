@@ -38,6 +38,10 @@ lazy_static! {
             String::from("summarize"),
             include_str!(".././prompts/summarize.pdl").to_string(),
         );
+        result.insert(
+            String::from("summarize_chunks"),
+            include_str!(".././prompts/summarize_chunks.pdl").to_string(),
+        );
 
         result
     };

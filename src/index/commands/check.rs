@@ -63,7 +63,7 @@ impl Index {
                     chunks_to_files.insert(chunk_uid, (path.to_string(), *index));
                     processed_files.insert(path.to_string());
                 },
-                ChunkSource::Chunks(chunk_uids) => {
+                ChunkSource::Chunks { uids: chunk_uids } => {
                     for chunk_uid in chunk_uids.iter() {
                         chunk_pointees.insert(*chunk_uid);
                     }

@@ -93,7 +93,7 @@ impl Index {
                         continue;
                     }
                 },
-                ChunkSource::Chunks(chunks) => {
+                ChunkSource::Chunks { uids } => {
                     // TODO: if it's pointing to a chunk that's removed, it also has to be removed
                 },
             }

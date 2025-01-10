@@ -4,6 +4,7 @@ mod error;
 mod index;
 mod prompts;
 mod query;
+mod tree;
 mod uid;
 
 pub const INDEX_DIR_NAME: &str = ".ragit";

@@ -560,7 +560,7 @@ impl Index {
     // TODO: `get_chunk_path`, `get_file_path`, `get_image_path` and `get_ii_path` are redundant
 
     // root_dir/.ragit/chunks/chunk_uid_prefix/chunk_uid_suffix.chunk
-    fn get_chunk_path(root_dir: &Path, chunk_uid: Uid) -> Path {
+    pub(crate) fn get_chunk_path(root_dir: &Path, chunk_uid: Uid) -> Path {
         let chunks_at = join3(
             root_dir,
             &INDEX_DIR_NAME,

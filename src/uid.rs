@@ -159,7 +159,7 @@ impl Uid {
         Ok(result)
     }
 
-    pub fn new_group(uids: &[Uid]) -> Result<Self, Error> {
+    pub fn new_group(uids: &[Uid]) -> Self {
         let mut result = Uid::dummy();
         let mut child_count = 0;
 
@@ -175,7 +175,7 @@ impl Uid {
         result.low &= Uid::METADATA_MASK;
         result.low |= Uid::GROUP_TYPE;
         result.low |= (child_count as u128) & 0xffff_ffff;
-        Ok(result)
+        result
     }
 
     // TODO: this function has to be tested
@@ -222,14 +222,14 @@ impl Uid {
     }
 
     pub(crate) fn get_uid_type(&self) -> UidType {
-        let field = (self.low >> 32) & 0xf;
+        let field = ((self.low >> 32) & 0xf) << 32;
 
         match field {
             Uid::CHUNK_TYPE => UidType::Chunk,
             Uid::IMAGE_TYPE => UidType::Image,
             Uid::FILE_TYPE => UidType::File,
             Uid::GROUP_TYPE => UidType::Group,
-            _ => unreachable!(),
+            _ => panic!("Internal Error: invalid uid type {field}"),
         }
     }
 

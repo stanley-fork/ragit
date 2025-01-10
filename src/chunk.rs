@@ -215,12 +215,9 @@ impl Chunk {
             api_key: api_config.api_key.clone(),
             messages,
             model: api_config.model,
-            frequency_penalty: None,
-            max_tokens: None,
             max_retry: api_config.max_retry,
             sleep_between_retries: api_config.sleep_between_retries,
             timeout: api_config.timeout,
-            temperature: None,
             record_api_usage_at: api_config.dump_api_usage_at.clone().map(
                 |path| RecordAt { path, id: String::from("create_chunk_from") }
             ),
@@ -228,6 +225,7 @@ impl Chunk {
             dump_json_at: api_config.dump_log_at.clone(),
             schema,
             schema_max_try: 3,
+            ..ChatRequest::default()
         };
 
         // some apis reject empty requests
@@ -270,7 +268,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
                 merge_candidates.insert((path.clone(), *index + 1));
                 assert!(curr_chunks.insert((path.clone(), *index), chunk).is_none());
             },
-            ChunkSource::Chunks(_) => {},  // it's unsearchable
+            ChunkSource::Chunks { .. } => {},  // it's unsearchable
         }
     }
 
@@ -353,15 +351,15 @@ fn merge_overlapping_strings(s1: &[u8], s2: &[u8]) -> String {
 
 #[derive(Clone, Deserialize)]
 pub struct ChunkSchema {
-    title: String,
-    summary: String,
+    pub title: String,
+    pub summary: String,
 }
 
 impl ChunkSchema {
     pub fn dummy(data: &str, len: usize) -> Self {
         ChunkSchema {
             title: String::from("untitled"),
-            summary: data.chars().take(len).collect(),
+            summary: data.chars().take(len).collect::<String>().replace("\n", " "),
         }
     }
 
