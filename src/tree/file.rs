@@ -24,66 +24,68 @@ impl Index {
             chunk_by_index.insert(chunk.source.unwrap_index(), chunk.uid);
         }
 
-        self.summary_tree(&tree, &chunk_by_index).await
+        let result = self.summary_tree(&tree, &chunk_by_index, false).await?;
+        self.get_chunk_by_uid(result)
     }
 
+    // It returns the uid of the summary chunk.
     #[async_recursion(?Send)]
-    pub async fn summary_tree(&mut self, tree: &Tree, chunk_by_index: &HashMap<usize, Uid>) -> Result<Chunk, Error> {
-        let chunks = match tree {
+    pub async fn summary_tree(&mut self, tree: &Tree, chunk_by_index: &HashMap<usize, Uid>, dry_run: bool) -> Result<Uid, Error> {
+        let (new_uid, chunk_uids) = match tree {
             Tree::Leaf(Leaf::Range { from, to }) => {
                 let chunk_uids = (*from..*to).map(|index| *chunk_by_index.get(&index).unwrap()).collect::<Vec<_>>();
                 let new_uid = Uid::new_group(&chunk_uids);
 
-                // check if it's already built
+                // create a new chunk only when necessary
                 match self.get_chunk_by_uid(new_uid) {
-                    Ok(chunk) => { return Ok(chunk); },
-                    Err(Error::NoSuchChunk(_)) => {
-                        let mut chunks = Vec::with_capacity(chunk_uids.len());
-
-                        for chunk_uid in chunk_uids.iter() {
-                            chunks.push(self.get_chunk_by_uid(*chunk_uid)?);
-                        }
-
-                        chunks
-                    },
-                    Err(e) => { return Err(e); },
+                    Err(Error::NoSuchChunk(_)) if !dry_run => (new_uid, chunk_uids),
+                    _ => { return Ok(new_uid); },
                 }
             },
             Tree::Leaf(_) => unreachable!(),
             Tree::Node(nodes) => {
-                let mut chunks = Vec::with_capacity(nodes.len());
                 let mut chunk_uids = Vec::with_capacity(nodes.len());
 
                 for node in nodes.iter() {
-                    let chunk = self.summary_tree(node, chunk_by_index).await?;
-                    chunk_uids.push(chunk.uid);
-                    chunks.push(chunk);
+                    let chunk_uid = self.summary_tree(node, chunk_by_index, dry_run).await?;
+                    chunk_uids.push(chunk_uid);
                 }
 
                 let new_uid = Uid::new_group(&chunk_uids);
 
-                // check if it's already built
+                // create a new chunk only when necessary
                 match self.get_chunk_by_uid(new_uid) {
-                    Ok(chunk) => { return Ok(chunk); },
-                    Err(Error::NoSuchChunk(_)) => chunks,
-                    Err(e) => { return Err(e); },
+                    Err(Error::NoSuchChunk(_)) if !dry_run => (new_uid, chunk_uids),
+                    _ => { return Ok(new_uid); },
                 }
             },
         };
 
-        let new_chunk = self.summary_chunks(&chunks).await?;
-        chunk::save_to_file(
-            &Index::get_chunk_path(
+        if dry_run {
+            Ok(new_uid)
+        }
+
+        else {
+            let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+            for chunk_uid in chunk_uids.iter() {
+                chunks.push(self.get_chunk_by_uid(*chunk_uid)?);
+            }
+
+            let new_chunk = self.summary_chunks(&chunks).await?;
+            chunk::save_to_file(
+                &Index::get_chunk_path(
+                    &self.root_dir,
+                    new_chunk.uid,
+                ),
+                &new_chunk,
+                self.build_config.compression_threshold,
+                self.build_config.compression_level,
                 &self.root_dir,
-                new_chunk.uid,
-            ),
-            &new_chunk,
-            self.build_config.compression_threshold,
-            self.build_config.compression_level,
-            &self.root_dir,
-        )?;
-        self.chunk_count += 1;
-        Ok(new_chunk)
+            )?;
+            self.chunk_count += 1;
+            Ok(new_chunk.uid)
+        }
     }
 
     // It assumes that the order of the chunks has a meaning.
