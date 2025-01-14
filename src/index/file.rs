@@ -7,11 +7,13 @@ use ragit_fs::extension;
 use ragit_pdl::MessageContent;
 use std::collections::{HashMap, VecDeque};
 
+mod csv;
 mod image;
 mod line;
 mod markdown;
 mod plain_text;
 
+pub use csv::CsvReader;
 pub use image::{Image, ImageDescription, ImageReader, normalize_image};
 pub use line::LineReader;
 pub use markdown::MarkdownReader;
@@ -51,9 +53,7 @@ impl FileReader {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
             "png" | "jpg" | "jpeg" | "gif" | "webp" => Box::new(ImageReader::new(&real_path, &config)?),
             "jsonl" => Box::new(LineReader::new(&real_path, &config)?),
-
-            // TODO: convert a csv file to a jsonl file, then use `LineReader`
-            // "csv" => Box::new(LineReader::new(&real_path, &config)?),
+            "csv" => Box::new(CsvReader::new(&real_path, &config)?),
 
             // "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
             // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),

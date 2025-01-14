@@ -63,6 +63,9 @@ pub enum Error {
     /// see <https://docs.rs/image/latest/image/error/enum.ImageError.html>
     ImageError(image::ImageError),
 
+    /// see <https://docs.rs/csv/latest/csv/struct.Error.html>
+    CsvError(csv::Error),
+
     /// see <https://docs.rs/url/latest/url/enum.ParseError.html>
     UrlParseError(url::ParseError),
 
@@ -101,6 +104,12 @@ impl From<serde_json::Error> for Error {
 impl From<image::ImageError> for Error {
     fn from(e: image::ImageError) -> Error {
         Error::ImageError(e)
+    }
+}
+
+impl From<csv::Error> for Error {
+    fn from(e: csv::Error) -> Error {
+        Error::CsvError(e)
     }
 }
 
