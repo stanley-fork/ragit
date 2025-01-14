@@ -8,12 +8,12 @@ use ragit_pdl::MessageContent;
 use std::collections::{HashMap, VecDeque};
 
 mod image;
-mod line_reader;
+mod line;
 mod markdown;
 mod plain_text;
 
 pub use image::{Image, ImageDescription, ImageReader, normalize_image};
-pub use line_reader::LineReader;
+pub use line::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
 
@@ -30,12 +30,6 @@ pub trait FileReaderImpl {
     /// It has nothing to do with `pop_all_tokens`. It tells whether `load_tokens` can load
     /// more tokens or not.
     fn has_more_to_read(&self) -> bool;
-
-    /// Every chunk starts with `chunk_header` and ends with `chunk_footer`.
-    /// They're empty by default. Headers and footers are not counted when calculating size of chunks.
-    /// So, make sure to keep headers and footers small enough.
-    fn chunk_header(&self) -> Vec<AtomicToken> { vec![] }
-    fn chunk_footer(&self) -> Vec<AtomicToken> { vec![] }
 
     /// It's used by `BuildInfo`. It's used to distinguish `FileReader`s.
     fn key(&self) -> String;
@@ -56,11 +50,10 @@ impl FileReader {
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
             "png" | "jpg" | "jpeg" | "gif" | "webp" => Box::new(ImageReader::new(&real_path, &config)?),
+            "jsonl" => Box::new(LineReader::new(&real_path, &config)?),
 
-            // a newline character isn't always a row-separator in csv, but that's okay
-            // because LLM reads the file, not *parse* the file.
-            "csv" => Box::new(LineReader::new(&real_path, &config)?.set_header_length(1)),
-            "jsonl" => Box::new(LineReader::new(&real_path, &config)?.set_header_length(0)),
+            // TODO: convert a csv file to a jsonl file, then use `LineReader`
+            // "csv" => Box::new(LineReader::new(&real_path, &config)?),
 
             // "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
             // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),
@@ -137,16 +130,6 @@ impl FileReader {
             for token in sliding_window_deque.into_iter() {
                 chunk_deque.push_back(token);
             }
-        }
-
-        // in order to prevent headers and footers from being
-        // included to the sliding window, they're pushed later
-        for token in self.inner.chunk_header().into_iter().rev() {
-            chunk_deque.push_front(token);
-        }
-
-        for token in self.inner.chunk_footer() {
-            chunk_deque.push_back(token);
         }
 
         let tokens = merge_tokens(chunk_deque);
