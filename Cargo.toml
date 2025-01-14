@@ -21,7 +21,6 @@ ragit-api = { path = "./crates/api", version = "0.2.1" }
 ragit-fs = { path = "./crates/fs", version = "0.2.1" }
 ragit-korean = { path = "./crates/korean", version = "0.2.1" }
 ragit-pdl = { path = "./crates/pdl", version = "0.2.1" }
-rand = "0.8.5"
 regex = "1.11.1"
 reqwest = "0.12.9"
 rust-stemmers = "1.2.0"

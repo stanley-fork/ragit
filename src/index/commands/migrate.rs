@@ -140,8 +140,16 @@ impl Index {
 }
 
 fn create_tmp_dir() -> Result<Path, Error> {
-    // TODO: remove this random function, and remove the dependency from this crate
-    let dir_name = format!("__tmp_{:x}", rand::random::<u64>());  // let's hope it doesn't conflict
+    let mut dir_name = String::new();
+
+    for i in 0..1000 {
+        dir_name = format!("__tmp_{i:03}");
+
+        if !exists(&dir_name) {
+            break;
+        }
+    }
+
     create_dir_all(&dir_name)?;
     Ok(dir_name)
 }
