@@ -37,9 +37,12 @@ impl Index {
                 let new_uid = Uid::new_group(&chunk_uids);
 
                 // create a new chunk only when necessary
-                match self.get_chunk_by_uid(new_uid) {
-                    Err(Error::NoSuchChunk(_)) if !dry_run => (new_uid, chunk_uids),
-                    _ => { return Ok(new_uid); },
+                if !self.check_chunk_by_uid(new_uid) && !dry_run {
+                    (new_uid, chunk_uids)
+                }
+
+                else {
+                    return Ok(new_uid);
                 }
             },
             Tree::Leaf(_) => unreachable!(),
@@ -54,9 +57,12 @@ impl Index {
                 let new_uid = Uid::new_group(&chunk_uids);
 
                 // create a new chunk only when necessary
-                match self.get_chunk_by_uid(new_uid) {
-                    Err(Error::NoSuchChunk(_)) if !dry_run => (new_uid, chunk_uids),
-                    _ => { return Ok(new_uid); },
+                if !self.check_chunk_by_uid(new_uid) && !dry_run {
+                    (new_uid, chunk_uids)
+                }
+
+                else {
+                    return Ok(new_uid);
                 }
             },
         };

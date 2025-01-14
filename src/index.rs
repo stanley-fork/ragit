@@ -498,6 +498,11 @@ impl Index {
         Err(Error::NoSuchChunk(uid))
     }
 
+    pub fn check_chunk_by_uid(&self, uid: Uid) -> bool {
+        let chunk_at = Index::get_chunk_path(&self.root_dir, uid);
+        exists(&chunk_at)
+    }
+
     pub fn get_tfidf_by_chunk_uid(
         &self,
         uid: Uid,

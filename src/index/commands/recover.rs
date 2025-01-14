@@ -62,6 +62,7 @@ impl Index {
     ///
     /// - Recover A: It creates file_indexes from scratch.
     /// - Recover B: If a chunk belongs to a file that's not in self.processed_files, it's removed.
+    ///     - Recover B-1: If a chunk points to a chunk that does not exist, the chunk is removed (gc).
     /// - Recover C: If there's a broken tfidf file, it creates a new one.
     /// - Recover D: If there's a broken config file, it replaces the file with a default one.
     /// - Recover E: If self.curr_processing_file is not None, the file is staged.
@@ -93,8 +94,8 @@ impl Index {
                         continue;
                     }
                 },
-                ChunkSource::Chunks { uids } => {
-                    // TODO: if it's pointing to a chunk that's removed, it also has to be removed
+                ChunkSource::Chunks { .. } => {
+                    // gc will run later
                 },
             }
 
@@ -123,6 +124,26 @@ impl Index {
             }
 
             chunk_count += 1;
+        }
+
+        // Recover B-1: gc
+        'gc_loop: loop {
+            for chunk_file in self.get_all_chunk_files()? {
+                let chunk_ = chunk::load_from_file(&chunk_file)?;
+
+                if let ChunkSource::Chunks { uids } = &chunk_.source {
+                    for uid in uids.iter() {
+                        if !self.check_chunk_by_uid(*uid) {
+                            remove_file(&chunk_file)?;
+                            result.removed_chunks += 1;
+                            chunk_count -= 1;
+                            continue 'gc_loop;
+                        }
+                    }
+                }
+            }
+
+            break;
         }
 
         // Recover A
