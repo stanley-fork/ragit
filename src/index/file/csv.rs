@@ -4,6 +4,8 @@ use crate::index::BuildConfig;
 use ragit_fs::FileError;
 use std::fs::File;
 
+// It uses a simple heuristic: it converts csv into jsonl so that
+// each chunk contains more context.
 pub struct CsvReader {
     iterator: csv::ByteRecordsIntoIter<File>,
     headers: Vec<String>,
@@ -71,7 +73,7 @@ impl FileReaderImpl for CsvReader {
 
                 let mut cells = Vec::with_capacity(self.headers.len());
 
-                for (header, record) in string_records.iter().zip(self.headers.iter()) {
+                for (record, header) in string_records.iter().zip(self.headers.iter()) {
                     // heuristic: if `record` is numeric, it'd better strip off quotes
                     let record = match record.parse::<i64>() {
                         Ok(n) => n.to_string(),
@@ -84,7 +86,7 @@ impl FileReaderImpl for CsvReader {
                     cells.push(format!("{header:?}: {record}"));
                 }
 
-                let row = format!("{}{}{}", "{", cells.join(", "), "}");
+                let row = format!("{}{}{}\n", "{", cells.join(", "), "}");
                 self.rows.push(AtomicToken::String {
                     char_len: row.chars().count(),
                     data: row,
@@ -93,7 +95,7 @@ impl FileReaderImpl for CsvReader {
             Some(Err(e)) => if self.strict_mode {
                 return Err(e.into());
             } else {
-                // TODO
+                // let's just skip this row
             },
             None => {
                 self.is_exhausted = true;
@@ -110,7 +112,7 @@ impl FileReaderImpl for CsvReader {
     }
 
     fn has_more_to_read(&self) -> bool {
-        !self.is_exhausted && !self.rows.is_empty()
+        !self.is_exhausted || !self.rows.is_empty()
     }
 
     fn key(&self) -> String {
