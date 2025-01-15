@@ -47,7 +47,6 @@ pub use commands::{
     AddMode,
     AddResult,
     CloneResult,
-    Ignore,
     LsChunk,
     LsFile,
     LsImage,

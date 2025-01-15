@@ -1,0 +1,10 @@
+[package]
+name = "ragit-ignore"
+version = "0.2.1"
+edition = "2021"
+license = "MIT"
+description = "ignore-parser for ragit"
+
+[dependencies]
+regex = "1.11.1"
+ragit-fs = { path = "../fs", version = "0.2.1" }

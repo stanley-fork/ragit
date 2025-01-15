@@ -15,7 +15,7 @@ mod recover;
 mod remove;
 mod reset;
 
-pub use add::{AddMode, AddResult, Ignore};
+pub use add::{AddMode, AddResult};
 pub use clone::CloneResult;
 pub use ls::{
     LsChunk,
