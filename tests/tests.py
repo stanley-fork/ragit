@@ -3,6 +3,7 @@ from cargo_tests import cargo_tests
 from cat_file import cat_file
 from cli import cli
 from clone import clone
+from csv_reader import csv_reader
 from empty import empty
 from end_to_end import end_to_end
 from external_bases import external_bases
@@ -134,6 +135,8 @@ Commands
                                 are reproduced in this test. If you find a new one, please
                                 add that to this test.
 
+    csv_reader                  run `csv_reader` test
+
     prompts [model=dummy]       run `prompts` test
                                 It's the smallest set of commands that parses and executes
                                 all the `.pdl` files in `prompts/` directory.
@@ -219,6 +222,9 @@ if __name__ == "__main__":
         elif command == "markdown_reader":
             markdown_reader()
 
+        elif command == "csv_reader":
+            csv_reader()
+
         elif command == "prompts":
             test_model = test_model or "dummy"
             prompts(test_model=test_model)
@@ -257,6 +263,7 @@ if __name__ == "__main__":
                 ("cat_file", cat_file),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
+                ("csv_reader", csv_reader),
                 ("subdir", subdir),
                 ("tfidf", tfidf),
                 ("merge", merge),
