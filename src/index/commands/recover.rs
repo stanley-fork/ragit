@@ -8,7 +8,7 @@ use crate::index::{
     INDEX_DIR_NAME,
     tfidf,
 };
-use crate::uid::{self, Uid};
+use crate::uid::{self, Uid, UidType};
 use ragit_fs::{
     WriteMode,
     create_dir_all,
@@ -127,19 +127,26 @@ impl Index {
         }
 
         // Recover B-1: gc
+        // FIXME: it has a terrible time complexity
         'gc_loop: loop {
-            for chunk_file in self.get_all_chunk_files()? {
-                let chunk_ = chunk::load_from_file(&chunk_file)?;
+            for chunk_uid in self.get_all_chunk_uids()? {
+                match chunk_uid.get_uid_type() {
+                    UidType::Group => {
+                        let chunk_ = self.get_chunk_by_uid(chunk_uid)?;
+                        let chunk_path = Index::get_chunk_path(&self.root_dir, chunk_uid);
 
-                if let ChunkSource::Chunks { uids } = &chunk_.source {
-                    for uid in uids.iter() {
-                        if !self.check_chunk_by_uid(*uid) {
-                            remove_file(&chunk_file)?;
-                            result.removed_chunks += 1;
-                            chunk_count -= 1;
-                            continue 'gc_loop;
+                        if let ChunkSource::Chunks { uids } = &chunk_.source {
+                            for uid in uids.iter() {
+                                if !self.check_chunk_by_uid(*uid) {
+                                    remove_file(&chunk_path)?;
+                                    result.removed_chunks += 1;
+                                    chunk_count -= 1;
+                                    continue 'gc_loop;
+                                }
+                            }
                         }
-                    }
+                    },
+                    _ => {},
                 }
             }
 
