@@ -1,6 +1,6 @@
 use super::Index;
 use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
-use crate::chunk::ChunkSource;
+use crate::chunk::{CHUNK_DIR_NAME, ChunkSource};
 use crate::error::Error;
 use crate::index::{
     FILE_INDEX_DIR_NAME,
@@ -133,7 +133,12 @@ impl Index {
                 match chunk_uid.get_uid_type() {
                     UidType::Group => {
                         let chunk_ = self.get_chunk_by_uid(chunk_uid)?;
-                        let chunk_path = Index::get_chunk_path(&self.root_dir, chunk_uid);
+                        let chunk_path = Index::get_uid_path(
+                            &self.root_dir,
+                            CHUNK_DIR_NAME,
+                            chunk_uid,
+                            Some("chunk"),
+                        )?;
 
                         if let ChunkSource::Chunks { uids } = &chunk_.source {
                             for uid in uids.iter() {
@@ -165,7 +170,12 @@ impl Index {
         for (file, mut chunks) in processed_files.into_iter() {
             chunks.sort_by_key(|(_, index)| *index);
             let file_uid = self.processed_files.get(&file).unwrap();
-            let file_index_path = Index::get_file_index_path(&self.root_dir, *file_uid);
+            let file_index_path = Index::get_uid_path(
+                &self.root_dir,
+                FILE_INDEX_DIR_NAME,
+                *file_uid,
+                None,
+            )?;
             let parent_path = parent(&file_index_path)?;
 
             if !exists(&parent_path) {

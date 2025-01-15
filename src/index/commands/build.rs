@@ -1,7 +1,7 @@
 use super::Index;
-use crate::chunk;
+use crate::chunk::{self, CHUNK_DIR_NAME};
 use crate::error::Error;
-use crate::index::{ChunkBuildInfo, FileReader, IIStatus};
+use crate::index::{ChunkBuildInfo, FileReader, IIStatus, IMAGE_DIR_NAME};
 use crate::uid::Uid;
 use ragit_api::record::Record;
 use ragit_fs::{
@@ -29,7 +29,7 @@ impl Index {
             let real_path = Index::get_data_path(
                 &self.root_dir,
                 &doc,
-            );
+            )?;
             let file_uid = Uid::new_file(&self.root_dir, &real_path)?;
 
             if self.processed_files.contains_key(&doc) {
@@ -65,7 +65,12 @@ impl Index {
                 ).await?;
                 previous_summary = Some((new_chunk.clone(), (&new_chunk).into()));
                 let new_chunk_uid = new_chunk.uid;
-                let new_chunk_path = Index::get_chunk_path(&self.root_dir, new_chunk_uid);
+                let new_chunk_path = Index::get_uid_path(
+                    &self.root_dir,
+                    CHUNK_DIR_NAME,
+                    new_chunk_uid,
+                    Some("chunk"),
+                )?;
                 uids.push(new_chunk_uid);
 
                 // TODO: It's inefficient in that it might write the same image file multiple times.
@@ -74,7 +79,12 @@ impl Index {
                 //       The good new is that it doesn't run `self.add_image_description` multiple times
                 //       on the same image.
                 for (uid, bytes) in fd.images.iter() {
-                    let image_path = Index::get_image_path(&self.root_dir, *uid, "png");
+                    let image_path = Index::get_uid_path(
+                        &self.root_dir,
+                        IMAGE_DIR_NAME,
+                        *uid,
+                        Some("png"),
+                    )?;
                     let parent_path = parent(&image_path)?;
 
                     if !exists(&parent_path) {

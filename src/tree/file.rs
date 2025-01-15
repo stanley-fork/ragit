@@ -1,7 +1,7 @@
 use super::{Leaf, Tree, generate_tree};
 use async_recursion::async_recursion;
 use chrono::Local;
-use crate::chunk::{self, Chunk, ChunkBuildInfo, ChunkSchema, ChunkSource};
+use crate::chunk::{self, Chunk, CHUNK_DIR_NAME, ChunkBuildInfo, ChunkSchema, ChunkSource};
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
@@ -80,10 +80,12 @@ impl Index {
 
             let new_chunk = self.summary_chunks(&chunks).await?;
             chunk::save_to_file(
-                &Index::get_chunk_path(
+                &Index::get_uid_path(
                     &self.root_dir,
+                    CHUNK_DIR_NAME,
                     new_chunk.uid,
-                ),
+                    Some("chunk"),
+                )?,
                 &new_chunk,
                 self.build_config.compression_threshold,
                 self.build_config.compression_level,

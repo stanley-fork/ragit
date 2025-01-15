@@ -2,7 +2,7 @@ use super::Index;
 use crate::INDEX_DIR_NAME;
 use crate::error::Error;
 use crate::uid::Uid;
-use ragit_fs::{exists, is_dir, join, read_dir, read_string};
+use ragit_fs::{exists, get_relative_path, is_dir, join, read_dir, read_string};
 use regex::Regex;
 use std::fmt;
 
@@ -67,7 +67,7 @@ impl Index {
 
         if let Some(file) = &self.curr_processing_file {
             return Err(Error::CannotAddFile {
-                file: Index::get_rel_path(&self.root_dir, &files[0])?,
+                file: get_relative_path(&self.root_dir, &files[0])?,
                 message: format!("A build process has been interrupted while processing `{file}`. Please clean it up."),
             });
         }
@@ -77,7 +77,7 @@ impl Index {
         for file in files.iter() {
             if !exists(file) {
                 return Err(Error::CannotAddFile {
-                    file: Index::get_rel_path(&self.root_dir, file)?,
+                    file: get_relative_path(&self.root_dir, file)?,
                     message: format!("`{file}` does not exist."),
                 });
             }
@@ -92,7 +92,7 @@ impl Index {
                             },
                             Some(AddMode::Reject) => {
                                 return Err(Error::CannotAddFile {
-                                    file: Index::get_rel_path(&self.root_dir, &sub)?,
+                                    file: get_relative_path(&self.root_dir, &sub)?,
                                     message: format!("`{sub}` is ignored."),
                                 });
                             },
@@ -100,7 +100,7 @@ impl Index {
                         }
                     }
 
-                    unfolded_files.push(Index::get_rel_path(&self.root_dir, &sub)?);
+                    unfolded_files.push(get_relative_path(&self.root_dir, &sub)?);
                 }
             }
 
@@ -111,18 +111,18 @@ impl Index {
                     },
                     Some(AddMode::Reject) => {
                         return Err(Error::CannotAddFile {
-                            file: Index::get_rel_path(&self.root_dir, file)?,
+                            file: get_relative_path(&self.root_dir, file)?,
                             message: format!("`{file}` is ignored."),
                         });
                     },
                     Some(AddMode::Force) => {
-                        unfolded_files.push(Index::get_rel_path(&self.root_dir, file)?);
+                        unfolded_files.push(get_relative_path(&self.root_dir, file)?);
                     },
                 }
             }
 
             else {
-                unfolded_files.push(Index::get_rel_path(&self.root_dir, file)?);
+                unfolded_files.push(get_relative_path(&self.root_dir, file)?);
             }
         }
 
@@ -276,7 +276,7 @@ impl Ignore {
     }
 
     pub fn is_match(&self, root_dir: &str, file: &str) -> bool {
-        let Ok(rel_path) = Index::get_rel_path(&root_dir.to_string(), &file.to_string()) else { return false; };
+        let Ok(rel_path) = get_relative_path(&root_dir.to_string(), &file.to_string()) else { return false; };
 
         for pattern in self.patterns.iter() {
             if pattern.is_match(&rel_path) {
@@ -368,7 +368,7 @@ mod tests {
 
                     // TODO
                     //   1. I'm not sure whether gitignore allows this or not.
-                    //   2. `Index::get_rel_path` will never generate a path that starts with "/".
+                    //   2. `get_relative_path` will never generate a path that starts with "/".
                     //   3. Then, what should we do with this case?
                     "/abc",
                 ],

@@ -1,6 +1,7 @@
 use super::Index;
 use crate::chunk::{self, Chunk};
 use crate::error::Error;
+use crate::index::IMAGE_DIR_NAME;
 use crate::uid::Uid;
 use ragit_api::JsonType;
 use ragit_fs::{
@@ -229,11 +230,12 @@ impl Index {
 
     /// `rag ls-images`
     pub fn get_ls_image(&self, uid: Uid) -> Result<LsImage, Error> {
-        let description_path = Index::get_image_path(
+        let description_path = Index::get_uid_path(
             &self.root_dir,
+            IMAGE_DIR_NAME,
             uid,
-            "json",
-        );
+            Some("json"),
+        )?;
         let image_path = set_extension(&description_path, "png")?;
         let description = read_string(&description_path)?;
         let description = serde_json::from_str::<Value>(&description)?;

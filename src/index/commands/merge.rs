@@ -1,7 +1,7 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::index::{IIStatus, LoadMode};
+use crate::index::{CHUNK_DIR_NAME, IIStatus, IMAGE_DIR_NAME, LoadMode};
 use crate::uid::Uid;
 use ragit_fs::{
     copy_file,
@@ -134,33 +134,38 @@ impl Index {
                 }
 
                 for image in new_chunk.images.iter() {
-                    let image_self = Index::get_image_path(
+                    let image_self = Index::get_uid_path(
                         &self.root_dir,
+                        IMAGE_DIR_NAME,
                         *image,
-                        "png",
-                    );
+                        Some("png"),
+                    )?;
 
                     if !exists(&image_self) {
-                        let image_self = Index::get_image_path(
+                        let image_self = Index::get_uid_path(
                             &self.root_dir,
+                            IMAGE_DIR_NAME,
                             *image,
-                            "png",
-                        );
-                        let desc_self = Index::get_image_path(
+                            Some("png"),
+                        )?;
+                        let desc_self = Index::get_uid_path(
                             &self.root_dir,
+                            IMAGE_DIR_NAME,
                             *image,
-                            "json",
-                        );
-                        let image_other = Index::get_image_path(
+                            Some("json"),
+                        )?;
+                        let image_other = Index::get_uid_path(
                             &other.root_dir,
+                            IMAGE_DIR_NAME,
                             *image,
-                            "png",
-                        );
-                        let desc_other = Index::get_image_path(
+                            Some("png"),
+                        )?;
+                        let desc_other = Index::get_uid_path(
                             &other.root_dir,
+                            IMAGE_DIR_NAME,
                             *image,
-                            "json",
-                        );
+                            Some("json"),
+                        )?;
                         let parent = parent(&image_self)?;
 
                         if !exists(&parent) {
@@ -184,10 +189,12 @@ impl Index {
                 // the older version of the description.
                 if !dry_run {
                     chunk::save_to_file(
-                        &Index::get_chunk_path(
+                        &Index::get_uid_path(
                             &self.root_dir,
+                            CHUNK_DIR_NAME,
                             new_chunk.uid,
-                        ),
+                            Some("chunk"),
+                        )?,
                         &new_chunk,
                         self.build_config.compression_threshold,
                         self.build_config.compression_level,
@@ -229,26 +236,30 @@ impl Index {
                 },
             }
 
-            let image_self = Index::get_image_path(
+            let image_self = Index::get_uid_path(
                 &self.root_dir,
+                IMAGE_DIR_NAME,
                 *old_image,
-                "png",
-            );
-            let desc_self = Index::get_image_path(
+                Some("png"),
+            )?;
+            let desc_self = Index::get_uid_path(
                 &self.root_dir,
+                IMAGE_DIR_NAME,
                 *old_image,
-                "json",
-            );
-            let image_other = Index::get_image_path(
+                Some("json"),
+            )?;
+            let image_other = Index::get_uid_path(
                 &other.root_dir,
+                IMAGE_DIR_NAME,
                 *old_image,
-                "png",
-            );
-            let desc_other = Index::get_image_path(
+                Some("png"),
+            )?;
+            let desc_other = Index::get_uid_path(
                 &other.root_dir,
+                IMAGE_DIR_NAME,
                 *old_image,
-                "json",
-            );
+                Some("json"),
+            )?;
             let parent = parent(&image_self)?;
 
             if !exists(&parent) {

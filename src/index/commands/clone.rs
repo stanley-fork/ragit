@@ -1,7 +1,8 @@
 use super::Index;
 use crate::{INDEX_DIR_NAME, chunk};
+use crate::chunk::CHUNK_DIR_NAME;
 use crate::error::Error;
-use crate::index::{LoadMode, commands::meta::METADATA_FILE_NAME};
+use crate::index::{IMAGE_DIR_NAME, LoadMode, commands::meta::METADATA_FILE_NAME};
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
@@ -93,11 +94,12 @@ impl Index {
                 let image_uid = image_uid_str.parse::<Uid>()?;
                 result.image_count += 1;
                 Index::render_clone_dashboard(&result);
-                let image_path = Index::get_image_path(
+                let image_path = Index::get_uid_path(
                     &index.root_dir,
+                    IMAGE_DIR_NAME,
                     image_uid,
-                    "png",
-                );
+                    Some("png"),
+                )?;
                 let image_desc_path = set_extension(&image_path, "json")?;
                 let parent = parent(&image_path)?;
 
@@ -131,10 +133,12 @@ impl Index {
                 let chunk_uid = chunk_uid_str.parse::<Uid>()?;
                 result.chunk_count += 1;
                 Index::render_clone_dashboard(&result);
-                let chunk_path = Index::get_chunk_path(
+                let chunk_path = Index::get_uid_path(
                     &index.root_dir,
+                    CHUNK_DIR_NAME,
                     chunk_uid,
-                );
+                    Some("chunk"),
+                )?;
                 let parent = parent(&chunk_path)?;
 
                 if !exists(&parent) {

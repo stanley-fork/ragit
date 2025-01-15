@@ -20,7 +20,7 @@ impl Index {
         let logs_at = Index::get_rag_path(
             &self.root_dir,
             &LOG_DIR_NAME.to_string(),
-        );
+        )?;
         let mut count = 0;
 
         for file in read_dir(&logs_at, false)? {

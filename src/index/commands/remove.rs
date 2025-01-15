@@ -1,7 +1,7 @@
 use super::Index;
 use crate::error::Error;
-use crate::index::IIStatus;
-use ragit_fs::{exists, remove_file, set_extension};
+use crate::index::{CHUNK_DIR_NAME, IIStatus};
+use ragit_fs::{exists, get_relative_path, remove_file, set_extension};
 
 pub type Path = String;
 
@@ -10,7 +10,7 @@ impl Index {
         &mut self,
         path: Path,  // real_path
     ) -> Result<(), Error> {
-        let rel_path = Index::get_rel_path(&self.root_dir, &path)?;
+        let rel_path = get_relative_path(&self.root_dir, &path)?;
 
         if self.staged_files.contains(&rel_path) {
             self.staged_files = self.staged_files.iter().filter(
@@ -29,7 +29,12 @@ impl Index {
                 Some(file_uid) => {
                     for uid in self.get_chunks_of_file(file_uid)? {
                         self.chunk_count -= 1;
-                        let chunk_path = Index::get_chunk_path(&self.root_dir, uid);
+                        let chunk_path = Index::get_uid_path(
+                            &self.root_dir,
+                            CHUNK_DIR_NAME,
+                            uid,
+                            Some("chunk"),
+                        )?;
                         remove_file(&chunk_path)?;
                         let tfidf_path = set_extension(&chunk_path, "tfidf")?;
 
@@ -58,24 +63,24 @@ impl Index {
         let mut files_to_remove = vec![];
 
         for staged_file in self.staged_files.iter() {
-            if !exists(&Index::get_data_path(&self.root_dir, staged_file)) {
+            if !exists(&Index::get_data_path(&self.root_dir, staged_file)?) {
                 files_to_remove.push(staged_file.to_string());
             }
         }
 
         for processed_file in self.processed_files.keys() {
-            if !exists(&Index::get_data_path(&self.root_dir, processed_file)) {
+            if !exists(&Index::get_data_path(&self.root_dir, processed_file)?) {
                 files_to_remove.push(processed_file.to_string());
             }
         }
 
         if let Some(file) = &self.curr_processing_file {
-            if !exists(&Index::get_data_path(&self.root_dir, file)) {
+            if !exists(&Index::get_data_path(&self.root_dir, file)?) {
                 files_to_remove.push(file.to_string());
             }
         }
 
-        files_to_remove = files_to_remove.into_iter().map(|file| Index::get_data_path(&self.root_dir, &file)).collect();
+        files_to_remove = files_to_remove.into_iter().map(|file| Index::get_data_path(&self.root_dir, &file).unwrap()).collect();
 
         for file in files_to_remove.iter() {
             self.remove_file(file.clone())?;

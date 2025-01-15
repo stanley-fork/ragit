@@ -9,6 +9,7 @@ use ragit_fs::{
     extension,
     file_name,
     file_size,
+    get_relative_path,
     is_dir,
     join,
     join3,
@@ -125,7 +126,7 @@ impl Uid {
 
     pub fn new_file(root_dir: &str, path: &str) -> Result<Self, Error> {
         let size = file_size(path)?;
-        let rel_path = Index::get_rel_path(&root_dir.to_string(), &path.to_string())?;
+        let rel_path = get_relative_path(&root_dir.to_string(), &path.to_string())?;
         let mut file_path_hasher = Sha3_256::new();
         file_path_hasher.update(rel_path.as_bytes());
         let file_path_uid = format!("{:064x}", file_path_hasher.finalize()).parse::<Uid>().unwrap();
@@ -584,7 +585,7 @@ impl Index {
             // TODO: enable file prefix-matching
             //       there's an issue with file prefix-matching. if a file path is a prefix
             //       of another file, there's no way to exact-match the file
-            if let Ok(rel_path) = Index::get_rel_path(&self.root_dir, &q.query.to_string()) {
+            if let Ok(rel_path) = get_relative_path(&self.root_dir, &q.query.to_string()) {
                 if self.processed_files.contains_key(&rel_path) {
                     file_paths.push(rel_path.to_string());
                 }

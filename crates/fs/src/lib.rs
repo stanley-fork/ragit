@@ -338,6 +338,20 @@ pub fn diff(path: &str, base: &str) -> Result<String, FileError> {
     }
 }
 
+/// It calcs diff and normalizes.
+pub fn get_relative_path(base: &str, path: &str) -> Result<String, FileError> {
+    // It has to normalize the output because `diff` behaves differently on windows and unix.
+    Ok(normalize(&diff(
+        // in order to calc diff, it needs a full path
+        &normalize(
+            &into_abs_path(path)?,
+        )?,
+        &normalize(
+            &into_abs_path(base)?,
+        )?,
+    )?)?)
+}
+
 pub fn normalize(path: &str) -> Result<String, FileError> {
     let mut result = vec![];
     let path = path.replace("\\", "/");

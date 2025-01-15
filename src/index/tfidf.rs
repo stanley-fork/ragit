@@ -1,6 +1,6 @@
 use crate::chunk::Chunk;
 use crate::error::Error;
-use crate::index::Index;
+use crate::index::{IMAGE_DIR_NAME, Index};
 use crate::query::Keywords;
 use crate::uid::Uid;
 use flate2::Compression;
@@ -304,11 +304,12 @@ impl Chunk {
         let mut data = self.data.clone();
 
         for image in self.images.iter() {
-            let description_at = Index::get_image_path(
+            let description_at = Index::get_uid_path(
                 root_dir,
+                IMAGE_DIR_NAME,
                 *image,
-                "json",
-            );
+                Some("json"),
+            )?;
             let j = read_string(&description_at)?;
 
             let rep_text = match serde_json::from_str::<Value>(&j)? {

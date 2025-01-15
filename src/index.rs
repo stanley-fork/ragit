@@ -12,7 +12,6 @@ use ragit_api::{
 use ragit_fs::{
     WriteMode,
     create_dir_all,
-    diff,
     exists,
     extension,
     into_abs_path,
@@ -149,7 +148,7 @@ impl Index {
             create_dir_all(&Index::get_rag_path(
                 &root_dir,
                 &dir.to_string(),
-            ))?;
+            )?)?;
         }
 
         let build_config = BuildConfig::default();
@@ -237,7 +236,7 @@ impl Index {
         let index_json = read_string(&Index::get_rag_path(
             &root_dir,
             &INDEX_FILE_NAME.to_string(),
-        ))?;
+        )?)?;
 
         let mut result = serde_json::from_str::<Index>(&index_json)?;
         result.root_dir = root_dir;
@@ -274,7 +273,7 @@ impl Index {
             &Index::get_rag_path(
                 &self.root_dir,
                 &INDEX_FILE_NAME.to_string(),
-            ),
+            )?,
             &serde_json::to_vec_pretty(self)?,
             WriteMode::CreateOrTruncate,
         )?)
@@ -390,8 +389,18 @@ impl Index {
     }
 
     async fn add_image_description(&self, uid: Uid) -> Result<(), Error> {
-        let description_path = Index::get_image_path(&self.root_dir, uid, "json");
-        let image_path = Index::get_image_path(&self.root_dir, uid, "png");
+        let description_path = Index::get_uid_path(
+            &self.root_dir,
+            IMAGE_DIR_NAME,
+            uid,
+            Some("json"),
+        )?;
+        let image_path = Index::get_uid_path(
+            &self.root_dir,
+            IMAGE_DIR_NAME,
+            uid,
+            Some("png"),
+        )?;
         let parent_path = parent(&image_path)?;
 
         if !exists(&parent_path) {
@@ -489,7 +498,12 @@ impl Index {
     }
 
     pub fn get_chunk_by_uid(&self, uid: Uid) -> Result<Chunk, Error> {
-        let chunk_at = Index::get_chunk_path(&self.root_dir, uid);
+        let chunk_at = Index::get_uid_path(
+            &self.root_dir,
+            CHUNK_DIR_NAME,
+            uid,
+            Some("chunk"),
+        )?;
 
         if exists(&chunk_at) {
             return Ok(chunk::load_from_file(&chunk_at)?);
@@ -499,15 +513,30 @@ impl Index {
     }
 
     pub fn check_chunk_by_uid(&self, uid: Uid) -> bool {
-        let chunk_at = Index::get_chunk_path(&self.root_dir, uid);
-        exists(&chunk_at)
+        if let Ok(chunk_at) = Index::get_uid_path(
+            &self.root_dir,
+            CHUNK_DIR_NAME,
+            uid,
+            Some("chunk"),
+        ) {
+            exists(&chunk_at)
+        }
+
+        else {
+            false
+        }
     }
 
     pub fn get_tfidf_by_chunk_uid(
         &self,
         uid: Uid,
     ) -> Result<ProcessedDoc, Error> {
-        let tfidf_at = set_extension(&Index::get_chunk_path(&self.root_dir, uid), "tfidf")?;
+        let tfidf_at = Index::get_uid_path(
+            &self.root_dir,
+            CHUNK_DIR_NAME,
+            uid,
+            Some("tfidf"),
+        )?;
 
         if exists(&tfidf_at) {
             return Ok(tfidf::load_from_file(&tfidf_at)?);
@@ -532,93 +561,46 @@ impl Index {
     }
 
     // every path in index.json are relative path to root_dir
-    fn get_rag_path(root_dir: &Path, rel_path: &Path) -> Path {
-        normalize(
+    fn get_rag_path(root_dir: &Path, rel_path: &Path) -> Result<Path, Error> {
+        Ok(normalize(
             &join3(
                 root_dir,
                 &INDEX_DIR_NAME.to_string(),
                 rel_path,
-            ).unwrap(),
-        ).unwrap()
+            )?,
+        )?)
     }
 
-    pub(crate) fn get_data_path(root_dir: &Path, rel_path: &Path) -> Path {
-        normalize(
+    pub(crate) fn get_data_path(root_dir: &Path, rel_path: &Path) -> Result<Path, Error> {
+        Ok(normalize(
             &join(
                 root_dir,
                 rel_path,
-            ).unwrap(),
-        ).unwrap()
-    }
-
-    pub(crate) fn get_rel_path(root_dir: &Path, real_path: &Path) -> Result<Path, Error> {
-        // It has to normalize the output because `diff` behaves differently on windows and unix.
-        Ok(normalize(&diff(
-            // in order to calc diff, it needs a full path
-            &normalize(
-                &into_abs_path(real_path)?,
             )?,
-            &normalize(root_dir)?,
-        )?)?)
+        )?)
     }
 
-    // TODO: `get_chunk_path`, `get_file_path`, `get_image_path` and `get_ii_path` are redundant
-
-    // root_dir/.ragit/chunks/chunk_uid_prefix/chunk_uid_suffix.chunk
-    pub(crate) fn get_chunk_path(root_dir: &Path, chunk_uid: Uid) -> Path {
-        let chunks_at = join3(
+    /// `{root_dir}/.ragit/{dir}/uid_prefix/uid_suffix(.{ext})?`
+    pub(crate) fn get_uid_path(root_dir: &str, dir: &str, uid: Uid, ext: Option<&str>) -> Result<Path, Error> {
+        let dir = join3(
             root_dir,
-            &INDEX_DIR_NAME,
-            &CHUNK_DIR_NAME,
-        ).unwrap();
-        let chunk_uid_prefix = chunk_uid.get_prefix();
-        let chunk_uid_suffix = chunk_uid.get_suffix();
+            INDEX_DIR_NAME,
+            dir,
+        )?;
+        let uid_prefix = uid.get_prefix();
+        let uid_suffix = uid.get_suffix();
 
-        join3(
-            &chunks_at,
-            &chunk_uid_prefix,
-            &set_extension(
-                &chunk_uid_suffix,
-                "chunk",
-            ).unwrap(),
-        ).unwrap()
-    }
+        let mut result = join3(
+            &dir,
+            &uid_prefix,
+            &uid_suffix,
+        )?;
 
-    // root_dir/.ragit/file_index/file_uid_prefix/file_uid_suffix
-    fn get_file_index_path(root_dir: &Path, file_uid: Uid) -> Path {
-        let index_at = join3(
-            root_dir,
-            &INDEX_DIR_NAME,
-            &FILE_INDEX_DIR_NAME,
-        ).unwrap();
-        let file_uid_prefix = file_uid.get_prefix();
-        let file_uid_suffix = file_uid.get_suffix();
+        if let Some(ext) = ext {
+            result = set_extension(&result, ext)?;
+        }
 
-        join3(
-            &index_at,
-            &file_uid_prefix,
-            &file_uid_suffix,
-        ).unwrap()
-    }
-
-    // root_dir/.ragit/images/image_uid_prefix/image_uid_suffix
-    fn get_image_path(root_dir: &str, image_uid: Uid, extension: &str) -> Path {
-        let images_at = join3(
-            root_dir,
-            &INDEX_DIR_NAME,
-            &IMAGE_DIR_NAME,
-        ).unwrap();
-        let image_uid_prefix = image_uid.get_prefix();
-        let image_uid_suffix = image_uid.get_suffix();
-
-        join3(
-            &images_at,
-            &image_uid_prefix,
-            &set_extension(
-                &image_uid_suffix,
-                extension,
-            ).unwrap(),
-        ).unwrap()
+        Ok(result)
     }
 
     // root_dir/.ragit/ii/term_hash_prefix/term_hash_suffix
@@ -645,7 +627,7 @@ impl Index {
                 CONFIG_DIR_NAME,
                 API_CONFIG_FILE_NAME,
             )?,
-        ))
+        )?)
     }
 
     fn get_build_config_path(&self) -> Result<Path, Error> {
@@ -655,7 +637,7 @@ impl Index {
                 CONFIG_DIR_NAME,
                 BUILD_CONFIG_FILE_NAME,
             )?,
-        ))
+        )?)
     }
 
     fn get_query_config_path(&self) -> Result<Path, Error> {
@@ -665,7 +647,7 @@ impl Index {
                 CONFIG_DIR_NAME,
                 QUERY_CONFIG_FILE_NAME,
             )?,
-        ))
+        )?)
     }
 
     pub(crate) fn init_api_config(&self, raw: &ApiConfigRaw) -> Result<ApiConfig, Error> {
@@ -673,7 +655,7 @@ impl Index {
             let path = Index::get_rag_path(
                 &self.root_dir,
                 &LOG_DIR_NAME.to_string(),
-            );
+            )?;
 
             if !exists(&path) || !is_dir(&path) {
                 create_dir_all(&path)?;
@@ -690,7 +672,7 @@ impl Index {
             let path = Index::get_rag_path(
                 &self.root_dir,
                 &"usages.json".to_string(),
-            );
+            )?;
 
             if !exists(&path) || is_dir(&path) {
                 write_string(
@@ -731,7 +713,7 @@ impl Index {
                         "pdl",
                     )?,
                 )?,
-            );
+            )?;
 
             match read_string(&prompt_path) {
                 Ok(p) => {
@@ -750,7 +732,7 @@ impl Index {
         let prompt_real_dir = Index::get_rag_path(
             &self.root_dir,
             &PROMPT_DIR.to_string(),
-        );
+        )?;
 
         if !exists(&prompt_real_dir) {
             create_dir_all(&prompt_real_dir)?;
@@ -783,7 +765,12 @@ impl Index {
     }
 
     fn add_file_index(&mut self, file_uid: Uid, uids: &[Uid]) -> Result<(), Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
+        let file_index_path = Index::get_uid_path(
+            &self.root_dir,
+            FILE_INDEX_DIR_NAME,
+            file_uid,
+            None,
+        )?;
         let parent_path = parent(&file_index_path)?;
 
         if !exists(&parent_path) {
@@ -794,7 +781,12 @@ impl Index {
     }
 
     fn remove_file_index(&mut self, file_uid: Uid) -> Result<(), Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
+        let file_index_path = Index::get_uid_path(
+            &self.root_dir,
+            FILE_INDEX_DIR_NAME,
+            file_uid,
+            None,
+        )?;
 
         if !exists(&file_index_path) {
             return Err(Error::NoSuchFile { path: None, uid: Some(file_uid) });
@@ -804,7 +796,12 @@ impl Index {
     }
 
     pub fn get_chunks_of_file(&self, file_uid: Uid) -> Result<Vec<Uid>, Error> {
-        let file_index_path = Index::get_file_index_path(&self.root_dir, file_uid);
+        let file_index_path = Index::get_uid_path(
+            &self.root_dir,
+            FILE_INDEX_DIR_NAME,
+            file_uid,
+            None,
+        )?;
         let mut result = vec![];
 
         if exists(&file_index_path) {
@@ -834,6 +831,6 @@ impl Index {
     }
 
     pub fn load_image_by_uid(&self, uid: Uid) -> Result<Vec<u8>, Error> {
-        Ok(read_bytes(&Index::get_image_path(&self.root_dir, uid, "png"))?)
+        Ok(read_bytes(&Index::get_uid_path(&self.root_dir, IMAGE_DIR_NAME, uid, Some("png"))?)?)
     }
 }
