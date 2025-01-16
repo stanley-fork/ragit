@@ -341,8 +341,53 @@ impl Index {
         result
     }
 
-    pub fn uid_query(&self, q: UidQuery) -> Result<UidQueryResult, Error> {
-        if q.query.is_empty() {
+    pub fn uid_query(&self, qs: &[String], config: UidQueryConfig) -> Result<UidQueryResult, Error> {
+        let mut chunks_set = HashSet::new();
+        let mut images_set = HashSet::new();
+        let mut processed_files_map = HashMap::new();
+        let mut staged_files_set = HashSet::new();
+
+        for q in qs.iter() {
+            let curr = self.uid_query_unit(q, config)?;
+
+            for chunk in curr.chunks.iter() {
+                chunks_set.insert(*chunk);
+            }
+
+            for image in curr.images.iter() {
+                images_set.insert(*image);
+            }
+
+            for (path, uid) in curr.processed_files.iter() {
+                processed_files_map.insert(*uid, path.to_string());
+            }
+
+            for staged_file in curr.staged_files.iter() {
+                staged_files_set.insert(staged_file.to_string());
+            }
+        }
+
+        let mut chunks = chunks_set.into_iter().collect::<Vec<_>>();
+        let mut images = images_set.into_iter().collect::<Vec<_>>();
+        let mut processed_files = processed_files_map.into_iter().map(|(uid, path)| (path, uid)).collect::<Vec<_>>();
+        let mut staged_files = staged_files_set.into_iter().collect::<Vec<_>>();
+
+        // The result has to be deterministic
+        chunks.sort();
+        images.sort();
+        processed_files.sort_by_key(|(_, uid)| *uid);
+        staged_files.sort();
+
+        Ok(UidQueryResult {
+            chunks,
+            images,
+            processed_files,
+            staged_files,
+        })
+    }
+
+    fn uid_query_unit(&self, q: &str, config: UidQueryConfig) -> Result<UidQueryResult, Error> {
+        if q.is_empty() {
             return Ok(UidQueryResult::empty());
         }
 
@@ -354,9 +399,9 @@ impl Index {
         let mut file_uids = vec![];
         let mut file_paths = vec![];
 
-        if UID_RE.is_match(&q.query) {
-            if q.query.len() == 1 {
-                if q.search_chunk {
+        if UID_RE.is_match(q) {
+            if q.len() == 1 {
+                if config.search_chunk {
                     for chunk_dir in read_dir(&join3(
                         &self.root_dir,
                         INDEX_DIR_NAME,
@@ -364,7 +409,7 @@ impl Index {
                     )?, false).unwrap_or(vec![]) {
                         let chunk_prefix = file_name(&chunk_dir)?;
 
-                        if chunk_prefix.starts_with(&q.query) {
+                        if chunk_prefix.starts_with(q) {
                             for chunk_file in read_dir(&chunk_dir, false)? {
                                 if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
                                     continue;
@@ -376,7 +421,7 @@ impl Index {
                     }
                 }
 
-                if q.search_file_uid {
+                if config.search_file_uid {
                     for file_index_dir in read_dir(&join3(
                         &self.root_dir,
                         INDEX_DIR_NAME,
@@ -384,7 +429,7 @@ impl Index {
                     )?, false).unwrap_or(vec![]) {
                         let file_index_prefix = file_name(&file_index_dir)?;
 
-                        if file_index_prefix.starts_with(&q.query) {
+                        if file_index_prefix.starts_with(q) {
                             for file_index in read_dir(&file_index_dir, false)? {
                                 file_uids.push(Uid::from_prefix_and_suffix(&file_index_prefix, &file_name(&file_index)?)?);
                             }
@@ -392,7 +437,7 @@ impl Index {
                     }
                 }
 
-                if q.search_image {
+                if config.search_image {
                     for image_dir in read_dir(&join3(
                         &self.root_dir,
                         INDEX_DIR_NAME,
@@ -400,7 +445,7 @@ impl Index {
                     )?, false).unwrap_or(vec![]) {
                         let image_prefix = file_name(&image_dir)?;
 
-                        if image_prefix.starts_with(&q.query) {
+                        if image_prefix.starts_with(q) {
                             for image_file in read_dir(&image_dir, false)? {
                                 if extension(&image_file)?.unwrap_or(String::new()) != "png" {
                                     continue;
@@ -413,55 +458,55 @@ impl Index {
                 }
             }
 
-            else if q.query.len() == 2 {
-                if q.search_chunk {
+            else if q.len() == 2 {
+                if config.search_chunk {
                     for chunk_file in read_dir(&join4(
                         &self.root_dir,
                         INDEX_DIR_NAME,
                         CHUNK_DIR_NAME,
-                        &q.query,
+                        q,
                     )?, false).unwrap_or(vec![]) {
                         if extension(&chunk_file)?.unwrap_or(String::new()) != "chunk" {
                             continue;
                         }
 
-                        chunks.push(Uid::from_prefix_and_suffix(&q.query, &file_name(&chunk_file)?)?);
+                        chunks.push(Uid::from_prefix_and_suffix(q, &file_name(&chunk_file)?)?);
                     }
                 }
 
-                if q.search_file_uid {
+                if config.search_file_uid {
                     for file_index in read_dir(&join4(
                         &self.root_dir,
                         INDEX_DIR_NAME,
                         FILE_INDEX_DIR_NAME,
-                        &q.query,
+                        q,
                     )?, false).unwrap_or(vec![]) {
-                        file_uids.push(Uid::from_prefix_and_suffix(&q.query, &file_name(&file_index)?)?);
+                        file_uids.push(Uid::from_prefix_and_suffix(q, &file_name(&file_index)?)?);
                     }
                 }
 
-                if q.search_image {
+                if config.search_image {
                     for image_file in read_dir(&join4(
                         &self.root_dir,
                         INDEX_DIR_NAME,
                         IMAGE_DIR_NAME,
-                        &q.query,
+                        q,
                     )?, false).unwrap_or(vec![]) {
                         if extension(&image_file)?.unwrap_or(String::new()) != "png" {
                             continue;
                         }
 
-                        images.push(Uid::from_prefix_and_suffix(&q.query, &file_name(&image_file)?)?);
+                        images.push(Uid::from_prefix_and_suffix(q, &file_name(&image_file)?)?);
                     }
                 }
             }
 
             else {
-                let prefix = q.query.get(0..2).unwrap().to_string();
-                let suffix = q.query.get(2..).unwrap().to_string();
+                let prefix = q.get(0..2).unwrap().to_string();
+                let suffix = q.get(2..).unwrap().to_string();
 
-                if q.search_chunk {
-                    if q.query.len() == 64 {
+                if config.search_chunk {
+                    if q.len() == 64 {
                         let chunk_at = join(
                             &join3(
                                 &self.root_dir,
@@ -478,7 +523,7 @@ impl Index {
                         )?;
 
                         if exists(&chunk_at) {
-                            chunks.push(q.query.parse::<Uid>()?);
+                            chunks.push(q.parse::<Uid>()?);
                         }
                     }
 
@@ -502,8 +547,8 @@ impl Index {
                     }
                 }
 
-                if q.search_file_uid {
-                    if q.query.len() == 64 {
+                if config.search_file_uid {
+                    if q.len() == 64 {
                         let file_index = join(
                             &join3(
                                 &self.root_dir,
@@ -517,7 +562,7 @@ impl Index {
                         )?;
 
                         if exists(&file_index) {
-                            file_uids.push(q.query.parse::<Uid>()?);
+                            file_uids.push(q.parse::<Uid>()?);
                         }
                     }
 
@@ -537,8 +582,8 @@ impl Index {
                     }
                 }
 
-                if q.search_image {
-                    if q.query.len() == 64 {
+                if config.search_image {
+                    if q.len() == 64 {
                         let image_at = join(
                             &join3(
                                 &self.root_dir,
@@ -555,7 +600,7 @@ impl Index {
                         )?;
 
                         if exists(&image_at) {
-                            images.push(q.query.parse::<Uid>()?);
+                            images.push(q.parse::<Uid>()?);
                         }
                     }
 
@@ -581,17 +626,40 @@ impl Index {
             }
         }
 
-        if q.search_file_path {
-            // TODO: enable file prefix-matching
-            //       there's an issue with file prefix-matching. if a file path is a prefix
-            //       of another file, there's no way to exact-match the file
-            if let Ok(rel_path) = get_relative_path(&self.root_dir, &q.query.to_string()) {
+        if config.search_file_path {
+            if let Ok(mut rel_path) = get_relative_path(&self.root_dir, q) {
+                // 1. It tries to exact-match a processed file.
                 if self.processed_files.contains_key(&rel_path) {
                     file_paths.push(rel_path.to_string());
                 }
 
-                if q.search_staged_file && self.staged_files.contains(&rel_path) {
+                // 2. It tries to exact-match a staged file.
+                //    In some cases, a file can be both processed and staged at the
+                //    same time. In that case, it has to choose the processed file.
+                else if config.search_staged_file && self.staged_files.contains(&rel_path) {
                     staged_files.push(rel_path);
+                }
+
+                // 3. It assumes that `rel_path` is a directory and tries to
+                //    find files in the directory.
+                else {
+                    if !rel_path.ends_with("/") && !rel_path.is_empty() {
+                        rel_path = format!("{rel_path}/");
+                    }
+
+                    for path in self.processed_files.keys() {
+                        if path.starts_with(&rel_path) {
+                            file_paths.push(path.to_string());
+                        }
+                    }
+
+                    if config.search_staged_file {
+                        for staged_file in self.staged_files.iter() {
+                            if staged_file.starts_with(&rel_path) {
+                                staged_files.push(staged_file.to_string());
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -609,13 +677,7 @@ impl Index {
             processed_files.insert((processed_files_rev.get(uid).unwrap().to_string(), *uid));
         }
 
-        let mut processed_files: Vec<(String, Uid)> = processed_files.into_iter().collect();
-
-        // the result has to be deterministic 
-        chunks.sort();
-        images.sort();
-        processed_files.sort();
-        staged_files.sort();
+        let processed_files: Vec<(String, Uid)> = processed_files.into_iter().collect();
 
         Ok(UidQueryResult {
             chunks,
@@ -626,10 +688,8 @@ impl Index {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct UidQuery {
-    /// It can be a prefix of uid, full uid, or a file path
-    pub query: String,
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
+pub struct UidQueryConfig {
     pub search_chunk: bool,
     pub search_image: bool,
     pub search_file_path: bool,
@@ -639,10 +699,9 @@ pub struct UidQuery {
     pub search_staged_file: bool,
 }
 
-impl UidQuery {
-    pub fn with_query(query: String) -> Self {
-        UidQuery {
-            query,
+impl UidQueryConfig {
+    pub fn new() -> Self {
+        UidQueryConfig {
             search_chunk: true,
             search_image: true,
             search_file_path: true,

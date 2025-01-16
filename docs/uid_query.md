@@ -10,8 +10,8 @@ The simplest uid query is to use all the 64 characters. It's faster than prefix-
 
 ## Prefix match
 
-Like git, you can use a prefix of a uid. If uid is "1a1cabc9ba4203a0d6c1c862939870da374539db5b8586490000000300003d8c", typing "1a1cabc9" would be enough. Then it would search for all the uids that start with "1a1cabc9", which would be unique. If there are multiple matches, its behavior depends on the implementation of the command. For example, `ls-terms` rejects your request if there are multiple matches, but `ls-chunks` doesn't.
+Like git, you can use a prefix of a uid. If uid is "1a1cabc9ba4203a0d6c1c862939870da374539db5b8586490000000300003d8c", typing "1a1cabc9" would be enough. Then it would search for all the uids that start with "1a1cabc9". If there are multiple matches, its behavior depends on the implementation of the command. For example, `ls-terms` rejects your request if there are multiple matches, but `ls-chunks` doesn't.
 
 ## Path match
 
-It also allows path matches. For example, if there's `docs/index.txt`, `rag cat-file docs/index.txt` would show you the content of the file. It doesn't support prefix-match.
+It also allows path matches. For example, if there's `docs/index.txt`, `rag cat-file docs/index.txt` would show you the content of the file. If the path is a directory, it shows all the files and sub-directories in the directory, recursively.

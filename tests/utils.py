@@ -64,19 +64,19 @@ def cargo_run(
     else:
         return result.returncode
 
-def count_files() -> Tuple[int, int, int]:
-    files = cargo_run(["ls-files"], stdout=True)
+def count_files(args: Optional[list[str]] = None) -> Tuple[int, int, int]:
+    files = cargo_run(["ls-files"] + (args or []), stdout=True)
     first_line = files.split("\n")[0]
     total, staged, processed = re.search(r"(\d+)\stotal\sfiles\,\s(\d+)\sstaged\sfiles\,\s(\d+)\sprocessed\sfiles", first_line).groups()
     return int(total), int(staged), int(processed)
 
-def count_chunks() -> int:
-    chunks = cargo_run(["ls-chunks"], stdout=True)
+def count_chunks(args: Optional[list[str]] = None) -> int:
+    chunks = cargo_run(["ls-chunks"] + (args or []), stdout=True)
     first_line = chunks.split("\n")[0]
     return int(re.search(r"^(\d+)\schunks", first_line).group(1))
 
-def count_images() -> int:
-    images = cargo_run(["ls-images"], stdout=True)
+def count_images(args: Optional[list[str]] = None) -> int:
+    images = cargo_run(["ls-images"] + (args or []), stdout=True)
     first_line = images.split("\n")[0]
     return int(re.search(r"^(\d+)\simages", first_line).group(1))
 

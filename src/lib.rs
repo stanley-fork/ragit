@@ -47,7 +47,7 @@ pub use query::{
     retrieve_chunks,
     single_turn,
 };
-pub use uid::{Uid, UidQuery, UidQueryResult};
+pub use uid::{Uid, UidQueryConfig, UidQueryResult};
 
 // My rules for version numbers
 // Let's say I'm working on 0.1.2

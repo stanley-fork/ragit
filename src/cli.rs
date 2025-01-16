@@ -181,6 +181,7 @@ pub enum ArgCount {
     Geq(usize),
     Leq(usize),
     Exact(usize),
+    Any,
 }
 
 #[derive(Clone, Copy, Debug)]
