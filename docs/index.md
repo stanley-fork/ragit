@@ -4,8 +4,7 @@ RAGIT (rag-it) is a git-like software that turns your local files into a knowled
 
 ```
 rag init;
-rag add **/*.txt
-rag add **/*.md;
+rag add --all;
 rag build;
 rag query "What makes ragit special?";
 ```
