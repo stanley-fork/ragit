@@ -67,7 +67,10 @@ impl ChunkSource {
                     n => format!("{}th", n + 1),
                 },
             ),
-            ChunkSource::Chunks { uids } => todo!(),
+            ChunkSource::Chunks { uids } => format!(
+                "multiple chunks ({})",
+                uids.iter().map(|uid| uid.to_string().get(0..8).unwrap_or("").to_string()).collect::<Vec<String>>().join(", "),
+            ),
         }
     }
 }
