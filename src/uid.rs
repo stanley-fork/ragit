@@ -42,6 +42,7 @@ pub struct Uid {
     low: u128,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum UidType {
     Chunk,
     Image,

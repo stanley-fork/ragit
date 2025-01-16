@@ -27,6 +27,12 @@ pub struct LsFile {
     pub length: usize,
     pub uid: Uid,
     pub chunks: usize,
+
+    // model of the most recent chunk
+    pub model: String,
+
+    // time stamp of the most recent chunk
+    pub last_updated: i64,
 }
 
 impl LsFile {
@@ -37,6 +43,8 @@ impl LsFile {
             length: 0,
             uid: Uid::dummy(),
             chunks: 0,
+            model: String::new(),
+            last_updated: 0,
         }
     }
 }
@@ -93,6 +101,9 @@ impl Index {
     }
 
     /// `rag ls-files`
+    ///
+    /// It iterates all the files, which can be very expensive. If you know the uid or path of the file,
+    /// use `get_ls_file` instead.
     pub fn list_files<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`
@@ -111,14 +122,7 @@ impl Index {
         }
 
         for (file, uid) in self.processed_files.iter() {
-            let file_size = uid.get_data_size();
-            result.push(LsFile {
-                path: file.clone(),
-                is_processed: true,
-                length: file_size,
-                uid: *uid,
-                chunks: self.get_chunks_of_file(*uid).unwrap_or(vec![]).len(),
-            });
+            result.push(self.get_ls_file_worker(file.to_string(), *uid)?);
         }
 
         result = result.into_iter().filter(filter).collect();
@@ -190,18 +194,35 @@ impl Index {
 
     fn get_ls_file_worker(&self, path: String, uid: Uid) -> Result<LsFile, Error> {
         let file_size = uid.get_data_size();
-        let chunks = self.get_chunks_of_file(uid).unwrap_or(vec![]).len();
+        let chunk_uids = self.get_chunks_of_file(uid).unwrap_or(vec![]);
+        let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+        for chunk_uid in chunk_uids.iter() {
+            chunks.push(self.get_chunk_by_uid(*chunk_uid)?);
+        }
+
+        chunks.sort_by_key(|chunk| chunk.timestamp);
+
+        let (model, last_updated) = match chunks.last() {
+            Some(chunk) => (chunk.build_info.model.clone(), chunk.timestamp),
+            None => (String::new(), 0),
+        };
 
         Ok(LsFile {
             path,
             is_processed: true,
             length: file_size,
             uid,
-            chunks,
+            chunks: chunks.len(),
+            model,
+            last_updated,
         })
     }
 
     /// `rag ls-images`
+    ///
+    /// It iterates all the images, which can be very expensive. If you know the uid of the image,
+    /// use `get_ls_image` instead.
     pub fn list_images<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`
