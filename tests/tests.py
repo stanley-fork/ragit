@@ -3,6 +3,7 @@ from cargo_tests import cargo_tests
 from cat_file import cat_file
 from cli import cli
 from clone import clone
+from clone2 import clone2
 from csv_reader import csv_reader
 from empty import empty
 from end_to_end import end_to_end
@@ -90,6 +91,10 @@ Commands
 
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
+                                It runs a local `ragit-server` in this repository.
+
+    clone2                      run `clone2` test
+                                It clones knowledge-bases from ragit.baehyunsol.com.
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
@@ -187,6 +192,9 @@ if __name__ == "__main__":
         elif command == "clone":
             clone()
 
+        elif command == "clone2":
+            clone2()
+
         elif command == "cli":
             cli()
 
@@ -256,6 +264,7 @@ if __name__ == "__main__":
                 ("add_and_rm", add_and_rm),
                 ("recover", recover),
                 ("clone", clone),
+                ("clone2", clone2),
                 ("cli", cli),
                 ("many_chunks", many_chunks),
                 ("ls", ls),
