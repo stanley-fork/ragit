@@ -1,74 +1,9 @@
 use super::Index;
-use crate::chunk::{self, Chunk};
+use crate::chunk;
 use crate::error::Error;
-use crate::index::IMAGE_DIR_NAME;
+use crate::schema::{ChunkSchema, FileSchema, ImageSchema, ModelSchema};
 use crate::uid::Uid;
-use ragit_api::JsonType;
-use ragit_fs::{
-    file_name,
-    file_size,
-    parent,
-    read_string,
-    set_extension,
-};
-use serde::Serialize;
-use serde_json::Value;
-
-pub type LsChunk = Chunk;
-
-/// Convenient type for `ls-files`
-#[derive(Clone, Debug, Serialize)]
-pub struct LsFile {
-    pub path: String,
-
-    // if it's false, all the fields below have arbitrary values
-    pub is_processed: bool,
-
-    pub length: usize,
-    pub uid: Uid,
-    pub chunks: usize,
-
-    // model of the most recent chunk
-    pub model: String,
-
-    // time stamp of the most recent chunk
-    pub last_updated: i64,
-}
-
-impl LsFile {
-    pub fn dummy() -> Self {
-        LsFile {
-            path: String::new(),
-            is_processed: false,
-            length: 0,
-            uid: Uid::dummy(),
-            chunks: 0,
-            model: String::new(),
-            last_updated: 0,
-        }
-    }
-}
-
-/// Convenient type for `ls-models`
-#[derive(Clone, Debug, Serialize)]
-pub struct LsModel {
-    pub name: String,
-    pub api_provider: String,
-    pub api_key_env_var: Option<String>,
-    pub can_read_images: bool,
-    pub dollars_per_1b_input_tokens: u64,
-    pub dollars_per_1b_output_tokens: u64,
-    pub explanation: String,
-}
-
-/// Convenient type for `ls-images`
-#[derive(Clone, Debug, Serialize)]
-pub struct LsImage {
-    pub uid: Uid,
-    pub extracted_text: String,
-    pub explanation: String,
-    pub size: u64,  // bytes
-}
+use ragit_fs::{file_name, parent};
 
 impl Index {
     /// `rag ls-chunks`
@@ -81,12 +16,12 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Result<Vec<LsChunk>, Error> where Filter: Fn(&LsChunk) -> bool, Map: Fn(LsChunk) -> LsChunk, Sort: Fn(&LsChunk) -> Key {
+    ) -> Result<Vec<ChunkSchema>, Error> where Filter: Fn(&ChunkSchema) -> bool, Map: Fn(ChunkSchema) -> ChunkSchema, Sort: Fn(&ChunkSchema) -> Key {
         let mut result = vec![];
 
         for chunk_file in self.get_all_chunk_files()? {
             let chunk = chunk::load_from_file(&chunk_file)?;
-            let chunk: LsChunk = chunk.into();
+            let chunk: ChunkSchema = chunk.into();
 
             if !filter(&chunk) {
                 continue;
@@ -103,32 +38,37 @@ impl Index {
     /// `rag ls-files`
     ///
     /// It iterates all the files, which can be very expensive. If you know the uid or path of the file,
-    /// use `get_ls_file` instead.
+    /// use `get_file_schema` instead.
     pub fn list_files<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Result<Vec<LsFile>, Error> where Filter: Fn(&LsFile) -> bool, Map: Fn(LsFile) -> LsFile, Sort: Fn(&LsFile) -> Key {
+    ) -> Result<Vec<FileSchema>, Error> where Filter: Fn(&FileSchema) -> bool, Map: Fn(FileSchema) -> FileSchema, Sort: Fn(&FileSchema) -> Key {
         let mut result = vec![];
 
         for file in self.staged_files.iter() {
-            result.push(LsFile {
+            let f = FileSchema {
                 path: file.clone(),
                 is_processed: false,
-                ..LsFile::dummy()
-            });
+                ..FileSchema::dummy()
+            };
+
+            if filter(&f) {
+                result.push(map(f));
+            }
         }
 
         for (file, uid) in self.processed_files.iter() {
-            result.push(self.get_ls_file_worker(file.to_string(), *uid)?);
+            let f = self.get_file_schema_worker(file.to_string(), *uid)?;
+
+            if filter(&f) {
+                result.push(map(f));
+            }
         }
 
-        result = result.into_iter().filter(filter).collect();
-        result = result.into_iter().map(map).collect();
         result.sort_by_key(sort_key);
-
         Ok(result)
     }
 
@@ -138,12 +78,12 @@ impl Index {
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Vec<LsModel> where Filter: Fn(&LsModel) -> bool, Map: Fn(LsModel) -> LsModel, Sort: Fn(&LsModel) -> Key {
+    ) -> Vec<ModelSchema> where Filter: Fn(&ModelSchema) -> bool, Map: Fn(ModelSchema) -> ModelSchema, Sort: Fn(&ModelSchema) -> Key {
         let mut result = vec![];
 
         for model in ragit_api::ChatModel::all_kinds() {
             let api_provider = model.get_api_provider();
-            let ls_model = LsModel {
+            let ls_model = ModelSchema {
                 name: model.to_human_friendly_name().to_string(),
                 api_provider: api_provider.as_str().to_string(),
                 api_key_env_var: api_provider.api_key_env_var().map(|v| v.to_string()),
@@ -165,78 +105,27 @@ impl Index {
         result
     }
 
-    /// `rag ls-files`
-    pub fn get_ls_file(&self, path: Option<String>, uid: Option<Uid>) -> Result<LsFile, Error> {
-        if let Some(uid) = uid {
-            for (path, uid_) in self.processed_files.iter() {
-                if uid == *uid_ {
-                    return Ok(self.get_ls_file_worker(path.to_string(), uid)?);
-                }
-            }
-        }
-
-        if let Some(path) = &path {
-            if let Some(uid) = self.processed_files.get(path) {
-                return Ok(self.get_ls_file_worker(path.to_string(), *uid)?);
-            }
-
-            if self.staged_files.contains(path) {
-                return Ok(LsFile {
-                    path: path.to_string(),
-                    is_processed: false,
-                    ..LsFile::dummy()
-                })
-            }
-        }
-
-        Err(Error::NoSuchFile { path, uid })
-    }
-
-    fn get_ls_file_worker(&self, path: String, uid: Uid) -> Result<LsFile, Error> {
-        let file_size = uid.get_data_size();
-        let chunk_uids = self.get_chunks_of_file(uid).unwrap_or(vec![]);
-        let mut chunks = Vec::with_capacity(chunk_uids.len());
-
-        for chunk_uid in chunk_uids.iter() {
-            chunks.push(self.get_chunk_by_uid(*chunk_uid)?);
-        }
-
-        chunks.sort_by_key(|chunk| chunk.timestamp);
-
-        let (model, last_updated) = match chunks.last() {
-            Some(chunk) => (chunk.build_info.model.clone(), chunk.timestamp),
-            None => (String::new(), 0),
-        };
-
-        Ok(LsFile {
-            path,
-            is_processed: true,
-            length: file_size,
-            uid,
-            chunks: chunks.len(),
-            model,
-            last_updated,
-        })
-    }
-
     /// `rag ls-images`
     ///
     /// It iterates all the images, which can be very expensive. If you know the uid of the image,
-    /// use `get_ls_image` instead.
+    /// use `get_image_schema` instead.
     pub fn list_images<Filter, Map, Sort, Key: Ord>(
         &self,
         // `filter` is applied before `map`
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Result<Vec<LsImage>, Error> where Filter: Fn(&LsImage) -> bool, Map: Fn(LsImage) -> LsImage, Sort: Fn(&LsImage) -> Key {
+    ) -> Result<Vec<ImageSchema>, Error> where Filter: Fn(&ImageSchema) -> bool, Map: Fn(ImageSchema) -> ImageSchema, Sort: Fn(&ImageSchema) -> Key {
         let mut result = vec![];
 
         for image in self.get_all_image_files()? {
-            let image = self.get_ls_image(Uid::from_prefix_and_suffix(
-                &file_name(&parent(&image)?)?,
-                &file_name(&image)?,
-            )?)?;
+            let image = self.get_image_schema(
+                Uid::from_prefix_and_suffix(
+                    &file_name(&parent(&image)?)?,
+                    &file_name(&image)?,
+                )?,
+                false,
+            )?;
 
             if !filter(&image) {
                 continue;
@@ -247,34 +136,5 @@ impl Index {
 
         result.sort_by_key(sort_key);
         Ok(result)
-    }
-
-    /// `rag ls-images`
-    pub fn get_ls_image(&self, uid: Uid) -> Result<LsImage, Error> {
-        let description_path = Index::get_uid_path(
-            &self.root_dir,
-            IMAGE_DIR_NAME,
-            uid,
-            Some("json"),
-        )?;
-        let image_path = set_extension(&description_path, "png")?;
-        let description = read_string(&description_path)?;
-        let description = serde_json::from_str::<Value>(&description)?;
-
-        match description {
-            Value::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
-                (Some(extracted_text), Some(explanation)) => Ok(LsImage {
-                    uid,
-                    extracted_text: extracted_text.to_string(),
-                    explanation: explanation.to_string(),
-                    size: file_size(&image_path)?,
-                }),
-                _ => Err(Error::BrokenIndex(format!("`{description_path}` has a wrong schema."))),
-            },
-            _ => Err(Error::JsonTypeError {
-                expected: JsonType::Object,
-                got: (&description).into(),
-            }),
-        }
     }
 }

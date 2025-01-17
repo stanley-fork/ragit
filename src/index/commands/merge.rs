@@ -312,8 +312,8 @@ fn ask_merge(
     match (uid1.get_uid_type(), uid2.get_uid_type()) {
         // both must be processed
         (UidType::File, UidType::File) => {
-            let f1 = index1.get_ls_file(None, Some(uid1))?;
-            let f2 = index2.get_ls_file(None, Some(uid2))?;
+            let f1 = index1.get_file_schema(None, Some(uid1))?;
+            let f2 = index2.get_file_schema(None, Some(uid2))?;
             let now = Local::now().timestamp();
 
             println!("There are conflicting files in the 2 knowledge-bases: {}", f1.path);
@@ -333,8 +333,8 @@ fn ask_merge(
             Ok(get_yes_no()?)
         },
         (UidType::Image, UidType::Image) => {
-            let i1 = index1.get_ls_image(uid1)?;
-            let i2 = index2.get_ls_image(uid2)?;
+            let i1 = index1.get_image_schema(uid1, false)?;
+            let i2 = index2.get_image_schema(uid2, false)?;
 
             println!("There are conflicting images in the 2 knowledge-bases");
             println!("");

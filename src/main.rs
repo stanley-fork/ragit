@@ -7,7 +7,7 @@ use ragit::{
     INDEX_DIR_NAME,
     Keywords,
     LoadMode,
-    LsChunk,
+    ChunkSchema,
     MergeMode,
     ProcessedDoc,
     QueryTurn,
@@ -441,7 +441,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 index.list_chunks(
                     &|_| true,  // no filter
                     &|c| c,  // no map
-                    &|chunk: &LsChunk| chunk.source.sortable_string(),  // sort by source
+                    &|chunk: &ChunkSchema| chunk.source.sortable_string(),  // sort by source
                 )?
             } else {
                 let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk())?;
@@ -479,7 +479,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     return Ok(());
                 }
 
-                chunks.into_iter().map(|chunk| LsChunk::from(chunk)).collect()
+                chunks
             };
 
             if json_mode {
@@ -559,12 +559,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 for (path, uid) in query.get_processed_files() {
                     processed_files_len += 1;
-                    files.push(index.get_ls_file(Some(path), Some(uid))?);
+                    files.push(index.get_file_schema(Some(path), Some(uid))?);
                 }
 
                 for path in query.get_staged_files() {
                     staged_files_len += 1;
-                    files.push(index.get_ls_file(Some(path), None)?);
+                    files.push(index.get_file_schema(Some(path), None)?);
                 }
 
                 if files.is_empty() {
@@ -674,7 +674,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 let mut result = Vec::with_capacity(image_uids.len());
 
                 for image_uid in image_uids.iter() {
-                    result.push(index.get_ls_image(*image_uid)?);
+                    result.push(index.get_image_schema(*image_uid, false)?);
                 }
 
                 result

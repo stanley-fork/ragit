@@ -4,6 +4,7 @@ mod error;
 mod index;
 mod prompts;
 mod query;
+mod schema;
 mod tree;
 mod uid;
 
@@ -25,10 +26,6 @@ pub use index::{
     IIStatus,
     Index,
     LoadMode,
-    LsChunk,
-    LsFile,
-    LsImage,
-    LsModel,
     MergeMode,
     MergeResult,
     ProcessedDoc,
@@ -46,6 +43,12 @@ pub use query::{
     query,
     retrieve_chunks,
     single_turn,
+};
+pub use schema::{
+    ChunkSchema,
+    FileSchema,
+    ImageSchema,
+    ModelSchema,
 };
 pub use uid::{Uid, UidQueryConfig, UidQueryResult};
 
