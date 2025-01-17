@@ -42,6 +42,7 @@ def cargo_run(
     stdout: bool = False,
     stderr: bool = False,
     output_schema: Optional[list[str]] = None,  # returncode | stdout | stderr
+    raw_output: bool = False,
 ):
     output_schema = output_schema or []
     args = ["cargo", "run", "--release", "--"] + args
@@ -52,8 +53,10 @@ def cargo_run(
 
     if stdout or stderr or "stdout" in output_schema or "stderr" in output_schema:
         kwargs["capture_output"] = True
-        kwargs["text"] = True
-        kwargs["encoding"] = "utf-8"
+
+        if not raw_output:
+            kwargs["text"] = True
+            kwargs["encoding"] = "utf-8"
 
     result = subprocess.run(args, **kwargs)
 

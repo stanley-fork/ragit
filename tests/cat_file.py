@@ -1,5 +1,12 @@
 from random import random, seed as rand_seed
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, rand_word, write_string
+import shutil
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    rand_word,
+    write_string,
+)
 
 def cat_file():
     rand_seed(0)
@@ -9,6 +16,12 @@ def cat_file():
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["config", "--set", "chunk_size", "500"])
     cargo_run(["config", "--set", "slide_len", "150"])
+
+    # step 1: See if `cat-file` dumps the exact content of files.
+    #         We have to be careful: some file readers modify the
+    #         content in order to give more context to LLMs.
+    #         We have to choose file readers that do not modify
+    #         files.
     files = {}
 
     for i in range(10):
@@ -24,3 +37,13 @@ def cat_file():
 
     for file_name, file_content in files.items():
         assert cargo_run(["cat-file", file_name], stdout=True).strip() == file_content.strip()
+
+    # step 2: See if `cat-file` dumps the raw bytes of an image.
+    shutil.copyfile("../tests/images/empty.png", "./empty.png")
+    write_string("sample.md", "this is an image: ![sample](empty.png)")
+    cargo_run(["add", "sample.md"])
+    cargo_run(["build"])
+    image_uid = cargo_run(["ls-images", "--uid-only"], stdout=True).strip()
+
+    with open("empty.png", "rb") as f:
+        assert f.read() == cargo_run(["cat-file", image_uid], stdout=True, raw_output=True)

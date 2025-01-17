@@ -181,6 +181,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Err(Error::UidQueryError(format!("`{f}` has no chunks yet. Please run `rag build`.")));
             }
 
+            else if let Some(image_uid) = query_result.get_image_uid() {
+                let image = index.get_image_schema(image_uid, true)?;
+                std::io::stdout().write_all(&image.bytes)?;
+            }
+
             else {
                 return Err(Error::UidQueryError(format!("There's no file/chunk that matches `{}`.", query[0])));
             }
