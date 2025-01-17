@@ -59,7 +59,6 @@ def add_and_rm():
             ["s", "i", "i", "s", "e"],
         ],
     }
-    built_file_count = 0
 
     for i, (flag, rule) in enumerate(rules.items()):
         flags = [] if not flag else [flag]

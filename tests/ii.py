@@ -79,21 +79,28 @@ def ii():
         answer = answers[term]
         approximation = approximations[term]
 
-        if len(answer) == 10:
-            if len(approximation) == 10:
-                for i in range(3):
-                    assert answer[i] in approximation
-                    assert approximation[i] in answer
+        try:
+            if len(answer) == 10:
+                if len(approximation) == 10:
+                    for i in range(3):
+                        if answer[i] not in approximation:
+                            raise AssertionError(f"answer[{i}] not in approximation")
+
+                        if approximation[i] not in answer:
+                            raise AssertionError(f"approximation[{i}] not in answer")
+
+                else:
+                    raise AssertionError(f"len(answer) == 10, len(approximation) == {len(approximation)}")
 
             else:
-                raise AssertionError(f"len(answer)={len(answer)}, len(approximation)={len(approximation)}")
+                if len(approximation) == 10:
+                    raise AssertionError(f"len(answer) == {len(answer)}, len(approximation) == 10")
 
-        else:
-            if len(approximation) == 10:
-                raise AssertionError(f"len(answer)={len(answer)}, len(approximation)={len(approximation)}")
+                elif set(answer) != set(approximation):
+                    raise AssertionError(f"set(answer) != set(approximation)")
 
-            else:
-                assert set(answer) == set(approximation)
+        except AssertionError as e:
+            raise AssertionError(f"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}")
 
     # incremental update of ii
     write_string("self-introduction.txt", "Hi, my name is baehyunsol.")

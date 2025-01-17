@@ -41,21 +41,37 @@ def cargo_run(
     check: bool = True,
     stdout: bool = False,
     stderr: bool = False,
+    output_schema: Optional[list[str]] = None,  # returncode | stdout | stderr
 ):
+    output_schema = output_schema or []
     args = ["cargo", "run", "--release", "--"] + args
     kwargs = {}
 
     kwargs["timeout"] = timeout
     kwargs["check"] = check
 
-    if stdout or stderr:
+    if stdout or stderr or "stdout" in output_schema or "stderr" in output_schema:
         kwargs["capture_output"] = True
         kwargs["text"] = True
         kwargs["encoding"] = "utf-8"
 
     result = subprocess.run(args, **kwargs)
 
-    if stdout:
+    if output_schema != []:
+        output = {}
+
+        if "returncode" in output_schema:
+            output["returncode"] = result.returncode
+
+        if "stdout" in output_schema:
+            output["stdout"] = result.stdout
+
+        if "stderr" in output_schema:
+            output["stderr"] = result.stderr
+
+        return output
+
+    elif stdout:
         return result.stdout
 
     elif stderr:
