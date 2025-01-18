@@ -8,7 +8,7 @@ rag-ls-terms - Show information about search terms
 SYNOPSIS
 --------
 [verse]
-'rag ls-terms' [--term-only | --stat-only] [<uid>]
+'rag ls-terms' [--term-only | --stat-only] [<uid>..]
 
 DESCRIPTION
 -----------

@@ -8,7 +8,7 @@ rag-ls-files - Show information about files
 SYNOPSIS
 --------
 [verse]
-'rag ls-files' [--name-only | --stat-only | --uid-only] [<uid>]
+'rag ls-files' [--name-only | --stat-only | --uid-only] [--json] [<uid>..]
 
 DESCRIPTION
 -----------
@@ -16,3 +16,10 @@ Run `rag help uid-query` to read how uid-query works. If the uid is of a chunk
 or an image, it dies.
 
 If multiple files are matched, it shows the information about all the matched files.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+- no flags: `[file_schema: object]`
+- `--uid-only`: `[uid: string]`
+- `--name-only`: `[name: string]`
+- `--stat-only`: `{ "total files": integer, "staged files": integer, "processed files": integer }`
