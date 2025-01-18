@@ -524,7 +524,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("ls-files") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--uid-only", "--stat-only"]).args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--name-only", "--uid-only", "--stat-only"]).optional_flag(&["--json"]).args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-files.txt"));
@@ -534,17 +534,31 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let json_mode = parsed_args.get_flag(1).is_some();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
             let files = if args.is_empty() {
                 if !uid_only && !name_only {
-                    println!(
-                        "{} total files, {} staged files, {} processed files",
-                        index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-                        index.staged_files.len(),
-                        index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
-                    );
+                    if !json_mode {
+                        println!(
+                            "{} total files, {} staged files, {} processed files",
+                            index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.staged_files.len(),
+                            index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                        );
+                    }
+
+                    else if stat_only {
+                        println!(
+                            "{}\"total files\": {}, \"staged files\": {}, \"processed files\": {}{}",
+                            "{",
+                            index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.staged_files.len(),
+                            index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            "}",
+                        );
+                    }
                 }
 
                 if stat_only {
@@ -592,24 +606,57 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 files
             };
 
-            for file in files.iter() {
+            if json_mode {
                 if name_only {
-                    println!("{}", file.path);
-                    continue;
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                            &files.iter().map(
+                                |file| file.path.to_string()
+                            ).collect::<Vec<_>>(),
+                        )?).to_string(),
+                    );
                 }
 
                 else if uid_only {
-                    println!("{}", file.uid);
-                    continue;
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                            &files.iter().map(
+                                |file| file.uid.to_string()
+                            ).collect::<Vec<_>>(),
+                        )?).to_string(),
+                    );
                 }
 
-                println!("--------");
-                println!("name: {}{}", file.path, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
+                else {
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(&files)?).to_string(),
+                    );
+                }
+            }
 
-                if file.is_processed {
-                    println!("length: {}", file.length);
-                    println!("uid: {}", file.uid);
-                    println!("chunks: {}", file.chunks);
+            else {
+                for file in files.iter() {
+                    if name_only {
+                        println!("{}", file.path);
+                        continue;
+                    }
+
+                    else if uid_only {
+                        println!("{}", file.uid);
+                        continue;
+                    }
+
+                    println!("--------");
+                    println!("name: {}{}", file.path, if file.is_processed { String::new() } else { String::from(" (not processed yet)") });
+
+                    if file.is_processed {
+                        println!("length: {}", file.length);
+                        println!("uid: {}", file.uid);
+                        println!("chunks: {}", file.chunks);
+                    }
                 }
             }
         },
