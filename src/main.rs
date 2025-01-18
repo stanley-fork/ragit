@@ -1029,6 +1029,15 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Index::reset_hard(&root_dir?)?;
             }
         },
+        // tmp command for testing `Index::summary_file`
+        // this interface is likely to change
+        Some("summary-file") => {
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+
+            for file_uid in index.get_all_file_uids() {
+                index.summary_file(file_uid).await?;
+            }
+        },
         Some("tfidf") => {
             let parsed_args = ArgParser::new().optional_flag(&["--uid-only"]).arg_flag("--limit", ArgType::Integer).args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
