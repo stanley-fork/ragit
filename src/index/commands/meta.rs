@@ -49,16 +49,23 @@ impl Index {
         save_meta(&meta_path, meta)
     }
 
-    pub fn remove_meta_by_key(&self, key: String) -> Result<(), Error> {
+    pub fn remove_meta_by_key(&self, key: String) -> Result<String, Error> {
         let meta_path = get_meta_path(&self.root_dir)?;
 
         if !exists(&meta_path) {
-            return Ok(());
+            return Err(Error::NoSuchMeta(key));
         }
 
         let mut meta = load_meta(&meta_path)?;
-        meta.remove(&key);
-        Ok(())
+
+        match meta.remove(&key) {
+            Some(v) => {
+                let v = v.to_string();
+                save_meta(&meta_path, meta)?;
+                Ok(v)
+            },
+            None => Err(Error::NoSuchMeta(key)),
+        }
     }
 
     pub fn remove_all_meta(&self) -> Result<(), Error> {

@@ -11,9 +11,11 @@ SYNOPSIS
 'rag meta' --get <key>
 'rag meta' --get-all
 'rag meta' --set <key> <value>
-'rag meta' --remove <key>
-'rag meta' --remove-all <key>
+'rag meta' [--remove | --unset] <key>
+'rag meta' [--remove-all | --unset-all]
 
 DESCRIPTION
 -----------
 It's like `rag config`, but it allows you to use any key.
+
+Like git, it returns an error if you try to get or unset an invalid key.

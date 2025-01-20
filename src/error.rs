@@ -21,6 +21,7 @@ pub enum Error {
     IndexNotFound,
     NoSuchChunk(Uid),
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
+    NoSuchMeta(String),
     CorruptedFile(Path),
     NotImplemented(String),
     CliError(String),  // TODO: spans?

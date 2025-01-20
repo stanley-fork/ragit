@@ -868,7 +868,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
         },
         Some("meta") => {
-            let parsed_args = ArgParser::new().flag(&["--get", "--get-all", "--set", "--remove", "--remove-all"]).args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().flag(&["--get", "--get-all", "--set", "--remove", "--unset", "--remove-all", "--unset-all"]).args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/meta.txt"));
@@ -885,6 +885,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     if let Some(value) = index.get_meta_by_key(key.to_string())? {
                         println!("{value}");
                     }
+
+                    else {
+                        return Err(Error::NoSuchMeta(key.to_string()));
+                    }
                 },
                 "--get-all" => {
                     parsed_args.get_args_exact(0)?;
@@ -893,20 +897,32 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 "--set" => {
                     let key_value = parsed_args.get_args_exact(2)?;
-
+                    let (key, value) = (
+                        key_value[0].to_string(),
+                        key_value[1].to_string(),
+                    );
+                    let prev_value = index.get_meta_by_key(key.clone())?;
                     index.set_meta_by_key(
-                        key_value[0].clone(),
-                        key_value[1].clone(),
+                        key.clone(),
+                        value.clone(),
                     )?;
-                    println!("metadata set");  // TODO: show change
-                },
-                "--remove" => {
-                    let key = &parsed_args.get_args_exact(1)?[0];
+                    let new_value = index.get_meta_by_key(key.clone())?.unwrap();
 
-                    index.remove_meta_by_key(key.to_string())?;
-                    println!("removed `{key}`");
+                    if let Some(prev_value) = prev_value {
+                        println!("metadata set `{key}`: `{prev_value}` -> `{new_value}`", );
+                    }
+
+                    else {
+                        println!("metadata set `{key}`: `{new_value}`");
+                    }
                 },
-                "--remove-all" => {
+                "--remove" | "--unset" => {
+                    let key = &parsed_args.get_args_exact(1)?[0];
+                    let prev_value = index.remove_meta_by_key(key.to_string())?;
+
+                    println!("metadata unset `{key}`: `{prev_value}`");
+                },
+                "--remove-all" | "--unset-all" => {
                     parsed_args.get_args_exact(0)?;
                     index.remove_all_meta()?;
                     println!("metadata removed");

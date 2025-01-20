@@ -15,6 +15,7 @@ from ls import ls
 from many_chunks import many_chunks
 from markdown_reader import markdown_reader
 from merge import merge
+from meta import meta
 from migrate import migrate
 from prompts import prompts
 from ragit_api import ragit_api
@@ -116,6 +117,9 @@ Commands
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
 
+    meta                        run `meta` test
+                                It runs `rag meta`-family commands and see if it works.
+
     empty [model=dummy]         run `empty` test
                                 It sees if ragit can handle an empty file correctly.
 
@@ -207,6 +211,9 @@ if __name__ == "__main__":
         elif command == "ls":
             ls()
 
+        elif command == "meta":
+            meta()
+
         elif command == "empty":
             test_model = test_model or "dummy"
             empty(test_model)
@@ -268,6 +275,7 @@ if __name__ == "__main__":
                 ("cli", cli),
                 ("many_chunks", many_chunks),
                 ("ls", ls),
+                ("meta", meta),
                 ("ii", ii),
                 ("cat_file", cat_file),
                 ("images", images),
