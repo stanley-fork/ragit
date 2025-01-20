@@ -274,7 +274,7 @@ impl Index {
         )?)
     }
 
-    pub async fn load_chunks_or_tfidf(
+    pub(crate) async fn load_chunks_or_tfidf(
         &self,
         query: &str,
     ) -> Result<Vec<Chunk>, Error> {
