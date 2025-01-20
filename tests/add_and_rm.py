@@ -160,3 +160,5 @@ def add_and_rm():
     cargo_run(["build"])
     total, staged, processed = count_files()
     assert (total, staged, processed) == (27, 0, 27)
+
+    # TODO: test `rag rm --auto` and `rag rm --dry-run`

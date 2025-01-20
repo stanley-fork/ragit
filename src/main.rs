@@ -1000,7 +1000,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("remove") | Some("rm") => {
-            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().args(ArgType::Path, ArgCount::Geq(1)).optional_flag(&["--dry-run"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/remove.txt"));
@@ -1008,15 +1008,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let dry_run = parsed_args.get_flag(0).is_some();
             let files = parsed_args.get_args();
 
             let remove_count = if files.len() == 1 && files[0] == "--auto" {
-                index.remove_auto()?.len()
+                index.remove_auto(dry_run)?.len()
             }
 
             else {
                 for file in files.iter() {
-                    index.remove_file(file.to_string())?;
+                    index.remove_file(file.to_string(), dry_run)?;
                 }
 
                 files.len()

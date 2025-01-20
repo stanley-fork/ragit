@@ -33,7 +33,7 @@ impl Index {
             let file_uid = Uid::new_file(&self.root_dir, &real_path)?;
 
             if self.processed_files.contains_key(&doc) {
-                self.remove_file(real_path.clone())?;
+                self.remove_file(real_path.clone(), false)?;
                 self.save_to_file()?;
             }
 

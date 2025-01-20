@@ -104,10 +104,7 @@ impl Index {
 
                 result.overriden_files += 1;
                 result.removed_chunks += self.get_chunks_of_file(*uid_self)?.len();
-
-                if !dry_run {
-                    self.remove_file(new_file_path.clone())?;
-                }
+                self.remove_file(new_file_path.clone(), dry_run)?;
             }
 
             else {

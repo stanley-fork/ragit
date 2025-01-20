@@ -8,9 +8,11 @@ rag-remove - Remove staged or processed files
 SYNOPSIS
 --------
 [verse]
-'rag remove' --auto
-'rag remove' <files>...
+'rag remove' [--dry-run] --auto
+'rag remove' [--dry-run] <files>...
 
 DESCRIPTION
 -----------
 Run `rag help chunks` to read documents on chunks and files.
+
+TODO: write doc for `rag remove --auto`
