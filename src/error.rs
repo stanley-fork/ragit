@@ -51,6 +51,7 @@ pub enum Error {
 
     // TODO: more enum variants for this type?
     BrokenIndex(String),
+    BrokenII(String),
 
     /// see <https://docs.rs/reqwest/latest/reqwest/struct.Error.html>
     ReqwestError(reqwest::Error),

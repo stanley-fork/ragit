@@ -12,6 +12,7 @@ use crate::uid::{self, Uid};
 use ragit_fs::{
     create_dir_all,
     exists,
+    file_name,
     is_dir,
     join3,
     parent,
@@ -21,7 +22,7 @@ use ragit_fs::{
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub type Term = String;
 pub type Weight = f32;
@@ -176,6 +177,85 @@ impl Index {
 
         self.ii_status = IIStatus::None;
         self.save_to_file()?;
+        Ok(())
+    }
+
+    pub fn check_ii(&self) -> Result<(), Error> {
+        let mut term_hash_map: HashMap<String, String> = HashMap::with_capacity(1024);
+        let mut from_ii: HashMap<String, Vec<Uid>> = HashMap::with_capacity(1024);
+        let mut from_tfidf: HashMap<String, Vec<Uid>> = HashMap::with_capacity(1024);
+
+        'outer: for internal in read_dir(&join3(
+            &self.root_dir,
+            INDEX_DIR_NAME,
+            II_DIR_NAME,
+        )?, false)? {
+            let prefix = file_name(&internal)?;
+
+            for ii_path in read_dir(&internal, false)? {
+                let suffix = file_name(&ii_path)?;
+                let term_hash = format!("{prefix}{suffix}");
+                let uids = uid::load_from_file(&ii_path)?;
+                from_ii.insert(term_hash, uids);
+
+                // It takes too long to iterate all the terms...
+                if from_ii.len() == 1024 {
+                    break 'outer;
+                }
+            }
+        }
+
+        for uid in self.get_all_chunk_uids()? {
+            let tfidf = self.get_tfidf_by_chunk_uid(uid)?;
+
+            for term in tfidf.term_frequency.keys() {
+                let term_hash = hash(term);
+                term_hash_map.insert(term_hash.to_string(), term.to_string());
+
+                if from_ii.contains_key(&term_hash) {
+                    match from_tfidf.get_mut(&term_hash) {
+                        Some(uids) => { uids.push(uid) },
+                        None => { from_tfidf.insert(term_hash, vec![uid]); },
+                    }
+                }
+            }
+        }
+
+        for (term_hash, term) in term_hash_map.iter() {
+            match from_ii.get(term_hash) {
+                Some(uids_from_ii) => {
+                    let uids_from_ii = uids_from_ii.iter().map(
+                        |uid| *uid
+                    ).collect::<HashSet<_>>();
+                    let uids_from_tfidf = from_tfidf.get(term_hash).unwrap().iter().map(
+                        |uid| *uid
+                    ).collect::<HashSet<_>>();
+
+                    for uid in uids_from_ii.iter() {
+                        if !uids_from_tfidf.contains(uid) {
+                            return Err(Error::BrokenII(format!("ii says `{uid}` contains `{term}`, but it's tfidf doesn't.")));
+                        }
+                    }
+
+                    for uid in uids_from_tfidf.iter() {
+                        if !uids_from_ii.contains(uid) {
+                            return Err(Error::BrokenII(format!("`{term}` is in `{uid}`, but not in ii.")));
+                        }
+                    }
+                },
+                None => {
+                    let uids_from_tfidf = from_tfidf.get(term_hash).unwrap();
+                    return Err(Error::BrokenII(format!("`{term}` is in `{}`, but not in ii.", uids_from_tfidf[0])));
+                },
+            }
+        }
+
+        for term_hash in from_ii.keys() {
+            if !term_hash_map.contains_key(term_hash) {
+                return Err(Error::BrokenII(format!("ii has a term_hash `{term_hash}`, but it's not found in actual tfidf files.")));
+            }
+        }
+
         Ok(())
     }
 

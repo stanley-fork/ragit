@@ -1,5 +1,5 @@
 use super::Index;
-use crate::{ApiConfigRaw, QueryConfig};
+use crate::{ApiConfigRaw, IIStatus, QueryConfig};
 use crate::chunk::{self, ChunkSource};
 use crate::error::Error;
 use crate::index::{BuildConfig, tfidf};
@@ -211,6 +211,10 @@ impl Index {
                     });
                 },
             }
+        }
+
+        if self.ii_status == IIStatus::Complete {
+            self.check_ii()?;
         }
 
         Ok(())
