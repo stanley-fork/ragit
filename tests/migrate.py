@@ -9,6 +9,7 @@ def checkout(version: str):
     commit_hashes = {
         "0.1.1": "a168d13af967",
         "0.2.0": "a183c071d068",
+        "0.2.1": "8ed8f6eb7a5c",
     }
 
     try:
@@ -17,12 +18,8 @@ def checkout(version: str):
     except CalledProcessError:
         raise Exception(f"Cannot git-checkout to ragit version {version}, please commit your changes before running the test.")
 
-def migrate():
-    goto_root()
-    checkout("0.1.1")
-    mk_and_cd_tmp_dir()
-
-    # step 1. create a mock knowledge-base
+# run `rag reset --hard` before calling this, if there's an existing knowledge-base
+def init_knowledge_base():
     write_string("sample0.md", "Hi! My name is Baehyunsol.")
     write_string("sample1.md", sample1)
     write_string("sample2.md", sample2)
@@ -33,14 +30,53 @@ def migrate():
     shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
     write_string("sample4.md", "image1: ![sample2](sample2.png)\nimage2: ![sample5](sample5.jpg)\nimage3: ![sample6](sample6.webp)")
 
-    # step 2. init and build rag index
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["add", "sample0.md", "sample1.md", "sample2.md", "sample3.md", "sample4.md"])
     cargo_run(["build"])
     cargo_run(["check"])
 
+def migrate():
+    goto_root()
+    mk_and_cd_tmp_dir()
+
+    # step 1: init knowledge-base in version 0.1.1
+    checkout("0.1.1")
+    init_knowledge_base()
+
+    # step 2: 0.1.1 and 0.2.0 are not compatible
     checkout("0.2.0")
+    assert cargo_run(["check"], check=False) != 0
+    cargo_run(["migrate"])
+    cargo_run(["check"])
+    assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)
+
+    # step 3: 0.2.0 and 0.2.1 are compatible
+    checkout("0.2.1")
+    cargo_run(["check"])
+    assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)
+
+    # step 3.1: `rag migrate` is no-op
+    cargo_run(["migrate"])
+    cargo_run(["check"])
+
+    # step 4: init knowledge-base in version 0.2.0
+    checkout("0.2.0")
+    cargo_run(["reset", "--hard"])
+    init_knowledge_base()
+
+    # step 5: 0.2.0 and 0.2.1 are compatible
+    checkout("0.2.1")
+    cargo_run(["check"])
+    cargo_run(["migrate"])
+    cargo_run(["check"])
+
+    # step 6: direct migrate from 0.1.1 to 0.2.1
+    checkout("0.1.1")
+    cargo_run(["reset", "--hard"])
+    init_knowledge_base()
+
+    checkout('0.2.1')
     assert cargo_run(["check"], check=False) != 0
     cargo_run(["migrate"])
     cargo_run(["check"])
