@@ -25,7 +25,7 @@ from tfidf import tfidf
 
 import os
 import sys
-from utils import clean, goto_root
+from utils import clean, get_ragit_version, goto_root
 
 def get_commit_hash():
     try:
@@ -311,6 +311,7 @@ if __name__ == "__main__":
                     "started_at": str(started_at),
                     "commit": get_commit_hash(),
                     "platform": get_platform_info(),
+                    "ragit-version": get_ragit_version(),
                 },
                 "tests": {},
                 "result": {

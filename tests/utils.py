@@ -132,3 +132,7 @@ def rand_word() -> str:
     else:
         # korean character
         return "".join([chr(randint(44032, 55203)) for _ in range(randint(8, 16))])
+
+def get_ragit_version() -> str:
+    stdout = cargo_run(["version"], output_schema=["stdout", "returncode"], check=False)["stdout"].strip()
+    return stdout or "unknown"
