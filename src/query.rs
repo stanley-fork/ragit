@@ -11,7 +11,7 @@ use ragit_pdl::{
     escape_pdl_tokens,
     parse_pdl,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 mod config;
@@ -20,14 +20,14 @@ mod keyword;
 pub use config::{QueryConfig, QUERY_CONFIG_FILE_NAME};
 pub use keyword::{Keywords, extract_keywords};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryResponse {
     pub multi_turn_schema: Option<MultiTurnSchema>,
     pub retrieved_chunks: Vec<Chunk>,
     pub response: String,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryTurn {
     pub query: String,
     pub response: QueryResponse,
@@ -307,7 +307,7 @@ pub async fn answer_query_with_chunks(
 /// If `is_query` is set, the rephrasing is successful and you
 /// can find the query in `query`. Otherwise, the last turn of
 /// the conversation is not a query.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct MultiTurnSchema {
     pub is_query: bool,
     pub in_context: bool,

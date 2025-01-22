@@ -35,10 +35,11 @@ pub use index::{
     get_compatibility_warning,
 };
 pub use query::{
+    Keywords,
+    MultiTurnSchema,
     QueryConfig,
     QueryResponse,
     QueryTurn,
-    Keywords,
     extract_keywords,
     query,
     retrieve_chunks,
@@ -49,6 +50,7 @@ pub use schema::{
     FileSchema,
     ImageSchema,
     ModelSchema,
+    QueryResponseSchema,
 };
 pub use uid::{Uid, UidQueryConfig, UidQueryResult};
 

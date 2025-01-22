@@ -955,7 +955,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("query") => {
             // TODO: `ArgParser` only accepts flags that start with "--". So "-i" doesn't work.
-            let parsed_args = ArgParser::new().optional_flag(&["--interactive", "--multi-turn", "-i"]).args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--interactive", "--multi-turn", "-i"]).optional_flag(&["--json"]).args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/query.txt"));
@@ -963,40 +963,53 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let interactive_mode = parsed_args.get_flag(0).is_some();
+            let json_mode = parsed_args.get_flag(1).is_some();
 
-            if parsed_args.get_flag(0).is_some() {
-                let mut history = vec![];
+            match (interactive_mode, json_mode) {
+                (true, true) => {
+                    return Err(Error::CliError(String::from("You cannot query interactively in a json mode.")));
+                },
+                (true, _) => {
+                    let mut history = vec![];
 
-                loop {
-                    let mut curr_input = String::new();
-                    print!(">>> ");
-                    std::io::stdout().flush()?;
-                    std::io::stdin().read_line(&mut curr_input)?;
+                    loop {
+                        let mut curr_input = String::new();
+                        print!(">>> ");
+                        std::io::stdout().flush()?;
+                        std::io::stdin().read_line(&mut curr_input)?;
+                        let response = query(
+                            &curr_input,
+                            history.clone(),
+                            &index,
+                        ).await?;
+                        println!("{}", response.response);
+                        history.push(QueryTurn::new(curr_input, response));
+                    }
+                },
+                _ => {
                     let response = query(
-                        &curr_input,
-                        history.clone(),
+                        &parsed_args.get_args_exact(1)?[0],
+                        vec![],  // no history
                         &index,
                     ).await?;
-                    println!("{}", response.response);
-                    history.push(QueryTurn::new(curr_input, response));
-                }
-            }
 
-            else {
-                let response = query(
-                    &parsed_args.get_args_exact(1)?[0],
-                    vec![],  // no history
-                    &index,
-                ).await?;
-                println!("{}", response.response);
-
-                if !response.retrieved_chunks.is_empty() {
-                    println!("\n---- sources ----");
-
-                    for chunk in response.retrieved_chunks.iter() {
-                        println!("{}", chunk.render_source());
+                    if json_mode {
+                        println!("{}", serde_json::to_string_pretty(&response)?);
                     }
-                }
+
+                    else {
+                        println!("{}", response.response);
+
+                        if !response.retrieved_chunks.is_empty() {
+                            println!("\n---- sources ----");
+
+                            for chunk in response.retrieved_chunks.iter() {
+                                println!("{}", chunk.render_source());
+                            }
+                        }
+                    }
+                },
             }
         },
         Some("remove") | Some("rm") => {

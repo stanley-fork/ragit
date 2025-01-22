@@ -1,9 +1,16 @@
+// Ragit uses json to interact with the world. This module defines json schema
+// of ragit objects. Some objects are valid json schema by themselves. For example,
+// a chunk is just a json file. There's no need to define a new schema for it. So
+// it's just a type alias: `type ChunkSchema = Chunk;`.
+
 mod chunk;
 mod file;
 mod image;
 mod model;
+mod query;
 
 pub use chunk::ChunkSchema;
 pub use file::FileSchema;
 pub use image::ImageSchema;
 pub use model::ModelSchema;
+pub use query::QueryResponseSchema;

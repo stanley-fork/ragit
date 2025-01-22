@@ -8,9 +8,11 @@ rag-query - Query on knowledge-bases
 SYNOPSIS
 --------
 [verse]
-'rag query' <query>
+'rag query' <query> [--json]
 'rag query' --interactive | --multi-turn
 
 DESCRIPTION
 -----------
 Ask AI about the knowledge-base.
+
+If `--json` is set, it dumps the result as a json. The json contains AI's response and retrieved chunks.
