@@ -113,7 +113,7 @@ impl Index {
                 let tmp_index_dir = join(&tmp_dir, INDEX_DIR_NAME)?;
                 copy_dir(&index_dir, &tmp_index_dir)?;
 
-                match migrate_0_1_1_to_0_2_0(&tmp_dir) {
+                match migrate_0_1_1_to_0_2_x(&tmp_dir) {
                     Ok(()) => {
                         remove_dir_all(&index_dir)?;
                         rename(&tmp_index_dir, &index_dir)?;
@@ -151,7 +151,7 @@ fn create_tmp_dir() -> Result<Path, Error> {
     Ok(dir_name)
 }
 
-fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
+fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
     let index_at = join3(
         root_dir,
         ".ragit",
@@ -268,6 +268,8 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
                                                 let uid = uid.to_string();
                                                 new_images.push(vec![
                                                     (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+
+                                                    // TODO: the last 16 characters must be metadata
                                                     (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
                                                 ].into_iter().collect());
                                             },
@@ -332,6 +334,8 @@ fn migrate_0_1_1_to_0_2_0(root_dir: &Path) -> Result<(), Error> {
                                             String::from("uid"),
                                             vec![
                                                 (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+
+                                                // TODO: the last 16 characters must be metadata
                                                 (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
                                             ].into_iter().collect(),
                                         );
