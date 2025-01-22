@@ -107,8 +107,6 @@ impl Index {
         }
 
         else {
-            // TODO: make `HashMap<(base: VersionInfo, client: VersionInfo), Fn(base, client, root_dir: &Path) -> Result<(), Error>>`
-            //       for now, there's only 1 case, so it uses very naive if branches
             if base_version.major == 0 && base_version.minor < 2 {
                 let index_dir = join(root_dir, INDEX_DIR_NAME)?;
                 let tmp_dir = create_tmp_dir()?;
@@ -129,11 +127,10 @@ impl Index {
                 }
             }
 
+            // as of v0.2.1, there's no compatibility issue in v0.2.x
+            // TODO: I want it to update the version info of the base
             else {
-                Err(Error::CannotMigrate {
-                    from: base_version.to_string(),
-                    to: client_version_str,
-                })
+                Ok(None)
             }
         }
     }
