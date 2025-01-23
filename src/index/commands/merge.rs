@@ -306,7 +306,7 @@ fn ask_merge(
 
     // TODO: when [issue #4](https://github.com/baehyunsol/ragit/issues/4) is fixed,
     //       reuse the output formats used by `ls-files` and `ls-images`.
-    match (uid1.get_uid_type(), uid2.get_uid_type()) {
+    match (uid1.get_uid_type()?, uid2.get_uid_type()?) {
         // both must be processed
         (UidType::File, UidType::File) => {
             let f1 = index1.get_file_schema(None, Some(uid1))?;
@@ -349,7 +349,7 @@ fn ask_merge(
             println!("no (keep image 1)");
             Ok(get_yes_no()?)
         },
-        (t1, t2) => panic!("internal error, merging 2 uids where (uid1: {t1:?}, uid2: {t2:?})"),
+        (t1, t2) => Err(Error::Internal(format!("internal error, merging 2 uids where (uid1: {t1:?}, uid2: {t2:?})"))),
     }
 }
 

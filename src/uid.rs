@@ -169,7 +169,7 @@ impl Uid {
             result ^= *uid;
 
             match uid.get_uid_type() {
-                UidType::Group => { child_count += uid.get_data_size(); },
+                Ok(UidType::Group) => { child_count += uid.get_data_size(); },
                 _ => { child_count += 1; },
             }
         }
@@ -223,15 +223,15 @@ impl Uid {
         format!("{:030x}{:032x}", self.high & 0xff_ffff_ffff_ffff_ffff_ffff_ffff_ffff, self.low)
     }
 
-    pub(crate) fn get_uid_type(&self) -> UidType {
+    pub(crate) fn get_uid_type(&self) -> Result<UidType, Error> {
         let field = ((self.low >> 32) & 0xf) << 32;
 
         match field {
-            Uid::CHUNK_TYPE => UidType::Chunk,
-            Uid::IMAGE_TYPE => UidType::Image,
-            Uid::FILE_TYPE => UidType::File,
-            Uid::GROUP_TYPE => UidType::Group,
-            _ => panic!("Internal Error: invalid uid type {field}"),
+            Uid::CHUNK_TYPE => Ok(UidType::Chunk),
+            Uid::IMAGE_TYPE => Ok(UidType::Image),
+            Uid::FILE_TYPE => Ok(UidType::File),
+            Uid::GROUP_TYPE => Ok(UidType::Group),
+            _ => Err(Error::InvalidUid(self.to_string())),
         }
     }
 

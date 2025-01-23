@@ -23,7 +23,6 @@ pub enum Error {
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
     NoSuchMeta(String),
     CorruptedFile(Path),
-    NotImplemented(String),
     CliError(String),  // TODO: spans?
     UidQueryError(String),
     BrokenHash(String),
@@ -44,6 +43,9 @@ pub enum Error {
         message: String,
     },
     MergeConflict(Uid),
+
+    /// If a user sees this error, that's a bug in ragit.
+    Internal(String),
 
     // If you're implementing a new FileReaderImpl, and don't know which variant to use,
     // just use this one.

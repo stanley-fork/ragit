@@ -130,7 +130,7 @@ impl Index {
         // FIXME: it has a terrible time complexity
         'gc_loop: loop {
             for chunk_uid in self.get_all_chunk_uids()? {
-                match chunk_uid.get_uid_type() {
+                match chunk_uid.get_uid_type()? {
                     UidType::Group => {
                         let chunk_ = self.get_chunk_by_uid(chunk_uid)?;
                         let chunk_path = Index::get_uid_path(
