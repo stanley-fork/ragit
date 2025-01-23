@@ -21,6 +21,7 @@ use ragit_fs::{
     join,
     read_dir,
 };
+use serde_json::{Map, Value};
 use std::env;
 use std::io::Write;
 
@@ -1069,7 +1070,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("tfidf") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--uid-only"]).arg_flag("--limit", ArgType::Integer).args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_flag(&["--uid-only"]).optional_flag(&["--json"]).arg_flag("--limit", ArgType::Integer).args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
@@ -1077,13 +1078,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
+            let json_mode = parsed_args.get_flag(1).is_some();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let started_at = std::time::Instant::now();
             let keywords = Keywords::from_raw(parsed_args.get_args());
             let tokenized_keywords = keywords.tokenize();
             let limit = parsed_args.arg_flags.get("--limit").map(|s| s.to_string()).unwrap_or(String::from("10")).parse::<i64>().unwrap().max(0) as usize;
 
-            if !uid_only {
+            if !uid_only && !json_mode {
                 println!("search keywords: {:?}", parsed_args.get_args());
                 println!("tokenized keywords: {:?}", tokenized_keywords.iter().map(|(token, _)| token).collect::<Vec<_>>());
 
@@ -1118,27 +1120,59 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 chunks.push(index.get_chunk_by_uid(uid)?);
             }
 
-            if !uid_only {
+            if !uid_only && !json_mode {
                 println!("found {} results", chunks.len());
             }
 
-            for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
+            if json_mode {
                 if uid_only {
-                    println!("{}", chunk.uid);
-                    continue;
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                            &chunks.iter().map(
+                                |chunk| chunk.uid.to_string()
+                            ).collect::<Vec<_>>(),
+                        )?).to_string(),
+                    );
                 }
 
-                println!("--------------------------");
-                println!("score: {}", tfidf.score);
-                println!("uid: {}", chunk.uid);
-                println!("source: {}", chunk.render_source());
-                println!("title: {}", chunk.title);
-                println!("summary: {}", chunk.summary);
+                else {
+                    println!(
+                        "{}",
+                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                            &tfidf_results.iter().zip(chunks.iter()).map(
+                                |(tfidf, chunk)| [
+                                    (String::from("score"), Value::from(tfidf.score)),
+                                    (String::from("uid"), chunk.uid.to_string().into()),
+                                    (String::from("source"), chunk.render_source().into()),
+                                    (String::from("title"), chunk.title.to_string().into()),
+                                    (String::from("summary"), chunk.summary.to_string().into()),
+                                ].into_iter().collect::<Map<String, Value>>(),
+                            ).collect::<Vec<_>>(),
+                        )?),
+                    );
+                }
+            }
+
+            else {
+                for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
+                    if uid_only {
+                        println!("{}", chunk.uid);
+                        continue;
+                    }
+
+                    println!("--------------------------");
+                    println!("score: {}", tfidf.score);
+                    println!("uid: {}", chunk.uid);
+                    println!("source: {}", chunk.render_source());
+                    println!("title: {}", chunk.title);
+                    println!("summary: {}", chunk.summary);
+                }
             }
 
             let ms_took = std::time::Instant::now().duration_since(started_at).as_millis();
 
-            if !uid_only {
+            if !uid_only && !json_mode {
                 if ms_took > 9999 {
                     println!("took {} seconds", ms_took / 1000);
                 }
