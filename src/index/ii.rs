@@ -210,9 +210,10 @@ impl Index {
 
             for term in tfidf.term_frequency.keys() {
                 let term_hash = hash(term);
-                term_hash_map.insert(term_hash.to_string(), term.to_string());
 
                 if from_ii.contains_key(&term_hash) {
+                    term_hash_map.insert(term_hash.to_string(), term.to_string());
+
                     match from_tfidf.get_mut(&term_hash) {
                         Some(uids) => { uids.push(uid) },
                         None => { from_tfidf.insert(term_hash, vec![uid]); },
@@ -244,8 +245,7 @@ impl Index {
                     }
                 },
                 None => {
-                    let uids_from_tfidf = from_tfidf.get(term_hash).unwrap();
-                    return Err(Error::BrokenII(format!("`{term}` is in `{}`, but not in ii.", uids_from_tfidf[0])));
+                    return Err(Error::BrokenII(format!("`{term}` is in the knowledge-base, but not in ii.")));
                 },
             }
         }
