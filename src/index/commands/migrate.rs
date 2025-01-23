@@ -1,19 +1,22 @@
 use super::Index;
 use crate::error::Error;
 use crate::index::{INDEX_DIR_NAME, INDEX_FILE_NAME};
+use crate::prompts::PROMPTS;
 use flate2::read::GzDecoder;
 use lazy_static::lazy_static;
 use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
-    basename,
     copy_dir,
     copy_file,
     create_dir_all,
     exists,
     extension,
+    file_name,
+    file_size,
     join,
     join3,
+    join4,
     read_bytes,
     read_dir,
     read_string,
@@ -162,6 +165,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
     let file_uid_re = &FILE_UID_RE;
     let uid_re = &UID_RE;
     let mut processed_files_cache;
+    let mut image_uid_map = HashMap::new();
 
     match &mut j {
         Value::Object(ref mut index) => {
@@ -235,6 +239,54 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
         )?,
     )?;
 
+    let image_dir = join3(
+        root_dir,
+        ".ragit",
+        "images",
+    )?;
+    let mut image_size_map = HashMap::new();
+
+    for image_file in read_dir(&image_dir, false)? {
+        let curr_ext = extension(&image_file)?.unwrap_or(String::new());
+
+        if curr_ext != "png" && curr_ext != "json" {
+            continue;
+        }
+
+        let uid = file_name(&image_file)?;
+        let image_size = match image_size_map.get(&uid) {
+            Some(n) => *n,
+            None => {
+                let s = file_size(&set_extension(&image_file, "png")?)?;
+                image_size_map.insert(uid.to_string(), s);
+                s
+            },
+        };
+        let new_uid = update_uid_schema(&uid, 2, image_size);
+        image_uid_map.insert(uid.clone(), new_uid.clone());
+
+        let image_at = join(
+            &image_dir,
+            &new_uid.get(0..2).unwrap(),
+        )?;
+
+        if !exists(&image_at) {
+            create_dir_all(&image_at)?;
+        }
+
+        copy_file(
+            &image_file,
+            &join(
+                &image_at,
+                &set_extension(
+                    &new_uid.get(2..).unwrap(),
+                    &curr_ext,
+                )?,
+            )?,
+        )?;
+        remove_file(&image_file)?;
+    }
+
     let tmp_chunk_dir = join3(
         root_dir,
         ".ragit",
@@ -265,12 +317,20 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
                                     for image in images.iter() {
                                         match image {
                                             Value::String(uid) => {
-                                                let uid = uid.to_string();
-                                                new_images.push(vec![
-                                                    (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+                                                let new_uid = match image_uid_map.get(uid) {
+                                                    Some(new_uid) => new_uid.to_string(),
+                                                    _ => {
+                                                        return Err(Error::BrokenIndex(format!(
+                                                            "chunk `{}` is pointing to an image `{}`, which does not exist",
+                                                            obj.get("uid").map(|s| s.as_str().map(|s| s.to_string()).unwrap_or(String::from("Unknown"))).unwrap_or(String::from("Unknown")),
+                                                            uid,
+                                                        )));
+                                                    },
+                                                };
 
-                                                    // TODO: the last 16 characters must be metadata
-                                                    (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
+                                                new_images.push(vec![
+                                                    (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(new_uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+                                                    (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(new_uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
                                                 ].into_iter().collect());
                                             },
                                             v => {
@@ -325,23 +385,37 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
                                 (String::from("index"), (file_index - 1).into()),
                             ].into_iter().collect()));
                             obj.insert(String::from("searchable"), true.into());
+                            let data_len = match obj.get("data") {
+                                Some(Value::String(d)) => d.len(),
+                                Some(d) => {
+                                    return Err(Error::JsonTypeError {
+                                        expected: JsonType::String,
+                                        got: d.into(),
+                                    });
+                                },
+                                None => {
+                                    return Err(Error::BrokenIndex(format!(
+                                        "chunk `{}` does not have `data` field.",
+                                        obj.get("uid").map(|s| s.as_str().map(|s| s.to_string()).unwrap_or(String::from("Unknown"))).unwrap_or(String::from("Unknown")),
+                                    )));
+                                },
+                            };
 
                             match obj.get("uid") {
                                 Some(uid) => match uid.as_str() {
                                     Some(uid) if uid_re.is_match(uid) => {
                                         let uid = uid.to_string();
+                                        let new_uid = update_uid_schema(&uid, 1, data_len as u64);
                                         obj.insert(
                                             String::from("uid"),
                                             vec![
-                                                (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
-
-                                                // TODO: the last 16 characters must be metadata
-                                                (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
+                                                (String::from("high"), Value::Number(Number::from_u128(u128::from_str_radix(new_uid.get(0..32).unwrap(), 16).unwrap()).unwrap())),
+                                                (String::from("low"), Value::Number(Number::from_u128(u128::from_str_radix(new_uid.get(32..).unwrap(), 16).unwrap()).unwrap())),
                                             ].into_iter().collect(),
                                         );
                                         let chunk_at = join(
                                             &tmp_chunk_dir,
-                                            uid.get(0..2).unwrap(),
+                                            new_uid.get(0..2).unwrap(),
                                         )?;
 
                                         if !exists(&chunk_at) {
@@ -350,16 +424,16 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
 
                                         match file_to_chunks_map.get_mut(&file_name) {
                                             Some(uids) => {
-                                                uids.push((uid.to_string(), file_index));
+                                                uids.push((new_uid.to_string(), file_index));
                                             },
                                             None => {
-                                                file_to_chunks_map.insert(file_name, vec![(uid.to_string(), file_index)]);
+                                                file_to_chunks_map.insert(file_name, vec![(new_uid.to_string(), file_index)]);
                                             },
                                         }
 
                                         // TODO: respect build_config.compress_threshold
                                         write_bytes(
-                                            &join(&chunk_at, &format!("{}.chunk", uid.get(2..).unwrap()))?,
+                                            &join(&chunk_at, &format!("{}.chunk", new_uid.get(2..).unwrap()))?,
                                             &vec![
                                                 vec![b'\n'],  // chunk prefix for an un-compressed chunk
                                                 serde_json::to_vec_pretty(&chunk)?,
@@ -398,42 +472,6 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
                 });
             },
         }
-    }
-
-    let image_dir = join3(
-        root_dir,
-        ".ragit",
-        "images",
-    )?;
-
-    for image_file in read_dir(&image_dir, false)? {
-        let curr_ext = extension(&image_file)?.unwrap_or(String::new());
-
-        if curr_ext != "png" && curr_ext != "json" {
-            continue;
-        }
-
-        let uid = basename(&image_file)?;
-        let image_at = join(
-            &image_dir,
-            &uid.get(0..2).unwrap(),
-        )?;
-
-        if !exists(&image_at) {
-            create_dir_all(&image_at)?;
-        }
-
-        copy_file(
-            &image_file,
-            &join(
-                &image_at,
-                &set_extension(
-                    &uid.get(2..).unwrap(),
-                    &curr_ext,
-                )?,
-            )?,
-        )?;
-        remove_file(&image_file)?;
     }
 
     remove_dir_all(&join3(
@@ -487,6 +525,18 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
             ConfigUpdate::remove("build", "chunks_per_json"),
             ConfigUpdate::update_if("api", "model", "llama3.1-70b-groq", "llama3.3-70b-groq"),
         ],
+    )?;
+
+    let prompt_path = join4(
+        root_dir,
+        ".ragit",
+        "prompts",
+        "summarize_chunks.pdl",
+    )?;
+    write_string(
+        &prompt_path,
+        PROMPTS.get("summarize_chunks").unwrap(),
+        WriteMode::AlwaysCreate,
     )?;
 
     Ok(())
@@ -720,4 +770,10 @@ fn update_configs(root_dir: &str, updates: Vec<ConfigUpdate>) -> Result<(), Erro
     }
 
     Ok(())
+}
+
+fn update_uid_schema(old_uid: &str, uid_type: u32, data_len: u64) -> String {
+    let prefix = old_uid.get(0..48).unwrap();
+    let suffix = format!("{uid_type:08x}{data_len:08x}");
+    format!("{prefix}{suffix}")
 }

@@ -41,7 +41,7 @@ def migrate():
     mk_and_cd_tmp_dir()
 
     # NOTE: I found that 0.1.1 -> 0.2.0 -> 0.2.1 is broken because the implementation
-    #       of 0.2.0 is broken. I'll just fix 0.1.1 -> 0.2.1 migration.
+    #       of 0.2.0 is broken. I just fixed 0.1.1 -> 0.2.1 migration.
     # # step 1: init knowledge-base in version 0.1.1
     # checkout("0.1.1")
     # init_knowledge_base()
@@ -64,7 +64,6 @@ def migrate():
 
     # step 4: init knowledge-base in version 0.2.0
     checkout("0.2.0")
-    cargo_run(["reset", "--hard"])
     init_knowledge_base()
 
     # step 5: 0.2.0 and 0.2.1 are compatible
