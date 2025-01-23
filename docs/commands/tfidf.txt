@@ -8,7 +8,13 @@ rag-tfidf - Run full-text search using its tfidf engine
 SYNOPSIS
 --------
 [verse]
-'rag tfidf' [--uid-only] [--limit <n>] <keywords>
+'rag tfidf' [--uid-only] [--limit <n>] [--json] <keywords>
 
 DESCRIPTION
 -----------
+You can run full-text search on your knowledge-base using this command.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+- no flags: `[result: { score: float, source: string, summary: string, title: string, uid: string }]`
+- `--uid-only`: `[uid: string]`
