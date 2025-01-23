@@ -57,10 +57,18 @@ def many_chunks():
     cargo_run(["build"])
     cargo_run(["check"])
 
-    # it takes too long to run tfidf thousands of times
-    # TODO: run tfidf thousands times when K-V DB is implemented
     shuffle(tfidf_map)
-    tfidf_map = tfidf_map[:20]
 
-    for word, file_name in tfidf_map:
+    # it takes too long to run tfidf thousands of times without ii
+    tfidf_map_small = tfidf_map[:20]
+
+    for word, file_name in tfidf_map_small:
+        assert file_name in cargo_run(["tfidf", word], stdout=True)
+
+    cargo_run(["ii-build"])
+    cargo_run(["check"])
+
+    # I hope ii is so efficient that it can run tfidf thousands of times,
+    # but it's not that efficient yet.
+    for word, file_name in tfidf_map[:200]:
         assert file_name in cargo_run(["tfidf", word], stdout=True)

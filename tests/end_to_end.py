@@ -14,7 +14,7 @@ def end_to_end(test_model: str):
     if ".ragit" in os.listdir():
         cargo_run(["reset", "--hard"])
 
-    assert len(files) > 2  # `rag build` has to take at least 5 seconds
+    assert len(files) > 10  # `rag build` has to take at least 20 seconds
     cargo_run(["init"])
     cargo_run(["check"])
 
@@ -65,21 +65,24 @@ def end_to_end(test_model: str):
     assert file_count == len(files)
 
     # step 3: build: pause and resume
-    try:
-        cargo_run(["build"], timeout=8.0 + randint(0, 8))
 
-    except TimeoutExpired:
-        pass
+    # step 3.1: it simulates process crashes using timeout
+    for _ in range(3):
+        try:
+            cargo_run(["build"], timeout=8.0 + randint(0, 20) / 10)
 
-    else:
-        raise Exception("The build should have timed out")
+        except TimeoutExpired:
+            pass
+
+        else:
+            raise Exception("The build should have timed out")
 
     cargo_run(["check", "--recover"])
     cargo_run(["config", "--set", "sleep_after_llm_call", "null"])
     cargo_run(["build"])
     cargo_run(["check"])
 
-    # running `rag build` after the knowledge-base built does nothing
+    # running `rag build` after the knowledge-base is built does nothing
     cargo_run(["build"])
     cargo_run(["check"])
 

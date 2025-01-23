@@ -66,6 +66,7 @@ def ii():
         answers[term] = uids
 
     cargo_run(["ii-build"])
+    cargo_run(["check"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
     cargo_run(["config", "--set", "enable_ii", "true"])
 
@@ -107,6 +108,7 @@ def ii():
     cargo_run(["add", "self-introduction.txt"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
     cargo_run(["build"])
+    cargo_run(["check"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
     assert "self-introduction.txt" in cargo_run(["tfidf", "Hi, my name is baehyunsol."], stdout=True)
 

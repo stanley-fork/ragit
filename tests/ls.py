@@ -73,6 +73,7 @@ def ls():
                     assert file_name not in tfidf_result
 
         cargo_run(["ii-build"])
+        cargo_run(["check"])
 
     print("step 2: construct `file_map` from `ls-files`")
     ls_files_result = cargo_run(["ls-files"], stdout=True).split("-----")
