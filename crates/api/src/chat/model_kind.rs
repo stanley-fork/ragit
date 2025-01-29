@@ -163,7 +163,7 @@ impl ModelKind {
     // in milliseconds
     pub fn api_timeout(&self) -> u64 {
         match self {
-            // groq LPUs are very fast 
+            // groq LPUs are very fast
             ModelKind::Llama90BGroq => 12_000,
             ModelKind::Llama70BGroq => 12_000,
             ModelKind::Llama11BGroq => 12_000,

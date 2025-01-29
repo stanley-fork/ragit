@@ -184,7 +184,7 @@ def ls():
                     appeared_magic_word.add(magic_word)
                     assert file_name == file_name_
 
-    assert len(appeared_magic_word) == len(magic_words_map) 
+    assert len(appeared_magic_word) == len(magic_words_map)
 
     print("step 8: `ls-terms <FILE-UID>`")
 
