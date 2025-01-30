@@ -131,9 +131,24 @@ impl Index {
             }
 
             // as of v0.2.1, there's no compatibility issue in v0.2.x
-            // TODO: I want it to update the version info of the base
             else {
-                Ok(None)
+                let index_dir = join(root_dir, INDEX_DIR_NAME)?;
+                let tmp_dir = create_tmp_dir()?;
+                let tmp_index_dir = join(&tmp_dir, INDEX_DIR_NAME)?;
+                copy_dir(&index_dir, &tmp_index_dir)?;
+
+                match update_version_string(&tmp_dir, crate::VERSION) {
+                    Ok(()) => {
+                        remove_dir_all(&index_dir)?;
+                        rename(&tmp_index_dir, &index_dir)?;
+                        remove_dir_all(&tmp_dir)?;
+                        Ok(Some((base_version, client_version)))
+                    },
+                    Err(e) => {
+                        remove_dir_all(&tmp_dir)?;
+                        Err(e)
+                    },
+                }
             }
         }
     }
@@ -152,6 +167,36 @@ fn create_tmp_dir() -> Result<Path, Error> {
 
     create_dir_all(&dir_name)?;
     Ok(dir_name)
+}
+
+fn update_version_string(root_dir: &Path, new_version: &str) -> Result<(), Error> {
+    let index_at = join3(
+        root_dir,
+        ".ragit",
+        "index.json",
+    )?;
+    let j = read_string(&index_at)?;
+    let mut j = serde_json::from_str::<Value>(&j)?;
+
+    match &mut j {
+        Value::Object(ref mut index) => {
+            index.insert(String::from("ragit_version"), new_version.into());
+        },
+        _ => {
+            return Err(Error::JsonTypeError {
+                expected: JsonType::Object,
+                got: (&j).into(),
+            });
+        },
+    }
+
+    write_bytes(
+        &index_at,
+        &serde_json::to_vec_pretty(&j)?,
+        WriteMode::CreateOrTruncate,
+    )?;
+
+    Ok(())
 }
 
 fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
