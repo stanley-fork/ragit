@@ -32,12 +32,18 @@ def clone():
     shutil.copytree(".ragit", "../../crates/server/data/test-user/repo1/.ragit")
 
     # let's wait until `ragit-server` is compiled
-    for _ in range(60):
+    for _ in range(300):
         path1 = "../../crates/server/target/release/ragit-server"
         path2 = "../../crates/server/target/release/ragit-server.exe"
 
         if not os.path.exists(path1) and not os.path.exists(path2):
             time.sleep(1)
+
+        else:
+            break
+
+    else:
+        raise Exception("failed to compile `ragit-server`")
 
     # step 3: clone and check
     os.chdir("..")
