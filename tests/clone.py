@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import time
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
 def clone():
@@ -29,6 +30,14 @@ def clone():
     # sadly, `rag push` is not implemented yet
     # we have to push it manually
     shutil.copytree(".ragit", "../../crates/server/data/test-user/repo1/.ragit")
+
+    # let's wait until `ragit-server` is compiled
+    for _ in range(60):
+        path1 = "../../crates/server/target/release/ragit-server"
+        path2 = "../../crates/server/target/release/ragit-server.exe"
+
+        if not os.path.exists(path1) and not os.path.exists(path2):
+            time.sleep(1)
 
     # step 3: clone and check
     os.chdir("..")
