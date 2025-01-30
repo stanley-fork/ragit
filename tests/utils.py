@@ -136,3 +136,13 @@ def rand_word() -> str:
 def get_ragit_version() -> str:
     stdout = cargo_run(["version"], output_schema=["stdout", "returncode"], check=False)["stdout"].strip()
     return stdout or "unknown"
+
+# some test outputs include escape code that erases the terminal
+# such tests generate very long output and it should be cleaned
+def clean_test_output(s: str) -> str:
+    d = "\x1b[H\x1b[2J\x1b[3J"
+
+    while (i := s.find(d)) != -1:
+        s = s[i + len(d):]
+
+    return s

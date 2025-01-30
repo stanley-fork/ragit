@@ -25,7 +25,7 @@ from tfidf import tfidf
 
 import os
 import sys
-from utils import clean, get_ragit_version, goto_root
+from utils import clean, clean_test_output, get_ragit_version, goto_root
 
 def get_commit_hash():
     try:
@@ -336,7 +336,7 @@ if __name__ == "__main__":
                     result["tests"][name] = {
                         "seq": seq,
                         "pass": False,
-                        "error": str(e) + "\n" + traceback.format_exc(),
+                        "error": clean_test_output(str(e) + "\n" + traceback.format_exc()),
                         "elapsed_ms": int((time.time() - start) * 1000),
                     }
                     result["result"]["fail"] += 1
