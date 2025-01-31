@@ -268,6 +268,7 @@ pub fn calc_usage(records: &[Record]) -> String {
 pub fn dump_pdl(
     messages: &[Message],
     response: &str,
+    reasoning: &Option<String>,
     path: &str,
     metadata: String,
 ) -> Result<(), Error> {
@@ -281,7 +282,14 @@ pub fn dump_pdl(
         ));
     }
 
-    markdown.push(format!("\n\n<|Assistant|>\n\n{response}"));
+    markdown.push(format!(
+        "\n\n<|Assistant|>{}\n\n{response}",
+        if let Some(reasoning) = reasoning {
+            format!("\n\n<|Reasoning|>\n\n{reasoning}\n\n")
+        } else {
+            String::new()
+        },
+    ));
     markdown.push(format!("{}# {metadata} #{}", '{', '}'));  // tera format
 
     write_string(

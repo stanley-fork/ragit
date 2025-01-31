@@ -3,12 +3,14 @@ use crate::error::Error;
 
 mod anthropic;
 mod cohere;
+mod deepseek;
 mod groq;
 mod ollama;
 mod openai;
 
 pub use anthropic::AnthropicResponse;
 pub use cohere::CohereResponse;
+pub use deepseek::DeepSeekResponse;
 pub use groq::GroqResponse;
 pub use ollama::OllamaResponse;
 pub use openai::OpenAiResponse;
@@ -19,6 +21,7 @@ pub trait IntoChatResponse {
 
 pub struct Response {
     messages: Vec<String>,
+    reasonings: Vec<Option<String>>,
     output_tokens: usize,
     prompt_tokens: usize,
     total_tokens: usize,
@@ -28,6 +31,7 @@ impl Response {
     pub fn dummy(s: String) -> Self {
         Response {
             messages: vec![s],
+            reasonings: vec![None],
             output_tokens: 0,
             prompt_tokens: 0,
             total_tokens: 0,
@@ -52,5 +56,12 @@ impl Response {
 
     pub fn get_message(&self, index: usize) -> Option<&str> {
         self.messages.get(index).map(|s| s.as_str())
+    }
+
+    pub fn get_reasoning(&self, index: usize) -> Option<&str> {
+        match self.reasonings.get(index) {
+            Some(s) => s.as_ref().map(|s| s.as_str()),
+            None => None,
+        }
     }
 }

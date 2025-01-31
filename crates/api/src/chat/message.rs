@@ -59,7 +59,7 @@ pub fn message_to_json(message: &Message, api_provider: ApiProvider) -> JsonValu
             },
             MessageContent::Image { .. } => unreachable!(),
         },
-        (ApiProvider::Groq | ApiProvider::Anthropic | ApiProvider::Cohere | ApiProvider::OpenAi | ApiProvider::Ollama, _) => {
+        (ApiProvider::Groq | ApiProvider::Anthropic | ApiProvider::Cohere | ApiProvider::OpenAi | ApiProvider::Ollama | ApiProvider::DeepSeek, _) => {
             result.insert("content", message_contents_to_json_array(&message.content, api_provider)).unwrap();
         },
         (ApiProvider::Replicate, _) => panic!("no chat models for replicate"),

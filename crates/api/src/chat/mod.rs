@@ -11,6 +11,7 @@ pub use request::Request;
 pub use response::{
     AnthropicResponse,
     CohereResponse,
+    DeepSeekResponse,
     GroqResponse,
     IntoChatResponse,
     OllamaResponse,

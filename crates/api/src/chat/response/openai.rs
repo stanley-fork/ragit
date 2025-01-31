@@ -38,6 +38,7 @@ struct OpenAiUsage {
 struct OpenAiMessage {
     role: String,
     content: String,
+    reasoning_content: Option<String>,
 }
 
 impl IntoChatResponse for OpenAiResponse {
@@ -45,6 +46,9 @@ impl IntoChatResponse for OpenAiResponse {
         Ok(Response {
             messages: self.choices.iter().map(
                 |choice| choice.message.content.to_string()
+            ).collect(),
+            reasonings: self.choices.iter().map(
+                |choice| choice.message.reasoning_content.clone()
             ).collect(),
             output_tokens: self.usage.completion_tokens,
             prompt_tokens: self.usage.prompt_tokens,

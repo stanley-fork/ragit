@@ -38,6 +38,7 @@ impl IntoChatResponse for CohereResponse {
     fn into_chat_response(&self) -> Result<Response, Error> {
         Ok(Response {
             messages: vec![self.message.content[0].text.to_string()],
+            reasonings: self.message.content.iter().map(|_| None).collect(),
             output_tokens: self.usage.tokens.output_tokens,
             prompt_tokens: self.usage.tokens.input_tokens,
             total_tokens: self.usage.tokens.output_tokens + self.usage.tokens.input_tokens,

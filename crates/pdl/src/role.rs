@@ -7,6 +7,7 @@ pub enum PdlRole {
     System,
     Assistant,
     Schema,
+    Reasoning,
 }
 
 impl From<&str> for PdlRole {
@@ -16,6 +17,7 @@ impl From<&str> for PdlRole {
             "system" => PdlRole::System,
             "assistant" => PdlRole::Assistant,
             "schema" => PdlRole::Schema,
+            "reasoning" => PdlRole::Reasoning,
             _ => unreachable!(),
         }
     }
@@ -26,6 +28,7 @@ pub enum Role {
     User,
     System,
     Assistant,
+    Reasoning,
 }
 
 impl Role {
@@ -34,6 +37,7 @@ impl Role {
             Role::User => "user",
             Role::System => "system",
             Role::Assistant => "assistant",
+            Role::Reasoning => "reasoning",
         }
     }
 }
@@ -45,6 +49,7 @@ impl FromStr for Role {
         match s.to_ascii_lowercase() {
             s if s == "user" => Ok(Role::User),
             s if s == "system" => Ok(Role::System),
+            s if s == "reasoning" => Ok(Role::Reasoning),
 
             // for legacy cohere api
             s if s == "assistant" || s == "chatbot" => Ok(Role::Assistant),
@@ -59,6 +64,7 @@ impl From<PdlRole> for Role {
             PdlRole::User => Role::User,
             PdlRole::System => Role::System,
             PdlRole::Assistant => Role::Assistant,
+            PdlRole::Reasoning => Role::Reasoning,
             PdlRole::Schema => unreachable!(),
         }
     }

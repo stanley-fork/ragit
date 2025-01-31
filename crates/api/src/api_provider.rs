@@ -2,6 +2,7 @@ use super::ImageModel;
 use crate::chat::{
     AnthropicResponse,
     CohereResponse,
+    DeepSeekResponse,
     GroqResponse,
     IntoChatResponse,
     OllamaResponse,
@@ -18,6 +19,7 @@ pub enum ApiProvider {
     Replicate,
     Anthropic,
     Ollama,
+    DeepSeek,
 
     /// for test
     /// 1. doesn't require api key
@@ -35,6 +37,7 @@ impl ApiProvider {
             ApiProvider::Ollama => "ollama",
             ApiProvider::OpenAi => "OpenAi",
             ApiProvider::Replicate => "Replicate",
+            ApiProvider::DeepSeek => "deepseek",
             ApiProvider::Dummy => "dummy",
         }
     }
@@ -46,6 +49,7 @@ impl ApiProvider {
             ApiProvider::Groq => Some("https://api.groq.com/openai/v1/chat/completions"),
             ApiProvider::Ollama => Some("http://127.0.0.1:11434/v1/chat/completions"),
             ApiProvider::OpenAi => Some("https://api.openai.com/v1/chat/completions"),
+            ApiProvider::DeepSeek => Some("https://api.deepseek.com/chat/completions"),
             ApiProvider::Replicate => None,
             ApiProvider::Dummy => None,
         }
@@ -57,6 +61,7 @@ impl ApiProvider {
             ApiProvider::Cohere => None,
             ApiProvider::Groq => None,
             ApiProvider::Ollama => None,
+            ApiProvider::DeepSeek => None,
             ApiProvider::OpenAi => Some(String::from("https://api.openai.com/v1/images/generations")),
             ApiProvider::Replicate => if model_kind.uses_version_hash() {
                 Some(String::from("https://api.replicate.com/v1/predictions"))
@@ -83,6 +88,7 @@ impl ApiProvider {
             ApiProvider::Groq => Some("GROQ_API_KEY"),
             ApiProvider::OpenAi => Some("OPENAI_API_KEY"),
             ApiProvider::Replicate => Some("REPLICATE_API_KEY"),
+            ApiProvider::DeepSeek => Some("DEEPSEEK_API_KEY"),
             ApiProvider::Ollama
             | ApiProvider::Dummy => None,
         }
@@ -105,6 +111,7 @@ impl ApiProvider {
             ApiProvider::Groq => Ok(Box::new(serde_json::from_str::<GroqResponse>(s)?)),
             ApiProvider::OpenAi => Ok(Box::new(serde_json::from_str::<OpenAiResponse>(s)?)),
             ApiProvider::Ollama => Ok(Box::new(serde_json::from_str::<OllamaResponse>(s)?)),
+            ApiProvider::DeepSeek => Ok(Box::new(serde_json::from_str::<DeepSeekResponse>(s)?)),
             ApiProvider::Replicate => unreachable!(),
             ApiProvider::Dummy => unreachable!(),
         }

@@ -78,7 +78,7 @@ impl Request {
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub fn build_json_body(&self) -> JsonValue {
         match self.model.get_api_provider() {
-            ApiProvider::Groq | ApiProvider::OpenAi | ApiProvider::Cohere | ApiProvider::Ollama => {
+            ApiProvider::Groq | ApiProvider::OpenAi | ApiProvider::Cohere | ApiProvider::Ollama | ApiProvider::DeepSeek => {
                 let mut result = JsonValue::new_object();
                 result.insert("model", self.model.to_api_friendly_name()).unwrap();
                 let mut messages = JsonValue::new_array();
@@ -186,6 +186,7 @@ impl Request {
                 if let Err(e) = dump_pdl(
                     &self.messages,
                     &response,
+                    &None,
                     path,
                     String::from("model: dummy, input_tokens: 0, output_tokens: 0, took: 0ms"),
                 ) {
@@ -295,6 +296,7 @@ impl Request {
                                         if let Err(e) = dump_pdl(
                                             &self.messages,
                                             &result.get_message(0).map(|m| m.to_string()).unwrap_or(String::new()),
+                                            &result.get_reasoning(0).map(|m| m.to_string()),
                                             path,
                                             format!(
                                                 "model: {}, input_tokens: {}, output_tokens: {}, took: {}ms",
@@ -335,6 +337,7 @@ impl Request {
                             if let Err(e) = dump_pdl(
                                 &self.messages,
                                 "",
+                                &None,
                                 path,
                                 format!("{}# error: {curr_error:?} #{}", '{', '}'),
                             ) {

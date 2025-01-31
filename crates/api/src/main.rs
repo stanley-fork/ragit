@@ -47,6 +47,9 @@ struct Args {
 
     #[arg(long, default_value_t = false)]
     strict_mode: bool,
+
+    #[arg(long, default_value_t = false)]
+    dump_json: bool,
 }
 
 // TODO: interactive ui like ollama
@@ -75,17 +78,17 @@ async fn main() {
         temperature: args.temperature,
         api_key: args.api_key,
         dump_pdl_at: if args.output != "STDOUT" { Some(args.output.clone()) } else { None },
-        dump_json_at: None,
+        dump_json_at: if args.dump_json { Some(String::from(".")) } else { None },
         max_retry: args.max_retry,
         max_tokens: args.max_tokens,
         timeout,
         sleep_between_retries: args.sleep_between_retries,
         frequency_penalty: args.frequency_penalty,
+        schema: schema.clone(),
+        schema_max_try: 3,
 
         // TODO: make it configurable
         record_api_usage_at: None,
-        schema: schema.clone(),
-        schema_max_try: 3,
     };
 
     let response = if schema.is_none() {

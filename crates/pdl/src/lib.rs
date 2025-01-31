@@ -60,6 +60,7 @@ impl Pdl {
                         return Err(Error::InvalidPdl(String::from("<|system|> must appear at top.")));
                     }
                 },
+                Role::Reasoning => {},  // TODO
             }
         }
 
@@ -129,7 +130,7 @@ pub fn parse_pdl(
         // maybe a turn-separator
         if trimmed.starts_with("<|") && trimmed.ends_with("|>") && trimmed.len() > 4 {
             match trimmed.to_ascii_lowercase().get(2..(trimmed.len() - 2)).unwrap() {
-                t @ ("user" | "system" | "assistant" | "schema") => {
+                t @ ("user" | "system" | "assistant" | "schema" | "reasoning") => {
                     if !line_buffer.is_empty() || curr_role.is_some() {
                         match curr_role {
                             Some(PdlRole::Schema) => match parse_schema(line_buffer.join("\n").as_bytes()) {
@@ -146,6 +147,8 @@ pub fn parse_pdl(
                                     }
                                 },
                             },
+                            // reasoning tokens are not fed to llm contexts
+                            Some(PdlRole::Reasoning) => {},
                             _ => {
                                 // there must be lots of unnecessary newlines due to the nature of the format
                                 // let's just trim them away

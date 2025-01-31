@@ -31,6 +31,7 @@ impl IntoChatResponse for AnthropicResponse {
             messages: self.content.iter().map(
                 |content| content.text.to_string()
             ).collect(),
+            reasonings: self.content.iter().map(|_| None).collect(),
             output_tokens: self.usage.output_tokens,
             prompt_tokens: self.usage.input_tokens,
             total_tokens: self.usage.output_tokens + self.usage.input_tokens,
