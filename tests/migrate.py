@@ -9,7 +9,7 @@ def checkout(version: str):
     commit_hashes = {
         "0.1.1": "a168d13af967",
         "0.2.0": "a183c071d068",
-        "0.2.1": "ca6a6eadf7a5",
+        "0.2.1": "281a98f41f37",
     }
 
     try:
