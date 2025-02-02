@@ -1,7 +1,6 @@
 use crate::index::IIStatus;
 use crate::uid::Uid;
 pub use ragit_api::{Error as ApiError, JsonType};
-use ragit_pdl::Error as PdlError;
 use ragit_fs::FileError;
 use std::string::FromUtf8Error;
 
@@ -23,7 +22,10 @@ pub enum Error {
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
     NoSuchMeta(String),
     CorruptedFile(Path),
-    CliError(String),  // TODO: spans?
+    CliError {
+        message: String,
+        span: (String, usize, usize),  // (args, error_from, error_to)
+    },
     UidQueryError(String),
     BrokenHash(String),
     BrokenPrompt(String),
@@ -74,9 +76,6 @@ pub enum Error {
     /// see <https://docs.rs/url/latest/url/enum.ParseError.html>
     UrlParseError(url::ParseError),
 
-    /// see <https://doc.rust-lang.org/stable/std/num/struct.ParseIntError.html>
-    ParseIntError(std::num::ParseIntError),
-
     FileError(FileError),
     StdIoError(std::io::Error),
     Utf8Error(FromUtf8Error),
@@ -85,7 +84,7 @@ pub enum Error {
     ApiError(ApiError),
 
     // I'm too lazy to add all the variants of ragit_pdl::Error
-    PdlError(PdlError),
+    PdlError(ragit_pdl::Error),
 }
 
 impl From<json::Error> for Error {
@@ -155,11 +154,20 @@ impl From<ApiError> for Error {
     }
 }
 
-impl From<PdlError> for Error {
-    fn from(e: PdlError) -> Self {
+impl From<ragit_pdl::Error> for Error {
+    fn from(e: ragit_pdl::Error) -> Self {
         match e {
-            PdlError::InvalidImageType(e) => Error::InvalidImageType(e),
+            ragit_pdl::Error::InvalidImageType(e) => Error::InvalidImageType(e),
             e => Error::PdlError(e),
+        }
+    }
+}
+
+impl From<ragit_cli::Error> for Error {
+    fn from(e: ragit_cli::Error) -> Self {
+        Error::CliError {
+            message: e.kind.render(),
+            span: e.span.unwrap_rendered(),
         }
     }
 }

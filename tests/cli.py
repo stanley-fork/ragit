@@ -20,7 +20,9 @@ def cli():
     os.chdir("main")
     cargo_run(["init"])
 
+    assert_cli_error([])  # no command: error
     assert_cli_error(["invalid-command"])
+    assert_cli_error(["--invalid-command-that-looks-like-a-flag"])
     assert_cli_error(["config", "--invalid-flag"])
 
     # in git, args and flags can be interleaved

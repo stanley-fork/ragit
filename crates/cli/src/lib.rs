@@ -1,26 +1,33 @@
-use ragit::Error;
 use std::collections::HashMap;
 
+mod error;
+mod span;
+
+pub use error::{Error, ErrorKind};
+pub use span::Span;
+
 pub struct ArgParser {
-    args: Option<(ArgType, ArgCount)>,
+    arg_count: ArgCount,
+    arg_type: ArgType,
     flags: Vec<Flag>,
 
     // `--N=20`, `--prefix=rust`
-    arg_flags: HashMap<String, ArgType>,
+    arg_flags: HashMap<String, (Option<String> /* default value */, ArgType)>,
 }
 
 impl ArgParser {
     pub fn new() -> Self {
         ArgParser {
-            args: None,
+            arg_count: ArgCount::None,
+            arg_type: ArgType::String,
             flags: vec![],
             arg_flags: HashMap::new(),
         }
     }
 
     pub fn args(&mut self, arg_type: ArgType, arg_count: ArgCount) -> &mut Self {
-        assert!(self.args.is_none());
-        self.args = Some((arg_type, arg_count));
+        self.arg_type = arg_type;
+        self.arg_count = arg_count;
         self
     }
 
@@ -43,7 +50,12 @@ impl ArgParser {
     }
 
     pub fn arg_flag(&mut self, flag: &str, arg_type: ArgType) -> &mut Self {
-        self.arg_flags.insert(flag.to_string(), arg_type);
+        self.arg_flags.insert(flag.to_string(), (None, arg_type));
+        self
+    }
+
+    pub fn optional_arg_flag(&mut self, flag: &str, default: &str, arg_type: ArgType) -> &mut Self {
+        self.arg_flags.insert(flag.to_string(), (Some(default.to_string()), arg_type));
         self
     }
 
@@ -58,6 +70,15 @@ impl ArgParser {
     }
 
     pub fn parse(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
+        self.parse_worker(raw_args).map_err(
+            |mut e| {
+                e.span = e.span.render(raw_args);
+                e
+            }
+        )
+    }
+
+    pub fn parse_worker(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
         let mut args = vec![];
         let mut flags = vec![None; self.flags.len()];
         let mut arg_flags = HashMap::new();
@@ -72,13 +93,19 @@ impl ArgParser {
             });
         }
 
-        'raw_arg_loop: for raw_arg in raw_args.iter() {
+        'raw_arg_loop: for (arg_index, raw_arg) in raw_args.iter().enumerate() {
             if let Some((flag, arg_type)) = expecting_flag_arg {
                 expecting_flag_arg = None;
-                arg_type.parse(raw_arg)?;
+                arg_type.parse(raw_arg, Span::Exact(arg_index))?;
 
                 if let Some(_) = arg_flags.insert(flag.clone(), raw_arg.to_string()) {
-                    return Err(Error::CliError(format!("{flag:?} is given multiple times")));
+                    return Err(Error {
+                        span: Span::Exact(arg_index),
+                        kind: ErrorKind::SameFlagMultipleTimes(
+                            flag.clone(),
+                            flag.clone(),
+                        ),
+                    });
                 }
 
                 continue;
@@ -93,12 +120,18 @@ impl ArgParser {
                         }
 
                         else {
-                            return Err(Error::CliError(format!("conflicting flags: {:?} vs {raw_arg:?}", flags[flag_index].clone().unwrap())));
+                            return Err(Error {
+                                span: Span::Exact(arg_index),
+                                kind: ErrorKind::SameFlagMultipleTimes(
+                                    flags[flag_index].as_ref().unwrap().to_string(),
+                                    raw_arg.to_string(),
+                                ),
+                            });
                         }
                     }
                 }
 
-                if let Some(arg_type) = self.arg_flags.get(raw_arg) {
+                if let Some((_, arg_type)) = self.arg_flags.get(raw_arg) {
                     expecting_flag_arg = Some((raw_arg.to_string(), *arg_type));
                     continue;
                 }
@@ -108,37 +141,46 @@ impl ArgParser {
                     let flag = splitted[0];
                     let flag_arg = splitted[1];
 
-                    if let Some(arg_type) = self.arg_flags.get(flag) {
-                        arg_type.parse(flag_arg)?;
+                    if let Some((_, arg_type)) = self.arg_flags.get(flag) {
+                        arg_type.parse(flag_arg, Span::Exact(arg_index))?;
 
                         if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {
-                            return Err(Error::CliError(format!("{flag:?} is given multiple times")));
+                            return Err(Error {
+                                span: Span::Exact(arg_index),
+                                kind: ErrorKind::SameFlagMultipleTimes(
+                                    flag.to_string(),
+                                    flag.to_string(),
+                                ),
+                            });
                         }
 
                         continue;
                     }
 
                     else {
-                        return Err(Error::CliError(format!("unknown flag: {flag:?}")));
+                        return Err(Error {
+                            span: Span::Exact(arg_index),
+                            kind: ErrorKind::UnknownFlag(flag.to_string()),
+                        });
                     }
                 }
 
-                return Err(Error::CliError(format!("unknown flag: {raw_arg:?}")));
+                return Err(Error {
+                    span: Span::Exact(arg_index),
+                    kind: ErrorKind::UnknownFlag(raw_arg.to_string()),
+                });
             }
 
             else {
-                if let Some((arg_type, _)) = &self.args {
-                    args.push(arg_type.parse(raw_arg)?);
-                }
-
-                else {
-                    return Err(Error::CliError(format!("unexpected argument: {raw_arg:?}")));
-                }
+                args.push(self.arg_type.parse(raw_arg, Span::Exact(arg_index))?);
             }
         }
 
-        if let Some((arg, _)) = expecting_flag_arg {
-            return Err(Error::CliError(format!("missing argument of {arg:?}")));
+        if let Some((arg, arg_type)) = expecting_flag_arg {
+            return Err(Error {
+                span: Span::End,
+                kind: ErrorKind::MissingArgument(arg.to_string(), arg_type),
+            });
         }
 
         for i in 0..flags.len() {
@@ -148,23 +190,46 @@ impl ArgParser {
                 }
 
                 else if !self.flags[i].optional {
-                    return Err(Error::CliError(format!("missing flag: {}", self.flags[i].values.join(" | "))));
+                    return Err(Error {
+                        span: Span::End,
+                        kind: ErrorKind::MissingFlag(self.flags[i].values.join(" | ")),
+                    });
                 }
             }
         }
 
-        if let Some((_, arg_count)) = &self.args {
-            match arg_count {
-                ArgCount::Geq(n) if args.len() < *n => {
-                    return Err(Error::CliError(format!("expected at least {n} arguments, got only {} arguments", args.len())));
+        loop {
+            let span = match self.arg_count {
+                ArgCount::Geq(n) if args.len() < n => { Span::End },
+                ArgCount::Leq(n) if args.len() > n => { Span::NthArg(n + 1) },
+                ArgCount::Exact(n) if args.len() != n => { Span::NthArg(n + 1) },
+                ArgCount::None if args.len() > 0 => { Span::FirstArg },
+                _ => { break; },
+            };
+
+            return Err(Error {
+                span,
+                kind: ErrorKind::WrongArgCount {
+                    expected: self.arg_count,
+                    got: args.len(),
                 },
-                ArgCount::Leq(n) if args.len() > *n => {
-                    return Err(Error::CliError(format!("expected at most {n} arguments, got {} arguments", args.len())));
-                },
-                ArgCount::Exact(n) if args.len() != *n => {
-                    return Err(Error::CliError(format!("expected {n} arguments, got {} arguments", args.len())));
-                },
-                _ => {},
+            });
+        }
+
+        for (flag, (default, _)) in self.arg_flags.iter() {
+            if arg_flags.contains_key(flag) {
+                continue;
+            }
+
+            else if let Some(default) = default {
+                arg_flags.insert(flag.to_string(), default.to_string());
+            }
+
+            else {
+                return Err(Error {
+                    span: Span::End,
+                    kind: ErrorKind::MissingFlag(flag.to_string()),
+                });
             }
         }
 
@@ -177,11 +242,13 @@ impl ArgParser {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub enum ArgCount {
     Geq(usize),
     Leq(usize),
     Exact(usize),
     Any,
+    None,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -194,11 +261,14 @@ pub enum ArgType {
 }
 
 impl ArgType {
-    pub fn parse(&self, arg: &str) -> Result<String, Error> {
+    pub fn parse(&self, arg: &str, span: Span) -> Result<String, Error> {
         match self {
             ArgType::Integer => match arg.parse::<i64>() {
                 Ok(_) => Ok(arg.to_string()),
-                Err(e) => Err(Error::ParseIntError(e)),
+                Err(e) => Err(Error {
+                    span,
+                    kind: ErrorKind::ParseIntError(e),
+                }),
             },
             ArgType::String
             | ArgType::Path
@@ -232,8 +302,13 @@ impl ParsedArgs {
         }
 
         else {
-            // TODO: nicer error message
-            Err(Error::CliError(format!("expected {} arguments, got {} arguments", count, self.args.len())))
+            Err(Error {
+                span: Span::FirstArg,
+                kind: ErrorKind::WrongArgCount {
+                    expected: ArgCount::Exact(count),
+                    got: self.args.len(),
+                },
+            })
         }
     }
 
@@ -246,4 +321,14 @@ impl ParsedArgs {
     pub fn show_help(&self) -> bool {
         self.show_help
     }
+}
+
+pub fn underline_span(prefix: &str, args: &str, start: usize, end: usize) -> String {
+    format!(
+        "{prefix}{args}\n{}{}{}{}",
+        " ".repeat(prefix.len()),
+        " ".repeat(start),
+        "^".repeat(end - start),
+        " ".repeat(args.len() - end),
+    )
 }
