@@ -25,7 +25,7 @@ impl Index {
             Ok(())
         }
 
-        else if self.processed_files.contains_key(&rel_path) || self.curr_processing_file == Some(rel_path.clone()) {
+        else if self.processed_files.contains_key(&rel_path) {
             if !dry_run {
                 self.ii_status = IIStatus::Outdated;
 
@@ -76,12 +76,6 @@ impl Index {
         for processed_file in self.processed_files.keys() {
             if !exists(&Index::get_data_path(&self.root_dir, processed_file)?) {
                 files_to_remove.push(processed_file.to_string());
-            }
-        }
-
-        if let Some(file) = &self.curr_processing_file {
-            if !exists(&Index::get_data_path(&self.root_dir, file)?) {
-                files_to_remove.push(file.to_string());
             }
         }
 

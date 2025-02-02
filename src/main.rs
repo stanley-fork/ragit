@@ -131,7 +131,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            index.build().await?;
+            index.build(8).await?;
         },
         Some("cat-file") => {
             let parsed_args = ArgParser::new().args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
@@ -544,9 +544,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     if !json_mode {
                         println!(
                             "{} total files, {} staged files, {} processed files",
-                            index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.staged_files.len() + index.processed_files.len(),
                             index.staged_files.len(),
-                            index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.processed_files.len(),
                         );
                     }
 
@@ -554,9 +554,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         println!(
                             "{}\"total files\": {}, \"staged files\": {}, \"processed files\": {}{}",
                             "{",
-                            index.staged_files.len() + index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.staged_files.len() + index.processed_files.len(),
                             index.staged_files.len(),
-                            index.processed_files.len() + if index.curr_processing_file.is_some() { 1 } else { 0 },
+                            index.processed_files.len(),
                             "}",
                         );
                     }

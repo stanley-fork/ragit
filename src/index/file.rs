@@ -39,7 +39,7 @@ pub trait FileReaderImpl {
 
 pub struct FileReader {  // of a single file
     rel_path: Path,
-    inner: Box<dyn FileReaderImpl>,
+    inner: Box<dyn FileReaderImpl + Send>,
     buffer: VecDeque<AtomicToken>,
     curr_buffer_size: usize,
     pub images: HashMap<Uid, Vec<u8>>,
@@ -50,7 +50,7 @@ impl FileReader {
     pub fn new(rel_path: Path, real_path: Path, config: BuildConfig) -> Result<Self, Error> {
         // TODO: use a config file, instead of hard-coding the extensions
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
-            "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl>,
+            "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl + Send>,
             "png" | "jpg" | "jpeg" | "gif" | "webp" => Box::new(ImageReader::new(&real_path, &config)?),
             "jsonl" => Box::new(LineReader::new(&real_path, &config)?),
             "csv" => Box::new(CsvReader::new(&real_path, &config)?),

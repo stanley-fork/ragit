@@ -12,8 +12,6 @@ If the file you're trying to `add` is already processed, its behavior depends on
 
 Once a file is processed, `rag query` can use the chunks from the file. `rag query` doesn't care whether the original file exists or not. Chunks have all the information that `rag query` needs, and it doesn't try to look for the original file. That means you can delete the original files after `rag build` is complete.
 
-There's another special stage. You can see the term `curr_processing_file` in the source code. Once `rag build` pops a file from the staging area, the file is marked as "curr_processing_file". "curr_processing_file" doesn't belong to "processed_files" and "staged files" until it's fully processed. It matters when you interrupt `rag build`. When you interrupt it, all the chunks of the "curr_processing_file" are discarded, and the "curr_processing_file" goes back to the staging area. Chunks of the "processed_files" will be kept safely.
-
 ## Data format
 
 Chunks are saved in a content-addressable way. It's like git's object files. You can find the chunk files in `.ragit/chunks/`, a file per chunk. The first 2 characters of a chunk's uid is the directory name of the chunk file, and the remaining characters in uid consist its file name. For example, if its uid is `abcdef0123`, you'll find the chunk file at `.ragit/chunks/ab/cdef0123.chunk`.

@@ -74,6 +74,14 @@ pub struct Index {
     pub chunk_count: usize,
     pub staged_files: Vec<Path>,
     pub processed_files: HashMap<Path, Uid>,
+
+    // Previously, all the builds were in serial and this field tells
+    // which file the index is building. When something goes wrong, ragit
+    // reads this field and clean up garbages. Now, all the builds are in
+    // parallel and there's no such thing like `curr_processing_file`. But
+    // we still need to tell whether something went wrong while building
+    // and this field does that. If it's `Some(_)`, something's wrong and
+    // clean-up has to be done.
     pub curr_processing_file: Option<Path>,
     repo_url: Option<String>,
 

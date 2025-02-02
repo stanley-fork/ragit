@@ -190,14 +190,8 @@ impl Index {
         }
 
         // Recover E
-        if let Some(curr_processing_file) = &self.curr_processing_file {
-            // a file can be processed and staged at the same time, so let's be careful not to
-            // stage the same file twice
-            if !self.staged_files.contains(curr_processing_file) {
-                self.staged_files.push(curr_processing_file.clone());
-                result.staged_files.push(curr_processing_file.clone());
-                self.curr_processing_file = None;
-            }
+        if self.curr_processing_file.is_some() {
+            self.curr_processing_file = None;
         }
 
         self.chunk_count = chunk_count;

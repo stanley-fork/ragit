@@ -43,6 +43,7 @@ pub enum Error {
         message: String,
     },
     MergeConflict(Uid),
+    MPSCError(String),
 
     /// If a user sees this error, that's a bug in ragit.
     Internal(String),
