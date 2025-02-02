@@ -330,7 +330,7 @@ pub async fn rephrase_multi_turn(
     pdl: &str,
 ) -> Result<MultiTurnSchema, Error> {
     let turns_json = Value::Array(turns.iter().map(|turn| Value::String(escape_pdl_tokens(turn))).collect());
-    let turns_json = String::from_utf8_lossy(&serde_json::to_vec_pretty(&turns_json)?).to_string();
+    let turns_json = serde_json::to_string_pretty(&turns_json)?;
     let mut tera_context = tera::Context::new();
     tera_context.insert("turns", &turns_json);
 

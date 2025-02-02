@@ -508,18 +508,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if uid_only {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                        serde_json::to_string_pretty(
                             &chunks.iter().map(
                                 |chunk| chunk.uid.to_string()
                             ).collect::<Vec<_>>(),
-                        )?).to_string(),
+                        )?,
                     );
                 }
 
                 else {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(&chunks)?).to_string(),
+                        serde_json::to_string_pretty(&chunks)?,
                     );
                 }
             }
@@ -630,29 +630,29 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if name_only {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                        serde_json::to_string_pretty(
                             &files.iter().map(
                                 |file| file.path.to_string()
                             ).collect::<Vec<_>>(),
-                        )?).to_string(),
+                        )?,
                     );
                 }
 
                 else if uid_only {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                        serde_json::to_string_pretty(
                             &files.iter().map(
                                 |file| file.uid.to_string()
                             ).collect::<Vec<_>>(),
-                        )?).to_string(),
+                        )?,
                     );
                 }
 
                 else {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(&files)?).to_string(),
+                        serde_json::to_string_pretty(&files)?,
                     );
                 }
             }
@@ -1169,18 +1169,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if uid_only {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                        serde_json::to_string_pretty(
                             &chunks.iter().map(
                                 |chunk| chunk.uid.to_string()
                             ).collect::<Vec<_>>(),
-                        )?).to_string(),
+                        )?,
                     );
                 }
 
                 else {
                     println!(
                         "{}",
-                        String::from_utf8_lossy(&serde_json::to_vec_pretty(
+                        serde_json::to_string_pretty(
                             &tfidf_results.iter().zip(chunks.iter()).map(
                                 |(tfidf, chunk)| [
                                     (String::from("score"), Value::from(tfidf.score)),
@@ -1190,7 +1190,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                                     (String::from("summary"), chunk.summary.to_string().into()),
                                 ].into_iter().collect::<Map<String, Value>>(),
                             ).collect::<Vec<_>>(),
-                        )?),
+                        )?,
                     );
                 }
             }
