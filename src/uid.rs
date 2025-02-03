@@ -38,8 +38,8 @@ use std::str::FromStr;
 /// the remaining bits are for metadata.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 pub struct Uid {
-    high: u128,
-    low: u128,
+    pub(crate) high: u128,
+    pub(crate) low: u128,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -221,6 +221,10 @@ impl Uid {
 
     pub(crate) fn get_suffix(&self) -> String {
         format!("{:030x}{:032x}", self.high & 0xff_ffff_ffff_ffff_ffff_ffff_ffff_ffff, self.low)
+    }
+
+    pub fn get_short_name(&self) -> String {
+        format!("{:08x}", self.high >> 96)
     }
 
     pub(crate) fn get_uid_type(&self) -> Result<UidType, Error> {

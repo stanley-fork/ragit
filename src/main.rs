@@ -9,6 +9,7 @@ use ragit::{
     LoadMode,
     ChunkSchema,
     MergeMode,
+    Prettify,
     ProcessedDoc,
     QueryTurn,
     UidQueryConfig,
@@ -519,7 +520,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 else {
                     println!(
                         "{}",
-                        serde_json::to_string_pretty(&chunks)?,
+                        serde_json::to_string_pretty(&chunks.prettify()?)?,
                     );
                 }
             }
@@ -652,7 +653,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 else {
                     println!(
                         "{}",
-                        serde_json::to_string_pretty(&files)?,
+                        serde_json::to_string_pretty(&files.prettify()?)?,
                     );
                 }
             }
@@ -1031,7 +1032,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     ).await?;
 
                     if json_mode {
-                        println!("{}", serde_json::to_string_pretty(&response)?);
+                        println!("{}", serde_json::to_string_pretty(&response.prettify()?)?);
                     }
 
                     else {
@@ -1041,7 +1042,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                             println!("\n---- sources ----");
 
                             for chunk in response.retrieved_chunks.iter() {
-                                println!("{}", chunk.render_source());
+                                println!("{} ({})", chunk.render_source(), chunk.uid.get_short_name());
                             }
                         }
                     }

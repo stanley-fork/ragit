@@ -1,3 +1,4 @@
+use super::{Prettify, prettify_uid};
 use crate::error::Error;
 use crate::index::{Index, IMAGE_DIR_NAME};
 use crate::uid::Uid;
@@ -56,5 +57,22 @@ impl Index {
                 got: (&description).into(),
             }),
         }
+    }
+}
+
+impl Prettify for ImageSchema {
+    fn prettify(&self) -> Result<Value, Error> {
+        let mut result = serde_json::to_value(self)?;
+
+        if let Value::Object(obj) = &mut result {
+            match obj.get_mut("uid") {
+                Some(uid) => { *uid = prettify_uid(uid); },
+                None => {},
+            }
+
+            obj.remove("bytes");
+        }
+
+        Ok(result)
     }
 }

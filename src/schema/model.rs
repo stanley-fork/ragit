@@ -1,4 +1,7 @@
+use super::Prettify;
+use crate::error::Error;
 use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ModelSchema {
@@ -9,4 +12,10 @@ pub struct ModelSchema {
     pub dollars_per_1b_input_tokens: u64,
     pub dollars_per_1b_output_tokens: u64,
     pub explanation: String,
+}
+
+impl Prettify for ModelSchema {
+    fn prettify(&self) -> Result<Value, Error> {
+        Ok(serde_json::to_value(self)?)
+    }
 }

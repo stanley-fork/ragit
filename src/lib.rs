@@ -50,6 +50,7 @@ pub use schema::{
     FileSchema,
     ImageSchema,
     ModelSchema,
+    Prettify,
     QueryResponseSchema,
 };
 pub use uid::{Uid, UidQueryConfig, UidQueryResult};
