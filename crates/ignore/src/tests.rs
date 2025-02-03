@@ -1,4 +1,4 @@
-use super::IgnorePattern;
+use super::Pattern;
 
 // TODO: find a correct gitignore-parser and make sure that these samples are correct
 #[test]
@@ -11,16 +11,10 @@ fn ignore_test() {
                 "abc",
                 "abc/",
                 "a/abc",
+                "abc/a",
             ],
             vec![
-                "abc/a",
                 "ab",
-
-                // TODO
-                //   1. I'm not sure whether gitignore allows this or not.
-                //   2. `get_relative_path` will never generate a path that starts with "/".
-                //   3. Then, what should we do with this case?
-                "/abc",
             ],
         ), (
             "ab*",
@@ -52,6 +46,42 @@ fn ignore_test() {
                 "b/b",
             ],
         ), (
+            "/a/**/b/*",
+            vec![
+                "a/b/b",
+                "a/b/c",
+                "a/b/b/c",
+                "a/a/b/b",
+                "a/c/b/b",
+                "a/c/b/c",
+            ],
+            vec![
+                "b/a/b/b",
+                "b/a/b/c",
+                "b/a/b/b/c",
+                "b/a/a/b/b",
+                "b/a/c/b/b",
+                "b/a/c/b/c",
+            ],
+        ), (
+            "/a/**/b",
+            vec![
+                "a/b/b",
+                "a/b/c",
+                "a/a/b/b",
+                "a/b/b/c",
+                "a/c/b/b",
+                "a/c/b/c",
+            ],
+            vec![
+                "b/a/b/b",
+                "b/a/b/c",
+                "b/a/a/b/b",
+                "b/a/b/b/c",
+                "b/a/c/b/b",
+                "b/a/c/b/c",
+            ],
+        ), (
             "*.json",
             vec![
                 "a.json",
@@ -66,12 +96,20 @@ fn ignore_test() {
             vec![
                 "a/b.json",
             ],
+        ), (
+            "target",
+            vec![
+                "crates/ignore/target/debug/.fingerprint/memchr-fd54e375c9f10ea8/lib-memchr",
+                "target/release/deps/liblazy_static-aa63c0c40d1aac19.rlib",
+                "crates/api/target/debug/.fingerprint/adler2-927ca49ee061ac05/invoked.timestamp",
+            ],
+            vec![],
         ),
     ];
     let mut failures = vec![];
 
     for (pattern_str, matched, not_matched) in sample {
-        let pattern = IgnorePattern::parse(pattern_str);
+        let pattern = Pattern::parse(pattern_str);
 
         for path in matched {
             if !pattern.is_match(path) {

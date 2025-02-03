@@ -130,12 +130,7 @@ impl Index {
         let mut ignored_file: Option<String> = None;  // for an error message
 
         for file in unfolded_files.iter() {
-            if is_implicitly_ignored_file(file) {
-                result.ignored += 1;
-                ignored_file = Some(file.to_string());
-            }
-
-            else if self.staged_files.contains(file) {
+            if self.staged_files.contains(file) {
                 result.ignored += 1;
                 ignored_file = Some(file.to_string());
             }
@@ -193,29 +188,36 @@ impl Index {
     }
 
     pub fn read_ignore_file(&self) -> Result<Ignore, Error> {
-        let ignore_file_at = join(
-            &self.root_dir,
-            ".ragignore",
-        )?;
+        let mut ignore_file_at = String::new();
 
-        if !exists(&ignore_file_at) {
-            Ok(Ignore::new())
+        for ignore_file in [
+            ".ragignore",
+            ".gitignore",
+            ".ignore",
+        ] {
+            ignore_file_at = join(
+                &self.root_dir,
+                ignore_file,
+            )?;
+
+            if exists(&ignore_file_at) {
+                break;
+            }
+        }
+
+        let mut result = if !exists(&ignore_file_at) {
+            Ignore::new()
         }
 
         else {
-            Ok(Ignore::parse(&read_string(&ignore_file_at)?))
-        }
-    }
-}
+            Ignore::parse(&read_string(&ignore_file_at)?)
+        };
 
-// It should now allow users to add files in `.ragit/`, or any other file
-// that's directly related to ragit
-fn is_implicitly_ignored_file(rel_path: &str) -> bool {
-    let splitted = rel_path.split("/").map(|s| s.to_string()).collect::<Vec<_>>();
+        result.add_line(".git");
+        result.add_line(INDEX_DIR_NAME);
+        result.add_line(".ragignore");
+        // result.add_line(".gitignore");  -> it's tracked by git!
 
-    match splitted.first().map(|s| s.as_str()) {
-        Some(ragit) if ragit == INDEX_DIR_NAME => true,
-        Some(".ragignore") if splitted.len() == 1 => true,
-        _ => false,
+        Ok(result)
     }
 }

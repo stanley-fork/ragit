@@ -1,17 +1,25 @@
 use ragit_fs::{FileError, get_relative_path, is_dir, read_dir};
 use regex::Regex;
+use std::str::FromStr;
 
 #[cfg(test)]
 mod tests;
 
+#[derive(Debug)]
 pub struct Ignore {
-    patterns: Vec<IgnorePattern>,
+    patterns: Vec<Pattern>,
 }
 
 impl Ignore {
     pub fn new() -> Self {
         Ignore {
             patterns: vec![],
+        }
+    }
+
+    pub fn add_line(&mut self, line: &str) {
+        if !line.is_empty() && !line.starts_with("#") {
+            self.patterns.push(Pattern::parse(line));
         }
     }
 
@@ -26,7 +34,7 @@ impl Ignore {
                 continue;
             }
 
-            patterns.push(IgnorePattern::parse(t));
+            patterns.push(Pattern::parse(t));
         }
 
         Ignore { patterns }
@@ -72,48 +80,38 @@ impl Ignore {
 }
 
 #[derive(Clone, Debug)]
-pub struct IgnorePattern {
-    // TODO: I need a smarter implementation
-    r: Regex,
-}
+pub struct Pattern(Vec<PatternUnit>);
 
-impl IgnorePattern {
-    // TODO: I need a smarter implementation
+impl Pattern {
     pub fn parse(pattern: &str) -> Self {
         let mut pattern = pattern.to_string();
 
+        // `a/b` -> `**/a/b`
+        // `/a/b` -> `a/b`
         if !pattern.starts_with("/") {
             pattern = format!("**/{pattern}");
         }
 
-        let replaces = vec![
-            (r"^\*\*$", r".+"),
-            (r"^\*\*/", r"([^/]+/)_ast"),
-            (r"/\*\*$", r"(/[^/]+)_ast"),
-            (r"/\*\*/", r"/([^/]+/)_ast"),
-
-            (r"^\*$", r"[^/]+"),
-            (r"/\*$", r"/[^/]+"),
-        ];
-
-        let mut pattern = pattern.replace("_", "_und");
-        pattern = pattern.replace("+", "_pls");
-        pattern = pattern.replace(".", "_dot");
-        pattern = pattern.replace("[", "_opn");
-        pattern = pattern.replace("]", "_cls");
-
-        for (bef, aft) in replaces.iter() {
-            let bef = Regex::new(bef).unwrap();
-            pattern = bef.replace_all(&pattern, *aft).to_string();
+        else {
+            pattern = pattern.get(1..).unwrap().to_string();
         }
 
-        pattern = pattern.replace("_ast", "*");
-        pattern = pattern.replace("_cls", "]");
-        pattern = pattern.replace("_opn", "[");
-        pattern = pattern.replace("_dot", "\\.");
-        pattern = pattern.replace("_pls", "\\+");
-        pattern = pattern.replace("_und", "_");
-        IgnorePattern { r: Regex::new(&format!("^{pattern}$")).unwrap() }
+        // I'm not sure about this...
+        if pattern.ends_with("/") {
+            pattern = pattern.get(0..(pattern.len() - 1)).unwrap().to_string();
+        }
+
+        let mut result = pattern.split("/").map(|p| p.parse::<PatternUnit>().unwrap_or_else(|_| PatternUnit::Fixed(p.to_string()))).collect::<Vec<_>>();
+
+        match result.last() {
+            Some(PatternUnit::DoubleAster) => {},
+            _ => {
+                // `target` must match `crates/ignore/target/debug`
+                result.push(PatternUnit::DoubleAster);
+            },
+        }
+
+        Pattern(result)
     }
 
     // `path` must be a normalized, relative path
@@ -125,6 +123,92 @@ impl IgnorePattern {
             path = path.get(0..(path.len() - 1)).unwrap().to_string();
         }
 
-        self.r.is_match(&path)
+        match_worker(
+            self.0.clone(),
+            path.split("/").map(|p| p.to_string()).collect::<Vec<_>>(),
+        )
+    }
+}
+
+fn match_worker(pattern: Vec<PatternUnit>, path: Vec<String>) -> bool {
+    // (0, 0) means it's looking at pattern[0] and path[0].
+    // if it reaches (pattern.len(), path.len()), it matches
+    let mut cursors = vec![(0, 0)];
+
+    while let Some((pattern_cursor, path_cursor)) = cursors.pop() {
+        if pattern_cursor == pattern.len() && path_cursor == path.len() {
+            return true;
+        }
+
+        if pattern_cursor >= pattern.len() || path_cursor >= path.len() {
+            if let Some(PatternUnit::DoubleAster) = pattern.get(pattern_cursor) {
+                if !cursors.contains(&(pattern_cursor + 1, path_cursor)) {
+                    cursors.push((pattern_cursor + 1, path_cursor));
+                }
+            }
+
+            continue;
+        }
+
+        if match_dir(&pattern[pattern_cursor], &path[path_cursor]) {
+            if let PatternUnit::DoubleAster = &pattern[pattern_cursor] {
+                if !cursors.contains(&(pattern_cursor, path_cursor + 1)) {
+                    cursors.push((pattern_cursor, path_cursor + 1));
+                }
+
+                if !cursors.contains(&(pattern_cursor + 1, path_cursor)) {
+                    cursors.push((pattern_cursor + 1, path_cursor));
+                }
+            }
+
+            if !cursors.contains(&(pattern_cursor + 1, path_cursor + 1)) {
+                cursors.push((pattern_cursor + 1, path_cursor + 1));
+            }
+        }
+    }
+
+    false
+}
+
+fn match_dir(pattern: &PatternUnit, path: &str) -> bool {
+    match pattern {
+        PatternUnit::DoubleAster => true,
+        PatternUnit::Regex(r) => r.is_match(path),
+        PatternUnit::Fixed(p) => path == p,
+    }
+}
+
+#[derive(Clone, Debug)]
+pub enum PatternUnit {
+    DoubleAster,    // **
+    Regex(Regex),   // a*
+    Fixed(String),  // a
+}
+
+impl FromStr for PatternUnit {
+    type Err = regex::Error;
+
+    fn from_str(s: &str) -> Result<Self, regex::Error> {
+        if s == "**" {
+            Ok(PatternUnit::DoubleAster)
+        }
+
+        else if s.contains("*") || s.contains("?") || s.contains("[") {
+            let s = s
+                .replace(".", "\\.")
+                .replace("+", "\\+")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("{", "\\{")
+                .replace("}", "\\}")
+                .replace("*", ".*")
+                .replace("?", ".");
+
+            Ok(PatternUnit::Regex(Regex::new(&format!("^{s}$"))?))
+        }
+
+        else {
+            Ok(PatternUnit::Fixed(s.to_string()))
+        }
     }
 }
