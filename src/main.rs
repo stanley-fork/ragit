@@ -470,18 +470,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk())?;
                 let mut chunks = vec![];
 
-                for file_uid in query.get_file_uids() {
-                    let uids = index.get_chunks_of_file(file_uid)?;
-
-                    for uid in uids.iter() {
-                        let chunk = index.get_chunk_by_uid(*uid)?;
-                        chunks.push(chunk);
-                    }
-                }
-
                 for uid in query.get_chunk_uids() {
                     let chunk = index.get_chunk_by_uid(uid)?;
                     chunks.push(chunk);
+                }
+
+                if chunks.is_empty() {
+                    for file_uid in query.get_file_uids() {
+                        let uids = index.get_chunks_of_file(file_uid)?;
+
+                        for uid in uids.iter() {
+                            let chunk = index.get_chunk_by_uid(*uid)?;
+                            chunks.push(chunk);
+                        }
+                    }
                 }
 
                 if chunks.is_empty() {
