@@ -26,11 +26,13 @@ def run():
 
     # I've first tried with the linux kernel, but it's too big. (maybe later!)
     # I've second tried with the rust compiler, but `cargo run` behaves differently in the repository.
-    subprocess.run(["git", "clone", "https://github.com/git/git", "--depth=1"])
+    subprocess.run(["git", "clone", "https://github.com/git/git"])
     os.chdir("git")
     subprocess.run(["git", "checkout", "757161efcca150a9a96b312d9e780a071e601a03"])  # the newest commit at the time of writing
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
+
+    # NOTE: as of 285b54, we don't need this line anymore. but I'll just keep it.
     write_string(".ragignore", ".git")
 
     timeit("add all files", lambda: cargo_run(["add", "--all"]), result)
@@ -72,7 +74,18 @@ log = [
         "ls-files reftable/iter.c": 440,
         "ls-chunks reftable": 436,
         "ls-chunks reftable/iter.c": 425
-    },
+    }, {
+        "add all files": 602,
+        "build without ii": 293189,
+        "tfidf without ii": 2187,
+        "ii-build from scratch": 61521,
+        "tfidf with ii": 911,
+        "build with incremental ii": 452734,
+        "ls-files reftable": 932,
+        "ls-files reftable/iter.c": 533,
+        "ls-chunks reftable": 464,
+        "ls-chunks reftable/iter.c": 504
+    }
 ]
 
 '''
@@ -86,4 +99,8 @@ NOTE: The test sample has 4583 files with 17095 chunks. It's big enough for a so
     - It's likely because `flush_ii_buffer` is called too frequently. It's flushed per file, which means, it's called 4583 times.
     - `ii-build from scratch` flushes only 4 times.
   - The other commands run in sub-second. It's good enough for cli users, but not for library users.
+- test run 2: with multiprocess build
+  - Multiprocess workers are not as good as I've expected.
+  - `build without ii` takes 4.65 times longer than the first run. It's likely because of the overhead of the workers.
+  - `build with incremental ii` must have gotten better, which is what I've expected, but it hasn't. It's 7% faster, but it's not enough.
 '''
