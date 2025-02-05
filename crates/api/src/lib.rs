@@ -1,35 +1,27 @@
-mod api_key;
 mod api_provider;
-mod chat;
 mod error;
-mod image;
 mod json_type;
+mod message;
+mod model;
 pub mod record;
-mod utils;
+mod request;
+mod response;
 
-pub use crate::api_key::load_api_key;
 pub use crate::api_provider::ApiProvider;
-pub use crate::chat::{
-    ModelKind as ChatModel,
-    Request as ChatRequest,
-    Response as ChatResponse,
-};
 pub use crate::error::Error;
-pub use crate::image::{
-    MODELS as IMAGE_MODELS,
-    ModelKind as ImageModel,
-    CreateRequest as ImageCreateRequest,
-    CreateResponse as ImageCreateResponse,
-    GetRequest as ImageGetRequest,
-    GetResponse as ImageGetResponse,
-    HandleResult as HandleImageResult,
-};
 pub use crate::json_type::JsonType;
+pub use crate::model::{Model, ModelRaw, get_model_by_name};
 pub use crate::record::RecordAt;
+pub use crate::request::Request;
+pub use crate::response::Response;
+
+pub fn load_models(json_path: &str) -> Result<Vec<Model>, Error> {
+    todo!()
+}
 
 #[cfg(test)]
 mod tests {
-    use crate::{ChatModel, ChatRequest};
+    use crate::{ModelRaw, Request};
     use ragit_fs::{
         WriteMode,
         create_dir_all,
@@ -80,10 +72,10 @@ What do you see in this picture?
         ).unwrap();
 
         for messages in [messages1, messages2] {
-            let request = ChatRequest {
-                model: ChatModel::Gpt4OMini,
+            let request = Request {
+                model: ModelRaw::llama70b().try_into().unwrap(),
                 messages,
-                ..ChatRequest::default()
+                ..Request::default()
             };
             let response = request.send().await.unwrap().get_message(0).unwrap().to_ascii_lowercase();
 

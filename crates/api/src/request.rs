@@ -1,28 +1,26 @@
-use super::{ModelKind, Response, message_to_json};
 use async_std::task;
 use chrono::Local;
 use crate::{ApiProvider, Error};
+use crate::message::message_to_json;
+use crate::model::{Model, ModelRaw};
 use crate::record::{
     RecordAt,
     dump_pdl,
     record_api_usage,
 };
-use json::JsonValue;
+use crate::response::Response;
 use ragit_fs::{WriteMode, join, write_log, write_string};
 use ragit_pdl::{Message, Role, Schema};
 use serde::de::DeserializeOwned;
+use serde_json::{Map, Value};
 use std::time::{Duration, Instant};
 
 #[derive(Clone, Debug)]
 pub struct Request {
     pub messages: Vec<Message>,
-    pub model: ModelKind,
-
-    // if it's missing, it tries to search ENV vars
-    pub api_key: Option<String>,
+    pub model: Model,
     pub temperature: Option<f64>,
     pub frequency_penalty: Option<f64>,
-
     pub max_tokens: Option<usize>,
 
     /// milliseconds
@@ -76,72 +74,71 @@ impl Request {
     }
 
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
-    pub fn build_json_body(&self) -> JsonValue {
-        match self.model.get_api_provider() {
-            ApiProvider::Groq | ApiProvider::OpenAi | ApiProvider::Cohere | ApiProvider::Ollama | ApiProvider::DeepSeek => {
-                let mut result = JsonValue::new_object();
-                result.insert("model", self.model.to_api_friendly_name()).unwrap();
-                let mut messages = JsonValue::new_array();
+    pub fn build_json_body(&self) -> Value {
+        match &self.model.api_provider {
+            ApiProvider::OpenAi { .. } | ApiProvider::Cohere => {
+                let mut result = Map::new();
+                result.insert(String::from("model"), self.model.api_name.clone().into());
+                let mut messages = vec![];
 
                 for message in self.messages.iter() {
-                    messages.push(message_to_json(message, self.model.get_api_provider())).unwrap();
+                    messages.push(message_to_json(message, &self.model.api_provider));
                 }
 
-                result.insert("messages", messages).unwrap();
+                result.insert(String::from("messages"), messages.into());
 
                 if let Some(temperature) = self.temperature {
-                    result.insert("temperature", temperature).unwrap();
+                    result.insert(String::from("temperature"), temperature.into());
                 }
 
                 if let Some(frequency_penalty) = self.frequency_penalty {
-                    result.insert("frequency_penalty", frequency_penalty).unwrap();
+                    result.insert(String::from("frequency_penalty"), frequency_penalty.into());
                 }
 
                 if let Some(max_tokens) = self.max_tokens {
-                    result.insert("max_tokens", max_tokens).unwrap();
+                    result.insert(String::from("max_tokens"), max_tokens.into());
                 }
 
-                result
+                result.into()
             },
             ApiProvider::Anthropic => {
-                let mut result = JsonValue::new_object();
-                result.insert("model", self.model.to_api_friendly_name()).unwrap();
-                let mut messages = JsonValue::new_array();
+                let mut result = Map::new();
+                result.insert(String::from("model"), self.model.api_name.clone().into());
+                let mut messages = vec![];
                 let mut system_prompt = vec![];
 
                 for message in self.messages.iter() {
                     if message.role == Role::System {
-                        system_prompt.push(message.content[0].unwrap_str());
+                        system_prompt.push(message.content[0].unwrap_str().to_string());
                     }
 
                     else {
-                        messages.push(message_to_json(message, ApiProvider::Anthropic)).unwrap();
+                        messages.push(message_to_json(message, &ApiProvider::Anthropic));
                     }
                 }
 
                 let system_prompt = system_prompt.concat();
 
                 if !system_prompt.is_empty() {
-                    result.insert("system", system_prompt).unwrap();
+                    result.insert(String::from("system"), system_prompt.into());
                 }
 
-                result.insert("messages", messages).unwrap();
+                result.insert(String::from("messages"), messages.into());
 
                 if let Some(temperature) = self.temperature {
-                    result.insert("temperature", temperature).unwrap();
+                    result.insert(String::from("temperature"), temperature.into()).unwrap();
                 }
 
                 if let Some(frequency_penalty) = self.frequency_penalty {
-                    result.insert("frequency_penalty", frequency_penalty).unwrap();
+                    result.insert(String::from("frequency_penalty"), frequency_penalty.into());
                 }
 
                 // it's a required field
-                result.insert("max_tokens", self.max_tokens.unwrap_or(2048)).unwrap();
+                result.insert(String::from("max_tokens"), self.max_tokens.unwrap_or(2048).into());
 
-                result
+                result.into()
             },
-            ApiProvider::Replicate => unreachable!(),  // for now, there's no chat model for replicate
-            ApiProvider::Dummy => JsonValue::Null,
+            ApiProvider::Test(_) => Value::Null,
         }
     }
 
@@ -179,8 +176,8 @@ impl Request {
 
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub async fn send(&self) -> Result<Response, Error> {
-        if self.model.get_api_provider() == ApiProvider::Dummy {
-            let response = self.model.get_dummy_response(&self.messages);
+        if let ApiProvider::Test(test_model) = &self.model.api_provider {
+            let response = test_model.get_dummy_response(&self.messages);
 
             if let Some(path) = &self.dump_pdl_at {
                 if let Err(e) = dump_pdl(
@@ -207,7 +204,7 @@ impl Request {
         let client = reqwest::Client::new();
         let mut curr_error = Error::NoTry;
 
-        let post_url = self.model.get_api_provider().get_chat_api_url().unwrap();
+        let post_url = self.model.get_api_url();
         let body = self.build_json_body();
 
         if let Err(e) = self.dump_json(&body, "request") {
@@ -217,11 +214,11 @@ impl Request {
             );
         }
 
-        let body = body.dump();
-        let api_key = self.get_api_key();
+        let body = serde_json::to_string(&body)?;
+        let api_key = self.model.get_api_key()?;
         write_log(
             "chat_request::send",
-            &format!("entered chat_request::send() with {} bytes, model: {}", body.len(), self.model.to_human_friendly_name()),
+            &format!("entered chat_request::send() with {} bytes, model: {}", body.len(), self.model.name),
         );
 
         for _ in 0..(self.max_retry + 1) {
@@ -229,7 +226,7 @@ impl Request {
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(body.clone());
 
-            if let ApiProvider::Anthropic = self.model.get_api_provider() {
+            if let ApiProvider::Anthropic = &self.model.api_provider {
                 request = request.header("x-api-key", api_key.clone())
                     .header("anthropic-version", "2023-06-01");
             }
@@ -256,7 +253,7 @@ impl Request {
                 Ok(response) => match response.status().as_u16() {
                     200 => match response.text().await {
                         Ok(text) => {
-                            match json::parse(&text) {
+                            match serde_json::from_str::<Value>(&text) {
                                 Ok(v) => match self.dump_json(&v, "response") {
                                     Err(e) => {
                                         write_log(
@@ -274,15 +271,15 @@ impl Request {
                                 },
                             }
 
-                            match Response::from_str(&text, self.model.get_api_provider()) {
+                            match Response::from_str(&text, &self.model.api_provider) {
                                 Ok(result) => {
                                     if let Some(key) = &self.record_api_usage_at {
                                         if let Err(e) = record_api_usage(
                                             key,
                                             result.get_prompt_token_count() as u64,
                                             result.get_output_token_count() as u64,
-                                            self.model.dollars_per_1b_input_tokens(),
-                                            self.model.dollars_per_1b_output_tokens(),
+                                            self.model.dollars_per_1b_input_tokens,
+                                            self.model.dollars_per_1b_output_tokens,
                                             false,
                                         ) {
                                             write_log(
@@ -300,7 +297,7 @@ impl Request {
                                             path,
                                             format!(
                                                 "model: {}, input_tokens: {}, output_tokens: {}, took: {}ms",
-                                                self.model.to_human_friendly_name(),
+                                                self.model.name,
                                                 result.get_prompt_token_count(),
                                                 result.get_output_token_count(),
                                                 Instant::now().duration_since(started_at.clone()).as_millis(),
@@ -360,17 +357,13 @@ impl Request {
         Err(curr_error)
     }
 
-    fn get_api_key(&self) -> String {
-        self.api_key.clone().unwrap_or_else(|| self.model.get_api_provider().get_api_key_from_env())
-    }
-
-    fn dump_json(&self, j: &JsonValue, header: &str) -> Result<(), Error> {
+    fn dump_json(&self, j: &Value, header: &str) -> Result<(), Error> {
         if let Some(dir) = &self.dump_json_at {
             let path = join(
                 &dir,
                 &format!("{header}-{}.json", Local::now().to_rfc3339()),
             )?;
-            write_string(&path, &j.pretty(4), WriteMode::AlwaysCreate)?;
+            write_string(&path, &serde_json::to_string_pretty(j)?, WriteMode::AlwaysCreate)?;
         }
 
         Ok(())
@@ -381,9 +374,7 @@ impl Default for Request {
     fn default() -> Self {
         Request {
             messages: vec![],
-            model: ModelKind::Llama70BGroq,
-            api_key: None,
-
+            model: (&ModelRaw::llama70b()).try_into().unwrap(),
             temperature: None,
             frequency_penalty: None,
             max_tokens: None,

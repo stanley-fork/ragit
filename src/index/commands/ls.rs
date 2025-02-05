@@ -3,6 +3,7 @@ use crate::chunk;
 use crate::error::Error;
 use crate::schema::{ChunkSchema, FileSchema, ImageSchema, ModelSchema};
 use crate::uid::Uid;
+use ragit_api::load_models;
 use ragit_fs::{file_name, parent};
 
 impl Index {
@@ -74,35 +75,27 @@ impl Index {
 
     /// `rag ls-models`
     pub fn list_models<Filter, Map, Sort, Key: Ord>(
+        // `.ragit/models.json`
+        models_at: &str,
+
         // `filter` is applied before `map`
         filter: &Filter,
         map: &Map,
         sort_key: &Sort,
-    ) -> Vec<ModelSchema> where Filter: Fn(&ModelSchema) -> bool, Map: Fn(ModelSchema) -> ModelSchema, Sort: Fn(&ModelSchema) -> Key {
+    ) -> Result<Vec<ModelSchema>, Error> where Filter: Fn(&ModelSchema) -> bool, Map: Fn(ModelSchema) -> ModelSchema, Sort: Fn(&ModelSchema) -> Key {
         let mut result = vec![];
 
-        for model in ragit_api::ChatModel::all_kinds() {
-            let api_provider = model.get_api_provider();
-            let ls_model = ModelSchema {
-                name: model.to_human_friendly_name().to_string(),
-                api_provider: api_provider.as_str().to_string(),
-                api_key_env_var: api_provider.api_key_env_var().map(|v| v.to_string()),
-                can_read_images: model.can_read_images(),
-                dollars_per_1b_input_tokens: model.dollars_per_1b_input_tokens(),
-                dollars_per_1b_output_tokens: model.dollars_per_1b_output_tokens(),
-                explanation: model.explanation().to_string(),
-            };
-
-            if !filter(&ls_model) {
+        for model in load_models(models_at)? {
+            if !filter(&model) {
                 continue;
             }
 
-            let ls_model = map(ls_model);
-            result.push(ls_model);
+            let model = map(model);
+            result.push(model);
         }
 
         result.sort_by_key(sort_key);
-        result
+        Ok(result)
     }
 
     /// `rag ls-images`

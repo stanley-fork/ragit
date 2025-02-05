@@ -1,21 +1,47 @@
 use super::Prettify;
 use crate::error::Error;
-use serde::Serialize;
+use ragit_api::{Model, ModelRaw};
 use serde_json::Value;
 
-#[derive(Clone, Debug, Serialize)]
-pub struct ModelSchema {
-    pub name: String,
-    pub api_provider: String,
-    pub api_key_env_var: Option<String>,
-    pub can_read_images: bool,
-    pub dollars_per_1b_input_tokens: u64,
-    pub dollars_per_1b_output_tokens: u64,
-    pub explanation: String,
-}
+pub type ModelSchema = Model;
 
 impl Prettify for ModelSchema {
     fn prettify(&self) -> Result<Value, Error> {
-        Ok(serde_json::to_value(self)?)
+        let result = ModelRaw::from(self);
+        let mut result = serde_json::to_value(result)?;
+
+        if let Value::Object(obj) = &mut result {
+            match obj.get_mut("api_key") {
+                Some(Value::String(key)) => {
+                    let chars_count = key.chars().count();
+
+                    if chars_count > 8 {
+                        *key = format!(
+                            "{}{}",
+                            key.chars().take(4).collect::<String>(),
+                            "*".repeat(chars_count - 4),
+                        );
+                    }
+
+                    else {
+                        *key = String::from("*".repeat(chars_count));
+                    }
+                },
+                _ => {},
+            }
+
+            for key in [
+                "api_timeout",
+                "explanation",
+                "api_key",
+                "api_env_var",
+            ] {
+                if let Some(Value::Null) = obj.get(key) {
+                    obj.remove(key);
+                }
+            }
+        }
+
+        Ok(result)
     }
 }

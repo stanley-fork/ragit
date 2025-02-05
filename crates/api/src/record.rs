@@ -2,13 +2,13 @@ use chrono::DateTime;
 use chrono::offset::Local;
 use crate::Error;
 use crate::json_type::JsonType;
-use json::JsonValue;
 use ragit_fs::{
     WriteMode,
     read_string,
     write_string,
 };
 use ragit_pdl::Message;
+use serde_json::{Map, Value};
 use std::collections::HashMap;
 
 #[derive(Clone, Debug)]
@@ -18,7 +18,7 @@ pub struct RecordAt {
 }
 
 // using the same type for integers makes ser/de easier
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Record {
     pub time: u64,
     pub input: u64,
@@ -29,100 +29,81 @@ pub struct Record {
     pub output_weight: u64,
 }
 
-impl From<Record> for JsonValue {
-    fn from(r: Record) -> JsonValue {
-        JsonValue::Array(vec![
-            JsonValue::from(r.time),
-            JsonValue::from(r.input),
-            JsonValue::from(r.output),
-            JsonValue::from(r.input_weight),
-            JsonValue::from(r.output_weight),
+impl From<Record> for Value {
+    fn from(r: Record) -> Value {
+        Value::Array(vec![
+            Value::from(r.time),
+            Value::from(r.input),
+            Value::from(r.output),
+            Value::from(r.input_weight),
+            Value::from(r.output_weight),
         ])
     }
 }
 
-impl TryFrom<JsonValue> for Record {
+impl TryFrom<Value> for Record {
     type Error = Error;
 
-    fn try_from(j: JsonValue) -> Result<Record, Error> {
+    fn try_from(j: Value) -> Result<Record, Error> {
         let mut result = vec![];
 
-        for member in j.members() {
-            match member.as_u64() {
-                Some(n) if result.len() < 5 => {
-                    result.push(n);
-                },
-                Some(_) => {
-                    return Err(Error::WrongSchema(String::from("expected an array of length 5, but got more than 5")));
-                },
-                None => {
-                    return Err(Error::JsonTypeError {
-                        expected: JsonType::U64,
-                        got: member.into(),
-                    });
-                },
-            }
-        }
+        match &j {
+            Value::Array(arr) => {
+                if arr.len() != 5 {
+                    return Err(Error::WrongSchema(format!("expected an array of length 5, but got length {}", arr.len())));
+                }
 
-        if result.len() != 5 {
-            Err(Error::WrongSchema(format!("expected an array of length 5, but got length {}", result.len())))
-        }
+                for r in arr.iter() {
+                    match r.as_u64() {
+                        Some(n) => {
+                            result.push(n);
+                        },
+                        None => {
+                            return Err(Error::JsonTypeError {
+                                expected: JsonType::U64,
+                                got: r.into(),
+                            });
+                        },
+                    }
+                }
 
-        else {
-            Ok(Record {
-                time: result[0],
-                input: result[1],
-                output: result[2],
-                input_weight: result[3],
-                output_weight: result[4],
-            })
+                Ok(Record {
+                    time: result[0],
+                    input: result[1],
+                    output: result[2],
+                    input_weight: result[3],
+                    output_weight: result[4],
+                })
+            },
+            _ => Err(Error::JsonTypeError {
+                expected: JsonType::Array,
+                got: (&j).into(),
+            }),
         }
     }
 }
 
 // why do I have to impl it manually?
-fn records_from_json(j: JsonValue) -> Result<Vec<Record>, Error> {
-    if !j.is_array() {
-        return Err(Error::JsonTypeError {
+fn records_from_json(j: &Value) -> Result<Vec<Record>, Error> {
+    match j {
+        Value::Array(arr) => {
+            let mut result = vec![];
+
+            for r in arr.iter() {
+                result.push(Record::try_from(r.clone())?);
+            }
+
+            Ok(result)
+        },
+        _ => Err(Error::JsonTypeError {
             expected: JsonType::Array,
-            got: (&j).into(),
-        });
+            got: j.into(),
+        }),
     }
-
-    let mut result = vec![];
-
-    for member in j.members() {
-        result.push(Record::try_from(member.clone())?);
-    }
-
-    Ok(result)
 }
 
 #[derive(Clone)]
 pub struct Tracker(pub HashMap<String, Vec<Record>>);  // user_name -> usage
-
-impl From<Tracker> for JsonValue {
-    fn from(t: Tracker) -> JsonValue {
-        JsonValue::Object(t.0.into_iter().collect())
-    }
-}
-
-impl TryFrom<JsonValue> for Tracker {
-    type Error = Error;
-
-    fn try_from(j: JsonValue) -> Result<Tracker, Error> {
-        let mut result = HashMap::new();
-
-        for (k, v) in j.entries() {
-            result.insert(
-                k.to_string(),
-                records_from_json(v.clone())?,
-            );
-        }
-
-        Ok(Tracker(result))
-    }
-}
 
 impl Tracker {
     pub fn new() -> Self {
@@ -131,18 +112,55 @@ impl Tracker {
 
     pub fn load_from_file(path: &str) -> Result<Self, Error> {
         let content = read_string(path)?;
-        let j = json::parse(&content)?;
-        Self::try_from(j)
+        let j: Value = serde_json::from_str(&content)?;
+        Tracker::try_from(&j)
     }
 
     pub fn save_to_file(&self, path: &str) -> Result<(), Error> {
-        let result = JsonValue::from(self.clone());
-
         Ok(write_string(
             path,
-            &result.pretty(4),
+            &serde_json::to_string_pretty(&Value::from(self))?,
             WriteMode::CreateOrTruncate,
         )?)
+    }
+}
+
+impl TryFrom<&Value> for Tracker {
+    type Error = Error;
+
+    fn try_from(v: &Value) -> Result<Tracker, Error> {
+        match v {
+            Value::Object(obj) => {
+                let mut result = HashMap::new();
+
+                for (k, v) in obj.iter() {
+                    result.insert(k.to_string(), records_from_json(v)?);
+                }
+
+                Ok(Tracker(result))
+            },
+            _ => Err(Error::JsonTypeError {
+                expected: JsonType::Object,
+                got: v.into(),
+            }),
+        }
+    }
+}
+
+impl From<&Tracker> for Value {
+    fn from(t: &Tracker) -> Value {
+        let mut result = Map::new();
+
+        for (key, records) in t.0.iter() {
+            result.insert(
+                key.to_string(),
+                Value::Array(records.iter().map(
+                    |record| (*record).into()
+                ).collect()),
+            );
+        }
+
+        result.into()
     }
 }
 

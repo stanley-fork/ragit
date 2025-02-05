@@ -5,7 +5,7 @@ use crate::chunk::{self, Chunk, CHUNK_DIR_NAME, ChunkBuildInfo, ChunkSchema, Chu
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
-use ragit_api::{ChatRequest, RecordAt};
+use ragit_api::{Request, RecordAt};
 use ragit_pdl::{Pdl, parse_pdl};
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
@@ -137,10 +137,9 @@ impl Index {
                     true,
                     true,
                 )?;
-                let request = ChatRequest {
-                    api_key: self.api_config.api_key.clone(),
+                let request = Request {
                     messages,
-                    model: self.api_config.model,
+                    model: self.get_model_by_name(&self.api_config.model)?,
                     max_retry: self.api_config.max_retry,
                     sleep_between_retries: self.api_config.sleep_between_retries,
                     timeout: self.api_config.timeout,
@@ -151,7 +150,7 @@ impl Index {
                     dump_json_at: self.api_config.dump_log_at.clone(),
                     schema,
                     schema_max_try: 3,
-                    ..ChatRequest::default()
+                    ..Request::default()
                 };
                 let response = request.send_and_validate::<ChunkSchema>(ChunkSchema::dummy(
                     &format!(
@@ -174,7 +173,7 @@ impl Index {
                     build_info: ChunkBuildInfo::new(
                         String::from("chunk_grouper_v0"),
                         prompt_hash,
-                        self.api_config.model.to_human_friendly_name().to_string(),
+                        self.api_config.model.clone(),
                     ),
                     timestamp: Local::now().timestamp(),
                 };

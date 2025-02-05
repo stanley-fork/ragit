@@ -1,13 +1,14 @@
 use async_recursion::async_recursion;
 use ragit::{
     AddMode,
+    ChunkSchema,
     Error,
     IIStatus,
     Index,
     INDEX_DIR_NAME,
     Keywords,
     LoadMode,
-    ChunkSchema,
+    MODEL_FILE_NAME,
     MergeMode,
     Prettify,
     ProcessedDoc,
@@ -25,6 +26,7 @@ use ragit_cli::{
 use ragit_fs::{
     basename,
     join,
+    join3,
     read_dir,
 };
 use serde_json::{Map, Value};
@@ -43,19 +45,21 @@ async fn main() {
                 Error::IndexNotFound => {
                     eprintln!("`.ragit/` not found. Make sure that it's a valid ragit repo.");
                 },
-                Error::InvalidConfigKey(s) => {
-                    eprintln!("{s:?} is not a valid key for config.");
+                Error::InvalidConfigKey(k) => {
+                    eprintln!("{k:?} is not a valid key for config.");
                 },
-                Error::ApiError(g) => match g {
-                    ragit_api::Error::InvalidModelKind(m) => {
+                Error::ApiError(e) => match e {
+                    ragit_api::Error::InvalidModelName { name, candidates } => {
                         eprintln!(
-                            "{m:?} is not a valid name for a chat model. Valid names are\n{}",
-                            ragit_api::ChatModel::all_kinds().iter().map(
-                                |model| model.to_human_friendly_name()
-                            ).collect::<Vec<_>>().join("\n"),
+                            "{name:?} is not a valid name for a chat model.\n{}",
+                            if candidates.is_empty() {
+                                format!("Valid model names are: {}", todo!())
+                            } else {
+                                format!("Multiple models were matched: {candidates:?}")
+                            },
                         );
                     },
-                    e => {
+                    _ => {
                         eprintln!("{e:?}");
                     },
                 },
@@ -780,11 +784,17 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let models = Index::list_models(
+                &join3(
+                    &index.root_dir,
+                    INDEX_DIR_NAME,
+                    MODEL_FILE_NAME,
+                )?,
                 &|model| model.name != "dummy",  // filter
                 &|model| model,  // no map
                 &|model| model.name.to_string(),
-            );
+            )?;
             println!("{} models", models.len());
 
             if stat_only {
@@ -800,7 +810,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 println!("--------");
                 println!("name: {}", model.name);
                 println!("api_provider: {}", model.api_provider);
-                println!("api_key_env_var: {}", model.api_key_env_var.as_ref().map(|k| k.to_string()).unwrap_or(String::new()));
+
+                if let Some(api_env_var) = &model.api_env_var {
+                    println!("api_key_env_var: {api_env_var}");
+                }
+
                 println!("can_read_images: {}", model.can_read_images);
                 println!("dollars_per_1b_input_tokens: {}", model.dollars_per_1b_input_tokens);
                 println!("dollars_per_1b_output_tokens: {}", model.dollars_per_1b_output_tokens);
@@ -926,7 +940,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 "--get-all" => {
                     parsed_args.get_args_exact(0)?;
                     let all = index.get_all_meta()?;
-                    println!("{}", json::JsonValue::from(all).pretty(4));
+                    println!("{}", serde_json::to_string_pretty(&all)?);
                 },
                 "--set" => {
                     let key_value = parsed_args.get_args_exact(2)?;
@@ -1018,9 +1032,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         std::io::stdout().flush()?;
                         std::io::stdin().read_line(&mut curr_input)?;
                         let response = query(
+                            &index,
                             &curr_input,
                             history.clone(),
-                            &index,
                         ).await?;
                         println!("{}", response.response);
                         history.push(QueryTurn::new(curr_input, response));
@@ -1028,9 +1042,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 _ => {
                     let response = query(
+                        &index,
                         &parsed_args.get_args_exact(1)?[0],
                         vec![],  // no history
-                        &index,
                     ).await?;
 
                     if json_mode {

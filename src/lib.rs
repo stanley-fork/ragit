@@ -28,6 +28,7 @@ pub use index::{
     LoadMode,
     MergeMode,
     MergeResult,
+    MODEL_FILE_NAME,
     ProcessedDoc,
     RecoverResult,
     TfidfResult,

@@ -223,7 +223,7 @@ impl Index {
             buffer.values().map(|h| h.len()).sum::<usize>(),
         );
         println!("flush count: {flush_count}");
-        println!("model: {}", self.api_config.model.to_human_friendly_name());
+        println!("model: {}", self.api_config.model);
 
         let api_records = self.api_config.get_api_usage("create_chunk_from")?;
         let mut input_tokens = 0;
@@ -281,7 +281,7 @@ async fn event_loop(
                 let build_info = ChunkBuildInfo::new(
                     fd.file_reader_key(),
                     prompt_hash.clone(),
-                    index.api_config.model.to_human_friendly_name().to_string(),
+                    index.api_config.model.clone(),
                 );
                 let mut index_in_file = 0;
                 let mut previous_summary = None;
@@ -289,7 +289,6 @@ async fn event_loop(
                 while fd.can_generate_chunk() {
                     let new_chunk = fd.generate_chunk(
                         &index,
-                        &prompt,
                         build_info.clone(),
                         previous_summary.clone(),
                         index_in_file,

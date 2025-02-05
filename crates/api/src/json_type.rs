@@ -1,5 +1,4 @@
 use crate::error::Error;
-use json::JsonValue;
 use serde_json::Value;
 
 /// This enum is solely for error messages.
@@ -62,20 +61,6 @@ impl JsonType {
                 Err(_) => Ok(Value::from(s)),
             },
             _ => todo!(),
-        }
-    }
-}
-
-impl From<&JsonValue> for JsonType {
-    fn from(v: &JsonValue) -> Self {
-        match v {
-            JsonValue::Null => JsonType::Null,
-            JsonValue::Short(_)
-            | JsonValue::String(_) => JsonType::String,
-            JsonValue::Number(_) => JsonType::Number,
-            JsonValue::Boolean(_) => JsonType::Boolean,
-            JsonValue::Object(_) => JsonType::Object,
-            JsonValue::Array(_) => JsonType::Array,
         }
     }
 }

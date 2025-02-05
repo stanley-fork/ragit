@@ -1,10 +1,9 @@
-use crate::ApiConfig;
 use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
 use ragit_api::{
-    ChatRequest,
     RecordAt,
+    Request,
 };
 use ragit_pdl::{
     Pdl,
@@ -40,25 +39,24 @@ impl QueryTurn {
 }
 
 pub async fn retrieve_chunks(
-    query: &str,
     index: &Index,
+    query: &str,
 ) -> Result<Vec<Chunk>, Error> {
     let mut chunks = index.load_chunks_or_tfidf(query).await?;
 
     if chunks.len() > index.query_config.max_summaries {
         chunks = titles_to_summaries(
+            index,
             query,
             chunks.into_iter().map(|c| c.into()).collect(),
-            &index.api_config,
-            &index.get_prompt("rerank_title")?,
         ).await?;
     }
 
     if chunks.len() > index.query_config.max_retrieval {
         chunks = summaries_to_chunks(
+            index,
             query,
             chunks.into_iter().map(|c| c.into()).collect(),
-            index,
         ).await?;
     }
 
@@ -67,25 +65,24 @@ pub async fn retrieve_chunks(
 
 /// A simple version of `query`, in case you're asking only a single question.
 pub async fn single_turn(
-    q: &str,
     index: &Index,
+    q: &str,
 ) -> Result<String, Error> {
-    let result = query(q, vec![], index).await?;
+    let result = query(index, q, vec![]).await?;
     Ok(result.response)
 }
 
 pub async fn query(
+    index: &Index,
     q: &str,
     history: Vec<QueryTurn>,
-    index: &Index,
 ) -> Result<QueryResponse, Error> {
     let (multi_turn_schema, query) = if history.is_empty() {
         (None, q.to_string())
     } else {
         let multi_turn_schema = rephrase_multi_turn(
+            index,
             select_turns_for_context(&history, q),
-            &index.api_config,
-            &index.get_prompt("multi_turn")?,
         ).await?;
         let query = if multi_turn_schema.is_query && multi_turn_schema.in_context {
             multi_turn_schema.query.clone()
@@ -95,7 +92,7 @@ pub async fn query(
 
         (Some(multi_turn_schema), query)
     };
-    let chunks = retrieve_chunks(&query, index).await?;
+    let chunks = retrieve_chunks(index, &query).await?;
 
     let response = if chunks.is_empty() {
         let mut history_turns = Vec::with_capacity(history.len() * 2);
@@ -106,17 +103,15 @@ pub async fn query(
         }
 
         raw_request(
+            index,
             q,
             history_turns,
-            &index.api_config,
-            &index.get_prompt("raw")?,
         ).await?
     } else {
         answer_query_with_chunks(
+            index,
             &query,
             merge_and_convert_chunks(index, chunks.clone())?,
-            &index.api_config,
-            &index.get_prompt("answer_query")?,
         ).await?
     };
 
@@ -128,10 +123,9 @@ pub async fn query(
 }
 
 pub async fn titles_to_summaries(
+    index: &Index,
     query: &str,
     chunks: Vec<Chunk>,
-    api_config: &ApiConfig,
-    pdl: &str,
 ) -> Result<Vec<Chunk>, Error> {
     let mut tera_context = tera::Context::new();
     tera_context.insert(
@@ -157,25 +151,24 @@ pub async fn titles_to_summaries(
     );
 
     let Pdl { messages, schema } = parse_pdl(
-        pdl,
+        &index.get_prompt("rerank_title")?,
         &tera_context,
         "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
-    let request = ChatRequest {
+    let request = Request {
         messages,
         frequency_penalty: None,
         max_tokens: None,
         temperature: None,
-        timeout: api_config.timeout,
-        max_retry: api_config.max_retry,
-        sleep_between_retries: api_config.sleep_between_retries,
-        api_key: api_config.api_key.clone(),
-        dump_pdl_at: api_config.create_pdl_path("rerank_title"),
-        dump_json_at: api_config.dump_log_at.clone(),
-        model: api_config.model,
-        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+        timeout: index.api_config.timeout,
+        max_retry: index.api_config.max_retry,
+        sleep_between_retries: index.api_config.sleep_between_retries,
+        dump_pdl_at: index.api_config.create_pdl_path("rerank_title"),
+        dump_json_at: index.api_config.dump_log_at.clone(),
+        model: index.get_model_by_name(&index.api_config.model)?,
+        record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rerank_title") }
         ),
         schema,
@@ -191,9 +184,9 @@ pub async fn titles_to_summaries(
 }
 
 pub async fn summaries_to_chunks(
+    index: &Index,
     query: &str,
     chunks: Vec<Chunk>,
-    index: &Index,
 ) -> Result<Vec<Chunk>, Error> {
     let mut tera_context = tera::Context::new();
     tera_context.insert(
@@ -228,7 +221,7 @@ pub async fn summaries_to_chunks(
         true,
         true,
     )?;
-    let request = ChatRequest {
+    let request = Request {
         messages,
         frequency_penalty: None,
         max_tokens: None,
@@ -236,10 +229,9 @@ pub async fn summaries_to_chunks(
         timeout: index.api_config.timeout,
         max_retry: index.api_config.max_retry,
         sleep_between_retries: index.api_config.sleep_between_retries,
-        api_key: index.api_config.api_key.clone(),
         dump_pdl_at: index.api_config.create_pdl_path("rerank_summary"),
         dump_json_at: index.api_config.dump_log_at.clone(),
-        model: index.api_config.model,
+        model: index.get_model_by_name(&index.api_config.model)?,
         record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rerank_summary") }
         ),
@@ -256,10 +248,9 @@ pub async fn summaries_to_chunks(
 }
 
 pub async fn answer_query_with_chunks(
+    index: &Index,
     query: &str,
     chunks: Vec<RenderableChunk>,
-    api_config: &ApiConfig,
-    pdl: &str,
 ) -> Result<String, Error> {
     let mut tera_context = tera::Context::new();
     tera_context.insert(
@@ -272,27 +263,26 @@ pub async fn answer_query_with_chunks(
     );
 
     let Pdl { messages, .. } = parse_pdl(
-        pdl,
+        &index.get_prompt("answer_query")?,
         &tera_context,
         "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
 
-    let request = ChatRequest {
+    let request = Request {
         messages,
-        timeout: api_config.timeout,
-        max_retry: api_config.max_retry,
-        sleep_between_retries: api_config.sleep_between_retries,
-        api_key: api_config.api_key.clone(),
-        dump_pdl_at: api_config.create_pdl_path("answer_query_with_chunks"),
-        dump_json_at: api_config.dump_log_at.clone(),
-        model: api_config.model,
-        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+        timeout: index.api_config.timeout,
+        max_retry: index.api_config.max_retry,
+        sleep_between_retries: index.api_config.sleep_between_retries,
+        dump_pdl_at: index.api_config.create_pdl_path("answer_query_with_chunks"),
+        dump_json_at: index.api_config.dump_log_at.clone(),
+        model: index.get_model_by_name(&index.api_config.model)?,
+        record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("answer_query_with_chunks") }
         ),
         schema: None,
-        ..ChatRequest::default()
+        ..Request::default()
     };
 
     let response = request.send().await?;
@@ -325,9 +315,8 @@ impl Default for MultiTurnSchema {
 }
 
 pub async fn rephrase_multi_turn(
+    index: &Index,
     turns: Vec<String>,
-    api_config: &ApiConfig,
-    pdl: &str,
 ) -> Result<MultiTurnSchema, Error> {
     let turns_json = Value::Array(turns.iter().map(|turn| Value::String(escape_pdl_tokens(turn))).collect());
     let turns_json = serde_json::to_string_pretty(&turns_json)?;
@@ -335,26 +324,25 @@ pub async fn rephrase_multi_turn(
     tera_context.insert("turns", &turns_json);
 
     let Pdl { messages, schema } = parse_pdl(
-        pdl,
+        &index.get_prompt("multi_turn")?,
         &tera_context,
         "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
 
-    let request = ChatRequest {
+    let request = Request {
         messages,
         frequency_penalty: None,
         max_tokens: None,
         temperature: None,
-        timeout: api_config.timeout,
-        max_retry: api_config.max_retry,
-        sleep_between_retries: api_config.sleep_between_retries,
-        api_key: api_config.api_key.clone(),
-        dump_pdl_at: api_config.create_pdl_path("rephrase_multi_turn"),
-        dump_json_at: api_config.dump_log_at.clone(),
-        model: api_config.model,
-        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+        timeout: index.api_config.timeout,
+        max_retry: index.api_config.max_retry,
+        sleep_between_retries: index.api_config.sleep_between_retries,
+        dump_pdl_at: index.api_config.create_pdl_path("rephrase_multi_turn"),
+        dump_json_at: index.api_config.dump_log_at.clone(),
+        model: index.get_model_by_name(&index.api_config.model)?,
+        record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("rephrase_multi_turn") }
         ),
         schema,
@@ -365,36 +353,34 @@ pub async fn rephrase_multi_turn(
 }
 
 pub async fn raw_request(
+    index: &Index,
     query: &str,
     history: Vec<String>,
-    api_config: &ApiConfig,
-    pdl: &str,
 ) -> Result<String, Error> {
     let mut tera_context = tera::Context::new();
     tera_context.insert("query", &escape_pdl_tokens(&query));
     tera_context.insert("history", &history.iter().map(|h| escape_pdl_tokens(h)).collect::<Vec<_>>());
 
     let Pdl { messages, .. } = parse_pdl(
-        pdl,
+        &index.get_prompt("raw")?,
         &tera_context,
         "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
-    let request = ChatRequest {
+    let request = Request {
         messages,
-        timeout: api_config.timeout,
-        max_retry: api_config.max_retry,
-        sleep_between_retries: api_config.sleep_between_retries,
-        api_key: api_config.api_key.clone(),
-        dump_pdl_at: api_config.create_pdl_path("raw_request"),
-        dump_json_at: api_config.dump_log_at.clone(),
-        model: api_config.model,
-        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+        timeout: index.api_config.timeout,
+        max_retry: index.api_config.max_retry,
+        sleep_between_retries: index.api_config.sleep_between_retries,
+        dump_pdl_at: index.api_config.create_pdl_path("raw_request"),
+        dump_json_at: index.api_config.dump_log_at.clone(),
+        model: index.get_model_by_name(&index.api_config.model)?,
+        record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("raw_request") }
         ),
         schema: None,
-        ..ChatRequest::default()
+        ..Request::default()
     };
 
     let response = request.send().await?;

@@ -1,0 +1,247 @@
+use crate::api_provider::ApiProvider;
+use crate::error::Error;
+use ragit_pdl::Message;
+use serde::{Deserialize, Serialize};
+use std::io::{Read, Write, stdin, stdout};
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct Model {
+    pub name: String,
+    pub api_name: String,
+    pub can_read_images: bool,
+    pub api_provider: ApiProvider,
+    pub dollars_per_1b_input_tokens: u64,
+    pub dollars_per_1b_output_tokens: u64,
+    pub api_timeout: usize,
+    pub explanation: Option<String>,
+    pub api_key: Option<String>,
+    pub api_env_var: Option<String>,
+}
+
+impl Model {
+    pub fn dummy() -> Self {
+        Model {
+            name: String::from("dummy"),
+            api_name: String::new(),
+            can_read_images: false,
+            api_provider: ApiProvider::Test(TestModel::Dummy),
+            dollars_per_1b_input_tokens: 0,
+            dollars_per_1b_output_tokens: 0,
+            api_timeout: 180,
+            explanation: None,
+            api_key: None,
+            api_env_var: None,
+        }
+    }
+
+    pub fn get_api_url(&self) -> &str {
+        self.api_provider.get_api_url()
+    }
+
+    pub fn get_api_key(&self) -> Result<String, Error> {
+        match &self.api_key {
+            Some(key) => Ok(key.to_string()),
+            None => match &self.api_env_var {
+                Some(var) => match std::env::var(var) {
+                    Ok(key) => Ok(key.to_string()),
+                    Err(_) => Err(Error::ApiKeyNotFound { env_var: Some(var.to_string()) }),
+                },
+                None => Err(Error::ApiKeyNotFound { env_var: None }),
+            },
+        }
+    }
+
+    pub fn default_models() -> Vec<Model> {
+        ModelRaw::default_models().iter().map(
+            |model| model.try_into().unwrap()
+        ).collect()
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct ModelRaw {
+    /// Model name shown to user.
+    /// `rag config --set model` also
+    /// uses this name.
+    name: String,
+
+    /// Model name used for api requests.
+    api_name: String,
+
+    can_read_images: bool,
+
+    /// `openai | cohere | anthropic`
+    ///
+    /// If you're using an openai-compatible
+    /// api, set this to `openai`.
+    api_provider: String,
+
+    /// It's necessary if you're using an
+    /// openai-compatible api. If it's not
+    /// set, ragit uses the default url of
+    /// each api provider.
+    api_url: Option<String>,
+
+    /// Dollars per 1 million input tokens.
+    input_price: f64,
+
+    /// Dollars per 1 million output tokens.
+    output_price: f64,
+
+    /// The number is in seconds.
+    /// If not set, it's default to 180 seconds.
+    api_timeout: Option<usize>,
+
+    explanation: Option<String>,
+
+    /// If you don't want to use an env var, you
+    /// can hard-code your api key in this field.
+    api_key: Option<String>,
+
+    /// If you've hard-coded your api key,
+    /// you don't have to set this. If neither
+    /// `api_key`, nor `api_env_var` is set,
+    /// it would die.
+    api_env_var: Option<String>,
+}
+
+impl ModelRaw {
+    pub(crate) fn llama70b() -> Self {
+        ModelRaw {
+            name: String::from("llama3.3-70b-groq"),
+            api_name: String::from("llama-3.3-70b-versatile"),
+            can_read_images: false,
+            api_provider: String::from("openai"),
+            api_url: Some(String::from("https://api.groq.com/openai/v1/chat/completions")),
+            input_price: 0.59,
+            output_price: 0.79,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("GROQ_API_KEY")),
+        }
+    }
+
+    pub fn default_models() -> Vec<ModelRaw> {
+        vec![
+            ModelRaw::llama70b(),
+        ]
+    }
+}
+
+pub fn get_model_by_name<'a, 'b>(models: &'a [Model], name: &'b str) -> Result<&'a Model, Error> {
+    let mut partial_matches = vec![];
+
+    for model in models.iter() {
+        if model.name == name {
+            return Ok(model);
+        }
+
+        if partial_match(&model.name, name) {
+            partial_matches.push(model);
+        }
+    }
+
+    if partial_matches.len() == 1 {
+        Ok(&partial_matches[0])
+    }
+
+    else{
+        Err(Error::InvalidModelName {
+            name: name.to_string(),
+            candidates: partial_matches.iter().map(
+                |model| model.name.to_string()
+            ).collect(),
+        })
+    }
+}
+
+impl TryFrom<&ModelRaw> for Model {
+    type Error = Error;
+
+    fn try_from(m: &ModelRaw) -> Result<Model, Error> {
+        Ok(Model {
+            name: m.name.clone(),
+            api_name: m.api_name.clone(),
+            can_read_images: m.can_read_images,
+            api_provider: ApiProvider::parse(
+                &m.api_provider,
+                &m.api_url,
+            )?,
+            dollars_per_1b_input_tokens: (m.input_price * 1000.0).round() as u64,
+            dollars_per_1b_output_tokens: (m.output_price * 1000.0).round() as u64,
+            api_timeout: m.api_timeout.unwrap_or(180),
+            explanation: m.explanation.clone(),
+            api_key: m.api_key.clone(),
+            api_env_var: m.api_env_var.clone(),
+        })
+    }
+}
+
+impl From<&Model> for ModelRaw {
+    fn from(m: &Model) -> ModelRaw {
+        ModelRaw {
+            name: m.name.clone(),
+            api_name: m.api_name.clone(),
+            can_read_images: m.can_read_images,
+            api_provider: m.api_provider.to_string(),
+            api_url: Some(m.get_api_url().to_string()),
+            input_price: m.dollars_per_1b_input_tokens as f64 / 1000.0,
+            output_price: m.dollars_per_1b_output_tokens as f64 / 1000.0,
+            api_timeout: Some(m.api_timeout),
+            explanation: m.explanation.clone(),
+            api_key: m.api_key.clone(),
+            api_env_var: m.api_env_var.clone(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum TestModel {
+    Dummy,  // it always returns `"dummy"`
+    Stdin,
+}
+
+impl TestModel {
+    pub fn get_dummy_response(&self, messages: &[Message]) -> String {
+        match self {
+            TestModel::Dummy => String::from("dummy"),
+            TestModel::Stdin => {
+                for message in messages.iter() {
+                    println!(
+                        "<|{:?}|>\n\n{}\n\n",
+                        message.role,
+                        message.content.iter().map(|c| c.to_string()).collect::<Vec<String>>().join(""),
+                    );
+                }
+
+                print!("<|Assistant|>\n\n>>> ");
+                stdout().flush().unwrap();
+
+                let mut s = String::new();
+                stdin().read_to_string(&mut s).unwrap();
+                s
+            },
+        }
+    }
+}
+
+fn partial_match(haystack: &str, needle: &str) -> bool {
+    let h_bytes = haystack.bytes().collect::<Vec<_>>();
+    let n_bytes = needle.bytes().collect::<Vec<_>>();
+    let mut h_cursor = 0;
+    let mut n_cursor = 0;
+
+    while h_cursor < h_bytes.len() && n_cursor < n_bytes.len() {
+        if h_bytes[h_cursor] == n_bytes[n_cursor] {
+            h_cursor += 1;
+            n_cursor += 1;
+        }
+
+        else {
+            h_cursor += 1;
+        }
+    }
+
+    n_cursor == n_bytes.len()
+}

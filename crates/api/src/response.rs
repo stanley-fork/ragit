@@ -3,16 +3,10 @@ use crate::error::Error;
 
 mod anthropic;
 mod cohere;
-mod deepseek;
-mod groq;
-mod ollama;
 mod openai;
 
 pub use anthropic::AnthropicResponse;
 pub use cohere::CohereResponse;
-pub use deepseek::DeepSeekResponse;
-pub use groq::GroqResponse;
-pub use ollama::OllamaResponse;
 pub use openai::OpenAiResponse;
 
 pub trait IntoChatResponse {
@@ -38,7 +32,7 @@ impl Response {
         }
     }
 
-    pub fn from_str(s: &str, api_provider: ApiProvider) -> Result<Self, Error> {
+    pub fn from_str(s: &str, api_provider: &ApiProvider) -> Result<Self, Error> {
         api_provider.parse_chat_response(s)?.into_chat_response()
     }
 

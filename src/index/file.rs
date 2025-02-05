@@ -79,7 +79,6 @@ impl FileReader {
     pub async fn generate_chunk(
         &mut self,
         index: &Index,
-        pdl: &str,
         build_info: ChunkBuildInfo,
         previous_turn: Option<(Chunk, ChunkSchema)>,
 
@@ -143,11 +142,8 @@ impl FileReader {
         let chunk = Chunk::create_chunk_from(
             index,
             &tokens,
-            &self.config,
             self.rel_path.clone(),
             file_index,
-            &index.api_config,
-            pdl,
             build_info,
             previous_turn,
         ).await;

@@ -1,9 +1,9 @@
-use crate::ApiConfig;
+use crate::Index;
+use crate::error::Error;
 use crate::index::tfidf::tokenize;
 use ragit_api::{
-    ChatRequest,
-    Error,
     RecordAt,
+    Request,
 };
 use ragit_pdl::{
     Pdl,
@@ -60,36 +60,34 @@ impl Keywords {
 }
 
 pub async fn extract_keywords(
+    index: &Index,
     query: &str,
-    api_config: &ApiConfig,
-    pdl: &str,
 ) -> Result<Keywords, Error> {
     let mut context = tera::Context::new();
     context.insert("query", &escape_pdl_tokens(&query));
 
     let Pdl { messages, schema } = parse_pdl(
-        pdl,
+        &index.get_prompt("extract_keyword")?,  // TODO: function name and prompt name are not matching
         &context,
         "/",  // TODO: `<|media|>` is not supported for this prompt
         true,
         true,
     )?;
 
-    let request = ChatRequest {
-        api_key: api_config.api_key.clone(),
+    let request = Request {
         messages,
-        model: api_config.model,
+        model: index.get_model_by_name(&index.api_config.model)?,
         frequency_penalty: None,
         max_tokens: None,
-        max_retry: api_config.max_retry,
-        sleep_between_retries: api_config.sleep_between_retries,
-        timeout: api_config.timeout,
+        max_retry: index.api_config.max_retry,
+        sleep_between_retries: index.api_config.sleep_between_retries,
+        timeout: index.api_config.timeout,
         temperature: None,
-        record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+        record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
             |path| RecordAt { path, id: String::from("extract_keywords") }
         ),
-        dump_pdl_at: api_config.create_pdl_path("extract_keywords"),
-        dump_json_at: api_config.dump_log_at.clone(),
+        dump_pdl_at: index.api_config.create_pdl_path("extract_keywords"),
+        dump_json_at: index.api_config.dump_log_at.clone(),
         schema,
         schema_max_try: 3,
     };

@@ -9,18 +9,20 @@ pub enum Error {
     },
     JsonObjectInvalidField(String),
     JsonObjectMissingField(String),
-    InvalidModelKind(String),
+    InvalidModelName {
+        name: String,
+        candidates: Vec<String>,
+    },
+    InvalidApiProvider(String),
     PdlError(ragit_pdl::Error),
     FileError(FileError),
+    ApiKeyNotFound { env_var: Option<String> },
 
     /// If you see this error, there must be a bug in this library
     NoTry,
 
     /// see <https://docs.rs/reqwest/latest/reqwest/struct.Error.html>
     ReqwestError(reqwest::Error),
-
-    /// see <https://docs.rs/json/latest/json/enum.Error.html>
-    JsonError(json::Error),
 
     /// see <https://docs.rs/serde_json/latest/serde_json/struct.Error.html>
     JsonSerdeError(serde_json::Error),
@@ -53,12 +55,6 @@ impl From<FileError> for Error {
 impl From<reqwest::Error> for Error {
     fn from(e: reqwest::Error) -> Error {
         Error::ReqwestError(e)
-    }
-}
-
-impl From<json::Error> for Error {
-    fn from(e: json::Error) -> Error {
-        Error::JsonError(e)
     }
 }
 

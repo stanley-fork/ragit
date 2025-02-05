@@ -1,12 +1,11 @@
 use crate::error::Error;
 use crate::uid::Uid;
-use serde::Serialize;
 use serde_json::Value;
 
 /// Sometimes internal representations are not very readable. For example,
 /// ragit internally represents a uid with 2 integers, but users expect a
 /// hexadecimal string. This trait removes those quirks and makes it readable.
-pub trait Prettify where Self: Serialize {
+pub trait Prettify {
     fn prettify(&self) -> Result<Value, Error>;
 }
 

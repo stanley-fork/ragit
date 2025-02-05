@@ -6,8 +6,10 @@ use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
 use crate::uid::{self, Uid};
 use ragit_api::{
-    ChatRequest,
+    Model,
+    ModelRaw,
     RecordAt,
+    Request,
 };
 use ragit_fs::{
     WriteMode,
@@ -63,6 +65,7 @@ pub const II_DIR_NAME: &str = "ii";
 pub const IMAGE_DIR_NAME: &str = "images";
 pub const FILE_INDEX_DIR_NAME: &str = "files";
 pub const INDEX_FILE_NAME: &str = "index.json";
+pub const MODEL_FILE_NAME: &str = "models.json";
 pub const LOG_DIR_NAME: &str = "logs";
 
 pub type Path = String;
@@ -104,6 +107,8 @@ pub struct Index {
     pub api_config: ApiConfig,
     #[serde(skip)]
     prompts: HashMap<String, String>,
+    #[serde(skip)]
+    models: Vec<Model>,
 }
 
 /// 1. If you want to do something with chunks, use `LoadMode::QuickCheck`.
@@ -173,6 +178,7 @@ impl Index {
             repo_url: None,
             ii_status: IIStatus::None,
             prompts: PROMPTS.clone(),
+            models: Model::default_models(),
         };
 
         write_bytes(
@@ -216,6 +222,7 @@ impl Index {
         )?;
         result.api_config = result.init_api_config(&result.api_config_raw)?;
         result.load_prompts()?;
+        result.load_or_init_models()?;
 
         match load_mode {
             LoadMode::QuickCheck if result.curr_processing_file.is_some() => {
@@ -287,7 +294,7 @@ impl Index {
         query: &str,
     ) -> Result<Vec<Chunk>, Error> {
         if self.chunk_count > self.query_config.max_titles {
-            let keywords = extract_keywords(query, &self.api_config, &self.get_prompt("extract_keyword")?).await?;
+            let keywords = extract_keywords(self, query).await?;
             let tfidf_results = self.run_tfidf(
                 keywords,
                 self.query_config.max_summaries,
@@ -435,10 +442,9 @@ impl Index {
             true,
         )?;
 
-        let request = ChatRequest {
+        let request = Request {
             messages,
-            api_key: self.api_config.api_key.clone(),
-            model: self.api_config.model,
+            model: self.get_model_by_name(&self.api_config.model)?,
             frequency_penalty: None,
             max_tokens: None,
             max_retry: self.api_config.max_retry,
@@ -695,7 +701,7 @@ impl Index {
         Ok(ApiConfig {
             api_key: raw.api_key.clone(),
             max_retry: raw.max_retry,
-            model: raw.model.parse()?,
+            model: raw.model.clone(),
             timeout: raw.timeout,
             sleep_after_llm_call: raw.sleep_after_llm_call,
             sleep_between_retries: raw.sleep_between_retries,
@@ -758,6 +764,37 @@ impl Index {
         }
 
         Ok(())
+    }
+
+    pub(crate) fn load_or_init_models(&mut self) -> Result<(), Error> {
+        let models_at = Index::get_rag_path(
+            &self.root_dir,
+            &MODEL_FILE_NAME.to_string(),
+        )?;
+
+        if !exists(&models_at) {
+            let default_models = ModelRaw::default_models();
+            write_string(
+                &models_at,
+                &serde_json::to_string_pretty(&default_models)?,
+                WriteMode::CreateOrTruncate,
+            )?;
+        }
+
+        let j = read_string(&models_at)?;
+        let models = serde_json::from_str::<Vec<ModelRaw>>(&j)?;
+        let mut result = vec![];
+
+        for model in models.iter() {
+            result.push(Model::try_from(model)?);
+        }
+
+        self.models = result;
+        Ok(())
+    }
+
+    pub(crate) fn get_model_by_name(&self, name: &str) -> Result<Model, Error> {
+        Ok(ragit_api::get_model_by_name(&self.models, name)?.clone())
     }
 
     pub fn get_prompt(&self, prompt_name: &str) -> Result<String, Error> {

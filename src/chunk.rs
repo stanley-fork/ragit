@@ -1,14 +1,13 @@
 use chrono::offset::Local;
-use crate::ApiConfig;
 use crate::error::Error;
-use crate::index::{BuildConfig, Index, tfidf};
+use crate::index::{Index, tfidf};
 use crate::index::file::{AtomicToken, Image};
 use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use ragit_api::{
-    ChatRequest,
     RecordAt,
+    Request,
 };
 use ragit_fs::{
     WriteMode,
@@ -144,11 +143,8 @@ impl Chunk {
     pub(crate) async fn create_chunk_from(
         index: &Index,
         tokens: &[AtomicToken],
-        config: &BuildConfig,
         file: String,
         file_index: usize,
-        api_config: &ApiConfig,
-        pdl: &str,
         build_info: ChunkBuildInfo,
         previous_turn: Option<(Chunk, ChunkSchema)>,
     ) -> Result<Self, Error> {
@@ -170,12 +166,12 @@ impl Chunk {
         }
 
         context.insert("chunk", &chunk.concat());
-        context.insert("max_summary_len", &config.max_summary_len);
+        context.insert("max_summary_len", &index.build_config.max_summary_len);
 
         // It's ridiculous to ask for a 300 characters summary from a 10 characters chunk.
         context.insert(
             "min_summary_len",
-            &config.min_summary_len.min(approx_data_len / 2),
+            &index.build_config.min_summary_len.min(approx_data_len / 2),
         );
 
         if let Some((previous_chunk, previous_schema)) = &previous_turn {
@@ -185,7 +181,7 @@ impl Chunk {
         }
 
         let Pdl { messages, schema } = parse_pdl(
-            pdl,
+            &index.get_prompt("summarize")?,
             &context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
             true,
@@ -211,28 +207,27 @@ impl Chunk {
         }
 
         let data = data.concat();
-        let request = ChatRequest {
-            api_key: api_config.api_key.clone(),
+        let request = Request {
             messages,
-            model: api_config.model,
-            max_retry: api_config.max_retry,
-            sleep_between_retries: api_config.sleep_between_retries,
-            timeout: api_config.timeout,
-            record_api_usage_at: api_config.dump_api_usage_at.clone().map(
+            model: index.get_model_by_name(&index.api_config.model)?,
+            max_retry: index.api_config.max_retry,
+            sleep_between_retries: index.api_config.sleep_between_retries,
+            timeout: index.api_config.timeout,
+            record_api_usage_at: index.api_config.dump_api_usage_at.clone().map(
                 |path| RecordAt { path, id: String::from("create_chunk_from") }
             ),
-            dump_pdl_at: api_config.create_pdl_path("create_chunk_from"),
-            dump_json_at: api_config.dump_log_at.clone(),
+            dump_pdl_at: index.api_config.create_pdl_path("create_chunk_from"),
+            dump_json_at: index.api_config.dump_log_at.clone(),
             schema,
             schema_max_try: 3,
-            ..ChatRequest::default()
+            ..Request::default()
         };
 
         // some apis reject empty requests
         let response = if data.is_empty() {
             ChunkSchema::empty()
         } else {
-            request.send_and_validate::<ChunkSchema>(ChunkSchema::dummy(&data, config.max_summary_len)).await?
+            request.send_and_validate::<ChunkSchema>(ChunkSchema::dummy(&data, index.build_config.max_summary_len)).await?
         };
 
         let mut result = Chunk {

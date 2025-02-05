@@ -1,6 +1,6 @@
 use chrono::offset::Local;
 use crate::error::Error;
-use ragit_api::{self as api, record::{Record, Tracker}};
+use ragit_api::record::{Record, Tracker};
 use ragit_fs::join;
 use serde::{Deserialize, Serialize};
 
@@ -46,9 +46,11 @@ impl Default for ApiConfigRaw {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ApiConfig {
-    // if it's none, it searches the env var
+    // This value is NOT used anymore. It's here for backward-compatibility
+    // You have to use env var or `models.json`.
     pub api_key: Option<String>,
-    pub model: api::ChatModel,
+
+    pub model: String,
     pub timeout: Option<u64>,  // milliseconds
     pub sleep_between_retries: u64,  // milliseconds
     pub max_retry: usize,
@@ -100,7 +102,7 @@ impl Default for ApiConfig {
     fn default() -> Self {
         ApiConfig {
             api_key: None,
-            model: api::ChatModel::Sonnet,
+            model: String::new(),
             timeout: None,
             sleep_between_retries: 0,
             max_retry: 0,

@@ -61,9 +61,6 @@ pub enum Error {
     /// see <https://docs.rs/reqwest/latest/reqwest/struct.Error.html>
     ReqwestError(reqwest::Error),
 
-    /// see <https://docs.rs/json/latest/json/enum.Error.html>
-    JsonError(json::Error),
-
     /// see <https://docs.rs/serde_json/latest/serde_json/struct.Error.html>
     JsonSerdeError(serde_json::Error),
 
@@ -85,12 +82,6 @@ pub enum Error {
 
     // I'm too lazy to add all the variants of ragit_pdl::Error
     PdlError(ragit_pdl::Error),
-}
-
-impl From<json::Error> for Error {
-    fn from(e: json::Error) -> Error {
-        Error::JsonError(e)
-    }
 }
 
 impl From<reqwest::Error> for Error {
@@ -146,7 +137,6 @@ impl From<ApiError> for Error {
         match e {
             ApiError::JsonTypeError { expected, got } => Error::JsonTypeError { expected, got },
             ApiError::ReqwestError(e) => Error::ReqwestError(e),
-            ApiError::JsonError(e) => Error::JsonError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),
             e => Error::ApiError(e),
