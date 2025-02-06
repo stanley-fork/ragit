@@ -4,6 +4,7 @@ use crate::error::Error;
 use crate::index::LOG_DIR_NAME;
 use crate::uid::Uid;
 use ragit_fs::{
+    exists,
     file_name,
     parent,
     read_dir,
@@ -21,6 +22,11 @@ impl Index {
             &self.root_dir,
             &LOG_DIR_NAME.to_string(),
         )?;
+
+        if !exists(&logs_at) {
+            return Ok(0);
+        }
+
         let mut count = 0;
 
         for file in read_dir(&logs_at, false)? {
