@@ -52,6 +52,10 @@ impl MessageContent {
     pub fn simple_message(s: String) -> Vec<Self> {
         vec![MessageContent::String(s)]
     }
+
+    pub fn is_string(&self) -> bool {
+        matches!(self, MessageContent::String(_))
+    }
 }
 
 impl fmt::Display for MessageContent {

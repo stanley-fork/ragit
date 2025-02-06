@@ -43,9 +43,15 @@ pub fn message_content_to_json(message: &MessageContent, api_provider: &ApiProvi
 }
 
 pub fn message_contents_to_json_array(contents: &[MessageContent], api_provider: &ApiProvider) -> Value {
-    Value::Array(contents.iter().map(
-        |content| message_content_to_json(content, api_provider)
-    ).collect())
+    if contents.len() == 1 && contents[0].is_string() {
+        Value::String(contents[0].unwrap_str().into())
+    }
+
+    else {
+        Value::Array(contents.iter().map(
+            |content| message_content_to_json(content, api_provider)
+        ).collect())
+    }
 }
 
 pub fn message_to_json(message: &Message, api_provider: &ApiProvider) -> Value {
