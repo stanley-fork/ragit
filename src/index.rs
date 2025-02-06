@@ -252,7 +252,7 @@ impl Index {
         result.root_dir = root_dir;
 
         if let Some(warn) = get_compatibility_warning(&result.ragit_version, crate::VERSION) {
-            println!("Warning: {warn}");
+            eprintln!("Warning: {warn}");
         }
 
         Ok(result)
@@ -729,7 +729,7 @@ impl Index {
                     self.prompts.insert(prompt_name.to_string(), p);
                 },
                 Err(_) => {
-                    println!("Warning: failed to load `{prompt_name}.pdl`");
+                    eprintln!("Warning: failed to load `{prompt_name}.pdl`");
                 },
             }
         }
