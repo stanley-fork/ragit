@@ -74,7 +74,11 @@ log = [
         "ls-files reftable/iter.c": 440,
         "ls-chunks reftable": 436,
         "ls-chunks reftable/iter.c": 425
-    }, {
+    },
+    # test run 2
+    # commit 11bcd4
+    # Apple Silicon M3 Pro
+    {
         "add all files": 602,
         "build without ii": 293189,
         "tfidf without ii": 2187,
