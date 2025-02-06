@@ -25,15 +25,13 @@ from tfidf import tfidf
 
 import os
 import sys
-from utils import clean, clean_test_output, get_ragit_version, goto_root
-
-def get_commit_hash():
-    try:
-        import subprocess
-        return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
-
-    except Exception as e:
-        return f"cannot get commit_hash: {e}"
+from utils import (
+    clean,
+    clean_test_output,
+    get_commit_hash,
+    get_ragit_version,
+    goto_root,
+)
 
 def get_platform_info() -> dict[str, str]:
     result = {}

@@ -146,3 +146,11 @@ def clean_test_output(s: str) -> str:
         s = s[i + len(d):]
 
     return s
+
+def get_commit_hash():
+    try:
+        import subprocess
+        return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=True).stdout.strip()
+
+    except Exception as e:
+        return f"cannot get commit_hash: {e}"

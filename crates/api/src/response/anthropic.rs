@@ -2,6 +2,7 @@ use super::{IntoChatResponse, Response};
 use crate::error::Error;
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 pub struct AnthropicResponse {
     id: String,
@@ -13,12 +14,14 @@ pub struct AnthropicResponse {
     usage: AnthropicUsage,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct AnthropicContent {
     text: String,
     r#type: String,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct AnthropicUsage {
     input_tokens: usize,

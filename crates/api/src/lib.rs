@@ -1,3 +1,5 @@
+use ragit_fs::read_string;
+
 mod api_provider;
 mod error;
 mod json_type;
@@ -16,7 +18,15 @@ pub use crate::request::Request;
 pub use crate::response::Response;
 
 pub fn load_models(json_path: &str) -> Result<Vec<Model>, Error> {
-    todo!()
+    let models = read_string(json_path)?;
+    let models: Vec<ModelRaw> = serde_json::from_str(&models)?;
+    let mut result = Vec::with_capacity(models.len());
+
+    for model in models.iter() {
+        result.push(Model::try_from(model)?);
+    }
+
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -73,7 +83,7 @@ What do you see in this picture?
 
         for messages in [messages1, messages2] {
             let request = Request {
-                model: ModelRaw::llama70b().try_into().unwrap(),
+                model: (&ModelRaw::gpt_4o_mini()).try_into().unwrap(),
                 messages,
                 ..Request::default()
             };

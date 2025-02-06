@@ -12,7 +12,7 @@ pub struct Model {
     pub api_provider: ApiProvider,
     pub dollars_per_1b_input_tokens: u64,
     pub dollars_per_1b_output_tokens: u64,
-    pub api_timeout: usize,
+    pub api_timeout: u64,
     pub explanation: Option<String>,
     pub api_key: Option<String>,
     pub api_env_var: Option<String>,
@@ -34,6 +34,21 @@ impl Model {
         }
     }
 
+    pub fn stdin() -> Self {
+        Model {
+            name: String::from("stdin"),
+            api_name: String::new(),
+            can_read_images: false,
+            api_provider: ApiProvider::Test(TestModel::Stdin),
+            dollars_per_1b_input_tokens: 0,
+            dollars_per_1b_output_tokens: 0,
+            api_timeout: 180,
+            explanation: None,
+            api_key: None,
+            api_env_var: None,
+        }
+    }
+
     pub fn get_api_url(&self) -> &str {
         self.api_provider.get_api_url()
     }
@@ -46,7 +61,11 @@ impl Model {
                     Ok(key) => Ok(key.to_string()),
                     Err(_) => Err(Error::ApiKeyNotFound { env_var: Some(var.to_string()) }),
                 },
-                None => Err(Error::ApiKeyNotFound { env_var: None }),
+
+                // If both `api_key` and `api_env_var` are not set,
+                // it assumes that the model does not require an
+                // api key.
+                None => Ok(String::new()),
             },
         }
     }
@@ -90,7 +109,7 @@ pub struct ModelRaw {
 
     /// The number is in seconds.
     /// If not set, it's default to 180 seconds.
-    api_timeout: Option<usize>,
+    api_timeout: Option<u64>,
 
     explanation: Option<String>,
 
@@ -101,12 +120,13 @@ pub struct ModelRaw {
     /// If you've hard-coded your api key,
     /// you don't have to set this. If neither
     /// `api_key`, nor `api_env_var` is set,
-    /// it would die.
+    /// it assumes that the model doesn't require
+    /// an api key.
     api_env_var: Option<String>,
 }
 
 impl ModelRaw {
-    pub(crate) fn llama70b() -> Self {
+    pub(crate) fn llama_70b() -> Self {
         ModelRaw {
             name: String::from("llama3.3-70b-groq"),
             api_name: String::from("llama-3.3-70b-versatile"),
@@ -122,19 +142,138 @@ impl ModelRaw {
         }
     }
 
+    pub(crate) fn llama_8b() -> Self {
+        ModelRaw {
+            name: String::from("llama3.1-8b-groq"),
+            api_name: String::from("llama-3.1-8b-instant"),
+            can_read_images: false,
+            api_provider: String::from("openai"),
+            api_url: Some(String::from("https://api.groq.com/openai/v1/chat/completions")),
+            input_price: 0.05,
+            output_price: 0.08,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("GROQ_API_KEY")),
+        }
+    }
+
+    pub(crate) fn gpt_4o() -> Self {
+        ModelRaw {
+            name: String::from("gpt-4o"),
+            api_name: String::from("gpt-4o"),
+            can_read_images: true,
+            api_provider: String::from("openai"),
+            api_url: Some(String::from("https://api.openai.com/v1/chat/completions")),
+            input_price: 2.5,
+            output_price: 10.0,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("OPENAI_API_KEY")),
+        }
+    }
+
+    pub(crate) fn gpt_4o_mini() -> Self {
+        ModelRaw {
+            name: String::from("gpt-4o-mini"),
+            api_name: String::from("gpt-4o-mini"),
+            can_read_images: true,
+            api_provider: String::from("openai"),
+            api_url: Some(String::from("https://api.openai.com/v1/chat/completions")),
+            input_price: 0.15,
+            output_price: 0.6,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("OPENAI_API_KEY")),
+        }
+    }
+
+    pub(crate) fn sonnet() -> Self {
+        ModelRaw {
+            name: String::from("claude-3.5-sonnet"),
+            api_name: String::from("claude-3-5-sonnet-20240620"),
+            can_read_images: true,
+            api_provider: String::from("anthropic"),
+            api_url: Some(String::from("https://api.anthropic.com/v1/messages")),
+            input_price: 3.0,
+            output_price: 15.0,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("ANTHROPIC_API_KEY")),
+        }
+    }
+
+    pub(crate) fn phi_4_14b() -> Self {
+        ModelRaw {
+            name: String::from("phi-4-14b-ollama"),
+            api_name: String::from("phi4:14b"),
+            can_read_images: true,
+            api_provider: String::from("openai"),
+            api_url: Some(String::from("http://127.0.0.1:11434/v1/chat/completions")),
+            input_price: 0.0,
+            output_price: 0.0,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: None,
+        }
+    }
+
+    pub(crate) fn command_r() -> Self {
+        ModelRaw {
+            name: String::from("command-r"),
+            api_name: String::from("command-r"),
+            can_read_images: true,
+            api_provider: String::from("cohere"),
+            api_url: Some(String::from("https://api.cohere.com/v2/chat")),
+            input_price: 0.15,
+            output_price: 0.6,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("COHERE_API_KEY")),
+        }
+    }
+
+    pub(crate) fn command_r_plus() -> Self {
+        ModelRaw {
+            name: String::from("command-r-plus"),
+            api_name: String::from("command-r-plus"),
+            can_read_images: true,
+            api_provider: String::from("cohere"),
+            api_url: Some(String::from("https://api.cohere.com/v2/chat")),
+            input_price: 2.5,
+            output_price: 10.0,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("COHERE_API_KEY")),
+        }
+    }
+
     pub fn default_models() -> Vec<ModelRaw> {
         vec![
-            ModelRaw::llama70b(),
+            ModelRaw::llama_70b(),
+            ModelRaw::llama_8b(),
+            ModelRaw::gpt_4o(),
+            ModelRaw::gpt_4o_mini(),
+            ModelRaw::sonnet(),
+            ModelRaw::command_r(),
+            ModelRaw::command_r_plus(),
+            ModelRaw::phi_4_14b(),
         ]
     }
 }
 
-pub fn get_model_by_name<'a, 'b>(models: &'a [Model], name: &'b str) -> Result<&'a Model, Error> {
+pub fn get_model_by_name(models: &[Model], name: &str) -> Result<Model, Error> {
     let mut partial_matches = vec![];
 
     for model in models.iter() {
         if model.name == name {
-            return Ok(model);
+            return Ok(model.clone());
         }
 
         if partial_match(&model.name, name) {
@@ -143,7 +282,15 @@ pub fn get_model_by_name<'a, 'b>(models: &'a [Model], name: &'b str) -> Result<&
     }
 
     if partial_matches.len() == 1 {
-        Ok(&partial_matches[0])
+        Ok(partial_matches[0].clone())
+    }
+
+    else if name == "dummy" {
+        Ok(Model::dummy())
+    }
+
+    else if name == "stdin" {
+        Ok(Model::stdin())
     }
 
     else{

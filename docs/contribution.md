@@ -7,16 +7,6 @@ Thanks for helping Ragit! Before contributing to the project, let me remind you 
 
 If you're familiar with Rust, please help us make ragit more useful. If you're not familiar with Rust, you still have tons of ways to contribute to the project. Using ragit and issuing bug reports help us a lot.
 
-## Add new models
-
-It's the easiest way to contribute to ragit. All the api-related stuffs (chat models, api routers and requests) are at `crates/api/`.
-
-First, check `crates/api/src/api_provider.rs` if you're using one of the api providers in the file. If not, you have to add one manually. Adding one is straight forward. Add an enum variant, add new variant to methods in `impl ApiProvider`, and define a new struct in `crates/api/src/chat/response`. The struct converts an api response (likely a json) to a rust struct.
-
-Then, add your model to `ModelKind` in `crates/api/src/chat/model_kind.rs`. Make sure to add the new model to `ALL_MODELS`. Then, implement all the methods until it compiles.
-
-I recommend you add your new model to `tests/ragit_api.py`.
-
 ## Add new file readers
 
 It's not the easiest but one of the most helpful way to contribute to ragit. By adding a new file reader, ragit can process new types of files (or parse old types better).

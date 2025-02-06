@@ -1,6 +1,6 @@
 use clap::Parser;
+use ragit_api::{Model, get_model_by_name, load_models};
 use ragit_pdl::Pdl;
-use std::str::FromStr;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -17,6 +17,11 @@ struct Args {
     #[arg(short, long, default_value_t = String::from("STDOUT"))]
     output: String,
 
+    /// path of `models.json`. If it's not given, it uses default models.
+    #[arg(long, default_value = None)]
+    models_at: Option<String>,
+
+    /// Name of the model you want to use. Below is a list of default models.
     /// haiku | sonnet | llama-8b | llama-70b | gpt-4o | gpt-4o-mini
     #[arg(short, long, default_value_t = String::from("llama-70b"))]
     model: String,
@@ -64,9 +69,14 @@ async fn main() {
         // TODO: escape input
         false,  // is_escaped
     ).unwrap();
-    let model = ragit_api::Model::from_str(&args.model).unwrap();
+    let models = if let Some(models_at) = &args.models_at {
+        load_models(models_at).unwrap()
+    } else {
+        Model::default_models()
+    };
+    let model = get_model_by_name(&models, &args.model).unwrap();
     let timeout = match &args.timeout {
-        t if t == "d" => Some(model.api_timeout()),
+        t if t == "d" => Some(model.api_timeout * 1000),
         t if t == "n" => None,
         t => Some(t.parse::<u64>().unwrap()),
     };

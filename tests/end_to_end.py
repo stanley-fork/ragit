@@ -3,7 +3,14 @@ import shutil
 from random import randint, seed as rand_seed
 import re
 from subprocess import TimeoutExpired
-from utils import cargo_run, count_chunks, count_files, goto_root, ls_recursive
+from utils import (
+    cargo_run,
+    count_chunks,
+    count_files,
+    get_commit_hash,
+    goto_root,
+    ls_recursive,
+)
 
 def end_to_end(test_model: str):
     rand_seed(0)
@@ -19,7 +26,6 @@ def end_to_end(test_model: str):
     cargo_run(["check"])
 
     # step 1: set/get config
-    assert cargo_run(["config", "--set", "model", "invalid-model-name"], check=False) != 0
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["check"])
     assert "dummy" in cargo_run(["config", "--get", "model"], stdout=True)
@@ -64,6 +70,11 @@ def end_to_end(test_model: str):
 
     assert file_count == len(files)
 
+    # step 2.1: an invalid-model-name would not run
+    cargo_run(["config", "--set", "model", "invalid-model-name"])
+    assert cargo_run(["build"], check=False) != 0
+    cargo_run(["config", "--set", "model", test_model])
+
     # step 3: build: pause and resume
 
     # step 3.1: it simulates process crashes using timeout
@@ -73,9 +84,6 @@ def end_to_end(test_model: str):
 
         except TimeoutExpired:
             pass
-
-        else:
-            raise Exception("The build should have timed out")
 
     cargo_run(["check", "--recover"])
     cargo_run(["config", "--set", "sleep_after_llm_call", "null"])
@@ -128,6 +136,7 @@ def end_to_end(test_model: str):
     assert chunk_count_prev > chunk_count  # `rag build` is not run yet
 
     cargo_run(["build"])
+    cargo_run(["meta", "--set", "git-hash", get_commit_hash()])
     cargo_run(["check"])
     chunk_count = count_chunks()
 

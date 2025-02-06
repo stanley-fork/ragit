@@ -53,7 +53,22 @@ async fn main() {
                         eprintln!(
                             "{name:?} is not a valid name for a chat model.\n{}",
                             if candidates.is_empty() {
-                                format!("Valid model names are: {}", todo!())
+                                if let Ok(root_dir) = find_root() {
+                                    if let Ok(index) = Index::load(root_dir, LoadMode::OnlyJson) {
+                                        format!(
+                                            "Valid model names are: {:?}",
+                                            index.models.iter().map(|model| &model.name).collect::<Vec<_>>(),
+                                        )
+                                    }
+
+                                    else {
+                                        String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
+                                    }
+                                }
+
+                                else {
+                                    String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
+                                }
                             } else {
                                 format!("Multiple models were matched: {candidates:?}")
                             },

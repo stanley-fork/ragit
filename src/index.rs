@@ -106,9 +106,9 @@ pub struct Index {
     #[serde(skip)]
     pub api_config: ApiConfig,
     #[serde(skip)]
-    prompts: HashMap<String, String>,
+    pub prompts: HashMap<String, String>,
     #[serde(skip)]
-    models: Vec<Model>,
+    pub models: Vec<Model>,
 }
 
 /// 1. If you want to do something with chunks, use `LoadMode::QuickCheck`.

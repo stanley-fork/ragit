@@ -2,6 +2,7 @@ use super::{IntoChatResponse, Response};
 use crate::error::Error;
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 pub struct CohereResponse {
     id: String,
@@ -10,24 +11,28 @@ pub struct CohereResponse {
     usage: CohereUsage,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct CohereMessage {
     role: String,
     content: Vec<CohereContent>,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct CohereUsage {
     billed_units: CohereTokens,
     tokens: CohereTokens,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct CohereContent {
     r#type: String,
     text: String,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct CohereTokens {
     input_tokens: usize,

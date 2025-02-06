@@ -374,7 +374,7 @@ impl Default for Request {
     fn default() -> Self {
         Request {
             messages: vec![],
-            model: (&ModelRaw::llama70b()).try_into().unwrap(),
+            model: (&ModelRaw::llama_70b()).try_into().unwrap(),
             temperature: None,
             frequency_penalty: None,
             max_tokens: None,

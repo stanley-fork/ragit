@@ -2,6 +2,7 @@ use super::{IntoChatResponse, Response};
 use crate::error::Error;
 use serde::Deserialize;
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 pub struct OpenAiResponse {
     id: String,
@@ -12,6 +13,7 @@ pub struct OpenAiResponse {
     usage: OpenAiUsage,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct OpenAiChoice {
     index: usize,
@@ -19,6 +21,7 @@ struct OpenAiChoice {
     finish_reason: String,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct OpenAiUsage {
     prompt_tokens: usize,
@@ -34,6 +37,7 @@ struct OpenAiUsage {
     total_time: f32,
 }
 
+#[allow(dead_code)]
 #[derive(Deserialize)]
 struct OpenAiMessage {
     role: String,
