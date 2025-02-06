@@ -177,7 +177,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let query = parsed_args.get_args_exact(1)?.clone();
-            let query_result = index.uid_query(&args, UidQueryConfig::new().file_or_chunk())?;
+            let query_result = index.uid_query(&args, UidQueryConfig::new())?;
 
             if query_result.has_multiple_matches() {
                 return Err(Error::UidQueryError(format!("There're multiple file/chunk that match `{}`. Please give more specific query.", query[0])));
@@ -222,7 +222,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             else {
-                return Err(Error::UidQueryError(format!("There's no file/chunk that matches `{}`.", query[0])));
+                return Err(Error::UidQueryError(format!("There's no chunk/file/image that matches `{}`.", query[0])));
             }
         },
         Some("check") => {
@@ -487,7 +487,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     &|chunk: &ChunkSchema| chunk.source.sortable_string(),  // sort by source
                 )?
             } else {
-                let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk())?;
+                let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk_only())?;
                 let mut chunks = vec![];
 
                 for uid in query.get_chunk_uids() {
@@ -859,7 +859,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 result
             } else {
-                let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk().no_staged_file())?;
+                let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk_only().no_staged_file())?;
 
                 if query.has_multiple_matches() {
                     return Err(Error::UidQueryError(format!("There're {} chunks/files that match `{}`. Please give more specific query.", query.len(), args.join(" "))));

@@ -715,10 +715,11 @@ impl UidQueryConfig {
         }
     }
 
-    pub fn file_or_chunk(mut self) -> Self {
+    pub fn file_or_chunk_only(mut self) -> Self {
         self.search_chunk = true;
         self.search_file_path = true;
         self.search_file_uid = true;
+        self.search_image = false;
         self
     }
 
