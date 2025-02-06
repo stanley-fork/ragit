@@ -33,6 +33,7 @@ Run `rag add *.txt`. Now you're ready to build the knowledge-base. Run `rag buil
 elapsed time: 00:23
 staged files: 15, processed files: 13
 committed chunks: 1
+currently processing files: `ai_tutorial_14.txt`, `ai_tutorial_21.txt`
 buffered files: 8, buffered chunks: 8
 model: gpt-4o-mini
 input tokens: 2081 (0.000$), output tokens: 327 (0.000$)

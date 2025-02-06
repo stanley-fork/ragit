@@ -46,6 +46,7 @@ impl Index {
                 // clean-up has to be done.
                 self.curr_processing_file = Some(String::new());
 
+                buffer.insert(file.clone(), HashMap::new());
                 worker.send(Request::BuildChunks { file }).map_err(|_| Error::MPSCError(String::from("Build worker hung up")))?;
             }
 
@@ -58,6 +59,7 @@ impl Index {
         loop {
             self.render_build_dashboard(
                 &buffer,
+                &completed_files,
                 started_at.clone(),
                 flush_count,
             )?;
@@ -113,6 +115,7 @@ impl Index {
                             }
 
                             if let Some(file) = staged_files.pop() {
+                                buffer.insert(file.clone(), HashMap::new());
                                 worker.send(Request::BuildChunks { file }).map_err(|_| Error::MPSCError(String::from("Build worker hung up.")))?;
                             }
 
@@ -192,6 +195,7 @@ impl Index {
                 if killed_workers.len() == workers.len() {
                     self.render_build_dashboard(
                         &buffer,
+                        &completed_files,
                         started_at.clone(),
                         flush_count,
                     )?;
@@ -205,18 +209,34 @@ impl Index {
         Ok(())
     }
 
-    // TODO: erase lines instead of the entire screen
     fn render_build_dashboard(
         &self,
         buffer: &HashMap<String, HashMap<usize, Uid>>,
+        completed_files: &[String],
         started_at: std::time::Instant,
         flush_count: usize,
     ) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
         let elapsed_time = std::time::Instant::now().duration_since(started_at).as_secs();
+        let mut curr_processing_files = vec![];
+
+        for file in buffer.keys() {
+            if !completed_files.contains(file) {
+                curr_processing_files.push(format!("`{file}`"));
+            }
+        }
+
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
         println!("committed chunks: {}", self.chunk_count);
+        println!(
+            "currently processing files: {}",
+            if curr_processing_files.is_empty() {
+                String::from("null")
+            } else {
+                curr_processing_files.join(", ")
+            },
+        );
         println!(
             "buffered files: {}, buffered chunks: {}",
             buffer.len(),
