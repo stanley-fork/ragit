@@ -14,6 +14,7 @@ use ragit::{
     ProcessedDoc,
     QueryTurn,
     UidQueryConfig,
+    extract_keywords,
     get_compatibility_warning,
     merge_and_convert_chunks,
     query,
@@ -1142,6 +1143,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
+                .flag_with_default(&["--keyword", "--query"])
                 .optional_arg_flag("--limit", "10", ArgType::Integer)
                 .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
@@ -1152,9 +1154,23 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let json_mode = parsed_args.get_flag(1).is_some();
+            let query_mode = parsed_args.get_flag(2).unwrap_or(String::new()) == "--query";
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let started_at = std::time::Instant::now();
-            let keywords = Keywords::from_raw(parsed_args.get_args());
+            let keywords = if query_mode {
+                let keywords = extract_keywords(&index, &parsed_args.get_args_exact(1)?[0]).await?;
+
+                if keywords.is_empty() {
+                    eprintln!("Warning: failed to extract keywords!");
+                    Keywords::from_raw(parsed_args.get_args())
+                }
+
+                else {
+                    keywords
+                }
+            } else {
+                Keywords::from_raw(parsed_args.get_args())
+            };
             let tokenized_keywords = keywords.tokenize();
             let limit = parsed_args.arg_flags.get("--limit").map(|s| s.to_string()).unwrap().parse::<i64>().unwrap().max(0) as usize;
 

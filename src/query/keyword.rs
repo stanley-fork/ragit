@@ -28,6 +28,10 @@ impl Keywords {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.keywords.is_empty() && self.extra.is_empty()
+    }
+
     /// `keywords` is `weight` times more important than `extrat`.
     pub fn with_weights(&self, weight: f32) -> Vec<(String, f32)> {
         self.keywords.iter().map(
