@@ -10,6 +10,7 @@ def checkout(version: str):
         "0.1.1": "a168d13af967",
         "0.2.0": "a183c071d068",
         "0.2.1": "281a98f41f37",
+        "0.3.0": "529b68fd9ecf",
     }
 
     try:
@@ -34,6 +35,7 @@ def init_knowledge_base():
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["add", "sample0.md", "sample1.md", "sample2.md", "sample3.md", "sample4.md"])
     cargo_run(["build"])
+    cargo_run(["query", "Who is baehyunsol?"])
     cargo_run(["check"])
 
 def migrate():
@@ -72,12 +74,18 @@ def migrate():
     cargo_run(["migrate"])
     cargo_run(["check"])
 
-    # step 6: direct migrate from 0.1.1 to 0.2.1
+    # step 6: 0.2.1 to 0.3.0
+    checkout("0.3.0")
+    cargo_run(["check"])
+    cargo_run(["migrate"])
+    cargo_run(["check"])
+
+    # step 7: direct migrate from 0.1.1 to 0.3.0
     checkout("0.1.1")
     cargo_run(["reset", "--hard"])
     init_knowledge_base()
 
-    checkout('0.2.1')
+    checkout('0.3.0')
     assert cargo_run(["check"], check=False) != 0
     cargo_run(["migrate"])
     cargo_run(["check"])
