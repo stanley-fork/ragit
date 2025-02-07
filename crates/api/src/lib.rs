@@ -1,4 +1,4 @@
-use ragit_fs::read_string;
+use ragit_fs::{WriteMode, read_string, write_string};
 
 mod api_provider;
 mod error;
@@ -12,10 +12,19 @@ mod response;
 pub use crate::api_provider::ApiProvider;
 pub use crate::error::Error;
 pub use crate::json_type::JsonType;
+pub use crate::message::message_contents_to_json_array;
 pub use crate::model::{Model, ModelRaw, get_model_by_name};
 pub use crate::record::RecordAt;
 pub use crate::request::Request;
 pub use crate::response::Response;
+
+pub use ragit_pdl::{
+    ImageType,
+    Message,
+    MessageContent,
+    Role,
+    Schema,
+};
 
 pub fn load_models(json_path: &str) -> Result<Vec<Model>, Error> {
     let models = read_string(json_path)?;
@@ -27,6 +36,15 @@ pub fn load_models(json_path: &str) -> Result<Vec<Model>, Error> {
     }
 
     Ok(result)
+}
+
+pub fn save_models(models: &[Model], path: &str) -> Result<(), Error> {
+    let models: Vec<ModelRaw> = models.iter().map(|model| model.into()).collect();
+    Ok(write_string(
+        path,
+        &serde_json::to_string_pretty(&models)?,
+        WriteMode::CreateOrTruncate,
+    )?)
 }
 
 #[cfg(test)]
