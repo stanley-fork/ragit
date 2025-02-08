@@ -316,11 +316,19 @@ impl Request {
                                     return Ok(result);
                                 },
                                 Err(e) => {
+                                    write_log(
+                                        "Response::from_str",
+                                        &format!("Response::from_str(..) failed with {e:?}"),
+                                    );
                                     curr_error = e;
                                 },
                             }
                         },
                         Err(e) => {
+                            write_log(
+                                "response.text()",
+                                &format!("response.text() failed with {e:?}"),
+                            );
                             curr_error = Error::ReqwestError(e);
                         },
                     },
@@ -347,6 +355,10 @@ impl Request {
                     },
                 },
                 Err(e) => {
+                    write_log(
+                        "request.send().await",
+                        &format!("request.send().await failed with {e:?}"),
+                    );
                     curr_error = Error::ReqwestError(e);
                 },
             }
