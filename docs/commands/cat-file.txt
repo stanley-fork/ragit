@@ -8,13 +8,27 @@ rag-cat-file - Show content of a file or a chunk
 SYNOPSIS
 --------
 [verse]
-'rag cat-file' <uid>
+'rag cat-file' [--json] <uid>
 
 DESCRIPTION
 -----------
-This command dump the contents of a file or a chunk.
+This command dump the contents of a file, a chunk or an image.
 
 It doesn't always dump the exact content of the file, and that's intentional.
 Some file readers modify the file content when chunking in order to give more
-context to LLMs. `cat-file` works by merging chunks and it's not smart enough
-to re-construct the original file.
+context to LLMs. For example, a csv-reader converts a csv file into a jsonl file
+so that each chunk has more context. `cat-file` works by merging chunks and it's
+not smart enough to re-construct the original file.
+
+Also, some chunks have images, and there's no way to dump an image to stdout.
+There are 2 ways that `cat-file` dumps images. If you `cat-file` a chunk or a file,
+then it just dumps the uids of the images. For example, you have a chunk "abcdef" and
+the chunk has an image "123xyz". If you run `rag cat-file abcdef`, the content will have
+"img_123xyz". If you're building a gui on top of ragit, make sure to replace the string
+"img_123xyz" with the actual image.
+
+If you run "rag cat-file 123xyz", it dumps the bytes of the image file to stdout. If you're
+on a terminal, you'll see bunch of unreadable characters. You have to redirect it to another
+application. If it's "rag cat-file 123xyz --json", it dumps the base64 encoding of the bytes.
+
+With `--json` option, it always dumps a json string, whether the uid is a file, a chunk or an image.

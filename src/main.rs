@@ -30,6 +30,7 @@ use ragit_fs::{
     join3,
     read_dir,
 };
+use ragit_pdl::encode_base64;
 use serde_json::{Map, Value};
 use std::env;
 use std::io::Write;
@@ -168,7 +169,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.build(8).await?;
         },
         Some("cat-file") => {
-            let parsed_args = ArgParser::new().args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::Exact(1))
+                .parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/cat-file.txt"));
@@ -178,6 +182,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let query = parsed_args.get_args_exact(1)?.clone();
             let query_result = index.uid_query(&args, UidQueryConfig::new())?;
+            let json_mode = parsed_args.get_flag(0).is_some();
 
             if query_result.has_multiple_matches() {
                 return Err(Error::UidQueryError(format!("There're multiple file/chunk that match `{}`. Please give more specific query.", query[0])));
@@ -185,7 +190,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             else if let Some(uid) = query_result.get_chunk_uid() {
                 let chunk = index.get_chunk_by_uid(uid)?;
-                println!("{}", chunk.data);
+
+                if json_mode {
+                    println!("{:?}", chunk.data);
+                }
+
+                else {
+                    println!("{}", chunk.data);
+                }
             }
 
             else if let Some((_, uid)) = query_result.get_processed_file() {
@@ -204,7 +216,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         // empty file
                     },
                     1 => {
-                        println!("{}", chunks[0].data);
+                        if json_mode {
+                            println!("{:?}", chunks[0].data);
+                        }
+
+                        else {
+                            println!("{}", chunks[0].data);
+                        }
                     },
                     _ => {
                         return Err(Error::BrokenIndex(String::from("Assertion error: `merge_and_convert_chunks` failed to merge chunks of a file. It's likely to be a bug, please open an issue.")));
@@ -218,7 +236,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             else if let Some(image_uid) = query_result.get_image_uid() {
                 let image = index.get_image_schema(image_uid, true)?;
-                std::io::stdout().write_all(&image.bytes)?;
+
+                if json_mode {
+                    println!("{:?}", encode_base64(&image.bytes));
+                }
+
+                else {
+                    std::io::stdout().write_all(&image.bytes)?;
+                }
             }
 
             else {

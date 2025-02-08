@@ -1,3 +1,4 @@
+import json
 from random import random, seed as rand_seed
 import shutil
 from utils import (
@@ -36,7 +37,10 @@ def cat_file():
     cargo_run(["build"])
 
     for file_name, file_content in files.items():
-        assert cargo_run(["cat-file", file_name], stdout=True).strip() == file_content.strip()
+        content = cargo_run(["cat-file", file_name], stdout=True).strip()
+        content_json = json.loads(cargo_run(["cat-file", "--json", file_name], stdout=True)).strip()
+        assert content == file_content.strip()
+        assert content == content_json
 
     # step 2: See if `cat-file` dumps the raw bytes of an image.
     shutil.copyfile("../tests/images/empty.png", "./empty.png")
