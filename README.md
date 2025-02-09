@@ -27,5 +27,6 @@ RAGIT is very different from the other RAG frameworks.
 - [Configuration](./docs/config.md)
 - [Contribution](./docs/contribution.md)
 - [Evaluation](./docs/eval.md)
+- [Pipeline](./docs/pipeline.md)
 - [Prompt Engineering](./docs/prompt_engineering.md)
 - [Quick Guide](./docs/quick_guide.md)

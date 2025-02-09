@@ -10,14 +10,14 @@ use ragit_pdl::{
     escape_pdl_tokens,
     parse_pdl,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Keywords {
     // important keywords and less important keywords
-    keywords: Vec<String>,
-    extra: Vec<String>,
+    pub keywords: Vec<String>,
+    pub extra: Vec<String>,
 }
 
 impl Keywords {

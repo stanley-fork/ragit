@@ -1,0 +1,22 @@
+rag-extract-keywords(1)
+==========
+
+NAME
+----
+rag-extract-keywords - Show content of a file or a chunk
+
+SYNOPSIS
+--------
+[verse]
+'rag extract-keywords' [--full-schema] [--json] <query>
+
+DESCRIPTION
+-----------
+Run `rag help pipeline` to see documents on the pipeline.
+
+It allows you to run step 2 of the pipeline.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+- no flag: `[keyword: string]`
+- `full-schema`: `{ "keywords": [string], "extra": [string] }`
