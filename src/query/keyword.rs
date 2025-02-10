@@ -95,5 +95,5 @@ pub async fn extract_keywords(
         schema,
         schema_max_try: 3,
     };
-    Ok(request.send_and_validate::<Keywords>(Keywords::default()).await?)
+    Ok(request.send_and_validate::<Keywords>(Keywords::from_raw(query.split(" ").map(|k| k.to_string()).collect())).await?)
 }

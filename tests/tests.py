@@ -8,6 +8,7 @@ from csv_reader import csv_reader
 from empty import empty
 from end_to_end import end_to_end
 from external_bases import external_bases
+from extract_keywords import extract_keywords
 from ii import ii
 from images import images
 from images2 import images2
@@ -145,6 +146,9 @@ Commands
                                 NOTE: It uses the vision capability of the model.
                                       Make sure that the model has one.
 
+    extract_keywords [model]    run `extract_keywords` test
+                                It tests whether `rag extract-keywords` command works.
+
     markdown_reader             run `markdown_reader` test
                                 I have found many bugs in `markdown_reader_v0`. The bugs
                                 are reproduced in this test. If you find a new one, please
@@ -245,6 +249,13 @@ if __name__ == "__main__":
 
             images2(test_model=test_model)
 
+        elif command == "extract_keywords":
+            if test_model is None:
+                print("Please specify which model to run the tests with.")
+                sys.exit(1)
+
+            extract_keywords(test_model)
+
         elif command == "markdown_reader":
             markdown_reader()
 
@@ -308,6 +319,9 @@ if __name__ == "__main__":
 
                 # TODO: replace it with haiku when haiku's vision becomes available
                 ("images2 claude-3.5-sonnet", lambda: images2(test_model="claude-3.5-sonnet")),
+
+                ("extract_keywords dummy", lambda: extract_keywords(test_model="dummy")),
+                ("extract_keywords gpt-4o-mini", lambda: extract_keywords(test_model="gpt-4o-mini")),
 
                 # NOTE: dummy, openai and anthropic models are already tested above
                 ("ragit_api llama3.2-11b-groq", lambda: ragit_api(test_model="llama3.2-11b-groq")),
