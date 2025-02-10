@@ -193,7 +193,7 @@ fn update_version_string(root_dir: &Path, new_version: &str) -> Result<(), Error
     write_bytes(
         &index_at,
         &serde_json::to_vec_pretty(&j)?,
-        WriteMode::CreateOrTruncate,
+        WriteMode::Atomic,
     )?;
 
     Ok(())
@@ -274,7 +274,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
     write_bytes(
         &index_at,
         &serde_json::to_vec_pretty(&j)?,
-        WriteMode::CreateOrTruncate,
+        WriteMode::Atomic,
     )?;
     remove_dir_all(
         &join3(
@@ -810,7 +810,7 @@ fn update_configs(root_dir: &str, updates: Vec<ConfigUpdate>) -> Result<(), Erro
         write_bytes(
             &json_at,
             &serde_json::to_vec_pretty(&v)?,
-            WriteMode::CreateOrTruncate,
+            WriteMode::Atomic,
         )?;
     }
 

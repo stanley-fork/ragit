@@ -206,7 +206,7 @@ impl Index {
             write_bytes(
                 &self.get_build_config_path()?,
                 &serde_json::to_vec_pretty(&BuildConfig::default())?,
-                WriteMode::CreateOrTruncate,
+                WriteMode::Atomic,
             )?;
             result.replaced_configs.push(String::from("build"));
         }
@@ -220,7 +220,7 @@ impl Index {
             write_bytes(
                 &self.get_query_config_path()?,
                 &serde_json::to_vec_pretty(&QueryConfig::default())?,
-                WriteMode::CreateOrTruncate,
+                WriteMode::Atomic,
             )?;
             result.replaced_configs.push(String::from("query"));
         }
@@ -237,7 +237,7 @@ impl Index {
             write_bytes(
                 &self.get_api_config_path()?,
                 &serde_json::to_vec_pretty(&ApiConfigRaw::default())?,
-                WriteMode::CreateOrTruncate,
+                WriteMode::Atomic,
             )?;
             result.replaced_configs.push(String::from("api"));
         }

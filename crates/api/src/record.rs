@@ -120,7 +120,7 @@ impl Tracker {
         Ok(write_string(
             path,
             &serde_json::to_string_pretty(&Value::from(self))?,
-            WriteMode::CreateOrTruncate,
+            WriteMode::Atomic,
         )?)
     }
 }

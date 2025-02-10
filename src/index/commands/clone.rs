@@ -73,7 +73,7 @@ impl Index {
                 "index.json",
             )?,
             &index_json,
-            WriteMode::CreateOrTruncate,
+            WriteMode::Atomic,
         )?;
         let mut index = Index::load(repo_name.clone(), LoadMode::Minimum)?;
 

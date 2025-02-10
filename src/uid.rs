@@ -87,7 +87,7 @@ pub fn save_to_file(
     Ok(write_string(
         path,
         &uids.iter().map(|uid| uid.to_string()).collect::<Vec<_>>().join("\n"),
-        WriteMode::CreateOrTruncate,
+        WriteMode::Atomic,
     )?)
 }
 

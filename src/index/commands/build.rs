@@ -338,7 +338,7 @@ async fn event_loop(
                         write_bytes(
                             &image_path,
                             &bytes,
-                            WriteMode::CreateOrTruncate,
+                            WriteMode::Atomic,
                         )?;
                         index.add_image_description(*uid).await?;
                     }

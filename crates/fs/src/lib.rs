@@ -21,11 +21,18 @@ use std::str::FromStr;
 ///    CoT      Truncate                Create
 ///     AC        Dies                  Create
 /// ```
+///
+/// `Atomic` is like `CreateOrTruncate`, but it tries to be more atomic.
+/// It first creates a tmp file with a different name, then renames the tmp file.
+/// If it fails, it might leave a tmp file. But you'll never have a partially
+/// written file.
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum WriteMode {
     AlwaysAppend,
     AppendOrCreate,
     CreateOrTruncate,
     AlwaysCreate,
+    Atomic,
 }
 
 impl From<WriteMode> for OpenOptions {
@@ -35,7 +42,7 @@ impl From<WriteMode> for OpenOptions {
         match m {
             WriteMode::AlwaysAppend => { result.append(true); },
             WriteMode::AppendOrCreate => { result.append(true).create(true); },
-            WriteMode::CreateOrTruncate => { result.write(true).truncate(true).create(true); },
+            WriteMode::CreateOrTruncate | WriteMode::Atomic => { result.write(true).truncate(true).create(true); },
             WriteMode::AlwaysCreate => { result.write(true).create_new(true); },
         }
 
@@ -86,12 +93,37 @@ pub fn read_string(path: &str) -> Result<String, FileError> {
 pub fn write_bytes(path: &str, bytes: &[u8], write_mode: WriteMode) -> Result<(), FileError> {
     let option: OpenOptions = write_mode.into();
 
-    match option.open(path) {
-        Ok(mut f) => match f.write_all(bytes) {
-            Ok(_) => Ok(()),
+    if let WriteMode::Atomic = write_mode {
+        let mut tmp_path = format!("{path}~");
+
+        while exists(&tmp_path) {
+            tmp_path = format!("{tmp_path}~");
+        }
+
+        match option.open(&tmp_path) {
+            Ok(mut f) => match f.write_all(bytes) {
+                Ok(_) => match rename(&tmp_path, path) {
+                    Ok(_) => Ok(()),
+                    Err(e) => {
+                        remove_file(&tmp_path)?;
+                        Err(e)
+                    },
+                },
+                Err(e) => {
+                    remove_file(&tmp_path)?;
+                    Err(FileError::from_std(e, path))
+                },
+            },
             Err(e) => Err(FileError::from_std(e, path)),
-        },
-        Err(e) => Err(FileError::from_std(e, path)),
+        }
+    } else {
+        match option.open(path) {
+            Ok(mut f) => match f.write_all(bytes) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(FileError::from_std(e, path)),
+            },
+            Err(e) => Err(FileError::from_std(e, path)),
+        }
     }
 }
 

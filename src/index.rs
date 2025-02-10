@@ -285,7 +285,7 @@ impl Index {
                 &INDEX_FILE_NAME.to_string(),
             )?,
             &serde_json::to_vec_pretty(self)?,
-            WriteMode::CreateOrTruncate,
+            WriteMode::Atomic,
         )?)
     }
 
@@ -464,7 +464,7 @@ impl Index {
         write_bytes(
             &description_path,
             &serde_json::to_vec_pretty(&result)?,
-            WriteMode::AlwaysCreate,
+            WriteMode::Atomic,
         )?;
 
         Ok(())
@@ -759,7 +759,7 @@ impl Index {
             write_string(
                 &prompt_path,
                 prompt,
-                WriteMode::CreateOrTruncate,
+                WriteMode::Atomic,
             )?;
         }
 
@@ -777,7 +777,7 @@ impl Index {
             write_string(
                 &models_at,
                 &serde_json::to_string_pretty(&default_models)?,
-                WriteMode::CreateOrTruncate,
+                WriteMode::Atomic,
             )?;
         }
 

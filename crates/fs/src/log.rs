@@ -46,7 +46,7 @@ pub fn initialize_log_file(path: &str, remove_existing_file: bool) -> Result<(),
             }
         }
 
-        write_string(path, "", WriteMode::CreateOrTruncate)?;
+        write_string(path, "", WriteMode::Atomic)?;
     }
 
     Ok(())
