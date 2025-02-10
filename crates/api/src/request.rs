@@ -176,8 +176,38 @@ impl Request {
 
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub async fn send(&self) -> Result<Response, Error> {
+        let started_at = Instant::now();
+        let client = reqwest::Client::new();
+        let mut curr_error = Error::NoTry;
+
+        let post_url = self.model.get_api_url();
+        let body = self.build_json_body();
+
+        if let Err(e) = self.dump_json(&body, "request") {
+            write_log(
+                "dump_json",
+                &format!("dump_json(\"request\", ..) failed with {e:?}"),
+            );
+        }
+
         if let ApiProvider::Test(test_model) = &self.model.api_provider {
             let response = test_model.get_dummy_response(&self.messages);
+
+            if let Some(key) = &self.record_api_usage_at {
+                if let Err(e) = record_api_usage(
+                    key,
+                    0,
+                    0,
+                    self.model.dollars_per_1b_input_tokens,
+                    self.model.dollars_per_1b_output_tokens,
+                    false,
+                ) {
+                    write_log(
+                        "record_api_usage",
+                        &format!("record_api_usage({key:?}, ..) failed with {e:?}"),
+                    );
+                }
+            }
 
             if let Some(path) = &self.dump_pdl_at {
                 if let Err(e) = dump_pdl(
@@ -198,20 +228,6 @@ impl Request {
             }
 
             return Ok(Response::dummy(response));
-        }
-
-        let started_at = Instant::now();
-        let client = reqwest::Client::new();
-        let mut curr_error = Error::NoTry;
-
-        let post_url = self.model.get_api_url();
-        let body = self.build_json_body();
-
-        if let Err(e) = self.dump_json(&body, "request") {
-            write_log(
-                "dump_json",
-                &format!("dump_json(\"request\", ..) failed with {e:?}"),
-            );
         }
 
         let body = serde_json::to_string(&body)?;

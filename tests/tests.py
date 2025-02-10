@@ -13,6 +13,7 @@ from images import images
 from images2 import images2
 from ls import ls
 from many_chunks import many_chunks
+from many_jobs import many_jobs
 from markdown_reader import markdown_reader
 from merge import merge
 from meta import meta
@@ -111,6 +112,13 @@ Commands
                                 handle the files correctly. It also tests interrupting
                                 `rag build`.
 
+    many_jobs [model=dummy] [jobs=999]
+                                run `many_jobs` test
+                                `rag build` by default runs with many processes, and a
+                                multi-process program may introduce many unexpected bugs.
+                                It runs `rag build` with many processes and see if it works.
+                                You'd better run it on a machine with many cores.
+
     ls                          run `ls` test
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
@@ -206,6 +214,11 @@ if __name__ == "__main__":
         elif command == "many_chunks":
             many_chunks()
 
+        elif command == "many_jobs":
+            jobs = args[3] if len(args) > 3 else 999
+            model = test_model if test_model else "dummy"
+            many_jobs(model, jobs)
+
         elif command == "ls":
             ls()
 
@@ -272,6 +285,7 @@ if __name__ == "__main__":
                 ("clone2", clone2),
                 ("cli", cli),
                 ("many_chunks", many_chunks),
+                ("many_jobs", many_jobs),
                 ("ls", ls),
                 ("meta", meta),
                 ("ii", ii),
