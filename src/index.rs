@@ -4,7 +4,7 @@ use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME};
 use crate::error::Error;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
 use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
-use crate::uid::{self, Uid};
+use crate::uid::{self, Uid, UidWriteMode};
 use ragit_api::{
     Model,
     ModelRaw,
@@ -817,7 +817,7 @@ impl Index {
             create_dir_all(&parent_path)?;
         }
 
-        uid::save_to_file(&file_index_path, uids)
+        uid::save_to_file(&file_index_path, uids, UidWriteMode::Naive)
     }
 
     fn remove_file_index(&mut self, file_uid: Uid) -> Result<(), Error> {

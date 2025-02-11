@@ -8,7 +8,7 @@
 use super::{II_DIR_NAME, Index};
 use crate::INDEX_DIR_NAME;
 use crate::error::Error;
-use crate::uid::{self, Uid};
+use crate::uid::{self, Uid, UidWriteMode};
 use ragit_fs::{
     create_dir_all,
     exists,
@@ -300,7 +300,7 @@ impl Index {
                 uids
             };
 
-            uid::save_to_file(&ii_path, &uids)?;
+            uid::save_to_file(&ii_path, &uids, UidWriteMode::Compact)?;
         }
 
         Ok(())

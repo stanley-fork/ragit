@@ -21,7 +21,7 @@ pub enum Error {
     NoSuchChunk(Uid),
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
     NoSuchMeta(String),
-    CorruptedFile(Path),
+    CorruptedFile { path: Path, message: Option<String> },
     CliError {
         message: String,
         span: (String, usize, usize),  // (args, error_from, error_to)
@@ -46,6 +46,7 @@ pub enum Error {
     },
     MergeConflict(Uid),
     MPSCError(String),
+    CannotDeserializeUid,
 
     /// If a user sees this error, that's a bug in ragit.
     Internal(String),

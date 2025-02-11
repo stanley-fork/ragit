@@ -8,7 +8,7 @@ use crate::index::{
     INDEX_DIR_NAME,
     tfidf,
 };
-use crate::uid::{self, Uid, UidType};
+use crate::uid::{self, Uid, UidType, UidWriteMode};
 use ragit_fs::{
     WriteMode,
     create_dir_all,
@@ -186,6 +186,7 @@ impl Index {
             uid::save_to_file(
                 &file_index_path,
                 &chunks.iter().map(|(uid, _)| *uid).collect::<Vec<_>>(),
+                UidWriteMode::Naive,
             )?;
         }
 
