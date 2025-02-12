@@ -129,7 +129,7 @@ pub fn get_chunk_list_all(user: String, repo: String) -> Box<dyn Reply> {
     ).unwrap_or(String::new());
     let mut result = vec![];
 
-    for prefix in 0..255 {
+    for prefix in 0..256 {
         let prefix = format!("{prefix:02x}");
         let chunks_at = join(
             &chunk_parents,
