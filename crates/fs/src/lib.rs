@@ -94,11 +94,9 @@ pub fn write_bytes(path: &str, bytes: &[u8], write_mode: WriteMode) -> Result<()
     let option: OpenOptions = write_mode.into();
 
     if let WriteMode::Atomic = write_mode {
-        let mut tmp_path = format!("{path}~");
-
-        while exists(&tmp_path) {
-            tmp_path = format!("{tmp_path}~");
-        }
+        // it has to create a unique name in extreme cases (e.g. 1k processes trying to write the same file)
+        // I cannot come up with better idea than this
+        let tmp_path = format!("{path}_tmp__{:x}", rand::random::<u64>());
 
         match option.open(&tmp_path) {
             Ok(mut f) => match f.write_all(bytes) {
