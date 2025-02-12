@@ -2,7 +2,13 @@ import os
 import shutil
 import subprocess
 import time
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    rand_word,
+    write_string,
+)
 
 def clone():
     goto_root()
@@ -16,6 +22,7 @@ def clone():
     os.chdir("base")
 
     # step 1: create a local knowledge-base
+    #         base 1: a small base with 3 markdown files and an image
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
     write_string("sample1.txt", "Will AIs replace me?")
@@ -31,6 +38,26 @@ def clone():
     # we have to push it manually
     shutil.copytree(".ragit", "../../crates/server/data/test-user/repo1/.ragit")
 
+    # step 3: create another local knowledge-base
+    #         base 2: a larger base with 8k markdown files
+    cargo_run(["reset", "--hard"])
+    cargo_run(["init"])
+    cargo_run(["config", "--set", "model", "dummy"])
+    files = []
+
+    for i in range(8000):
+        write_string(f"{i}.txt", " ".join([rand_word() for _ in range(20)]))
+        files.append(f"{i}.txt")
+
+    cargo_run(["add", *files])
+    cargo_run(["build"])
+    cargo_run(["check"])
+
+    # step 4: push the local knowledge-base to the server
+    # sadly, `rag push` is not implemented yet
+    # we have to push it manually
+    shutil.copytree(".ragit", "../../crates/server/data/test-user/repo2/.ragit")
+
     # let's wait until `ragit-server` is compiled
     for _ in range(300):
         path1 = "../../crates/server/target/release/ragit-server"
@@ -45,13 +72,20 @@ def clone():
     else:
         raise Exception("failed to compile `ragit-server`")
 
-    # step 3: clone and check
+    # step 5: clone and check base 1
     os.chdir("..")
     cargo_run(["clone", "http://127.0.0.1/test-user/repo1"])
-    server_process.kill()
     os.chdir("repo1")
     cargo_run(["check"])
     assert "sample1.txt" not in cargo_run(["tfidf", "개발자"], stdout=True)
     assert "sample2.txt" in cargo_run(["tfidf", "개발자"], stdout=True)
     assert "sample1.txt" in cargo_run(["tfidf", "replace"], stdout=True)
     assert "sample2.txt" not in cargo_run(["tfidf", "replace"], stdout=True)
+
+    # step 6: clone and check base 2
+    os.chdir("..")
+    cargo_run(["clone", "http://127.0.0.1/test-user/repo2"])
+    os.chdir("repo2")
+    cargo_run(["check"])
+
+    server_process.kill()
