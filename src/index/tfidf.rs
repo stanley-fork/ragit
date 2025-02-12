@@ -314,7 +314,7 @@ impl Chunk {
 
             let rep_text = match serde_json::from_str::<Value>(&j)? {
                 Value::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
-                    (Some(e1), Some(e2)) => format!("<img>{e1}{e2}</img>"),
+                    (Some(e1), Some(e2)) => format!("<img> {e1} {e2} </img>"),
                     _ => {
                         return Err(Error::BrokenIndex(format!("schema error at {image}.json")));
                     },
