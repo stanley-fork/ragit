@@ -220,8 +220,8 @@ if __name__ == "__main__":
 
         elif command == "many_jobs":
             jobs = args[3] if len(args) > 3 else 999
-            model = test_model if test_model else "dummy"
-            many_jobs(model, jobs)
+            test_model = test_model if test_model else "dummy"
+            many_jobs(test_model=test_model, jobs=jobs)
 
         elif command == "ls":
             ls()
@@ -254,7 +254,7 @@ if __name__ == "__main__":
                 print("Please specify which model to run the tests with.")
                 sys.exit(1)
 
-            extract_keywords(test_model)
+            extract_keywords(test_model=test_model)
 
         elif command == "markdown_reader":
             markdown_reader()
@@ -326,7 +326,7 @@ if __name__ == "__main__":
                 # NOTE: dummy, openai and anthropic models are already tested above
                 ("ragit_api llama3.2-11b-groq", lambda: ragit_api(test_model="llama3.2-11b-groq")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
-                ("ragit_api phi-3-14b-ollama", lambda: ragit_api(test_model="phi-3-14b-ollama")),
+                ("ragit_api phi-4-14b-ollama", lambda: ragit_api(test_model="phi-4-14b-ollama")),
                 ("migrate", migrate),
             ]
             started_at = datetime.now()

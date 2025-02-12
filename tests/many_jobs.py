@@ -2,6 +2,7 @@ import os
 from random import randint
 import shutil
 from subprocess import TimeoutExpired
+from typing import Optional
 from utils import (
     cargo_run,
     goto_root,
@@ -9,7 +10,16 @@ from utils import (
     mk_and_cd_tmp_dir,
 )
 
-def many_jobs(model: str = "dummy", jobs: int = 999):
+def many_jobs(test_model: str = "dummy", jobs: Optional[int] = None):
+    if jobs is None:
+        # 999 jobs destroys my CI runner
+        if os.cpu_count() is None or os.cpu_count() < 4:
+            jobs = 4
+
+        # kinda stress test
+        else:
+            jobs = 999
+
     goto_root()
     mk_and_cd_tmp_dir()
     shutil.copytree("../src", "src")
@@ -20,7 +30,7 @@ def many_jobs(model: str = "dummy", jobs: int = 999):
 
     cargo_run(["init"])
     cargo_run(["add", *ls_recursive("rs")])
-    cargo_run(["config", "--set", "model", model])
+    cargo_run(["config", "--set", "model", test_model])
     cargo_run(["config", "--set", "chunk_size", "512"])
     cargo_run(["config", "--set", "slide_len", "128"])
 
