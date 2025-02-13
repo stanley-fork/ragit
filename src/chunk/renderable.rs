@@ -23,7 +23,7 @@ impl Chunk {
         for image in self.images.iter() {
             data = data.replace(
                 &format!("img_{image}"),
-                &format!("<|raw_media(png:{})|>", encode_base64(&index.load_image_by_uid(*image)?)),
+                &format!("<|raw_media(png:{})|>", encode_base64(&index.get_image_bytes_by_uid(*image)?)),
             );
         }
 

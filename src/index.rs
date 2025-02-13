@@ -870,7 +870,14 @@ impl Index {
         Ok(result.into_iter().collect())
     }
 
-    pub fn load_image_by_uid(&self, uid: Uid) -> Result<Vec<u8>, Error> {
+    pub fn get_image_bytes_by_uid(&self, uid: Uid) -> Result<Vec<u8>, Error> {
         Ok(read_bytes(&Index::get_uid_path(&self.root_dir, IMAGE_DIR_NAME, uid, Some("png"))?)?)
+    }
+
+    // TODO: test this function
+    pub fn get_image_description_by_uid(&self, uid: Uid) -> Result<ImageDescription, Error> {
+        let j = read_string(&Index::get_uid_path(&self.root_dir, IMAGE_DIR_NAME, uid, Some("json"))?)?;
+        let v = serde_json::from_str::<ImageDescription>(&j)?;
+        Ok(v)
     }
 }
