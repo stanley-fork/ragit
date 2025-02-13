@@ -19,22 +19,17 @@ use ragit_fs::{
 };
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
 impl Index {
     // TODO: it has to kill all the workers when there's an error. let's just write a wrapper
     pub async fn build(&mut self, workers: usize) -> Result<(), Error> {
-        let mut workers = init_workers(workers, self.root_dir.clone());
-        let mut killed_workers = vec![];
-        let mut staged_files = self.staged_files.clone();
-        let mut completed_files = vec![];
-        let mut buffered_chunk_count = 0;
-        let mut flush_count = 0;
         let mut remaining_chunks = 0;
-        let started_at = std::time::Instant::now();
+        let started_at = Instant::now();
         println!("counting chunks...");
 
-        for file in staged_files.iter() {
+        for file in self.staged_files.iter() {
             let real_path = Index::get_data_path(
                 &self.root_dir,
                 file,
@@ -46,6 +41,32 @@ impl Index {
                 fd.next_chunk()?;
             }
         }
+
+        let mut workers = init_workers(workers, self.root_dir.clone());
+
+        match self.build_worker(&mut workers, remaining_chunks, started_at) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                for worker in workers.iter_mut() {
+                    let _ = worker.send(Request::Kill);
+                }
+
+                Err(e)
+            },
+        }
+    }
+
+    fn build_worker(
+        &mut self,
+        workers: &mut Vec<Channel>,
+        mut remaining_chunks: usize,
+        started_at: Instant,
+    ) -> Result<(), Error> {
+        let mut killed_workers = vec![];
+        let mut staged_files = self.staged_files.clone();
+        let mut completed_files = vec![];
+        let mut buffered_chunk_count = 0;
+        let mut flush_count = 0;
 
         // HashMap<file, HashMap<index in file, chunk uid>>
         let mut buffer: HashMap<String, HashMap<usize, Uid>> = HashMap::new();
@@ -221,7 +242,7 @@ impl Index {
                 }
             }
 
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::thread::sleep(Duration::from_millis(100));
         }
 
         Ok(())
@@ -231,12 +252,12 @@ impl Index {
         &self,
         buffer: &HashMap<String, HashMap<usize, Uid>>,
         completed_files: &[String],
-        started_at: std::time::Instant,
+        started_at: Instant,
         flush_count: usize,
         remaining_chunks: usize,
     ) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
-        let elapsed_time = std::time::Instant::now().duration_since(started_at).as_secs();
+        let elapsed_time = Instant::now().duration_since(started_at).as_secs();
         let mut curr_processing_files = vec![];
 
         for file in buffer.keys() {
