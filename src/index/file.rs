@@ -76,15 +76,9 @@ impl FileReader {
         !self.buffer.is_empty() || self.inner.has_more_to_read()
     }
 
-    pub async fn generate_chunk(
-        &mut self,
-        index: &Index,
-        build_info: ChunkBuildInfo,
-        previous_turn: Option<(Chunk, ChunkSchema)>,
-
-        // index IN a file, not OF a file
-        file_index: usize,
-    ) -> Result<Chunk, Error> {
+    /// It moves the cursor and generates `Vec<AtomicToken>` for the next chunk.
+    /// It also collects images in the next chunk.
+    pub fn next_chunk(&mut self) -> Result<Vec<AtomicToken>, Error> {
         self.fill_buffer_until_chunks(2)?;
 
         // prevent creating too small chunk
@@ -139,11 +133,22 @@ impl FileReader {
             }
         }
 
+        Ok(tokens)
+    }
+
+    pub async fn generate_chunk(
+        &mut self,
+        index: &Index,
+        build_info: ChunkBuildInfo,
+        previous_turn: Option<(Chunk, ChunkSchema)>,
+        index_in_file: usize,
+    ) -> Result<Chunk, Error> {
+        let tokens = self.next_chunk()?;
         let chunk = Chunk::create_chunk_from(
             index,
             &tokens,
             self.rel_path.clone(),
-            file_index,
+            index_in_file,
             build_info,
             previous_turn,
         ).await;

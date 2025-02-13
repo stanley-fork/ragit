@@ -30,7 +30,22 @@ impl Index {
         let mut completed_files = vec![];
         let mut buffered_chunk_count = 0;
         let mut flush_count = 0;
+        let mut remaining_chunks = 0;
         let started_at = std::time::Instant::now();
+        println!("counting chunks...");
+
+        for file in staged_files.iter() {
+            let real_path = Index::get_data_path(
+                &self.root_dir,
+                file,
+            )?;
+            let mut fd = FileReader::new(file.to_string(), real_path, self.build_config.clone())?;
+
+            while fd.can_generate_chunk() {
+                remaining_chunks += 1;
+                fd.next_chunk()?;
+            }
+        }
 
         // HashMap<file, HashMap<index in file, chunk uid>>
         let mut buffer: HashMap<String, HashMap<usize, Uid>> = HashMap::new();
@@ -62,6 +77,7 @@ impl Index {
                 &completed_files,
                 started_at.clone(),
                 flush_count,
+                remaining_chunks,
             )?;
 
             for (worker_index, worker) in workers.iter_mut().enumerate() {
@@ -73,6 +89,7 @@ impl Index {
                     Ok(msg) => match msg {
                         Response::ChunkComplete { file, chunk_uid, index } => {
                             buffered_chunk_count += 1;
+                            remaining_chunks -= 1;
 
                             match buffer.get_mut(&file) {
                                 Some(chunks) => {
@@ -198,6 +215,7 @@ impl Index {
                         &completed_files,
                         started_at.clone(),
                         flush_count,
+                        remaining_chunks,
                     )?;
                     break;
                 }
@@ -215,6 +233,7 @@ impl Index {
         completed_files: &[String],
         started_at: std::time::Instant,
         flush_count: usize,
+        remaining_chunks: usize,
     ) -> Result<(), Error> {
         clearscreen::clear().expect("failed to clear screen");
         let elapsed_time = std::time::Instant::now().duration_since(started_at).as_secs();
@@ -228,6 +247,7 @@ impl Index {
 
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
+        println!("remaining chunks (approx): {remaining_chunks}");
         println!("committed chunks: {}", self.chunk_count);
         println!(
             "currently processing files: {}",
