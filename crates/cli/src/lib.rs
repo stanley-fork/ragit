@@ -86,6 +86,7 @@ impl ArgParser {
 
         if raw_args.get(0).map(|arg| arg.as_str()) == Some("--help") {
             return Ok(ParsedArgs {
+                raw_args: raw_args.to_vec(),
                 args,
                 flags: vec![],
                 arg_flags,
@@ -234,6 +235,7 @@ impl ArgParser {
         }
 
         Ok(ParsedArgs {
+            raw_args: raw_args.to_vec(),
             args,
             flags,
             arg_flags,
@@ -285,6 +287,7 @@ pub struct Flag {
 }
 
 pub struct ParsedArgs {
+    raw_args: Vec<String>,
     args: Vec<String>,
     flags: Vec<Option<String>>,
     pub arg_flags: HashMap<String, String>,
@@ -303,7 +306,7 @@ impl ParsedArgs {
 
         else {
             Err(Error {
-                span: Span::FirstArg,
+                span: Span::FirstArg.render(&self.raw_args),
                 kind: ErrorKind::WrongArgCount {
                     expected: ArgCount::Exact(count),
                     got: self.args.len(),
