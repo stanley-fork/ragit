@@ -23,7 +23,6 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
 impl Index {
-    // TODO: it has to kill all the workers when there's an error. let's just write a wrapper
     pub async fn build(&mut self, workers: usize) -> Result<(), Error> {
         let mut remaining_chunks = 0;
         let started_at = Instant::now();
