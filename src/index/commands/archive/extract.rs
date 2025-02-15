@@ -4,6 +4,7 @@ use crate::chunk::{self, Chunk};
 use crate::error::Error;
 use crate::index::{
     CHUNK_DIR_NAME,
+    CONFIG_DIR_NAME,
     ImageDescription,
     IMAGE_DIR_NAME,
     Index,
@@ -11,17 +12,21 @@ use crate::index::{
     LoadMode,
     METADATA_FILE_NAME,
 };
+use crate::prompts::PROMPT_DIR;
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
     exists,
     file_size,
     join3,
+    join4,
     parent,
     read_bytes_offset,
     remove_dir_all,
+    set_extension,
     try_create_dir,
     write_bytes,
+    write_string,
 };
 use ragit_pdl::decode_base64;
 use serde_json::Value;
@@ -264,7 +269,38 @@ fn event_loop(
                             WriteMode::CreateOrTruncate,
                         )?;
                     },
-                    _ => todo!(),
+                    BlockType::Prompt => {
+                        let prompts = serde_json::from_slice::<HashMap<String, String>>(&bytes)?;
+
+                        for (name, pdl) in prompts.iter() {
+                            write_string(
+                                &join4(
+                                    &root_dir,
+                                    INDEX_DIR_NAME,
+                                    PROMPT_DIR,
+                                    &set_extension(name, "pdl")?,
+                                )?,
+                                pdl,
+                                WriteMode::CreateOrTruncate,
+                            )?;
+                        }
+                    },
+                    BlockType::Config => {
+                        let configs = serde_json::from_slice::<HashMap<String, Value>>(&bytes)?;
+
+                        for (name, config) in configs.iter() {
+                            write_bytes(
+                                &join4(
+                                    &root_dir,
+                                    INDEX_DIR_NAME,
+                                    CONFIG_DIR_NAME,
+                                    &set_extension(name, "json")?,
+                                )?,
+                                &serde_json::to_vec_pretty(config)?,
+                                WriteMode::CreateOrTruncate,
+                            )?;
+                        }
+                    },
                 }
             },
             // mpsc is fifo, right?

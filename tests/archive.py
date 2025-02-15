@@ -11,6 +11,7 @@ from utils import (
     goto_root,
     mk_and_cd_tmp_dir,
     rand_word,
+    read_string,
     write_string,
 )
 
@@ -60,17 +61,27 @@ def archive_worker():
         "images": count_images(),
     }
     old_meta = json.loads(cargo_run(["meta", "--get-all", "--json"], stdout=True))
-    cargo_run(["archive-create", "--output=../single.rag-archive"])
-    cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive"])
-    cargo_run(["archive-create", "--size-limit=1", "--output=../small-size.rag-archive"])
+    old_chunk_size = eval(cargo_run(["config", "--get", "chunk_size"], stdout=True))
+    new_chunk_size = old_chunk_size + 1
+    cargo_run(["config", "--set", "chunk_size", str(new_chunk_size)])
+    old_prompt = read_string(".ragit/prompts/raw.pdl")
+    new_prompt = "this is the new prompt"
+    write_string(".ragit/prompts/raw.pdl", new_prompt)
 
     # TODO: archive with more jobs
-    # TODO: 1) modify a prompt, 2) archive with prompt, 3) restore the prompt, 4) check if the modified prompt is archived
-    # TODO: archive configs
+    cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["archive-create", "--size-limit=1", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["archive-create", "--output=../configs.rag-archive", "--no-prompts", "--configs"])
+    cargo_run(["archive-create", "--output=../prompts.rag-archive", "--prompts", "--no-configs"])
 
     os.chdir("..")
     cargo_run(["archive-extract", "--output=single-archive", "single.rag-archive"])
+    cargo_run(["archive-extract", "--output=configs-archive", "configs.rag-archive"])
+    cargo_run(["archive-extract", "--output=prompts-archive", "prompts.rag-archive"])
     os.remove("single.rag-archive")
+    os.remove("configs.rag-archive")
+    os.remove("prompts.rag-archive")
     splitted_archives = [a for a in os.listdir() if a.startswith("splitted.rag-archive")]
     small_archives = [a for a in os.listdir() if a.startswith("small-size.rag-archive")]
     cargo_run(["archive-extract", "--output=splitted-archive", *splitted_archives])
@@ -80,12 +91,14 @@ def archive_worker():
         os.remove(a)
 
     extracted_archives = [
-        "single-archive",
-        "splitted-archive",
-        "small-archive",
+        ("single-archive", old_chunk_size, old_prompt),
+        ("splitted-archive", old_chunk_size, old_prompt),
+        ("small-archive", old_chunk_size, old_prompt),
+        ("configs-archive", new_chunk_size, old_prompt),
+        ("prompts-archive", old_chunk_size, new_prompt),
     ]
 
-    for archive in extracted_archives:
+    for (archive, chunk_size, prompt) in extracted_archives:
         os.chdir(archive)
         cargo_run(["check"])
         new_info = {
@@ -94,12 +107,20 @@ def archive_worker():
             "images": count_images(),
         }
         new_meta = json.loads(cargo_run(["meta", "--get-all", "--json"], stdout=True))
+        chunk_size_ = eval(cargo_run(["config", "--get", "chunk_size"], stdout=True))
+        prompt_ = read_string(".ragit/prompts/raw.pdl")
 
         if old_info != new_info:
             raise ValueError(f"old_info: {old_info}, new_info: {new_info}")
 
         if old_meta != new_meta:
             raise ValueError(f"old_meta: {old_meta}, new_meta: {new_meta}")
+
+        if chunk_size != chunk_size_:
+            raise ValueError(f"expected: {chunk_size}, got: {chunk_size_}")
+
+        if prompt != prompt_:
+            raise ValueError(f"expected: {prompt}, got: {prompt_}")
 
         os.chdir("..")
         shutil.rmtree(archive)

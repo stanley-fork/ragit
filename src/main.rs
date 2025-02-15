@@ -177,7 +177,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let size_limit = if size_limit == 0 { None } else { Some(size_limit) };
             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
-            let include_prompts = parsed_args.get_flag(0).unwrap() == "--prompts";
+            let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
             index.create_archive(
                 jobs,
                 size_limit,

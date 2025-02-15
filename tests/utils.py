@@ -31,6 +31,10 @@ def mk_and_cd_tmp_dir():
     os.mkdir(dir_name)
     os.chdir(dir_name)
 
+def read_string(path: str) -> str:
+    with open(path, "r") as f:
+        return f.read()
+
 def write_string(path: str, content: str):
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
