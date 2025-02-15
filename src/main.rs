@@ -215,8 +215,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
+            let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            index.build(8).await?;
+            index.build(jobs).await?;
         },
         Some("cat-file") => {
             let parsed_args = ArgParser::new()
