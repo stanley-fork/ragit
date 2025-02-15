@@ -8,20 +8,19 @@ use crate::index::{
     IMAGE_DIR_NAME,
     Index,
     INDEX_FILE_NAME,
+    LoadMode,
     METADATA_FILE_NAME,
 };
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
-    create_dir,
-    create_dir_all,
     exists,
     file_size,
-    join,
     join3,
     parent,
     read_bytes_offset,
-    remove_dir,
+    remove_dir_all,
+    try_create_dir,
     write_bytes,
 };
 use ragit_pdl::decode_base64;
@@ -42,22 +41,9 @@ impl Index {
         }
 
         let workers = init_workers(workers, root_dir);
-        create_dir_all(&join(
-            root_dir,
-            INDEX_DIR_NAME,
-        )?)?;
-        create_dir(&join3(
-            root_dir,
-            INDEX_DIR_NAME,
-            CHUNK_DIR_NAME,
-        )?)?;
-        create_dir(&join3(
-            root_dir,
-            INDEX_DIR_NAME,
-            IMAGE_DIR_NAME,
-        )?)?;
 
         match Index::extract_archive_worker(
+            root_dir,
             archives,
             &workers,
         ) {
@@ -68,7 +54,7 @@ impl Index {
                 }
 
                 if exists(root_dir) {
-                    remove_dir(root_dir)?;
+                    remove_dir_all(root_dir)?;
                 }
 
                 Err(e)
@@ -77,10 +63,12 @@ impl Index {
     }
 
     fn extract_archive_worker(
+        root_dir: &str,
         archives: Vec<String>,
         workers: &[Channel],
     ) -> Result<(), Error> {
         let mut round_robin = 0;
+        Index::new(root_dir.to_string())?;
 
         for archive in archives.iter() {
             let archive_size = file_size(archive)?;
@@ -147,6 +135,10 @@ impl Index {
             thread::sleep(Duration::from_millis(100));
         }
 
+        // it creates file indexes and tfidfs
+        let mut index = Index::load(root_dir.to_string(), LoadMode::Minimum)?;
+        index.recover()?;
+
         Ok(())
     }
 }
@@ -185,7 +177,7 @@ fn event_loop(
                                 INDEX_FILE_NAME,
                             )?,
                             &index,
-                            WriteMode::AlwaysCreate,
+                            WriteMode::CreateOrTruncate,
                         )?;
                     },
                     BlockType::Chunk => {
@@ -200,7 +192,7 @@ fn event_loop(
                             )?;
 
                             if !exists(&parent(&chunk_at)?) {
-                                create_dir(&parent(&chunk_at)?)?;
+                                try_create_dir(&parent(&chunk_at)?)?;
                             }
 
                             chunk::save_to_file(
@@ -209,6 +201,7 @@ fn event_loop(
                                 0,
                                 3,
                                 &root_dir,
+                                false,  // create tfidf
                             )?;
                         }
                     },
@@ -226,7 +219,7 @@ fn event_loop(
                             )?;
 
                             if !exists(&parent(&image_at)?) {
-                                create_dir(&parent(&image_at)?)?;
+                                try_create_dir(&parent(&image_at)?)?;
                             }
 
                             write_bytes(
@@ -249,7 +242,7 @@ fn event_loop(
                             )?;
 
                             if !exists(&parent(&desc_at)?) {
-                                create_dir(&parent(&desc_at)?)?;
+                                try_create_dir(&parent(&desc_at)?)?;
                             }
 
                             write_bytes(
@@ -268,7 +261,7 @@ fn event_loop(
                                 METADATA_FILE_NAME,
                             )?,
                             &serde_json::to_vec_pretty(&meta)?,
-                            WriteMode::AlwaysCreate,
+                            WriteMode::CreateOrTruncate,
                         )?;
                     },
                     _ => todo!(),

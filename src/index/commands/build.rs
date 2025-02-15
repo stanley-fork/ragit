@@ -12,9 +12,9 @@ use crate::uid::Uid;
 use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
-    create_dir_all,
     exists,
     parent,
+    try_create_dir,
     write_bytes,
 };
 use sha3::{Digest, Sha3_256};
@@ -372,7 +372,7 @@ async fn event_loop(
                         let parent_path = parent(&image_path)?;
     
                         if !exists(&parent_path) {
-                            create_dir_all(&parent_path)?;
+                            try_create_dir(&parent_path)?;
                         }
     
                         write_bytes(
@@ -389,6 +389,7 @@ async fn event_loop(
                         index.build_config.compression_threshold,
                         index.build_config.compression_level,
                         &index.root_dir,
+                        true,  // create tfidf
                     )?;
                     tx_to_main.send(Response::ChunkComplete {
                         file: file.clone(),

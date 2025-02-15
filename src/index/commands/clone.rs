@@ -7,12 +7,12 @@ use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
     create_dir,
-    create_dir_all,
     exists,
     join3,
     parent,
     remove_dir_all,
     set_extension,
+    try_create_dir,
     write_bytes,
 };
 use reqwest::Url;
@@ -108,7 +108,7 @@ impl Index {
                 let parent = parent(&image_path)?;
 
                 if !exists(&parent) {
-                    create_dir_all(&parent)?;
+                    try_create_dir(&parent)?;
                 }
 
                 write_bytes(
@@ -168,7 +168,7 @@ impl Index {
             let parent = parent(&chunk_path)?;
 
             if !exists(&parent) {
-                create_dir_all(&parent)?;
+                try_create_dir(&parent)?;
             }
 
             write_bytes(
@@ -184,6 +184,7 @@ impl Index {
                 0,
                 9,
                 &index.root_dir,
+                true,  // create tfidf
             )?;
         }
 

@@ -11,12 +11,12 @@ use ragit_api::{
 };
 use ragit_fs::{
     WriteMode,
-    create_dir_all,
     exists,
     normalize,
     parent,
     read_bytes,
     set_extension,
+    try_create_dir,
     write_bytes,
 };
 use ragit_pdl::{
@@ -87,7 +87,6 @@ pub fn load_from_file(path: &str) -> Result<Chunk, Error> {
     }
 }
 
-/// It also creates a tfidf index of the chunk.
 pub fn save_to_file(
     path: &str,
     chunk: &Chunk,
@@ -96,20 +95,23 @@ pub fn save_to_file(
     compression_threshold: u64,
     compression_level: u32,
     root_dir: &str,
+    create_tfidf: bool,
 ) -> Result<(), Error> {
     let mut result = serde_json::to_vec_pretty(chunk)?;
     let tfidf_path = set_extension(path, "tfidf")?;
     let parent_path = parent(path)?;
 
     if !exists(&parent_path) {
-        create_dir_all(&parent_path)?;
+        try_create_dir(&parent_path)?;
     }
 
-    tfidf::save_to_file(
-        &tfidf_path,
-        chunk,
-        root_dir,
-    )?;
+    if create_tfidf {
+        tfidf::save_to_file(
+            &tfidf_path,
+            chunk,
+            root_dir,
+        )?;
+    }
 
     if result.len() as u64 > compression_threshold {
         let mut compressed = vec![];

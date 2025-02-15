@@ -233,6 +233,17 @@ pub fn parent(path: &str) -> Result<String, FileError> {
     )
 }
 
+/// It's like `create_dir` but does not raise an error if `path` already exists
+pub fn try_create_dir(path: &str) -> Result<(), FileError> {
+    match fs::create_dir(path) {
+        Ok(()) => Ok(()),
+        Err(e) => match e.kind() {
+            io::ErrorKind::AlreadyExists => Ok(()),
+            _ => Err(FileError::from_std(e, path)),
+        },
+    }
+}
+
 pub fn create_dir(path: &str) -> Result<(), FileError> {
     fs::create_dir(path).map_err(|e| FileError::from_std(e, path))
 }

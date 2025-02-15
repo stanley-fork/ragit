@@ -27,6 +27,7 @@ use ragit_fs::{
     read_string,
     remove_file,
     set_extension,
+    try_create_dir,
     write_bytes,
     write_string,
 };
@@ -415,7 +416,7 @@ impl Index {
         let parent_path = parent(&image_path)?;
 
         if !exists(&parent_path) {
-            create_dir_all(&parent_path)?;
+            try_create_dir(&parent_path)?;
         }
 
         let image_bytes = read_bytes(&image_path)?;
@@ -831,7 +832,7 @@ impl Index {
         let parent_path = parent(&file_index_path)?;
 
         if !exists(&parent_path) {
-            create_dir_all(&parent_path)?;
+            try_create_dir(&parent_path)?;
         }
 
         uid::save_to_file(&file_index_path, uids, UidWriteMode::Naive)

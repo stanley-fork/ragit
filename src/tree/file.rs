@@ -90,6 +90,7 @@ impl Index {
                 self.build_config.compression_threshold,
                 self.build_config.compression_level,
                 &self.root_dir,
+                true,  // create tfidf
             )?;
             self.chunk_count += 1;
             Ok(new_chunk.uid)

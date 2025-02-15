@@ -15,11 +15,12 @@ use ragit_fs::{
     exists,
     join3,
     parent,
-    set_extension,
     read_dir,
     read_string,
     remove_dir_all,
     remove_file,
+    set_extension,
+    try_create_dir,
     write_bytes,
 };
 use std::collections::HashMap;
@@ -108,6 +109,7 @@ impl Index {
                     self.build_config.compression_threshold,
                     self.build_config.compression_level,
                     &self.root_dir,
+                    true,  // create tfidf
                 )?;
                 result.created_tfidfs += 1;
             }
@@ -159,11 +161,17 @@ impl Index {
         }
 
         // Recover A
-        for dir in read_dir(&join3(
+        let file_index_path = join3(
             &self.root_dir,
             &INDEX_DIR_NAME,
             &FILE_INDEX_DIR_NAME,
-        )?, false)? {
+        )?;
+
+        if !exists(&file_index_path) {
+            create_dir_all(&file_index_path)?;
+        }
+
+        for dir in read_dir(&file_index_path, false)? {
             remove_dir_all(&dir)?;
         }
 
@@ -179,7 +187,7 @@ impl Index {
             let parent_path = parent(&file_index_path)?;
 
             if !exists(&parent_path) {
-                create_dir_all(&parent_path)?;
+                try_create_dir(&parent_path)?;
             }
 
             // Recover A

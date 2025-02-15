@@ -10,7 +10,6 @@ use crate::INDEX_DIR_NAME;
 use crate::error::Error;
 use crate::uid::{self, Uid, UidWriteMode};
 use ragit_fs::{
-    create_dir_all,
     exists,
     file_name,
     is_dir,
@@ -18,6 +17,7 @@ use ragit_fs::{
     parent,
     read_dir,
     remove_dir_all,
+    try_create_dir,
 };
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
@@ -287,7 +287,7 @@ impl Index {
             let parent_path = parent(&ii_path)?;
 
             if !exists(&parent_path) {
-                create_dir_all(&parent_path)?;
+                try_create_dir(&parent_path)?;
             }
 
             let uids = if exists(&ii_path) {

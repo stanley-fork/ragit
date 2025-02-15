@@ -6,11 +6,11 @@ use crate::index::{CHUNK_DIR_NAME, IIStatus, IMAGE_DIR_NAME, LoadMode};
 use crate::uid::{Uid, UidType};
 use ragit_fs::{
     copy_file,
-    create_dir_all,
     exists,
     join,
     normalize,
     parent,
+    try_create_dir,
 };
 use std::collections::HashSet;
 
@@ -167,7 +167,7 @@ impl Index {
                         let parent = parent(&image_self)?;
 
                         if !exists(&parent) {
-                            create_dir_all(&parent)?;
+                            try_create_dir(&parent)?;
                         }
 
                         copy_file(&image_other, &image_self)?;
@@ -197,6 +197,7 @@ impl Index {
                         self.build_config.compression_threshold,
                         self.build_config.compression_level,
                         &self.root_dir,
+                        true,  // create tfidf
                     )?;
                 }
 
@@ -261,7 +262,7 @@ impl Index {
             let parent = parent(&image_self)?;
 
             if !exists(&parent) {
-                create_dir_all(&parent)?;
+                try_create_dir(&parent)?;
             }
 
             copy_file(&image_other, &image_self)?;

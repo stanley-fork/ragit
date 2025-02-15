@@ -177,6 +177,15 @@ impl Index {
             }
         }
 
+        if !curr_image_block.is_empty() {
+            workers[round_robin % workers.len()].send(Request::Compress(BlockType::ImageBytes, curr_image_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
+            round_robin += 1;
+        }
+
+        if !curr_image_desc_block.is_empty() {
+            workers[round_robin % workers.len()].send(Request::Compress(BlockType::ImageDesc, curr_image_desc_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
+        }
+
         let mut curr_output_size = 0;
         let mut curr_output_seq = 0;
         let mut killed_workers = vec![];
@@ -205,7 +214,7 @@ impl Index {
                         Response::Compressed(block_type, block_path) => {
                             let block_size = file_size(&block_path)?;
 
-                            if block_size + curr_output_size > size_limit_comp {
+                            if block_size + curr_output_size > size_limit_comp && curr_output_size > 0 {
                                 curr_output_size = block_size;
                                 curr_output_seq += 1;
                                 curr_output_file = format!("{output}-{curr_output_seq:04}");

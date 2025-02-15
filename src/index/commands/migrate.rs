@@ -24,6 +24,7 @@ use ragit_fs::{
     remove_file,
     rename,
     set_extension,
+    try_create_dir,
     write_bytes,
     write_string,
 };
@@ -316,7 +317,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
         )?;
 
         if !exists(&image_at) {
-            create_dir_all(&image_at)?;
+            try_create_dir(&image_at)?;
         }
 
         copy_file(
@@ -464,7 +465,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
                                         )?;
 
                                         if !exists(&chunk_at) {
-                                            create_dir_all(&chunk_at)?;
+                                            try_create_dir(&chunk_at)?;
                                         }
 
                                         match file_to_chunks_map.get_mut(&file_name) {
@@ -553,7 +554,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
         let index_path = join(&file_index_at, file_uid.get(0..2).unwrap())?;
 
         if !exists(&index_path) {
-            create_dir_all(&index_path)?;
+            try_create_dir(&index_path)?;
         }
 
         write_string(
