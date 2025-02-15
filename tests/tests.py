@@ -1,4 +1,5 @@
 from add_and_rm import add_and_rm
+from archive import archive
 from cargo_tests import cargo_tests
 from cat_file import cat_file
 from cli import cli
@@ -84,6 +85,11 @@ Commands
     add_and_rm                  run `add_and_rm` test
                                 It runs tons of `rag add` and `rag rm` with
                                 different options.
+
+    archive                     run `archive` test
+                                It runs `archive-create` and `archive-extract` and check
+                                if the extracted knowledge-base is identical to the original
+                                one.
 
     recover                     run `recover` test
                                 It checks whether 1) `rag check` fails on a broken
@@ -215,6 +221,9 @@ if __name__ == "__main__":
         elif command == "migrate":
             migrate()
 
+        elif command == "archive":
+            archive()
+
         elif command == "many_chunks":
             many_chunks()
 
@@ -295,6 +304,7 @@ if __name__ == "__main__":
                 ("clone", clone),
                 ("clone2", clone2),
                 ("cli", cli),
+                ("archive", archive),
                 ("many_chunks", many_chunks),
                 ("many_jobs", many_jobs),
                 ("ls", ls),

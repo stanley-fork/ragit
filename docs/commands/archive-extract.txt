@@ -1,0 +1,15 @@
+rag-archive(1)
+==========
+
+NAME
+----
+rag-archive-extract - Extract an archive and create a knowledge-base
+
+SYNOPSIS
+--------
+[verse]
+'rag archive-extract' --output <dir> [--jobs <n=4>] <archives..>
+
+DESCRIPTION
+-----------
+TODO: write doc

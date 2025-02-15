@@ -157,8 +157,58 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             println!("{result}");
         },
+        Some("archive-create") => {
+            let parsed_args = ArgParser::new()
+                .optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger)
+                .optional_arg_flag("--size-limit", "0", ArgType::UnsignedInteger)
+                .arg_flag("--output", ArgType::Path)
+                .flag_with_default(&["--no-configs", "--configs"])
+                .flag_with_default(&["--no-prompts", "--prompts"])
+                .parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/archive-create.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
+            let size_limit = parsed_args.arg_flags.get("--size-limit").as_ref().unwrap().parse::<u64>().unwrap();
+            let size_limit = if size_limit == 0 { None } else { Some(size_limit) };
+            let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
+            let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
+            let include_prompts = parsed_args.get_flag(0).unwrap() == "--prompts";
+            index.create_archive(
+                jobs,
+                size_limit,
+                output,
+                include_configs,
+                include_prompts,
+            )?;
+        },
+        Some("archive-extract") => {
+            let parsed_args = ArgParser::new()
+                .optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger)
+                .arg_flag("--output", ArgType::Path)
+                .args(ArgType::Path, ArgCount::Geq(1))
+                .parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/archive-extract.txt"));
+                return Ok(());
+            }
+
+            let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
+            let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
+            let archives = parsed_args.get_args();
+            Index::extract_archive(
+                &output,
+                archives,
+                jobs,
+            )?;
+        },
         Some("build") => {
-            let parsed_args = ArgParser::new().optional_arg_flag("--jobs", "4", ArgType::Integer).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/build.txt"));
@@ -1017,6 +1067,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("meta") => {
             let parsed_args = ArgParser::new()
                 .flag(&["--get", "--get-all", "--set", "--remove", "--unset", "--remove-all", "--unset-all"])
+                .optional_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1026,13 +1077,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let flag = parsed_args.get_flag(0).unwrap();
+            let json_mode = parsed_args.get_flag(1).is_some();
 
             match flag.as_str() {
                 "--get" => {
                     let key = &parsed_args.get_args_exact(1)?[0];
 
                     if let Some(value) = index.get_meta_by_key(key.to_string())? {
-                        println!("{value}");
+                        if json_mode {
+                            println!("{value:?}");
+                        }
+
+                        else {
+                            println!("{value}");
+                        }
                     }
 
                     else {
@@ -1230,7 +1288,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--keyword", "--query"])
-                .optional_arg_flag("--limit", "10", ArgType::Integer)
+                .optional_arg_flag("--limit", "10", ArgType::UnsignedInteger)
                 .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {

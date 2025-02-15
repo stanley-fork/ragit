@@ -260,12 +260,20 @@ pub enum ArgType {
     Command,
     Query,  // uid or path
     Integer,
+    UnsignedInteger,
 }
 
 impl ArgType {
     pub fn parse(&self, arg: &str, span: Span) -> Result<String, Error> {
         match self {
-            ArgType::Integer => match arg.parse::<i64>() {
+            ArgType::Integer => match arg.parse::<i128>() {
+                Ok(_) => Ok(arg.to_string()),
+                Err(e) => Err(Error {
+                    span,
+                    kind: ErrorKind::ParseIntError(e),
+                }),
+            },
+            ArgType::UnsignedInteger => match arg.parse::<u128>() {
                 Ok(_) => Ok(arg.to_string()),
                 Err(e) => Err(Error {
                     span,

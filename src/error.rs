@@ -29,6 +29,7 @@ pub enum Error {
     UidQueryError(String),
     BrokenHash(String),
     BrokenPrompt(String),
+    BrokenArchive(String),
     CloneRequestError {
         code: Option<u16>,
         url: String,
@@ -38,6 +39,7 @@ pub enum Error {
         from: String,
         to: String,
     },
+    CannotExtractArchive(String),
     CannotClone(String),
     CannotUpdateII(IIStatus),
     CannotAddFile {

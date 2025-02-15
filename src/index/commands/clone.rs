@@ -2,7 +2,7 @@ use super::Index;
 use crate::{INDEX_DIR_NAME, chunk};
 use crate::chunk::CHUNK_DIR_NAME;
 use crate::error::Error;
-use crate::index::{IMAGE_DIR_NAME, LoadMode, commands::meta::METADATA_FILE_NAME};
+use crate::index::{IMAGE_DIR_NAME, LoadMode, METADATA_FILE_NAME};
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,

@@ -1,0 +1,15 @@
+rag-archive(1)
+==========
+
+NAME
+----
+rag-archive-create - Create an archive of a knowledge-base
+
+SYNOPSIS
+--------
+[verse]
+'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output <file> [--[no-]configs] [--[no-]prompts]
+
+DESCRIPTION
+-----------
+TODO: write doc

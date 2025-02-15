@@ -100,6 +100,6 @@ impl FileReaderImpl for ImageReader {
 
 #[derive(Default, Deserialize, Serialize)]
 pub struct ImageDescription {
-    extracted_text: String,
-    explanation: String,
+    pub extracted_text: String,
+    pub explanation: String,
 }

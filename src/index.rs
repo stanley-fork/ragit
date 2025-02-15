@@ -65,6 +65,7 @@ pub const II_DIR_NAME: &str = "ii";
 pub const IMAGE_DIR_NAME: &str = "images";
 pub const FILE_INDEX_DIR_NAME: &str = "files";
 pub const INDEX_FILE_NAME: &str = "index.json";
+pub const METADATA_FILE_NAME: &str = "meta.json";
 pub const MODEL_FILE_NAME: &str = "models.json";
 pub const LOG_DIR_NAME: &str = "logs";
 
@@ -221,7 +222,7 @@ impl Index {
             &read_string(&result.get_api_config_path()?)?,
         )?;
         result.api_config = result.init_api_config(&result.api_config_raw)?;
-        result.load_prompts()?;
+        result.load_or_init_prompts()?;
         result.load_or_init_models()?;
 
         match load_mode {
@@ -710,8 +711,10 @@ impl Index {
         })
     }
 
-    // TODO: there must be an API function that modifies prompts
-    pub(crate) fn load_prompts(&mut self) -> Result<(), Error> {
+    // `Index::load` calls this function. There's no need to call this again.
+    pub(crate) fn load_or_init_prompts(&mut self) -> Result<(), Error> {
+        let mut has_inited_prompt = false;
+
         for prompt_name in PROMPTS.keys() {
             let prompt_path = Index::get_rag_path(
                 &self.root_dir,
@@ -730,14 +733,20 @@ impl Index {
                 },
                 Err(_) => {
                     eprintln!("Warning: failed to load `{prompt_name}.pdl`");
+                    self.prompts.insert(prompt_name.to_string(), PROMPTS.get(prompt_name).unwrap().to_string());
+                    has_inited_prompt = true;
                 },
             }
+        }
+
+        if has_inited_prompt {
+            self.save_prompts()?;
         }
 
         Ok(())
     }
 
-    pub(crate) fn save_prompts(&self) -> Result<(), Error> {
+    pub fn save_prompts(&self) -> Result<(), Error> {
         let prompt_real_dir = Index::get_rag_path(
             &self.root_dir,
             &PROMPT_DIR.to_string(),
@@ -747,6 +756,7 @@ impl Index {
             create_dir_all(&prompt_real_dir)?;
         }
 
+        // TODO: what if `prompt_name` has `"/"` in it?
         for (prompt_name, prompt) in self.prompts.iter() {
             let prompt_path = join(
                 &prompt_real_dir,
@@ -764,6 +774,13 @@ impl Index {
         }
 
         Ok(())
+    }
+
+    /// It does NOT save the prompt to the file. You have to run `save_prompts` to save it.
+    /// `key` is a name of the prompt, like `extract_keyword`, not `extract_keyword.pdl`.
+    /// `value` is a content of a pdl file.
+    pub fn update_prompt(&mut self, key: String, value: String) {
+        self.prompts.insert(key, value);
     }
 
     pub(crate) fn load_or_init_models(&mut self) -> Result<(), Error> {
@@ -874,7 +891,6 @@ impl Index {
         Ok(read_bytes(&Index::get_uid_path(&self.root_dir, IMAGE_DIR_NAME, uid, Some("png"))?)?)
     }
 
-    // TODO: test this function
     pub fn get_image_description_by_uid(&self, uid: Uid) -> Result<ImageDescription, Error> {
         let j = read_string(&Index::get_uid_path(&self.root_dir, IMAGE_DIR_NAME, uid, Some("json"))?)?;
         let v = serde_json::from_str::<ImageDescription>(&j)?;

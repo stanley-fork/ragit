@@ -8,8 +8,8 @@ rag-meta - Get and set metadata
 SYNOPSIS
 --------
 [verse]
-'rag meta' --get <key>
-'rag meta' --get-all
+'rag meta' --get <key> [--json]
+'rag meta' --get-all [--json]
 'rag meta' --set <key> <value>
 'rag meta' [--remove | --unset] <key>
 'rag meta' [--remove-all | --unset-all]

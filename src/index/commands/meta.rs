@@ -1,5 +1,6 @@
 use super::Index;
 use crate::error::Error;
+use crate::index::METADATA_FILE_NAME;
 use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
@@ -12,7 +13,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 pub type Path = String;
-pub const METADATA_FILE_NAME: &str = "meta.json";
 
 impl Index {
     pub fn get_meta_by_key(&self, key: String) -> Result<Option<String>, Error> {

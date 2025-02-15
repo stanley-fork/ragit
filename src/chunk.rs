@@ -251,6 +251,10 @@ impl Chunk {
     pub fn render_source(&self) -> String {
         self.source.render()
     }
+
+    pub(crate) fn get_approx_size(&self) -> usize {  // in bytes
+        self.data.len() + self.title.len() + self.summary.len()
+    }
 }
 
 pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {

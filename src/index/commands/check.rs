@@ -2,7 +2,7 @@ use super::Index;
 use crate::{ApiConfigRaw, IIStatus, QueryConfig};
 use crate::chunk::{self, ChunkSource};
 use crate::error::Error;
-use crate::index::{BuildConfig, tfidf};
+use crate::index::{BuildConfig, ImageDescription, tfidf};
 use crate::uid::{self, Uid};
 use ragit_api::JsonType;
 use ragit_fs::{
@@ -157,11 +157,9 @@ impl Index {
             )?;
             let image_description = read_string(&image_description_path)?;
 
-            match serde_json::from_str::<Value>(&image_description) {
-                Ok(Value::Object(_)) => {},
-                _ => {  // Check F
-                    return Err(Error::BrokenIndex(format!("`{image_file}` exists, but `{image_description_path}` does not exist.")));
-                },
+            // Check F
+            if serde_json::from_str::<ImageDescription>(&image_description).is_err() {
+                return Err(Error::BrokenIndex(format!("`{image_file}` exists, but `{image_description_path}` does not exist.")));
             }
         }
 
