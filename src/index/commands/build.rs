@@ -221,8 +221,11 @@ impl Index {
                     buffer.remove(file);
                 }
 
+                if let IIStatus::Complete = self.ii_status {
+                    self.flush_ii_buffer(ii_buffer)?;
+                }
+
                 self.chunk_count += buffered_chunk_count;
-                self.flush_ii_buffer(ii_buffer)?;
                 self.save_to_file()?;
 
                 buffered_chunk_count = 0;
