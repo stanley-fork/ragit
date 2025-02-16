@@ -58,7 +58,7 @@ if __name__ == "__main__":
             git_url = "https://github.com/git/git",
             docs_at = "./git/Documentation",
             repo_name = "git",
-            file_ext = [".txt"],
+            file_ext = [".adoc"],
             result_tmp = "./sample/Documentation",
             result_at = "./sample/git",
         )
