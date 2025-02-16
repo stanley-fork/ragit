@@ -343,7 +343,6 @@ fn event_loop(
                     BlockType::ImageDesc => {
                         let mut descs = HashMap::with_capacity(uids.len());
 
-                        // TODO: it has to encode uid
                         for uid in uids.iter() {
                             descs.insert(uid.to_string(), index.get_image_description_by_uid(*uid)?);
                         }
