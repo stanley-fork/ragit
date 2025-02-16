@@ -36,6 +36,8 @@ def cli():
     cargo_run(["merge", "../base1", "--prefix=prefix1"])
     cargo_run(["merge", "../base1", "--prefix", "prefix2"])
 
+    # regression tests
     assert_cli_error(["config", "--set", "model"])
+    assert_cli_error(["archive-create"])
 
     # TODO: more tests...

@@ -38,13 +38,18 @@ impl Span {
             },
             _ => 0,
         };
-        let joined_args = rendered_args.join(" ");
-        let (start, end) = match self {
-            Span::End => (joined_args.len() - 1, joined_args.len()),
-            _ => (
-                rendered_args[..selected_index].iter().map(|arg| arg.len()).sum::<usize>() + selected_index,
-                rendered_args[..(selected_index + 1)].iter().map(|arg| arg.len()).sum::<usize>() + selected_index,
-            ),
+        let mut joined_args = rendered_args.join(" ");
+        let (start, end) = if joined_args.is_empty() {
+            joined_args = String::from(" ");
+            (0, 1)
+        } else {
+            match self {
+                Span::End => (joined_args.len() - 1, joined_args.len()),
+                _ => (
+                    rendered_args[..selected_index].iter().map(|arg| arg.len()).sum::<usize>() + selected_index,
+                    rendered_args[..(selected_index + 1)].iter().map(|arg| arg.len()).sum::<usize>() + selected_index,
+                ),
+            }
         };
 
         Span::Rendered((
