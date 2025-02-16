@@ -26,9 +26,13 @@ impl Index {
     pub async fn build(&mut self, workers: usize) -> Result<(), Error> {
         let mut remaining_chunks = 0;
         let started_at = Instant::now();
-        println!("counting chunks...");
 
-        for file in self.staged_files.iter() {
+        for (index, file) in self.staged_files.iter().enumerate() {
+            let elapsed_time = Instant::now().duration_since(started_at).as_secs();
+            clearscreen::clear().expect("failed to clear screen");
+            println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+            println!("counting chunks... {index}/{}", self.staged_files.len());
+
             let real_path = Index::get_data_path(
                 &self.root_dir,
                 file,
