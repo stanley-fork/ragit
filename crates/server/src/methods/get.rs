@@ -1,5 +1,7 @@
 use crate::utils::get_rag_path;
 use ragit_fs::{
+    FileError,
+    FileErrorKind,
     exists,
     extension,
     file_name,
@@ -286,6 +288,37 @@ pub fn get_image_desc(user: String, repo: String, uid: String) -> Box<dyn Reply>
             String::new(),
             StatusCode::from_u16(404).unwrap(),
         )),
+    }
+}
+
+pub fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+
+    if !exists(&rag_path) {
+        return Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap()));
+    }
+
+    let archive_path = join(&rag_path, "archives").unwrap();
+    let archives: Vec<String> = read_dir(&archive_path, true).unwrap_or(vec![]).iter().map(
+        |f| file_name(&f).unwrap_or(String::new())
+    ).filter(
+        |f| !f.is_empty()
+    ).collect();
+    Box::new(json(&archives))
+}
+
+pub fn get_archive(user: String, repo: String, archive_key: String) -> Box<dyn Reply> {
+    let rag_path = get_rag_path(&user, &repo);
+    let archive_path = join3(&rag_path, "archives", &archive_key).unwrap();
+
+    match read_bytes(&archive_path) {
+        Ok(bytes) => Box::new(with_header(
+            bytes,
+            "Content-Type",
+            "application/octet-stream",
+        )),
+        Err(FileError { kind: FileErrorKind::FileNotFound, .. }) => Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap())),
+        Err(_) => Box::new(with_status(String::new(), StatusCode::from_u16(500).unwrap())),
     }
 }
 

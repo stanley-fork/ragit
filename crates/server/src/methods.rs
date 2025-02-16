@@ -5,6 +5,8 @@ use warp::reply::with_status;
 mod get;
 
 pub use get::{
+    get_archive,
+    get_archive_list,
     get_chunk,
     get_chunk_count,
     get_chunk_list,
