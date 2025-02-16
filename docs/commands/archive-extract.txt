@@ -8,8 +8,12 @@ rag-archive-extract - Extract an archive and create a knowledge-base
 SYNOPSIS
 --------
 [verse]
-'rag archive-extract' --output <dir> [--jobs <n=4>] <archives..>
+'rag archive-extract' --output <dir> [--jobs <n=4>] [--force] <archives..>
 
 DESCRIPTION
 -----------
-TODO: write doc
+`archives` are the files created by `rag archive-create` command.
+
+By default, it raises an error if the output directory already exists. You can forcefully
+overwrite the directory with `--force` option. If something goes wrong while forcefully
+extracting an archive, you might lose the original data. Be careful.

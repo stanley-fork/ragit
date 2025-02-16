@@ -1,0 +1,221 @@
+diff --git a/docs/commands/archive-create.txt b/docs/commands/archive-create.txt
+index cf5c479..e1c2cde 100644
+--- a/docs/commands/archive-create.txt
++++ b/docs/commands/archive-create.txt
+@@ -8,8 +8,20 @@ rag-archive-create - Create an archive of a knowledge-base
+ SYNOPSIS
+ --------
+ [verse]
+-'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output <file> [--[no-]configs] [--[no-]prompts]
++'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output <file> [--[no-]configs] [--[no-]prompts] [--force]
+ 
+ DESCRIPTION
+ -----------
+-TODO: write doc
++You can create an archive of a knowledge-base. You can easily store and share your knowledge-base.
++`rag pull` and `rag clone` also send and receive archive files.
++
++If `--size-limit` is 0 or not set, it creates a single file. If the limit is set, it tries
++its best to keep each file smaller than `n` bytes.
++
++By default, the archives do not contain configs and prompts. If you extract such archives, the
++knowledge-bases will have default configs and default prompts. You can override this behavior
++with `--configs` and `--prompts` option.
++
++By default, it raises an error if the output file already exists. You can forcefully
++write to the file with `--force` option. If something goes wrong while forcefully writing
++to a file, you might lose the original data. Be careful.
+diff --git a/docs/commands/archive-extract.txt b/docs/commands/archive-extract.txt
+index 0cea503..06e45b1 100644
+--- a/docs/commands/archive-extract.txt
++++ b/docs/commands/archive-extract.txt
+@@ -8,8 +8,12 @@ rag-archive-extract - Extract an archive and create a knowledge-base
+ SYNOPSIS
+ --------
+ [verse]
+-'rag archive-extract' --output <dir> [--jobs <n=4>] <archives..>
++'rag archive-extract' --output <dir> [--jobs <n=4>] [--force] <archives..>
+ 
+ DESCRIPTION
+ -----------
+-TODO: write doc
++`archives` are the files created by `rag archive-create` command.
++
++By default, it raises an error if the output directory already exists. You can forcefully
++overwrite the directory with `--force` option. If something goes wrong while forcefully
++extracting an archive, you might lose the original data. Be careful.
+diff --git a/src/index/commands/archive/create.rs b/src/index/commands/archive/create.rs
+index 0098f06..20327f8 100644
+--- a/src/index/commands/archive/create.rs
++++ b/src/index/commands/archive/create.rs
+@@ -46,6 +46,7 @@ impl Index {
+         output: String,
+         include_configs: bool,
+         include_prompts: bool,
++        force: bool,
+     ) -> Result<(), Error> {
+         let workers = init_workers(
+             workers,
+@@ -58,8 +59,9 @@ impl Index {
+         } else {
+             output.clone()
+         };
++        let already_exists = exists(&real_output);
+ 
+-        if exists(&real_output) {
++        if already_exists && !force {
+             return Err(FileError {
+                 kind: FileErrorKind::AlreadyExists,
+                 given_path: Some(real_output),
+@@ -237,7 +239,7 @@ impl Index {
+         write_bytes(
+             &curr_output_file,
+             &[],
+-            WriteMode::AlwaysCreate,
++            WriteMode::CreateOrTruncate,
+         )?;
+ 
+         for worker in workers.iter() {
+diff --git a/src/index/commands/archive/extract.rs b/src/index/commands/archive/extract.rs
+index c264f19..36b9238 100644
+--- a/src/index/commands/archive/extract.rs
++++ b/src/index/commands/archive/extract.rs
+@@ -18,6 +18,7 @@ use ragit_fs::{
+     WriteMode,
+     exists,
+     file_size,
++    join,
+     join3,
+     join4,
+     parent,
+@@ -40,9 +41,16 @@ impl Index {
+         root_dir: &str,
+         archives: Vec<String>,
+         workers: usize,
++        force: bool,
+     ) -> Result<(), Error> {
+         if exists(root_dir) {
+-            return Err(Error::CannotExtractArchive(format!("`{root_dir}` already exists")));
++            if force {
++                remove_dir_all(&join(root_dir, INDEX_DIR_NAME)?)?;
++            }
++
++            else {
++                return Err(Error::CannotExtractArchive(format!("`{root_dir}` already exists")));
++            }
+         }
+ 
+         let workers = init_workers(workers, root_dir);
+diff --git a/src/main.rs b/src/main.rs
+index 7837415..db7be11 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -164,6 +164,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
+                 .arg_flag("--output", ArgType::Path)
+                 .flag_with_default(&["--no-configs", "--configs"])
+                 .flag_with_default(&["--no-prompts", "--prompts"])
++                .optional_flag(&["--force"])
+                 .parse(&args[2..])?;
+ 
+             if parsed_args.show_help() {
+@@ -178,18 +179,21 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
+             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
+             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
+             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
++            let force = parsed_args.get_flag(2).is_some();
+             index.create_archive(
+                 jobs,
+                 size_limit,
+                 output,
+                 include_configs,
+                 include_prompts,
++                force,
+             )?;
+         },
+         Some("archive-extract") => {
+             let parsed_args = ArgParser::new()
+                 .optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger)
+                 .arg_flag("--output", ArgType::Path)
++                .optional_flag(&["--force"])
+                 .args(ArgType::Path, ArgCount::Geq(1))
+                 .parse(&args[2..])?;
+ 
+@@ -201,10 +205,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
+             let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
+             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
+             let archives = parsed_args.get_args();
++            let force = parsed_args.get_flag(0).is_some();
+             Index::extract_archive(
+                 &output,
+                 archives,
+                 jobs,
++                force,
+             )?;
+         },
+         Some("build") => {
+diff --git a/tests/archive.py b/tests/archive.py
+index 6ebfcae..2d1220e 100644
+--- a/tests/archive.py
++++ b/tests/archive.py
+@@ -68,34 +68,45 @@ def archive_worker():
+     new_prompt = "this is the new prompt"
+     write_string(".ragit/prompts/raw.pdl", new_prompt)
+ 
+-    # TODO: archive with more jobs
+     cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs"])
+     cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive", "--no-prompts", "--no-configs"])
+     cargo_run(["archive-create", "--size-limit=1", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
+     cargo_run(["archive-create", "--output=../configs.rag-archive", "--no-prompts", "--configs"])
+     cargo_run(["archive-create", "--output=../prompts.rag-archive", "--prompts", "--no-configs"])
+ 
++    # cannot overwrite
++    assert cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs"], check=False) != 0
++
++    # forcefully overwrite
++    cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs", "--force"])
++
+     os.chdir("..")
+-    cargo_run(["archive-extract", "--output=single-archive", "single.rag-archive"])
+-    cargo_run(["archive-extract", "--output=configs-archive", "configs.rag-archive"])
+-    cargo_run(["archive-extract", "--output=prompts-archive", "prompts.rag-archive"])
+-    os.remove("single.rag-archive")
+-    os.remove("configs.rag-archive")
+-    os.remove("prompts.rag-archive")
+-    splitted_archives = [a for a in os.listdir() if a.startswith("splitted.rag-archive")]
+-    small_archives = [a for a in os.listdir() if a.startswith("small-size.rag-archive")]
+-    cargo_run(["archive-extract", "--output=splitted-archive", *splitted_archives])
+-    cargo_run(["archive-extract", "--output=small-archive", *small_archives])
+-
+-    for a in splitted_archives + small_archives:
+-        os.remove(a)
++    archives = {
++        "single-archive": ["single.rag-archive"],
++        "configs-archive": ["configs.rag-archive"],
++        "prompts-archive": ["prompts.rag-archive"],
++        "splitted-archive": [a for a in os.listdir() if a.startswith("splitted.rag-archive")],
++        "small-archive": [a for a in os.listdir() if a.startswith("small-size.rag-archive")],
++    }
++
++    for dir, archive_files in archives.items():
++        cargo_run(["archive-extract", "--output", dir, *archive_files])
++
++        # cannot overwrite
++        assert cargo_run(["archive-extract", "--output", dir, *archive_files], check=False) != 0
++
++        # forcefully overwrite
++        cargo_run(["archive-extract", "--force", "--output", dir, *archive_files])
++
++        for archive_file in archive_files:
++            os.remove(archive_file)
+ 
+     extracted_archives = [
+         ("single-archive", old_chunk_size, old_prompt),
+-        ("splitted-archive", old_chunk_size, old_prompt),
+-        ("small-archive", old_chunk_size, old_prompt),
+         ("configs-archive", new_chunk_size, old_prompt),
+         ("prompts-archive", old_chunk_size, new_prompt),
++        ("splitted-archive", old_chunk_size, old_prompt),
++        ("small-archive", old_chunk_size, old_prompt),
+     ]
+ 
+     for (archive, chunk_size, prompt) in extracted_archives:

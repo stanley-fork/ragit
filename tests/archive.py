@@ -68,34 +68,45 @@ def archive_worker():
     new_prompt = "this is the new prompt"
     write_string(".ragit/prompts/raw.pdl", new_prompt)
 
-    # TODO: archive with more jobs
     cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--size-limit=1", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--output=../configs.rag-archive", "--no-prompts", "--configs"])
     cargo_run(["archive-create", "--output=../prompts.rag-archive", "--prompts", "--no-configs"])
 
-    os.chdir("..")
-    cargo_run(["archive-extract", "--output=single-archive", "single.rag-archive"])
-    cargo_run(["archive-extract", "--output=configs-archive", "configs.rag-archive"])
-    cargo_run(["archive-extract", "--output=prompts-archive", "prompts.rag-archive"])
-    os.remove("single.rag-archive")
-    os.remove("configs.rag-archive")
-    os.remove("prompts.rag-archive")
-    splitted_archives = [a for a in os.listdir() if a.startswith("splitted.rag-archive")]
-    small_archives = [a for a in os.listdir() if a.startswith("small-size.rag-archive")]
-    cargo_run(["archive-extract", "--output=splitted-archive", *splitted_archives])
-    cargo_run(["archive-extract", "--output=small-archive", *small_archives])
+    # cannot overwrite
+    assert cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs"], check=False) != 0
 
-    for a in splitted_archives + small_archives:
-        os.remove(a)
+    # forcefully overwrite
+    cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs", "--force"])
+
+    os.chdir("..")
+    archives = {
+        "single-archive": ["single.rag-archive"],
+        "configs-archive": ["configs.rag-archive"],
+        "prompts-archive": ["prompts.rag-archive"],
+        "splitted-archive": [a for a in os.listdir() if a.startswith("splitted.rag-archive")],
+        "small-archive": [a for a in os.listdir() if a.startswith("small-size.rag-archive")],
+    }
+
+    for dir, archive_files in archives.items():
+        cargo_run(["archive-extract", "--output", dir, *archive_files])
+
+        # cannot overwrite
+        assert cargo_run(["archive-extract", "--output", dir, *archive_files], check=False) != 0
+
+        # forcefully overwrite
+        cargo_run(["archive-extract", "--force", "--output", dir, *archive_files])
+
+        for archive_file in archive_files:
+            os.remove(archive_file)
 
     extracted_archives = [
         ("single-archive", old_chunk_size, old_prompt),
-        ("splitted-archive", old_chunk_size, old_prompt),
-        ("small-archive", old_chunk_size, old_prompt),
         ("configs-archive", new_chunk_size, old_prompt),
         ("prompts-archive", old_chunk_size, new_prompt),
+        ("splitted-archive", old_chunk_size, old_prompt),
+        ("small-archive", old_chunk_size, old_prompt),
     ]
 
     for (archive, chunk_size, prompt) in extracted_archives:

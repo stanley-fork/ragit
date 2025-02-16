@@ -164,6 +164,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .arg_flag("--output", ArgType::Path)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
+                .optional_flag(&["--force"])
                 .parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -178,18 +179,21 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
+            let force = parsed_args.get_flag(2).is_some();
             index.create_archive(
                 jobs,
                 size_limit,
                 output,
                 include_configs,
                 include_prompts,
+                force,
             )?;
         },
         Some("archive-extract") => {
             let parsed_args = ArgParser::new()
                 .optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger)
                 .arg_flag("--output", ArgType::Path)
+                .optional_flag(&["--force"])
                 .args(ArgType::Path, ArgCount::Geq(1))
                 .parse(&args[2..])?;
 
@@ -201,10 +205,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
             let archives = parsed_args.get_args();
+            let force = parsed_args.get_flag(0).is_some();
             Index::extract_archive(
                 &output,
                 archives,
                 jobs,
+                force,
             )?;
         },
         Some("build") => {

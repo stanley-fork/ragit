@@ -46,6 +46,7 @@ impl Index {
         output: String,
         include_configs: bool,
         include_prompts: bool,
+        force: bool,
     ) -> Result<(), Error> {
         let workers = init_workers(
             workers,
@@ -58,8 +59,9 @@ impl Index {
         } else {
             output.clone()
         };
+        let already_exists = exists(&real_output);
 
-        if exists(&real_output) {
+        if already_exists && !force {
             return Err(FileError {
                 kind: FileErrorKind::AlreadyExists,
                 given_path: Some(real_output),
@@ -237,7 +239,7 @@ impl Index {
         write_bytes(
             &curr_output_file,
             &[],
-            WriteMode::AlwaysCreate,
+            WriteMode::CreateOrTruncate,
         )?;
 
         for worker in workers.iter() {

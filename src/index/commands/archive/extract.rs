@@ -18,6 +18,7 @@ use ragit_fs::{
     WriteMode,
     exists,
     file_size,
+    join,
     join3,
     join4,
     parent,
@@ -40,9 +41,16 @@ impl Index {
         root_dir: &str,
         archives: Vec<String>,
         workers: usize,
+        force: bool,
     ) -> Result<(), Error> {
         if exists(root_dir) {
-            return Err(Error::CannotExtractArchive(format!("`{root_dir}` already exists")));
+            if force {
+                remove_dir_all(&join(root_dir, INDEX_DIR_NAME)?)?;
+            }
+
+            else {
+                return Err(Error::CannotExtractArchive(format!("`{root_dir}` already exists")));
+            }
         }
 
         let workers = init_workers(workers, root_dir);

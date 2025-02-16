@@ -8,8 +8,20 @@ rag-archive-create - Create an archive of a knowledge-base
 SYNOPSIS
 --------
 [verse]
-'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output <file> [--[no-]configs] [--[no-]prompts]
+'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output <file> [--[no-]configs] [--[no-]prompts] [--force]
 
 DESCRIPTION
 -----------
-TODO: write doc
+You can create an archive of a knowledge-base. You can easily store and share your knowledge-base.
+`rag pull` and `rag clone` also send and receive archive files.
+
+If `--size-limit` is 0 or not set, it creates a single file. If the limit is set, it tries
+its best to keep each file smaller than `n` bytes.
+
+By default, the archives do not contain configs and prompts. If you extract such archives, the
+knowledge-bases will have default configs and default prompts. You can override this behavior
+with `--configs` and `--prompts` option.
+
+By default, it raises an error if the output file already exists. You can forcefully
+write to the file with `--force` option. If something goes wrong while forcefully writing
+to a file, you might lose the original data. Be careful.
