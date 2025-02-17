@@ -30,7 +30,9 @@ def many_chunks():
     cargo_run(["check"])
     break2 = False
 
-    while True:
+    # it used to be `while True { build for 6 seconds and timeout }`
+    # but if a warm-up time takes more than 6 seconds, it will be stuck
+    for _ in range(20):
         # there are 2 cases to cover:
         # 1. implicit `--recover` invoked by `rag build`
         # 2. explicit `rag check --recover`
@@ -38,7 +40,7 @@ def many_chunks():
 
         for _ in range(4):
             try:
-                cargo_run(["build"], timeout=5.0)
+                cargo_run(["build"], timeout=6.0)
 
             except TimeoutExpired:
                 pass
@@ -50,6 +52,7 @@ def many_chunks():
         if break2:
             break
 
+    cargo_run(["build"])
     cargo_run(["remove", "0010.txt"])
     cargo_run(["check"])
     cargo_run(["add", "0010.txt"])
