@@ -1,4 +1,4 @@
-use ragit_fs::{FileError, get_relative_path, is_dir, read_dir};
+use ragit_fs::{FileError, get_relative_path, is_dir, is_symlink, read_dir};
 use regex::Regex;
 use std::str::FromStr;
 
@@ -40,13 +40,17 @@ impl Ignore {
         Ignore { patterns }
     }
 
-    pub fn walk_tree(&self, root_dir: &str, dir: &str) -> Result<Vec<(bool, String)>, FileError> {
+    pub fn walk_tree(&self, root_dir: &str, dir: &str, follow_symlink: bool) -> Result<Vec<(bool, String)>, FileError> {
         let mut result = vec![];
-        self.walk_tree_worker(root_dir, dir, &mut result)?;
+        self.walk_tree_worker(root_dir, dir, &mut result, follow_symlink)?;
         Ok(result)
     }
 
-    fn walk_tree_worker(&self, root_dir: &str, file: &str, buffer: &mut Vec<(bool, String)>) -> Result<(), FileError> {
+    fn walk_tree_worker(&self, root_dir: &str, file: &str, buffer: &mut Vec<(bool, String)>, follow_symlink: bool) -> Result<(), FileError> {
+        if is_symlink(file) && !follow_symlink {
+            return Ok(());
+        }
+
         if is_dir(file) {
             if self.is_match(root_dir, file) {
                 buffer.push((true, file.to_string()));
@@ -54,7 +58,7 @@ impl Ignore {
 
             else {
                 for entry in read_dir(file, false)? {
-                    self.walk_tree_worker(root_dir, &entry, buffer)?;
+                    self.walk_tree_worker(root_dir, &entry, buffer, follow_symlink)?;
                 }
             }
         }

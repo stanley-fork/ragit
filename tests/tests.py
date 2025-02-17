@@ -24,6 +24,7 @@ from prompts import prompts
 from ragit_api import ragit_api
 from recover import recover
 from subdir import subdir
+from symlink import symlink
 from tfidf import tfidf
 
 import os
@@ -136,6 +137,10 @@ Commands
     empty [model=dummy]         run `empty` test
                                 It sees if ragit can handle an empty file correctly.
 
+    symlink                     run `symlink` test
+                                It tests whether ragit can handle symlinks correctly
+                                without falling into infinite loops.
+
     ii                          run `ii` test
                                 It creates an inverted index and test it.
 
@@ -238,6 +243,9 @@ if __name__ == "__main__":
         elif command == "meta":
             meta()
 
+        elif command == "symlink":
+            symlink()
+
         elif command == "empty":
             test_model = test_model or "dummy"
             empty(test_model)
@@ -309,6 +317,7 @@ if __name__ == "__main__":
                 ("many_jobs", many_jobs),
                 ("ls", ls),
                 ("meta", meta),
+                ("symlink", symlink),
                 ("ii", ii),
                 ("cat_file", cat_file),
                 ("images", images),

@@ -2,7 +2,7 @@ use super::Index;
 use crate::INDEX_DIR_NAME;
 use crate::error::Error;
 use crate::uid::Uid;
-use ragit_fs::{exists, get_relative_path, is_dir, join, read_string};
+use ragit_fs::{exists, get_relative_path, is_dir, is_symlink, join, read_string};
 use ragit_ignore::Ignore;
 use std::fmt;
 
@@ -82,8 +82,12 @@ impl Index {
                 });
             }
 
+            else if is_symlink(file) {
+                result.ignored += 1;
+            }
+
             else if is_dir(file) {
-                for (ignored, sub) in ignore.walk_tree(&self.root_dir, file)? {
+                for (ignored, sub) in ignore.walk_tree(&self.root_dir, file, false /* follow symlink */)? {
                     if ignored {
                         match mode {
                             None => {

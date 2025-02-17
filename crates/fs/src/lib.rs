@@ -215,6 +215,11 @@ pub fn is_dir(path: &str) -> bool {
     PathBuf::from_str(path).map(|path| path.is_dir()).unwrap_or(false)
 }
 
+/// It returns `false` if `path` doesn't exist
+pub fn is_symlink(path: &str) -> bool {
+    PathBuf::from_str(path).map(|path| path.is_symlink()).unwrap_or(false)
+}
+
 pub fn exists(path: &str) -> bool {
     PathBuf::from_str(path).map(|path| path.exists()).unwrap_or(false)
 }
