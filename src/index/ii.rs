@@ -265,7 +265,7 @@ impl Index {
 
                     for uid in uids_from_ii.iter() {
                         if !uids_from_tfidf.contains(uid) {
-                            return Err(Error::BrokenII(format!("ii says `{uid}` contains `{term}`, but it's tfidf doesn't.")));
+                            return Err(Error::BrokenII(format!("ii says `{uid}` contains `{term}`, but its tfidf doesn't.")));
                         }
                     }
 
