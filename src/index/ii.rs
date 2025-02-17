@@ -13,6 +13,7 @@ use ragit_fs::{
     exists,
     file_name,
     is_dir,
+    join,
     join3,
     parent,
     read_dir,
@@ -27,6 +28,9 @@ use std::collections::{HashMap, HashSet};
 pub type Term = String;
 pub type Weight = f32;
 const AUTO_FLUSH: usize = 65536;  // TODO: make it configurable
+
+// It takes too long to iterate all the terms and chunks.
+const CHECK_II_LIMIT: usize = 512;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(tag = "type")]
@@ -184,6 +188,7 @@ impl Index {
         let mut term_hash_map: HashMap<String, String> = HashMap::with_capacity(1024);
         let mut from_ii: HashMap<String, Vec<Uid>> = HashMap::with_capacity(1024);
         let mut from_tfidf: HashMap<String, Vec<Uid>> = HashMap::with_capacity(1024);
+        let chunk_uids = self.get_all_chunk_uids()?;
 
         'outer: for internal in read_dir(&join3(
             &self.root_dir,
@@ -199,14 +204,14 @@ impl Index {
                 from_ii.insert(term_hash, uids);
 
                 // It takes too long to iterate all the terms...
-                if from_ii.len() == 1024 {
+                if from_ii.len() == CHECK_II_LIMIT {
                     break 'outer;
                 }
             }
         }
 
-        for uid in self.get_all_chunk_uids()? {
-            let tfidf = self.get_tfidf_by_chunk_uid(uid)?;
+        for uid in &chunk_uids[..CHECK_II_LIMIT.min(chunk_uids.len())] {
+            let tfidf = self.get_tfidf_by_chunk_uid(*uid)?;
 
             for term in tfidf.term_frequency.keys() {
                 let term_hash = hash(term);
@@ -215,9 +220,35 @@ impl Index {
                     term_hash_map.insert(term_hash.to_string(), term.to_string());
 
                     match from_tfidf.get_mut(&term_hash) {
-                        Some(uids) => { uids.push(uid) },
-                        None => { from_tfidf.insert(term_hash, vec![uid]); },
+                        Some(uids) => { uids.push(*uid) },
+                        None => { from_tfidf.insert(term_hash.clone(), vec![*uid]); },
                     }
+                }
+
+                let prefix = term_hash.get(0..2).unwrap().to_string();
+                let suffix = term_hash.get(2..).unwrap().to_string();
+                let ii_at = join(
+                    &join(
+                        &self.root_dir,
+                        INDEX_DIR_NAME,
+                    )?,
+                    &join3(
+                        II_DIR_NAME,
+                        &prefix,
+                        &suffix,
+                    )?,
+                )?;
+
+                if exists(&ii_at) {
+                    let ii_uids = uid::load_from_file(&ii_at)?;
+
+                    if !ii_uids.contains(uid) {
+                        return Err(Error::BrokenII(format!("`{term}` is in `{uid}`, but not in ii.")));
+                    }
+                }
+
+                else {
+                    return Err(Error::BrokenII(format!("`{term}` is in `{uid}`, but not in ii.")));
                 }
             }
         }
@@ -244,9 +275,11 @@ impl Index {
                         }
                     }
                 },
-                None => {
+                // if `from_ii.len() < CHECK_II_LIMIT`, `from_ii` contains all the terms
+                None if from_ii.len() < CHECK_II_LIMIT => {
                     return Err(Error::BrokenII(format!("`{term}` is in the knowledge-base, but not in ii.")));
                 },
+                _ => {},
             }
         }
 
