@@ -57,6 +57,18 @@
   - 200: text/plain
     - "{major}.{minor}.{patch}"
     - "{major}.{minor}.{patch}-dev"
+- POST `/{user-name}/{repo-name}/begin-push`
+  - 200: text/plain
+    - a session id
+  - 404
+- POST `/{user-name}/{repo-name}/archive`
+  - body (multiform): { "session-id": str, "archive-id": str, "archive": bytes }
+  - 200
+  - 404
+- POST `/{user-name}/{repo-name}/finalize-push`
+  - body (plain text): session-id
+  - 200
+  - 404
 */
 
 use crate::methods::*;
@@ -172,6 +184,24 @@ async fn main() {
         .and(warp::path("version"))
         .map(get_server_version);
 
+    let post_begin_push_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("begin-push"))
+        .map(post_begin_push);
+
+    let post_archive_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("archive"))
+        .map(post_archive);
+
+    let post_finalize_push_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("finalize-push"))
+        .map(post_finalize_push);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
@@ -190,6 +220,9 @@ async fn main() {
             .or(get_archive_handler)
             .or(get_meta_handler)
             .or(get_version_handler)
+            .or(post_begin_push_handler)
+            .or(post_archive_handler)
+            .or(post_finalize_push_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
                 |info| {

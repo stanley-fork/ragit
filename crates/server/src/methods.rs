@@ -3,6 +3,7 @@ use warp::http::status::StatusCode;
 use warp::reply::with_status;
 
 mod get;
+mod post;
 
 pub use get::{
     get_archive,
@@ -20,6 +21,11 @@ pub use get::{
     get_prompt,
     get_server_version,
     get_version,
+};
+pub use post::{
+    post_archive,
+    post_begin_push,
+    post_finalize_push,
 };
 
 pub fn not_found() -> Box<dyn Reply> {

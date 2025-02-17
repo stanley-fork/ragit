@@ -12,6 +12,7 @@ mod ls;
 mod merge;
 mod meta;
 mod migrate;
+mod push;
 mod recover;
 mod remove;
 mod reset;

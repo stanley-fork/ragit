@@ -88,6 +88,8 @@ pub struct Index {
     // and this field does that. If it's `Some(_)`, something's wrong and
     // clean-up has to be done.
     pub curr_processing_file: Option<Path>,
+
+    // TODO: we should not use the term `repo` in this repo
     repo_url: Option<String>,
 
     /// `ii` stands for `inverted-index`.

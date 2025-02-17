@@ -34,6 +34,10 @@ pub enum Error {
         code: Option<u16>,
         url: String,
     },
+    PushRequestError {
+        code: Option<u16>,
+        url: String,
+    },
     InvalidVersionString(String),
     CannotMigrate {
         from: String,
@@ -41,6 +45,7 @@ pub enum Error {
     },
     CannotExtractArchive(String),
     CannotClone(String),
+    CannotPush(String),
     CannotUpdateII(IIStatus),
     CannotAddFile {
         file: String,  // rel_path
