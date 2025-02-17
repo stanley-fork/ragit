@@ -102,7 +102,7 @@ impl Index {
                 started_at.clone(),
                 flush_count,
                 remaining_chunks,
-            )?;
+            );
 
             for (worker_index, worker) in workers.iter_mut().enumerate() {
                 if killed_workers.contains(&worker_index) {
@@ -243,7 +243,7 @@ impl Index {
                         started_at.clone(),
                         flush_count,
                         remaining_chunks,
-                    )?;
+                    );
                     break;
                 }
             }
@@ -261,7 +261,7 @@ impl Index {
         started_at: Instant,
         flush_count: usize,
         remaining_chunks: usize,
-    ) -> Result<(), Error> {
+    ) {
         clearscreen::clear().expect("failed to clear screen");
         let elapsed_time = Instant::now().duration_since(started_at).as_secs();
         let mut curr_processing_files = vec![];
@@ -292,25 +292,30 @@ impl Index {
         println!("flush count: {flush_count}");
         println!("model: {}", self.api_config.model);
 
-        let api_records = self.api_config.get_api_usage("create_chunk_from")?;
         let mut input_tokens = 0;
         let mut output_tokens = 0;
         let mut input_cost = 0;
         let mut output_cost = 0;
 
-        for Record { input, output, input_weight, output_weight, .. } in api_records.iter() {
-            input_tokens += input;
-            output_tokens += output;
-            input_cost += input * input_weight;
-            output_cost += output * output_weight;
-        }
+        match self.api_config.get_api_usage("create_chunk_from") {
+            Ok(api_records) => {
+                for Record { input, output, input_weight, output_weight, .. } in api_records.iter() {
+                    input_tokens += input;
+                    output_tokens += output;
+                    input_cost += input * input_weight;
+                    output_cost += output * output_weight;
+                }
 
-        println!(
-            "input tokens: {input_tokens} ({:.3}$), output tokens: {output_tokens} ({:.3}$)",
-            input_cost as f64 / 1_000_000_000.0,
-            output_cost as f64 / 1_000_000_000.0,
-        );
-        Ok(())
+                println!(
+                    "input tokens: {input_tokens} ({:.3}$), output tokens: {output_tokens} ({:.3}$)",
+                    input_cost as f64 / 1_000_000_000.0,
+                    output_cost as f64 / 1_000_000_000.0,
+                );
+            },
+            Err(_) => {
+                println!("input tokens: ??? (????$), output tokens: ??? (????$)");
+            },
+        }
     }
 }
 

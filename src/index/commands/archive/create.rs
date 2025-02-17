@@ -25,10 +25,15 @@ use serde_json::{Map, Value};
 use std::thread;
 use std::collections::HashMap;
 use std::sync::mpsc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 // A block is at most 1 MiB before compressed. Does this number has to be configurable?
 const BLOCK_SIZE: usize = 1 << 20;
+
+struct Status {
+    started_at: Instant,
+    block_count: HashMap<BlockType, usize>,
+}
 
 impl Index {
     /// It rejects to create an archive if `output` already exists.
@@ -142,6 +147,10 @@ impl Index {
         let mut curr_block = vec![];
         let mut curr_block_size = 0;
         let mut round_robin = 0;
+        let mut status = Status {
+            started_at: Instant::now(),
+            block_count: HashMap::new(),
+        };
 
         workers[round_robin % workers.len()].send(Request::Compress(BlockType::Index, vec![])).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
         round_robin += 1;
@@ -247,6 +256,12 @@ impl Index {
         }
 
         loop {
+            self.render_archive_create_dashboard(
+                &status,
+                workers.len() - killed_workers.len(),
+                curr_output_seq,
+            );
+
             for (worker_id, worker) in workers.iter().enumerate() {
                 if killed_workers.contains(&worker_id) {
                     continue;
@@ -256,6 +271,11 @@ impl Index {
                     Ok(msg) => match msg {
                         Response::Compressed(block_type, block_path) => {
                             let block_size = file_size(&block_path)?;
+
+                            match status.block_count.get_mut(&block_type) {
+                                Some(n) => { *n += 1; },
+                                None => { status.block_count.insert(block_type, 1); },
+                            }
 
                             if block_size + curr_output_size > size_limit_comp && curr_output_size > 0 {
                                 curr_output_size = block_size;
@@ -319,7 +339,29 @@ impl Index {
             thread::sleep(Duration::from_millis(100));
         }
 
+        self.render_archive_create_dashboard(
+            &status,
+            workers.len() - killed_workers.len(),
+            curr_output_seq,
+        );
         Ok(())
+    }
+
+    fn render_archive_create_dashboard(
+        &self,
+        status: &Status,
+        workers: usize,
+        output_seq: usize,
+    ) {
+        clearscreen::clear().expect("failed to clear screen");
+        let elapsed_time = Instant::now().duration_since(status.started_at.clone()).as_secs();
+        println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+        println!("workers: {workers}");
+        println!("archives: {}", output_seq + 1);
+
+        println!("chunk blocks: {}", status.block_count.get(&BlockType::Chunk).unwrap_or(&0));
+        println!("image blocks (blob): {}", status.block_count.get(&BlockType::ImageBytes).unwrap_or(&0));
+        println!("image blocks (desc): {}", status.block_count.get(&BlockType::ImageDesc).unwrap_or(&0));
     }
 }
 

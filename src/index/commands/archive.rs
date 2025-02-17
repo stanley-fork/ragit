@@ -6,6 +6,7 @@ use std::io::Read;
 mod create;
 mod extract;
 
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum BlockType {
     Index,
     Chunk,

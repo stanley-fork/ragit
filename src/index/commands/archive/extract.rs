@@ -34,7 +34,13 @@ use serde_json::Value;
 use std::thread;
 use std::collections::HashMap;
 use std::sync::mpsc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
+
+struct Status {
+    started_at: Instant,
+    block_count: HashMap<BlockType, usize>,
+    block_complete: HashMap<BlockType, usize>,
+}
 
 impl Index {
     pub fn extract_archive(
@@ -80,7 +86,14 @@ impl Index {
         archives: Vec<String>,
         workers: &[Channel],
     ) -> Result<(), Error> {
+        let mut killed_workers = vec![];
         let mut round_robin = 0;
+        let mut status = Status {
+            started_at: Instant::now(),
+            block_count: HashMap::new(),
+            block_complete: HashMap::new(),
+        };
+
         Index::new(root_dir.to_string())?;
 
         for archive in archives.iter() {
@@ -94,6 +107,11 @@ impl Index {
                     ((header[2] as u64) << 16) +
                     ((header[3] as u64) << 8) +
                     header[4] as u64;
+
+                match status.block_count.get_mut(&block_type) {
+                    Some(n) => { *n += 1; },
+                    None => { status.block_count.insert(block_type, 1); },
+                }
 
                 workers[round_robin % workers.len()].send(Request::Extract {
                     block_type,
@@ -112,15 +130,23 @@ impl Index {
                     return Err(Error::BrokenArchive(format!("`{archive}` is broken. cursor: {cursor}, archive_size: {archive_size}")));
                 }
             }
+
+            Index::render_archive_extract_dashboard(
+                &status,
+                workers.len() - killed_workers.len(),
+            );
         }
 
         for worker in workers.iter() {
             worker.send(Request::TellMeWhenYouAreDone).map_err(|_| Error::MPSCError(String::from("Extract-archive worker hung up.")))?;
         }
 
-        let mut killed_workers = vec![];
-
         loop {
+            Index::render_archive_extract_dashboard(
+                &status,
+                workers.len() - killed_workers.len(),
+            );
+
             for (worker_id, worker) in workers.iter().enumerate() {
                 if killed_workers.contains(&worker_id) {
                     continue;
@@ -128,6 +154,12 @@ impl Index {
 
                 match worker.try_recv() {
                     Ok(msg) => match msg {
+                        Response::Complete(block_type) => {
+                            match status.block_complete.get_mut(&block_type) {
+                                Some(n) => { *n += 1; },
+                                None => { status.block_complete.insert(block_type, 1); },
+                            }
+                        },
                         Response::IAmDone => {
                             worker.send(Request::Kill).map_err(|_| Error::MPSCError(String::from("Extract-archive worker hung up.")))?;
                             killed_workers.push(worker_id);
@@ -148,11 +180,47 @@ impl Index {
             thread::sleep(Duration::from_millis(100));
         }
 
+        Index::render_archive_extract_dashboard(
+            &status,
+            workers.len() - killed_workers.len(),
+        );
+
         // it creates file indexes and tfidfs
         let mut index = Index::load(root_dir.to_string(), LoadMode::Minimum)?;
         index.recover()?;
 
+        Index::render_archive_extract_dashboard(
+            &status,
+            workers.len() - killed_workers.len(),
+        );
+
         Ok(())
+    }
+
+    fn render_archive_extract_dashboard(
+        status: &Status,
+        workers: usize,
+    ) {
+        clearscreen::clear().expect("failed to clear screen");
+        let elapsed_time = Instant::now().duration_since(status.started_at.clone()).as_secs();
+        println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+        println!("workers: {workers}");
+
+        println!(
+            "chunk blocks: {}/{}",
+            status.block_complete.get(&BlockType::Chunk).unwrap_or(&0),
+            status.block_count.get(&BlockType::Chunk).unwrap_or(&0),
+        );
+        println!(
+            "image blocks (blob): {}/{}",
+            status.block_complete.get(&BlockType::ImageBytes).unwrap_or(&0),
+            status.block_count.get(&BlockType::ImageBytes).unwrap_or(&0),
+        );
+        println!(
+            "image blocks (desc): {}/{}",
+            status.block_complete.get(&BlockType::ImageDesc).unwrap_or(&0),
+            status.block_count.get(&BlockType::ImageDesc).unwrap_or(&0),
+        );
     }
 }
 
@@ -163,8 +231,9 @@ enum Request {
 }
 
 enum Response {
-    Error(Error),
+    Complete(BlockType),
     IAmDone,
+    Error(Error),
 }
 
 fn event_loop(
@@ -310,6 +379,8 @@ fn event_loop(
                         }
                     },
                 }
+
+                tx_to_main.send(Response::Complete(block_type)).map_err(|_| Error::MPSCError(String::from("Failed to send response to main")))?;
             },
             // mpsc is fifo, right?
             Request::TellMeWhenYouAreDone => {
