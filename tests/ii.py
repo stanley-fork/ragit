@@ -1,4 +1,5 @@
 import os
+from random import seed as rand_seed
 import re
 import shutil
 from utils import (
@@ -15,6 +16,7 @@ from utils import (
 # which is not randomly generated, and easy to fetch. For now, it's
 # using `src/*` files, but need a bigger dataset.
 def ii():
+    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
     shutil.copytree("../src", "src")
