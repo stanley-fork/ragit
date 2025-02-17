@@ -69,6 +69,10 @@ def archive_worker():
     write_string(".ragit/prompts/raw.pdl", new_prompt)
 
     cargo_run(["archive-create", "--output=../single.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["ii-build"])
+    cargo_run(["archive-create", "--output=../with-ii.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["ii-reset"])
+    cargo_run(["archive-create", "--output=../without-ii.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--size-limit=1", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--output=../configs.rag-archive", "--no-prompts", "--configs"])
@@ -83,6 +87,8 @@ def archive_worker():
     os.chdir("..")
     archives = {
         "single-archive": ["single.rag-archive"],
+        "with-ii-archive": ["with-ii.rag-archive"],
+        "without-ii-archive": ["without-ii.rag-archive"],
         "configs-archive": ["configs.rag-archive"],
         "prompts-archive": ["prompts.rag-archive"],
         "splitted-archive": [a for a in os.listdir() if a.startswith("splitted.rag-archive")],
@@ -103,6 +109,8 @@ def archive_worker():
 
     extracted_archives = [
         ("single-archive", old_chunk_size, old_prompt),
+        ("with-ii-archive", old_chunk_size, old_prompt),
+        ("without-ii-archive", old_chunk_size, old_prompt),
         ("configs-archive", new_chunk_size, old_prompt),
         ("prompts-archive", old_chunk_size, new_prompt),
         ("splitted-archive", old_chunk_size, old_prompt),

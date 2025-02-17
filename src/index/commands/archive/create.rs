@@ -1,7 +1,7 @@
 use super::{BlockType, compress};
 use crate::INDEX_DIR_NAME;
 use crate::error::Error;
-use crate::index::{Index, INDEX_FILE_NAME, LoadMode};
+use crate::index::{ii::IIStatus, Index, INDEX_FILE_NAME, LoadMode};
 use crate::uid::{self, Uid};
 use ragit_fs::{
     FileError,
@@ -21,7 +21,7 @@ use ragit_fs::{
 };
 use ragit_pdl::encode_base64;
 use regex::Regex;
-use serde_json::{Map, Value};
+use serde_json::Map;
 use std::thread;
 use std::collections::HashMap;
 use std::sync::mpsc;
@@ -397,9 +397,12 @@ fn event_loop(
                             INDEX_DIR_NAME,
                             INDEX_FILE_NAME,
                         )?)?;
-                        // un-prettify index.json, then compress the json
-                        let index_json = serde_json::from_str::<Value>(&index_json)?;
-                        let index_json = serde_json::to_vec(&index_json)?;
+                        let mut index = serde_json::from_str::<Index>(&index_json)?;
+
+                        // archive does not include ii
+                        index.ii_status = IIStatus::None;
+
+                        let index_json = serde_json::to_vec(&index)?;
                         compress(&index_json, compression_level)?
                     },
                     BlockType::Chunk => {
