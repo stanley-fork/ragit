@@ -17,7 +17,6 @@ mod remove;
 mod reset;
 
 pub use add::{AddMode, AddResult};
-pub use clone::CloneResult;
 pub use merge::{MergeMode, MergeResult};
 pub use migrate::{VersionInfo, get_compatibility_warning};
 pub use recover::RecoverResult;

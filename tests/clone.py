@@ -10,7 +10,7 @@ from utils import (
     write_string,
 )
 
-def clone():
+def clone(base2_size: int = 8000):
     goto_root()
     os.chdir("crates/server")
     os.makedirs("data/test-user/repo1")
@@ -38,6 +38,9 @@ def clone():
         # step 2: push the local knowledge-base to the server
         # sadly, `rag push` is not implemented yet
         # we have to push it manually
+        cargo_run(["archive-create", "--output=archive"])
+        os.mkdir(".ragit/archives")
+        shutil.move("archive", ".ragit/archives")
         shutil.copytree(".ragit", "../../crates/server/data/test-user/repo1/.ragit")
 
         # step 3: create another local knowledge-base
@@ -47,7 +50,7 @@ def clone():
         cargo_run(["config", "--set", "model", "dummy"])
         files = []
 
-        for i in range(8000):
+        for i in range(base2_size):
             write_string(f"{i}.txt", " ".join([rand_word() for _ in range(20)]))
             files.append(f"{i}.txt")
 
@@ -58,6 +61,9 @@ def clone():
         # step 4: push the local knowledge-base to the server
         # sadly, `rag push` is not implemented yet
         # we have to push it manually
+        cargo_run(["archive-create", "--output=archive"])
+        os.mkdir(".ragit/archives")
+        shutil.move("archive", ".ragit/archives")
         shutil.copytree(".ragit", "../../crates/server/data/test-user/repo2/.ragit")
 
         # let's wait until `ragit-server` is compiled

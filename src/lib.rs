@@ -22,7 +22,6 @@ pub use index::{
     AddMode,
     AddResult,
     BuildConfig,
-    CloneResult,
     IIStatus,
     Index,
     LoadMode,

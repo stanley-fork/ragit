@@ -49,7 +49,6 @@ pub mod tfidf;
 pub use commands::{
     AddMode,
     AddResult,
-    CloneResult,
     MergeMode,
     MergeResult,
     RecoverResult,
@@ -69,6 +68,7 @@ pub const INDEX_FILE_NAME: &str = "index.json";
 pub const METADATA_FILE_NAME: &str = "meta.json";
 pub const MODEL_FILE_NAME: &str = "models.json";
 pub const LOG_DIR_NAME: &str = "logs";
+pub const ARCHIVE_DIR_NAME: &str = "archives";
 
 pub type Path = String;
 
