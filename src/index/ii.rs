@@ -188,7 +188,6 @@ impl Index {
         let mut term_hash_map: HashMap<String, String> = HashMap::with_capacity(1024);
         let mut from_ii: HashMap<String, Vec<Uid>> = HashMap::with_capacity(1024);
         let mut from_tfidf: HashMap<String, Vec<Uid>> = HashMap::with_capacity(1024);
-        let chunk_uids = self.get_all_chunk_uids()?;
 
         'outer: for internal in read_dir(&join3(
             &self.root_dir,
@@ -210,8 +209,8 @@ impl Index {
             }
         }
 
-        for uid in &chunk_uids[..CHECK_II_LIMIT.min(chunk_uids.len())] {
-            let tfidf = self.get_tfidf_by_chunk_uid(*uid)?;
+        for (uid_index, uid) in self.get_all_chunk_uids()?.into_iter().enumerate() {
+            let tfidf = self.get_tfidf_by_chunk_uid(uid)?;
 
             for term in tfidf.term_frequency.keys() {
                 let term_hash = hash(term);
@@ -220,35 +219,38 @@ impl Index {
                     term_hash_map.insert(term_hash.to_string(), term.to_string());
 
                     match from_tfidf.get_mut(&term_hash) {
-                        Some(uids) => { uids.push(*uid) },
-                        None => { from_tfidf.insert(term_hash.clone(), vec![*uid]); },
+                        Some(uids) => { uids.push(uid) },
+                        None => { from_tfidf.insert(term_hash.clone(), vec![uid]); },
                     }
                 }
 
-                let prefix = term_hash.get(0..2).unwrap().to_string();
-                let suffix = term_hash.get(2..).unwrap().to_string();
-                let ii_at = join(
-                    &join(
-                        &self.root_dir,
-                        INDEX_DIR_NAME,
-                    )?,
-                    &join3(
-                        II_DIR_NAME,
-                        &prefix,
-                        &suffix,
-                    )?,
-                )?;
+                // it takes too long to iterate all the chunks...
+                if uid_index < CHECK_II_LIMIT {
+                    let prefix = term_hash.get(0..2).unwrap().to_string();
+                    let suffix = term_hash.get(2..).unwrap().to_string();
+                    let ii_at = join(
+                        &join(
+                            &self.root_dir,
+                            INDEX_DIR_NAME,
+                        )?,
+                        &join3(
+                            II_DIR_NAME,
+                            &prefix,
+                            &suffix,
+                        )?,
+                    )?;
 
-                if exists(&ii_at) {
-                    let ii_uids = uid::load_from_file(&ii_at)?;
+                    if exists(&ii_at) {
+                        let ii_uids = uid::load_from_file(&ii_at)?;
 
-                    if !ii_uids.contains(uid) {
+                        if !ii_uids.contains(&uid) {
+                            return Err(Error::BrokenII(format!("`{term}` is in `{uid}`, but not in ii.")));
+                        }
+                    }
+
+                    else {
                         return Err(Error::BrokenII(format!("`{term}` is in `{uid}`, but not in ii.")));
                     }
-                }
-
-                else {
-                    return Err(Error::BrokenII(format!("`{term}` is in `{uid}`, but not in ii.")));
                 }
             }
         }
