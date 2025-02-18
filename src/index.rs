@@ -862,14 +862,9 @@ impl Index {
             file_uid,
             None,
         )?;
-        let mut result = vec![];
 
         if exists(&file_index_path) {
-            for uid_str in read_string(&file_index_path)?.lines() {
-                result.push(uid_str.parse::<Uid>()?);
-            }
-
-            return Ok(result);
+            return Ok(uid::load_from_file(&file_index_path)?);
         }
 
         Err(Error::NoSuchFile { path: None, uid: Some(file_uid) })
