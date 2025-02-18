@@ -164,6 +164,9 @@ impl Chunk {
                     approx_data_len += 10;
                     chunk.push(format!("<|raw_media({}:{})|>", image_type.to_extension(), encode_base64(&bytes)));
                 },
+                AtomicToken::Separator => {
+                    // invisible
+                },
             }
         }
 
@@ -204,6 +207,9 @@ impl Chunk {
                     images.push(i.uid);
                     image_count += 1;
                     data.push(format!("img_{}", i.uid));
+                },
+                AtomicToken::Separator => {
+                    // invisible
                 },
             }
         }

@@ -12,12 +12,14 @@ mod image;
 mod line;
 mod markdown;
 mod plain_text;
+mod pdf;
 
 pub use csv::CsvReader;
 pub use image::{Image, ImageDescription, ImageReader, normalize_image};
 pub use line::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
+pub use pdf::PdfReader;
 
 pub type Path = String;
 
@@ -54,8 +56,8 @@ impl FileReader {
             "png" | "jpg" | "jpeg" | "gif" | "webp" => Box::new(ImageReader::new(&real_path, &config)?),
             "jsonl" => Box::new(LineReader::new(&real_path, &config)?),
             "csv" => Box::new(CsvReader::new(&real_path, &config)?),
+            "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
 
-            // "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
             // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),
 
             // all the unknown extensions are treated as plain texts
@@ -90,10 +92,17 @@ impl FileReader {
 
         let mut chunk_deque = VecDeque::new();
         let mut curr_chunk_size = 0;
+        let mut has_separator = false;
 
         // step 1. collect tokens for a chunk
         while curr_chunk_size < next_chunk_size && !self.buffer.is_empty() {
             let token = self.buffer.pop_front().unwrap();
+
+            if let AtomicToken::Separator = &token {
+                has_separator = true;
+                break;
+            }
+
             self.curr_buffer_size -= token.len(self.config.image_size);
             curr_chunk_size += token.len(self.config.image_size);
             chunk_deque.push_back(token);
@@ -102,7 +111,7 @@ impl FileReader {
         // step 2. create a sliding window
         // if there's no remaining token, there's no need for sliding window
         // if the chunk consists of a single token, there's no point in making a sliding window
-        if !self.buffer.is_empty() || chunk_deque.len() == 1 {
+        if !has_separator && (!self.buffer.is_empty() || chunk_deque.len() == 1) {
             let mut sliding_window_deque = VecDeque::new();
             let mut curr_sliding_window_size = 0;
 
@@ -203,6 +212,9 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
 
                 result.push(token);
             },
+
+            // not rendered
+            AtomicToken::Separator => {},
         }
     }
 
@@ -224,6 +236,12 @@ pub enum AtomicToken {
         char_len: usize,
     },
     Image(Image),
+
+    // It's an invisible AtomicToken.
+    // An AtomicToken before a separator and
+    // after a separator will never belong to the
+    // same chunk.
+    Separator,
 }
 
 impl AtomicToken {
@@ -231,6 +249,7 @@ impl AtomicToken {
         match self {
             AtomicToken::String { char_len, .. } => *char_len,
             AtomicToken::Image(_) => image_size,
+            AtomicToken::Separator => 0,
         }
     }
 }
@@ -243,6 +262,9 @@ impl From<AtomicToken> for MessageContent {
                 image_type,
                 bytes,
             },
+
+            // this branch is not supposed to be reached
+            AtomicToken::Separator => MessageContent::String(String::new()),
         }
     }
 }
