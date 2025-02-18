@@ -46,6 +46,11 @@ impl Index {
             INDEX_DIR_NAME,
             ARCHIVE_DIR_NAME,
         )?;
+
+        if !exists(&archives_at) {
+            create_dir(&archives_at)?;
+        }
+
         let mut url = Url::parse(&remote)?;
         url.set_port(Some(41127)).map_err(|_| Error::PushRequestError {
             code: None,
@@ -62,7 +67,7 @@ impl Index {
 
         self.create_archive(
             4,  // workers  // TODO: make it configurable
-            Some(1 << 22),  // at most 4MiB per file
+            Some(1 << 19),  // at most 512KiB per file
             join(&archives_at, "ar")?,
             include_configs,
             include_prompts,
@@ -83,7 +88,7 @@ impl Index {
 
     async fn get_session_id(&self, url: &str) -> Result<String, Error> {
         let client = reqwest::Client::new();
-        let mut client = client.get(url);
+        let mut client = client.post(url);
 
         if let Some((username, password)) = self.auth() {
             client = client.basic_auth(username, password);

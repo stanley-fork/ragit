@@ -35,13 +35,22 @@ def clone(base2_size: int = 8000):
         cargo_run(["build"])
         cargo_run(["check"])
 
+        # before we push this to server, let's wait until `ragit-server` is compiled
+        for _ in range(300):
+            path1 = "../../crates/server/target/release/ragit-server"
+            path2 = "../../crates/server/target/release/ragit-server.exe"
+
+            if not os.path.exists(path1) and not os.path.exists(path2):
+                time.sleep(1)
+
+            else:
+                break
+
+        else:
+            raise Exception("failed to compile `ragit-server`")
+
         # step 2: push the local knowledge-base to the server
-        # sadly, `rag push` is not implemented yet
-        # we have to push it manually
-        cargo_run(["archive-create", "--output=archive"])
-        os.mkdir(".ragit/archives")
-        shutil.move("archive", ".ragit/archives")
-        shutil.copytree(".ragit", "../../crates/server/data/test-user/repo1/.ragit")
+        cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo1"])
 
         # step 3: create another local knowledge-base
         #         base 2: a larger base with 8k markdown files
@@ -59,26 +68,7 @@ def clone(base2_size: int = 8000):
         cargo_run(["check"])
 
         # step 4: push the local knowledge-base to the server
-        # sadly, `rag push` is not implemented yet
-        # we have to push it manually
-        cargo_run(["archive-create", "--output=archive"])
-        os.mkdir(".ragit/archives")
-        shutil.move("archive", ".ragit/archives")
-        shutil.copytree(".ragit", "../../crates/server/data/test-user/repo2/.ragit")
-
-        # let's wait until `ragit-server` is compiled
-        for _ in range(300):
-            path1 = "../../crates/server/target/release/ragit-server"
-            path2 = "../../crates/server/target/release/ragit-server.exe"
-
-            if not os.path.exists(path1) and not os.path.exists(path2):
-                time.sleep(1)
-
-            else:
-                break
-
-        else:
-            raise Exception("failed to compile `ragit-server`")
+        cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo2"])
 
         # step 5: clone and check base 1
         os.chdir("..")

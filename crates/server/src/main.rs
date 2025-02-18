@@ -73,7 +73,9 @@
 
 use crate::methods::*;
 use ragit_fs::{
+    exists,
     initialize_log_file,
+    remove_dir_all,
     set_log_file_path,
     write_log,
 };
@@ -84,8 +86,8 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
-    set_log_file_path(Some("ragit-server-logs".to_string()));
-    initialize_log_file("ragit-server-logs", true).unwrap();
+    initinalize_server();
+    write_log("server", "hello from ragit-server!");
 
     let get_index_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -184,22 +186,26 @@ async fn main() {
         .and(warp::path("version"))
         .map(get_server_version);
 
-    let post_begin_push_handler = warp::get()
+    let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("begin-push"))
         .map(post_begin_push);
 
-    let post_archive_handler = warp::get()
+    let post_archive_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("archive"))
-        .map(post_archive);
+        .and(warp::path::end())
+        .and(warp::multipart::form())
+        .then(post_archive);
 
-    let post_finalize_push_handler = warp::get()
+    let post_finalize_push_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("finalize-push"))
+        .and(warp::path::end())
+        .and(warp::body::bytes())
         .map(post_finalize_push);
 
     let not_found_handler = warp::get().map(not_found);
@@ -242,4 +248,13 @@ async fn main() {
                 }
             ))
     ).run(([0, 0, 0, 0], 41127)).await;  // TODO: configurable port number
+}
+
+fn initinalize_server() {
+    set_log_file_path(Some("ragit-server-logs".to_string()));
+    initialize_log_file("ragit-server-logs", true).unwrap();
+
+    if exists("./session") {
+        remove_dir_all("./session").unwrap();
+    }
 }

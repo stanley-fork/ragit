@@ -1167,6 +1167,32 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             index.save_to_file()?;
         },
+        Some("push") => {
+            let parsed_args = ArgParser::new()
+                .optional_arg_flag("--remote", "", ArgType::Path)
+                .flag_with_default(&["--no-configs", "--configs"])
+                .flag_with_default(&["--no-prompts", "--prompts"])
+                .args(ArgType::String, ArgCount::None)
+                .parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/push.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let remote = match parsed_args.arg_flags.get("--remote").as_ref().unwrap() {
+                s if s.is_empty() => None,
+                s => Some(s.to_string()),
+            };
+            let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
+            let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
+            index.push(
+                remote,
+                include_configs,
+                include_prompts,
+            ).await?;
+        },
         Some("query") => {
             // TODO: `ArgParser` only accepts flags that start with "--". So "-i" doesn't work.
             let parsed_args = ArgParser::new()

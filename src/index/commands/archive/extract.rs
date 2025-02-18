@@ -51,7 +51,9 @@ impl Index {
     ) -> Result<(), Error> {
         if exists(root_dir) {
             if force {
-                remove_dir_all(&join(root_dir, INDEX_DIR_NAME)?)?;
+                if exists(&join(root_dir, INDEX_DIR_NAME)?) {
+                    remove_dir_all(&join(root_dir, INDEX_DIR_NAME)?)?;
+                }
             }
 
             else {

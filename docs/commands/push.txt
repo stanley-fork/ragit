@@ -1,0 +1,14 @@
+rag-push(1)
+==========
+
+NAME
+----
+rag-push - Push a knowledge-base to remote
+
+SYNOPSIS
+--------
+[verse]
+'rag push' [--remote=<remote url>] [--[no-]configs] [--[no-]configs]
+
+DESCRIPTION
+-----------
