@@ -2,6 +2,7 @@ use crate::utils::get_rag_path;
 use ragit_fs::{
     FileError,
     FileErrorKind,
+    basename,
     exists,
     extension,
     file_name,
@@ -300,7 +301,7 @@ pub fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {
 
     let archive_path = join(&rag_path, "archives").unwrap();
     let archives: Vec<String> = read_dir(&archive_path, true).unwrap_or(vec![]).iter().map(
-        |f| file_name(&f).unwrap_or(String::new())
+        |f| basename(&f).unwrap_or(String::new())
     ).filter(
         |f| !f.is_empty()
     ).collect();
