@@ -24,6 +24,7 @@ use ragit_fs::{
     parent,
     read_bytes_offset,
     remove_dir_all,
+    remove_file,
     set_extension,
     try_create_dir,
     write_bytes,
@@ -85,7 +86,7 @@ impl Index {
 
     fn extract_archive_worker(
         root_dir: &str,
-        archives: Vec<String>,
+        mut archives: Vec<String>,
         workers: &[Channel],
     ) -> Result<(), Error> {
         let mut killed_workers = vec![];
@@ -97,13 +98,58 @@ impl Index {
         };
 
         Index::new(root_dir.to_string())?;
+        let mut splitted_blocks: HashMap<usize, HashMap<usize, Vec<u8>>> = HashMap::new();
+        let mut tmp_files_for_splitted_blocks = vec![];
 
-        for archive in archives.iter() {
-            let archive_size = file_size(archive)?;
+        while let Some(archive) = archives.pop() {
+            let archive_size = file_size(&archive)?;
             let mut cursor = 0;
 
             loop {
-                let header = read_bytes_offset(archive, cursor, cursor + 5)?;
+                let header = read_bytes_offset(&archive, cursor, cursor + 5)?;
+
+                if header[0] == BlockType::Splitted.to_byte() {
+                    let header = read_bytes_offset(&archive, cursor, cursor + 8)?;
+                    let body = read_bytes_offset(&archive, cursor + 8, file_size(&archive)?)?;
+                    let outer_index = ((header[1] as usize) << 16) +
+                        ((header[2] as usize) << 8) +
+                        header[3] as usize;
+                    let inner_index = ((header[4] as usize) << 8) + header[5] as usize;
+                    let total_count = ((header[6] as usize) << 8) + header[7] as usize;
+
+                    match splitted_blocks.get_mut(&outer_index) {
+                        Some(blocks) => {
+                            blocks.insert(inner_index, body);
+
+                            if blocks.len() == total_count {
+                                let mut blocks = blocks.iter().map(
+                                    |(inner_index, body)| (*inner_index, body.to_vec())
+                                ).collect::<Vec<_>>();
+                                blocks.sort_by_key(|(inner_index, _)| *inner_index);
+                                let blocks = blocks.into_iter().map(
+                                    |(_, body)| body
+                                ).collect::<Vec<_>>();
+                                let tmp_file_for_splitted_blocks = format!("{archive}-splitted-{outer_index:04}");
+                                write_bytes(
+                                    &tmp_file_for_splitted_blocks,
+                                    &blocks.concat(),
+                                    WriteMode::AlwaysCreate,
+                                )?;
+                                splitted_blocks.remove(&outer_index);
+                                archives.push(tmp_file_for_splitted_blocks.clone());
+                                tmp_files_for_splitted_blocks.push(tmp_file_for_splitted_blocks);
+                            }
+                        },
+                        None => {
+                            let mut blocks = HashMap::new();
+                            blocks.insert(inner_index, body);
+                            splitted_blocks.insert(outer_index, blocks);
+                        },
+                    }
+
+                    break;
+                }
+
                 let block_type = BlockType::try_from(header[0]).map_err(|_| Error::BrokenArchive(format!("unknown block type: {}", header[0])))?;
                 let body_size = ((header[1] as u64) << 24) +
                     ((header[2] as u64) << 16) +
@@ -180,6 +226,10 @@ impl Index {
             }
 
             thread::sleep(Duration::from_millis(100));
+        }
+
+        for tmp_file_for_splitted_blocks in tmp_files_for_splitted_blocks.iter() {
+            remove_file(tmp_file_for_splitted_blocks)?;
         }
 
         Index::render_archive_extract_dashboard(
@@ -380,6 +430,7 @@ fn event_loop(
                             )?;
                         }
                     },
+                    BlockType::Splitted => unreachable!(),
                 }
 
                 tx_to_main.send(Response::Complete(block_type)).map_err(|_| Error::MPSCError(String::from("Failed to send response to main")))?;

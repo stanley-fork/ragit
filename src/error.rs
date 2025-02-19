@@ -43,6 +43,7 @@ pub enum Error {
         from: String,
         to: String,
     },
+    CannotCreateArchive(String),
     CannotExtractArchive(String),
     CannotClone(String),
     CannotPush(String),

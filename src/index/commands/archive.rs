@@ -15,6 +15,7 @@ pub enum BlockType {
     Meta,
     Prompt,
     Config,
+    Splitted,
 }
 
 impl BlockType {
@@ -27,6 +28,7 @@ impl BlockType {
             BlockType::Meta => 4,
             BlockType::Prompt => 5,
             BlockType::Config => 6,
+            BlockType::Splitted => 7,
         }
     }
 }

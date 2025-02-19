@@ -83,7 +83,7 @@ def archive_worker():
     cargo_run(["ii-reset"])
     cargo_run(["archive-create", "--output=../without-ii.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive", "--no-prompts", "--no-configs"])
-    cargo_run(["archive-create", "--size-limit=512", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["archive-create", "--size-limit=4096", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--output=../configs.rag-archive", "--no-prompts", "--configs"])
     cargo_run(["archive-create", "--output=../prompts.rag-archive", "--prompts", "--no-configs"])
 
@@ -101,7 +101,7 @@ def archive_worker():
         "configs-archive": (["configs.rag-archive"], None),
         "prompts-archive": (["prompts.rag-archive"], None),
         "splitted-archive": ([a for a in os.listdir() if a.startswith("splitted.rag-archive")], 1048576),
-        "small-archive": ([a for a in os.listdir() if a.startswith("small-size.rag-archive")], 512),
+        "small-archive": ([a for a in os.listdir() if a.startswith("small-size.rag-archive")], 4096),
     }
 
     for dir, (archive_files, size_limit) in archives.items():

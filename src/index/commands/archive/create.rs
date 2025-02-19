@@ -152,6 +152,12 @@ impl Index {
             block_count: HashMap::new(),
         };
 
+        if let Some(size_limit) = size_limit {
+            if size_limit < 4096 {
+                return Err(Error::CannotCreateArchive(String::from("If size-limit is too small, it may behave oddly. Size-limit has to be at least 4 KiB.")));
+            }
+        }
+
         workers[round_robin % workers.len()].send(Request::Compress(BlockType::Index, vec![])).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
         round_robin += 1;
         workers[round_robin % workers.len()].send(Request::Compress(BlockType::Meta, vec![])).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
@@ -250,6 +256,7 @@ impl Index {
             &[],
             WriteMode::CreateOrTruncate,
         )?;
+        let mut splitted_block_index = 0;
 
         for worker in workers.iter() {
             worker.send(Request::TellMeWhenYouAreDone).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
@@ -277,21 +284,6 @@ impl Index {
                                 None => { status.block_count.insert(block_type, 1); },
                             }
 
-                            if block_size + curr_output_size > size_limit_comp && curr_output_size > 0 {
-                                curr_output_size = block_size;
-                                curr_output_seq += 1;
-                                curr_output_file = format!("{output}-{curr_output_seq:04}");
-                                write_bytes(
-                                    &curr_output_file,
-                                    &[],
-                                    WriteMode::AlwaysCreate,
-                                )?;
-                            }
-
-                            else {
-                                curr_output_size += block_size;
-                            }
-
                             // a file consists of multiple blocks and a block consists of a header and a body
 
                             // 1. header
@@ -314,6 +306,53 @@ impl Index {
                                 &read_bytes(&block_path)?,
                                 WriteMode::AlwaysAppend,
                             )?;
+                            curr_output_size += block_size + 5;
+
+                            if curr_output_size > size_limit_comp {
+                                if curr_output_size > size_limit_comp {
+                                    // 8 is room for metadata
+                                    let approx_split_count = curr_output_size / (size_limit_comp - 8) + 1;
+                                    let chunk_size = (curr_output_size / approx_split_count + 1) as usize;
+                                    let bytes = read_bytes(&curr_output_file)?;
+                                    let split_count = bytes.chunks(chunk_size).count();
+
+                                    for (index, chunk) in bytes.chunks(chunk_size).enumerate() {
+                                        write_bytes(
+                                            &curr_output_file,
+                                            &[
+                                                BlockType::Splitted.to_byte(),
+                                                (splitted_block_index >> 16) as u8,
+                                                ((splitted_block_index >> 8) & 0xff) as u8,
+                                                (splitted_block_index & 0xff) as u8,
+                                                (index >> 8) as u8,
+                                                (index & 0xff) as u8,
+                                                (split_count >> 8) as u8,
+                                                (split_count & 0xff) as u8,
+                                            ],
+                                            WriteMode::CreateOrTruncate,
+                                        )?;
+                                        write_bytes(
+                                            &curr_output_file,
+                                            chunk,
+                                            WriteMode::AlwaysAppend,
+                                        )?;
+                                        curr_output_seq += 1;
+                                        curr_output_file = format!("{output}-{curr_output_seq:04}");
+                                    }
+
+                                    curr_output_seq -= 1;
+                                    splitted_block_index += 1;
+                                }
+
+                                curr_output_size = 0;
+                                curr_output_seq += 1;
+                                curr_output_file = format!("{output}-{curr_output_seq:04}");
+                                write_bytes(
+                                    &curr_output_file,
+                                    &[],
+                                    WriteMode::AlwaysCreate,
+                                )?;
+                            }
 
                             remove_file(&block_path)?;
                         },
@@ -337,6 +376,10 @@ impl Index {
             }
 
             thread::sleep(Duration::from_millis(100));
+        }
+
+        if exists(&curr_output_file) && file_size(&curr_output_file)? == 0 {
+            remove_file(&curr_output_file)?;
         }
 
         self.render_archive_create_dashboard(
@@ -463,6 +506,7 @@ fn event_loop(
                         let bytes = serde_json::to_vec(&obj)?;
                         compress(&bytes, compression_level)?
                     },
+                    BlockType::Splitted { .. } => unreachable!(),
                 };
 
                 if !block_data.is_empty() {

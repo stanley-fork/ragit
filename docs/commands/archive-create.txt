@@ -16,7 +16,8 @@ You can create an archive of a knowledge-base. You can easily store and share yo
 `rag pull` and `rag clone` also send and receive archive files.
 
 If `--size-limit` is 0 or not set, it creates a single file. If the limit is set, it tries
-its best to keep each file smaller than `n` bytes.
+its best to keep each file smaller than `n` bytes. It behaves oddly if the size limit is too small.
+Please keep size limit greater than 4 KiB.
 
 By default, the archives do not include configs and prompts. If you extract such archives, the
 knowledge-bases will have default configs and default prompts. You can override this behavior
