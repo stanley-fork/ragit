@@ -4,7 +4,6 @@ import re
 import shutil
 from utils import (
     cargo_run,
-    count_chunks,
     goto_root,
     ls_recursive,
     mk_and_cd_tmp_dir,
@@ -12,14 +11,15 @@ from utils import (
     write_string,
 )
 
-# In order to test invert indexes, we need a large enough dataset,
-# which is not randomly generated, and easy to fetch. For now, it's
-# using `src/*` files, but need a bigger dataset.
 def ii():
     rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
-    shutil.copytree("../src", "src")
+
+    # step 1: create a local knowledge-base
+    os.mkdir("base")
+    os.chdir("base")
+    shutil.copytree("../../src", "src")
     os.chdir("src")
 
     if ".ragit" in os.listdir():
@@ -35,11 +35,23 @@ def ii():
 
     cargo_run(["build"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
+    ii_worker()
+    os.chdir("..")
 
-    # TODO: I want it to be at least 1000 chunks, but I don't have such dataset.
-    if count_chunks() < 500:
-        raise Exception("The dataset is not big enough. Please make sure that there are more than 500 chunks.")
+    # step 2: clone remote knowledge-bases
+    for (url, dir) in [
+        ("http://ragit.baehyunsol.com/sample/git", "git"),
+        ("http://ragit.baehyunsol.com/sample/ragit", "ragit"),
+        ("http://ragit.baehyunsol.com/sample/rustc", "rustc"),
+    ]:
+        cargo_run(["clone", url, dir])
+        os.chdir(dir)
+        cargo_run(["config", "--set", "enable_ii", "false"])
+        cargo_run(["config", "--set", "model", "dummy"])
+        ii_worker()
+        os.chdir("..")
 
+def ii_worker():
     # Strategy:
     # 1. There are an arbitrary number of chunks that contain `terms`.
     #    But let's make sure that some terms appear very often and some

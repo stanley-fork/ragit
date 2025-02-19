@@ -52,6 +52,15 @@ def archive():
     cargo_run(["meta", "--set", "test", "test2"])
     archive_worker()
 
+    for (url, dir) in [
+        ("http://ragit.baehyunsol.com/sample/git", "git"),
+        ("http://ragit.baehyunsol.com/sample/ragit", "ragit"),
+        ("http://ragit.baehyunsol.com/sample/rustc", "rustc"),
+    ]:
+        cargo_run(["clone", url, dir])
+        os.chdir(dir)
+        archive_worker()
+
 # call this function at a root dir of a knowledge base
 # it'll move the cwd to `..` and return
 def archive_worker():
@@ -74,7 +83,7 @@ def archive_worker():
     cargo_run(["ii-reset"])
     cargo_run(["archive-create", "--output=../without-ii.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--size-limit=1048576", "--output=../splitted.rag-archive", "--no-prompts", "--no-configs"])
-    cargo_run(["archive-create", "--size-limit=1", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
+    cargo_run(["archive-create", "--size-limit=512", "--output=../small-size.rag-archive", "--no-prompts", "--no-configs"])
     cargo_run(["archive-create", "--output=../configs.rag-archive", "--no-prompts", "--configs"])
     cargo_run(["archive-create", "--output=../prompts.rag-archive", "--prompts", "--no-configs"])
 
@@ -86,16 +95,20 @@ def archive_worker():
 
     os.chdir("..")
     archives = {
-        "single-archive": ["single.rag-archive"],
-        "with-ii-archive": ["with-ii.rag-archive"],
-        "without-ii-archive": ["without-ii.rag-archive"],
-        "configs-archive": ["configs.rag-archive"],
-        "prompts-archive": ["prompts.rag-archive"],
-        "splitted-archive": [a for a in os.listdir() if a.startswith("splitted.rag-archive")],
-        "small-archive": [a for a in os.listdir() if a.startswith("small-size.rag-archive")],
+        "single-archive": (["single.rag-archive"], None),
+        "with-ii-archive": (["with-ii.rag-archive"], None),
+        "without-ii-archive": (["without-ii.rag-archive"], None),
+        "configs-archive": (["configs.rag-archive"], None),
+        "prompts-archive": (["prompts.rag-archive"], None),
+        "splitted-archive": ([a for a in os.listdir() if a.startswith("splitted.rag-archive")], 1048576),
+        "small-archive": ([a for a in os.listdir() if a.startswith("small-size.rag-archive")], 512),
     }
 
-    for dir, archive_files in archives.items():
+    for dir, (archive_files, size_limit) in archives.items():
+        for archive_file in archive_files:
+            if size_limit is not None:
+                assert os.path.getsize(archive_file) <= size_limit
+
         cargo_run(["archive-extract", "--output", dir, *archive_files])
 
         # cannot overwrite
