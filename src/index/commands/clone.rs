@@ -17,6 +17,7 @@ use ragit_fs::{
 };
 use reqwest::Url;
 use serde_json::Value;
+use std::time::Instant;
 
 impl Index {
     pub async fn clone(url: String, repo_name: Option<String>) -> Result<(), Error> {
@@ -62,14 +63,23 @@ impl Index {
             url: url.as_str().into(),
         })?;
 
+        let started_at = Instant::now();
         let archive_list_url = url.join("archive-list/")?;
         let archive_list = request_json_file(archive_list_url.as_str()).await?;
         let archive_list = serde_json::from_value::<Vec<String>>(archive_list)?;
         let mut archive_files = vec![];
+        let mut downloaded_bytes = 0;
 
-        for archive in archive_list.iter() {
+        for (index, archive) in archive_list.iter().enumerate() {
             let archive_url = url.join(&format!("archive/{archive}/"))?;
             let archive_blob = request_binary_file(archive_url.as_str()).await?;
+            downloaded_bytes += archive_blob.len();
+            Index::render_clone_dashboard(
+                started_at.clone(),
+                index + 1,
+                archive_list.len(),
+                downloaded_bytes,
+            );
             let archive_file = join(
                 archive_tmp_files_at,
                 archive,
@@ -108,6 +118,41 @@ impl Index {
         index.repo_url = Some(url.to_string());
         index.save_to_file()?;
         Ok(())
+    }
+
+    fn render_clone_dashboard(
+        started_at: Instant,
+        completed_downloads: usize,
+        total_downloads: usize,
+        downloaded_bytes: usize,
+    ) {
+        clearscreen::clear().expect("failed to clear screen");
+        let elapsed_time = Instant::now().duration_since(started_at).as_millis() as usize;
+        let elapsed_sec = elapsed_time / 1000;
+        let bytes_per_second = if elapsed_time < 100 || completed_downloads < 3 {
+            0
+        } else {
+            downloaded_bytes * 1000 / elapsed_time
+        };
+
+        println!("elapsed time: {:02}:{:02}", elapsed_sec / 60, elapsed_sec % 60);
+        println!(
+            "fetching archives: {completed_downloads}/{total_downloads}, {} | {}",
+            if downloaded_bytes < 1024 {
+                format!("{downloaded_bytes} bytes")
+            } else if downloaded_bytes < 1048576 {
+                format!("{}.{} KiB", downloaded_bytes >> 10, (downloaded_bytes & 0x3ff) / 102)
+            } else {
+                format!("{}.{} MiB", downloaded_bytes >> 20, (downloaded_bytes & 0xfffff) / 104857)
+            },
+            if bytes_per_second == 0 {
+                String::from("??? KiB/s")
+            } else if bytes_per_second < 1048576 {
+                format!("{}.{} KiB/s", bytes_per_second >> 10, (bytes_per_second & 0x3ff) / 102)
+            } else {
+                format!("{}.{} MiB/s", bytes_per_second >> 20, (bytes_per_second & 0xfffff) / 104857)
+            },
+        );
     }
 }
 

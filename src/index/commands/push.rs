@@ -12,6 +12,7 @@ use ragit_fs::{
     remove_dir_all,
 };
 use reqwest::Url;
+use std::time::Instant;
 
 impl Index {
     /// TODO: It's not implemented
@@ -51,6 +52,8 @@ impl Index {
             create_dir(&archives_at)?;
         }
 
+        let started_at = Instant::now();
+        let mut uploaded_bytes = 0;
         let mut url = Url::parse(&remote)?;
         url.set_port(Some(41127)).map_err(|_| Error::PushRequestError {
             code: None,
@@ -75,10 +78,20 @@ impl Index {
         )?;
         let get_session_id_url = url.join("begin-push")?;
         let session_id = self.get_session_id(get_session_id_url.as_str()).await?;
+        let archives = read_dir(&archives_at, false)?;
 
-        for archive in read_dir(&archives_at, false)? {
+        for (index, archive) in archives.iter().enumerate() {
+            let archive_id = file_name(&archive)?;
+            let blob = read_bytes(archive)?;
+            uploaded_bytes += blob.len();
             let send_archive_file_url = url.join("archive")?;
-            self.send_archive_file(send_archive_file_url.as_str(), &session_id, &archive).await?;
+            self.send_archive_file(send_archive_file_url.as_str(), &session_id, &archive_id, blob).await?;
+            self.render_push_dashboard(
+                started_at.clone(),
+                index + 1,
+                archives.len(),
+                uploaded_bytes,
+            );
         }
 
         let finalize_push_url = url.join("finalize-push")?;
@@ -106,13 +119,18 @@ impl Index {
         Ok(String::from_utf8(response.bytes().await?.to_vec())?)
     }
 
-    async fn send_archive_file(&self, url: &str, session_id: &str, archive_at: &str) -> Result<(), Error> {
-        let blob = read_bytes(archive_at)?;
+    async fn send_archive_file(
+        &self,
+        url: &str,
+        session_id: &str,
+        archive_id: &str,
+        blob: Vec<u8>,
+    ) -> Result<(), Error> {
         let client = reqwest::Client::new();
         let response = client.post(url).multipart(
             reqwest::multipart::Form::new()
                 .text("session-id", session_id.to_string())
-                .text("archive-id", file_name(archive_at)?)
+                .text("archive-id", archive_id.to_string())
                 .part("archive", reqwest::multipart::Part::bytes(blob))
         ).send().await?;
 
@@ -140,5 +158,41 @@ impl Index {
         }
 
         Ok(())
+    }
+
+    fn render_push_dashboard(
+        &self,
+        started_at: Instant,
+        completed_uploads: usize,
+        total_uploads: usize,
+        uploaded_bytes: usize,
+    ) {
+        clearscreen::clear().expect("failed to clear screen");
+        let elapsed_time = Instant::now().duration_since(started_at).as_millis() as usize;
+        let elapsed_sec = elapsed_time / 1000;
+        let bytes_per_second = if elapsed_time < 100 || completed_uploads < 3 {
+            0
+        } else {
+            uploaded_bytes * 1000 / elapsed_time
+        };
+
+        println!("elapsed time: {:02}:{:02}", elapsed_sec / 60, elapsed_sec % 60);
+        println!(
+            "uploading archives: {completed_uploads}/{total_uploads}, {} | {}",
+            if uploaded_bytes < 1024 {
+                format!("{uploaded_bytes} bytes")
+            } else if uploaded_bytes < 1048576 {
+                format!("{}.{} KiB", uploaded_bytes >> 10, (uploaded_bytes & 0x3ff) / 102)
+            } else {
+                format!("{}.{} MiB", uploaded_bytes >> 20, (uploaded_bytes & 0xfffff) / 104857)
+            },
+            if bytes_per_second == 0 {
+                String::from("??? KiB/s")
+            } else if bytes_per_second < 1048576 {
+                format!("{}.{} KiB/s", bytes_per_second >> 10, (bytes_per_second & 0x3ff) / 102)
+            } else {
+                format!("{}.{} MiB/s", bytes_per_second >> 20, (bytes_per_second & 0xfffff) / 104857)
+            },
+        );
     }
 }
