@@ -16,7 +16,7 @@ use ragit_pdl::ImageType;
 //
 // Let's say there's a pdf file: `sample.pdf`. It expects the python script to make a directory `sample.pdf-pages/`.
 // The directory must contain the image files, and the file names must be sorted by their original order.
-// Also, it expects each page to have exactly 3 images. It creates 1 chunk per 1 image.
+// It creates 1 chunk per 1 image.
 pub struct PdfReader {
     images: Vec<AtomicToken>,
     pages: Vec<String>,  // path to images
