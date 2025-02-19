@@ -9,6 +9,7 @@ use ragit_fs::{
     WriteMode,
     copy_dir,
     copy_file,
+    create_dir,
     create_dir_all,
     exists,
     extension,
@@ -339,6 +340,10 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
         "chunks-tmp",
     )?;
     let mut file_to_chunks_map: HashMap<String, Vec<(String, usize)>> = HashMap::new();
+
+    if !exists(&tmp_chunk_dir) {
+        create_dir(&tmp_chunk_dir)?;
+    }
 
     for chunk_file in read_dir(&join3(
         root_dir,
