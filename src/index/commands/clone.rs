@@ -26,7 +26,7 @@ impl Index {
         let mut seq = 0;
 
         while exists(&archive_tmp_files_at) {
-            archive_tmp_files_at = format!("archives-{seq:04}");
+            archive_tmp_files_at = format!("archives-{seq:06}");
             seq += 1;
         }
 

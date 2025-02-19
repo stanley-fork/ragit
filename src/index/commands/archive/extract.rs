@@ -129,7 +129,7 @@ impl Index {
                                 let blocks = blocks.into_iter().map(
                                     |(_, body)| body
                                 ).collect::<Vec<_>>();
-                                let tmp_file_for_splitted_blocks = format!("{archive}-splitted-{outer_index:04}");
+                                let tmp_file_for_splitted_blocks = format!("{archive}-splitted-{outer_index:06}");
                                 write_bytes(
                                     &tmp_file_for_splitted_blocks,
                                     &blocks.concat(),

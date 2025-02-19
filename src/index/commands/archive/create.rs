@@ -47,7 +47,7 @@ impl Index {
 
         // path of archive file
         // if `size_limit` is not none, it may generate multiple files
-        // if `size_limit` is not none, it adds suffix to all the output paths (even if there's only single file): `{output}-{seq:04}`
+        // if `size_limit` is not none, it adds suffix to all the output paths (even if there's only single file): `{output}-{seq:06}`
         output: String,
         include_configs: bool,
         include_prompts: bool,
@@ -82,7 +82,7 @@ impl Index {
         ) {
             Ok(()) => Ok(()),
             Err(e) => {
-                let tmp_file_name_re = Regex::new(r"__archive_block_\d{4}_\d{4}").unwrap();
+                let tmp_file_name_re = Regex::new(r"__archive_block_\d{6}_\d{6}").unwrap();
 
                 // clean up
                 // 1. kill all workers
@@ -100,7 +100,7 @@ impl Index {
 
                 if size_limit.is_some() {
                     for i in 0..10000 {
-                        let output_file = format!("{output}-{i:04}");
+                        let output_file = format!("{output}-{i:06}");
 
                         if exists(&output_file) {
                             let _ = remove_file(&output_file);
@@ -139,7 +139,7 @@ impl Index {
 
         // path of archive file
         // if `size_limit` is not none, it may generate multiple files
-        // if `size_limit` is not none, it adds suffix to all the output paths (even if there's only single file): `{output}-{seq:04}`
+        // if `size_limit` is not none, it adds suffix to all the output paths (even if there's only single file): `{output}-{seq:06}`
         output: String,
         include_configs: bool,
         include_prompts: bool,
@@ -250,7 +250,7 @@ impl Index {
 
         // assumption: `u64::MAX` is practically infinite
         let size_limit_comp = size_limit.unwrap_or(u64::MAX);
-        let mut curr_output_file = if size_limit.is_some() { format!("{output}-{curr_output_seq:04}") } else { output.clone() };
+        let mut curr_output_file = if size_limit.is_some() { format!("{output}-{curr_output_seq:06}") } else { output.clone() };
         write_bytes(
             &curr_output_file,
             &[],
@@ -337,7 +337,7 @@ impl Index {
                                             WriteMode::AlwaysAppend,
                                         )?;
                                         curr_output_seq += 1;
-                                        curr_output_file = format!("{output}-{curr_output_seq:04}");
+                                        curr_output_file = format!("{output}-{curr_output_seq:06}");
                                     }
 
                                     curr_output_seq -= 1;
@@ -346,7 +346,7 @@ impl Index {
 
                                 curr_output_size = 0;
                                 curr_output_seq += 1;
-                                curr_output_file = format!("{output}-{curr_output_seq:04}");
+                                curr_output_file = format!("{output}-{curr_output_seq:06}");
                                 write_bytes(
                                     &curr_output_file,
                                     &[],
@@ -510,7 +510,7 @@ fn event_loop(
                 };
 
                 if !block_data.is_empty() {
-                    let block_file_name = format!("__archive_block_{worker_id:04}_{seq:04}");
+                    let block_file_name = format!("__archive_block_{worker_id:06}_{seq:06}");
                     write_bytes(
                         &block_file_name,
                         &block_data,
