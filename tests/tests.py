@@ -22,6 +22,7 @@ from markdown_reader import markdown_reader
 from merge import merge
 from meta import meta
 from migrate import migrate
+from migrate2 import migrate2
 from prompts import prompts
 from ragit_api import ragit_api
 from recover import recover
@@ -122,6 +123,10 @@ Commands
                                 Since it runs `git checkout`, it may mess up your working
                                 tree. If you have uncommitted changes, this test will fail
                                 and does not mess up your working tree.
+
+    migrate2                    run `migrate2` test
+                                Like `migrate`, but clones knowledge-bases from web instead
+                                of creating a mock knowledge-base.
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -239,6 +244,9 @@ if __name__ == "__main__":
 
         elif command == "migrate":
             migrate()
+
+        elif command == "migrate2":
+            migrate2()
 
         elif command == "archive":
             archive()
@@ -363,6 +371,7 @@ if __name__ == "__main__":
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
                 ("ragit_api phi-4-14b-ollama", lambda: ragit_api(test_model="phi-4-14b-ollama")),
                 ("migrate", migrate),
+                ("migrate2", migrate2),
             ]
             started_at = datetime.now()
             has_error = False
