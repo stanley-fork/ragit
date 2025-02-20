@@ -4,15 +4,24 @@ rag-remove(1)
 NAME
 ----
 rag-remove - Remove staged or processed files
+rag-rm - Alias
 
 SYNOPSIS
 --------
 [verse]
-'rag remove' [--dry-run] --auto
-'rag remove' [--dry-run] <files>...
+'rag remove' [--dry-run] [--recursive] [--auto] [--staged | --processed] [--all] <files>...
 
 DESCRIPTION
 -----------
 Run `rag help chunks` to read documents on chunks and files.
 
-TODO: write doc for `rag remove --auto`
+It remove files in a knowledge-base. You can list the names of the files, or use `--all` flag.
+`rag rm --all` is same as `rag rm --recursive .` in the root directory. Unlike git, it never
+removes file in the file system. It only modifies ragit's index.
+
+If a directory name is given, it removes all the files in the directory recursively. This requires
+`--recursive` flag.
+
+By default, it removes all the files that are known to ragit. With `--staged` flag, it only removes
+staged files and with `--processed` files, it only removes processed files. `--auto` is another filter.
+It removes a file in knowledge-base if the file does not exist in the file system.

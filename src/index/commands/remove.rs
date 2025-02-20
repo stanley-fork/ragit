@@ -2,34 +2,117 @@ use super::Index;
 use crate::error::Error;
 use crate::index::{CHUNK_DIR_NAME, IIStatus};
 use ragit_fs::{exists, get_relative_path, remove_file, set_extension};
+use std::collections::HashSet;
 
 pub type Path = String;
+
+#[derive(Clone, Copy, Default)]
+pub struct RemoveResult {
+    pub staged: usize,
+    pub processed: usize,
+}
 
 impl Index {
     pub fn remove_file(
         &mut self,
         path: Path,
         dry_run: bool,
-    ) -> Result<(), Error> {
-        let rel_path = get_relative_path(&self.root_dir, &path)?;
-
-        if self.staged_files.contains(&rel_path) {
-            if !dry_run {
-                self.staged_files = self.staged_files.iter().filter(
-                    |file| file.to_string() != rel_path
-                ).map(
-                    |file| file.to_string()
-                ).collect();
+        recursive: bool,
+        auto: bool,
+        staged: bool,
+        processed: bool,
+    ) -> Result<RemoveResult, Error> {
+        let mut rel_path = get_relative_path(&self.root_dir, &path)?;
+        let (mut staged_candidates, mut processed_candidates) = if recursive {
+            if !rel_path.ends_with("/") {
+                rel_path = format!("{rel_path}/");
             }
 
-            Ok(())
+            let mut staged_candidates = vec![];
+            let mut processed_candidates = vec![];
+
+            // `--all`
+            if rel_path == "/" {
+                if staged {
+                    staged_candidates = self.staged_files.iter().map(|f| f.to_string()).collect();
+                }
+
+                if processed {
+                    processed_candidates = self.processed_files.keys().map(|f| f.to_string()).collect();
+                }
+            }
+
+            else {
+                if staged {
+                    for file in self.staged_files.iter() {
+                        if file.starts_with(&rel_path) {
+                            staged_candidates.push(file.to_string());
+                        }
+                    }
+                }
+
+                if processed {
+                    for file in self.processed_files.keys() {
+                        if file.starts_with(&rel_path) {
+                            processed_candidates.push(file.to_string());
+                        }
+                    }
+                }
+            }
+
+            (staged_candidates, processed_candidates)
+        } else {
+            let staged_candidates = if staged && self.staged_files.contains(&rel_path) {
+                vec![rel_path.clone()]
+            } else {
+                vec![]
+            };
+            let processed_candidates = if processed && self.processed_files.contains_key(&rel_path) {
+                vec![rel_path.clone()]
+            } else {
+                vec![]
+            };
+
+            (staged_candidates, processed_candidates)
+        };
+
+        if staged_candidates.is_empty() && processed_candidates.is_empty() && !recursive {
+            return Err(Error::NoSuchFile { path: Some(path), uid: None });
         }
 
-        else if self.processed_files.contains_key(&rel_path) {
-            if !dry_run {
-                self.ii_status = IIStatus::Outdated;
+        if auto {
+            let mut staged_candidates_new = vec![];
+            let mut processed_candidates_new = vec![];
 
-                match self.processed_files.get(&rel_path).map(|uid| *uid) {
+            for file in staged_candidates.into_iter() {
+                if !exists(&Index::get_data_path(&self.root_dir, &file)?) {
+                    staged_candidates_new.push(file)
+                }
+            }
+
+            for file in processed_candidates.into_iter() {
+                if !exists(&Index::get_data_path(&self.root_dir, &file)?) {
+                    processed_candidates_new.push(file)
+                }
+            }
+
+            staged_candidates = staged_candidates_new;
+            processed_candidates = processed_candidates_new;
+        }
+
+        // TODO: `if !dry_run {}` must not return, but it's extremely hard to do so
+        if !dry_run {
+            let staged_candidates: HashSet<_> = staged_candidates.iter().collect();
+            self.staged_files = self.staged_files.iter().filter(
+                |file| !staged_candidates.contains(file)
+            ).map(
+                |file| file.to_string()
+            ).collect();
+
+            self.ii_status = IIStatus::Outdated;
+
+            for file in processed_candidates.iter() {
+                match self.processed_files.get(file).map(|uid| *uid) {
                     Some(file_uid) => {
                         for uid in self.get_chunks_of_file(file_uid)? {
                             self.chunk_count -= 1;
@@ -47,44 +130,24 @@ impl Index {
                             }
                         }
 
-                        self.processed_files.remove(&rel_path).unwrap();
+                        self.processed_files.remove(file).unwrap();
                         self.remove_file_index(file_uid)?;
                     },
-                    None => {
-                        self.curr_processing_file = None;
-                    },
+                    _ => {},
                 }
             }
-
-            Ok(())
         }
 
-        else {
-            Err(Error::NoSuchFile { path: Some(path), uid: None })
-        }
+        Ok(RemoveResult {
+            staged: staged_candidates.len(),
+            processed: processed_candidates.len(),
+        })
     }
+}
 
-    pub fn remove_auto(&mut self, dry_run: bool) -> Result<Vec<Path>, Error> {  // it returns a list of removed files
-        let mut files_to_remove = vec![];
-
-        for staged_file in self.staged_files.iter() {
-            if !exists(&Index::get_data_path(&self.root_dir, staged_file)?) {
-                files_to_remove.push(staged_file.to_string());
-            }
-        }
-
-        for processed_file in self.processed_files.keys() {
-            if !exists(&Index::get_data_path(&self.root_dir, processed_file)?) {
-                files_to_remove.push(processed_file.to_string());
-            }
-        }
-
-        files_to_remove = files_to_remove.into_iter().map(|file| Index::get_data_path(&self.root_dir, &file).unwrap()).collect();
-
-        for file in files_to_remove.iter() {
-            self.remove_file(file.clone(), dry_run)?;
-        }
-
-        Ok(files_to_remove)
+impl std::ops::AddAssign<Self> for RemoveResult {
+    fn add_assign(&mut self, rhs: Self) {
+        self.staged += rhs.staged;
+        self.processed += rhs.processed;
     }
 }

@@ -52,6 +52,7 @@ pub use commands::{
     MergeMode,
     MergeResult,
     RecoverResult,
+    RemoveResult,
     VersionInfo,
     get_compatibility_warning,
 };

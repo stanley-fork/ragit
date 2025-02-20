@@ -21,3 +21,4 @@ pub use add::{AddMode, AddResult};
 pub use merge::{MergeMode, MergeResult};
 pub use migrate::{VersionInfo, get_compatibility_warning};
 pub use recover::RecoverResult;
+pub use remove::RemoveResult;

@@ -1,4 +1,5 @@
 from add_and_rm import add_and_rm
+from add_and_rm2 import add_and_rm2
 from archive import archive
 from cargo_tests import cargo_tests
 from cat_file import cat_file
@@ -86,6 +87,9 @@ Commands
     add_and_rm                  run `add_and_rm` test
                                 It runs tons of `rag add` and `rag rm` with
                                 different options.
+
+    add_and_rm2                 run `add_and_rm2` test
+                                Like `add_and_rm`, but it's more focused on `rag rm`.
 
     archive                     run `archive` test
                                 It runs `archive-create` and `archive-extract` and check
@@ -211,6 +215,9 @@ if __name__ == "__main__":
         elif command == "add_and_rm":
             add_and_rm()
 
+        elif command == "add_and_rm2":
+            add_and_rm2()
+
         elif command == "recover":
             recover()
 
@@ -308,6 +315,7 @@ if __name__ == "__main__":
             tests = [
                 ("cargo_tests", cargo_tests),
                 ("add_and_rm", add_and_rm),
+                ("add_and_rm2", add_and_rm2),
                 ("recover", recover),
                 ("clone", clone),
                 ("clone2", clone2),

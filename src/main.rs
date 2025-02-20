@@ -13,6 +13,7 @@ use ragit::{
     Prettify,
     ProcessedDoc,
     QueryTurn,
+    RemoveResult,
     UidQueryConfig,
     extract_keywords,
     get_compatibility_warning,
@@ -1260,32 +1261,75 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("remove") | Some("rm") => {
             let parsed_args = ArgParser::new()
-                .args(ArgType::Path, ArgCount::Geq(1))
-                .optional_flag(&["--dry-run"]).parse(&args[2..])?;
+                .optional_flag(&["--dry-run"])
+                .optional_flag(&["--recursive"])
+                .optional_flag(&["--auto"])
+                .optional_flag(&["--all"])
+                .optional_flag(&["--staged", "--processed"])
+                .args(ArgType::Path, ArgCount::Any)
+                .parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/remove.txt"));
                 return Ok(());
             }
 
-            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            let root_dir = root_dir?;
+            let mut index = Index::load(root_dir.clone(), LoadMode::QuickCheck)?;
             let dry_run = parsed_args.get_flag(0).is_some();
-            let files = parsed_args.get_args();
+            let mut recursive = parsed_args.get_flag(1).is_some();
+            let auto = parsed_args.get_flag(2).is_some();
+            let all = parsed_args.get_flag(3).is_some();
+            let staged = parsed_args.get_flag(4).is_none() || parsed_args.get_flag(4) == Some(String::from("--staged"));
+            let processed = parsed_args.get_flag(4).is_none() || parsed_args.get_flag(4) == Some(String::from("--processed"));
+            let mut files = parsed_args.get_args();
+            let mut result = RemoveResult::default();
 
-            let remove_count = if files.len() == 1 && files[0] == "--auto" {
-                index.remove_auto(dry_run)?.len()
-            }
-
-            else {
-                for file in files.iter() {
-                    index.remove_file(file.to_string(), dry_run)?;
+            if all {
+                if !files.is_empty() {
+                    return Err(Error::CliError {
+                        message: String::from("You cannot use `--all` options with paths."),
+                        span: (String::new(), 0, 0),  // TODO
+                    });
                 }
 
-                files.len()
-            };
+                files = vec![root_dir];
+                recursive = true;
+            }
+
+            else if files.is_empty() {
+                return Err(Error::CliError {
+                    message: String::from("Please specify which files to add."),
+                    span: (String::new(), 0, 0),  // TODO
+                });
+            }
+
+            for file in files.iter() {
+                result += index.remove_file(
+                    file.to_string(),
+                    true,  // dry_run
+                    recursive,
+                    auto,
+                    staged,
+                    processed,
+                )?;
+            }
+
+            if !dry_run {
+                for file in files.iter() {
+                    index.remove_file(
+                        file.to_string(),
+                        dry_run,
+                        recursive,
+                        auto,
+                        staged,
+                        processed,
+                    )?;
+                }
+            }
 
             index.save_to_file()?;
-            println!("removed {remove_count} files from index");
+            println!("removed {} staged files and {} processed files", result.staged, result.processed);
         },
         Some("reset") => {
             let parsed_args = ArgParser::new().flag(&["--soft", "--hard"]).parse(&args[2..])?;

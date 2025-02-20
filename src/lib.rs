@@ -30,6 +30,7 @@ pub use index::{
     MODEL_FILE_NAME,
     ProcessedDoc,
     RecoverResult,
+    RemoveResult,
     TfidfResult,
     VersionInfo,
     get_compatibility_warning,

@@ -197,7 +197,14 @@ impl Index {
                     )?;
 
                     if self.processed_files.contains_key(file) {
-                        self.remove_file(real_path.clone(), false)?;
+                        self.remove_file(
+                            real_path.clone(),
+                            false,  // dry run
+                            false,  // recursive
+                            false,  // auto
+                            false,  // staged
+                            true,   // processed
+                        )?;
                     }
 
                     let file_uid = Uid::new_file(&self.root_dir, &real_path)?;
