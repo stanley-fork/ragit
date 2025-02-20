@@ -8,7 +8,7 @@ rag-archive-extract - Extract an archive and create a knowledge-base
 SYNOPSIS
 --------
 [verse]
-'rag archive-extract' --output <dir> [--jobs <n=4>] [--force] <archives..>
+'rag archive-extract' --output <dir> [--jobs <n=4>] [--force | -f] <archives..>
 
 DESCRIPTION
 -----------

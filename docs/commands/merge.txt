@@ -8,7 +8,7 @@ rag-merge - Merge another knowledge-base into the current base
 SYNOPSIS
 --------
 [verse]
-'rag merge' <path> [--prefix <path>] [--force | --ignore | --interactive | --reject]
+'rag merge' <path> [--prefix <path>] [--force | -f | --ignore | --interactive | --reject]
 
 DESCRIPTION
 -----------

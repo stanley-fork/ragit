@@ -9,7 +9,7 @@ rag-rm - Alias
 SYNOPSIS
 --------
 [verse]
-'rag remove' [--dry-run] [--recursive] [--auto] [--staged | --processed] [--all] <files>...
+'rag remove' [--dry-run] [--recursive | -r] [--auto] [--staged | --processed] [--all] <files>...
 
 DESCRIPTION
 -----------

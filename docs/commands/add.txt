@@ -8,7 +8,7 @@ rag-add - Add files to the staging area
 SYNOPSIS
 --------
 [verse]
-'rag add' [--force | --reject] [--dry-run] [--all | <files>...]
+'rag add' [--force | -f | --reject] [--dry-run] [--all | <files>...]
 
 DESCRIPTION
 -----------

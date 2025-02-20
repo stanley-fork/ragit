@@ -13,6 +13,9 @@ pub struct ArgParser {
 
     // `--N=20`, `--prefix=rust`
     arg_flags: HashMap<String, (Option<String> /* default value */, ArgType)>,
+
+    // '-f' -> '--force'
+    short_flags: HashMap<String, String>,
 }
 
 impl ArgParser {
@@ -22,6 +25,7 @@ impl ArgParser {
             arg_type: ArgType::String,
             flags: vec![],
             arg_flags: HashMap::new(),
+            short_flags: HashMap::new(),
         }
     }
 
@@ -59,6 +63,20 @@ impl ArgParser {
         self
     }
 
+    pub fn short_flag(&mut self, flags: &[&str]) -> &mut Self {
+        for flag in flags.iter() {
+            let short_flag = flag.get(1..3).unwrap().to_string();
+
+            if let Some(old) = self.short_flags.get(&short_flag) {
+                panic!("{flag} and {old} have the same short name!")
+            }
+
+            self.short_flags.insert(short_flag, flag.to_string());
+        }
+
+        self
+    }
+
     // the first flag is the default value
     pub fn flag_with_default(&mut self, flags: &[&str]) -> &mut Self {
         self.flags.push(Flag {
@@ -67,6 +85,13 @@ impl ArgParser {
             default: Some(0),
         });
         self
+    }
+
+    pub fn map_short_flag(&self, flag: &str) -> String {
+        match self.short_flags.get(flag) {
+            Some(f) => f.to_string(),
+            None => flag.to_string(),
+        }
     }
 
     pub fn parse(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
@@ -83,6 +108,7 @@ impl ArgParser {
         let mut flags = vec![None; self.flags.len()];
         let mut arg_flags = HashMap::new();
         let mut expecting_flag_arg: Option<(String, ArgType)> = None;
+        let mut no_more_flags = false;
 
         if raw_args.get(0).map(|arg| arg.as_str()) == Some("--help") {
             return Ok(ParsedArgs {
@@ -95,6 +121,18 @@ impl ArgParser {
         }
 
         'raw_arg_loop: for (arg_index, raw_arg) in raw_args.iter().enumerate() {
+            if raw_arg == "--" {
+                if let Some((arg, arg_type)) = expecting_flag_arg {
+                    return Err(Error {
+                        span: Span::End,
+                        kind: ErrorKind::MissingArgument(arg.to_string(), arg_type),
+                    });
+                }
+
+                no_more_flags = true;
+                continue;
+            }
+
             if let Some((flag, arg_type)) = expecting_flag_arg {
                 expecting_flag_arg = None;
                 arg_type.parse(raw_arg, Span::Exact(arg_index))?;
@@ -112,11 +150,13 @@ impl ArgParser {
                 continue;
             }
 
-            if raw_arg.starts_with("--") {
+            if raw_arg.starts_with("-") && !no_more_flags {
+                let mapped_flag = self.map_short_flag(raw_arg);
+
                 for (flag_index, flag) in self.flags.iter().enumerate() {
-                    if flag.values.contains(raw_arg) {
+                    if flag.values.contains(&mapped_flag) {
                         if flags[flag_index].is_none() {
-                            flags[flag_index] = Some(raw_arg.to_string());
+                            flags[flag_index] = Some(mapped_flag.to_string());
                             continue 'raw_arg_loop;
                         }
 
@@ -132,17 +172,17 @@ impl ArgParser {
                     }
                 }
 
-                if let Some((_, arg_type)) = self.arg_flags.get(raw_arg) {
-                    expecting_flag_arg = Some((raw_arg.to_string(), *arg_type));
+                if let Some((_, arg_type)) = self.arg_flags.get(&mapped_flag) {
+                    expecting_flag_arg = Some((mapped_flag.to_string(), *arg_type));
                     continue;
                 }
 
                 if raw_arg.contains("=") {
                     let splitted = raw_arg.splitn(2, '=').collect::<Vec<_>>();
-                    let flag = splitted[0];
+                    let flag = self.map_short_flag(splitted[0]);
                     let flag_arg = splitted[1];
 
-                    if let Some((_, arg_type)) = self.arg_flags.get(flag) {
+                    if let Some((_, arg_type)) = self.arg_flags.get(&flag) {
                         arg_type.parse(flag_arg, Span::Exact(arg_index))?;
 
                         if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {

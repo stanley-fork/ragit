@@ -9,7 +9,7 @@ SYNOPSIS
 --------
 [verse]
 'rag query' <query> [--json]
-'rag query' --interactive | --multi-turn
+'rag query' --interactive | -i | --multi-turn
 
 DESCRIPTION
 -----------

@@ -109,6 +109,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--reject", "--force"])
                 .optional_flag(&["--all"])
                 .optional_flag(&["--dry-run"])
+                .short_flag(&["--force"])
                 .args(ArgType::Path, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -166,6 +167,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--force"])
+                .short_flag(&["--force", "--output"])
                 .parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -196,6 +198,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .arg_flag("--output", ArgType::Path)
                 .optional_flag(&["--force"])
                 .args(ArgType::Path, ArgCount::Geq(1))
+                .short_flag(&["--force", "--output"])
                 .parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1034,6 +1037,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--ignore", "--force", "--interactive", "--reject"])
                 .optional_flag(&["--dry-run"])
                 .optional_arg_flag("--prefix", "", ArgType::Path)
+                .short_flag(&["--force"])
                 .args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1195,10 +1199,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             ).await?;
         },
         Some("query") => {
-            // TODO: `ArgParser` only accepts flags that start with "--". So "-i" doesn't work.
             let parsed_args = ArgParser::new()
-                .optional_flag(&["--interactive", "--multi-turn", "-i"])
+                .optional_flag(&["--interactive", "--multi-turn"])
                 .optional_flag(&["--json"])
+                .short_flag(&["--interactive"])
                 .args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1266,6 +1270,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--auto"])
                 .optional_flag(&["--all"])
                 .optional_flag(&["--staged", "--processed"])
+                .short_flag(&["--recursive"])
                 .args(ArgType::Path, ArgCount::Any)
                 .parse(&args[2..])?;
 

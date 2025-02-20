@@ -1,5 +1,5 @@
 import os
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
+from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
 # NOTE: raising a cli error must be idempotent
 def assert_cli_error(args: list[str]):
@@ -35,6 +35,17 @@ def cli():
     assert_cli_error(["merge", "../base1", "--prefix"])
     cargo_run(["merge", "../base1", "--prefix=prefix1"])
     cargo_run(["merge", "../base1", "--prefix", "prefix2"])
+
+    # short flags
+    cargo_run(["add", "--force", "."])
+    cargo_run(["add", "-f", "."])
+    assert_cli_error(["add", "-f", "--force", "."])
+    assert_cli_error(["add", "-c", "."])
+    cargo_run(["rm", "--all"])
+
+    write_string("--file", "file whose name starts with a dash")
+    assert_cli_error(["add", "--file"])
+    cargo_run(["add", "--", "--file"])
 
     # regression tests
     assert_cli_error(["config", "--set", "model"])
