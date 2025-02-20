@@ -31,9 +31,9 @@ def add_and_rm2():
 
     cargo_run(["add", "--all"])
     assert count_files() == (4, 4, 0)  # total, staged, processed
-    assert parse_rm_output(["--all", "--processed"]) == (0, 0)  # staged, processed
+    assert cargo_run(["rm", "--all", "--processed"], check=False) != 0  # no processed files
     assert count_files() == (4, 4, 0)
-    assert parse_rm_output(["--all", "--staged"]) == (4, 0)
+    assert parse_rm_output(["--all", "--staged"]) == (4, 0)  # staged, processed
     assert count_files() == (0, 0, 0)
     cargo_run(["add", "."])
     assert count_files() == (4, 4, 0)
@@ -47,11 +47,11 @@ def add_and_rm2():
     assert parse_rm_output(["--all", "--staged"]) == (1, 0)
     assert count_files() == (4, 0, 4)
     assert cargo_run(["rm", "dir1"], check=False) != 0
-    assert parse_rm_output(["-r", "--staged", "dir1"]) == (0, 0)
+    assert cargo_run(["rm", "-r", "--staged", "dir1"], check=False) != 0
     assert count_files() == (4, 0, 4)
     assert parse_rm_output(["-r", "dir1"]) == (0, 2)
     assert count_files() == (2, 0, 2)
-    assert parse_rm_output(["--staged", "sample1.txt"]) == (0, 0)
+    assert cargo_run(["rm", "--staged", "sample1.txt"], check=False) != 0
     assert count_files() == (2, 0, 2)
     assert parse_rm_output(["sample1.txt"]) == (0, 1)
     assert count_files() == (1, 0, 1)
@@ -68,11 +68,11 @@ def add_and_rm2():
     cargo_run(["add", "--all"])
     assert count_files() == (5, 5, 0)
     os.chdir("dir1")
-    assert parse_rm_output(["../sample1.txt"]) == (0, 1)
-    assert count_files() == (4, 0, 4)
-    assert cargo_run(["."], check=False) != 0
-    assert parse_rm_output(["-r", "."]) == (0, 2)
-    assert parse_rm_output(["-r", ".."]) == (0, 3)
+    assert parse_rm_output(["../sample1.txt"]) == (1, 0)
+    assert count_files() == (4, 4, 0)
+    assert cargo_run(["rm", "."], check=False) != 0
+    assert parse_rm_output(["-r", "."]) == (2, 0)
+    assert parse_rm_output(["-r", ".."]) == (2, 0)
     assert count_files() == (0, 0, 0)
     os.chdir("..")
 
@@ -81,8 +81,8 @@ def add_and_rm2():
     assert parse_rm_output(["sample1.txt", "dir1/sample3.txt"]) == (0, 2)
     cargo_run(["add", "--all"])
     assert count_files() == (5, 2, 3)
-    assert parse_rm_output(["--dry-run", "--staged", "sample1.txt", "sample2.txt"]) == (1, 0)
-    assert parse_rm_output(["--dry-run", "--processed", "sample1.txt", "sample2.txt"]) == (0, 1)
+    assert parse_rm_output(["--dry-run", "--staged", "sample1.txt"]) == (1, 0)
+    assert parse_rm_output(["--dry-run", "--processed", "sample2.txt"]) == (0, 1)
     assert parse_rm_output(["sample1.txt", "sample2.txt"]) == (1, 1)
     assert count_files() == (3, 1, 2)
 
@@ -90,5 +90,5 @@ def add_and_rm2():
     assert count_files() == (5, 3, 2)
     os.remove("sample1.txt")
     os.remove("dir1/sample4.txt")
-    assert parse_rm_output(["--auto", "--dry-run"]) == (1, 1)
-    assert parse_rm_output(["--auto"]) == (1, 1)
+    assert parse_rm_output(["--auto", "--dry-run", "--all"]) == (1, 1)
+    assert parse_rm_output(["--auto", "--all"]) == (1, 1)

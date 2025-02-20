@@ -76,7 +76,7 @@ impl Index {
             (staged_candidates, processed_candidates)
         };
 
-        if staged_candidates.is_empty() && processed_candidates.is_empty() && !recursive {
+        if staged_candidates.is_empty() && processed_candidates.is_empty() {
             return Err(Error::NoSuchFile { path: Some(path), uid: None });
         }
 
