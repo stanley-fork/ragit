@@ -293,6 +293,10 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
     )?;
     let mut image_size_map = HashMap::new();
 
+    if !exists(&image_dir) {
+        create_dir(&image_dir)?;
+    }
+
     for image_file in read_dir(&image_dir, false)? {
         let curr_ext = extension(&image_file)?.unwrap_or(String::new());
 
@@ -547,6 +551,10 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
         ".ragit",
         "files",
     )?;
+
+    if !exists(&file_index_at) {
+        create_dir(&file_index_at)?;
+    }
 
     for (file_name, mut chunks) in file_to_chunks_map.into_iter() {
         chunks.sort_by_key(|(_, index)| *index);
