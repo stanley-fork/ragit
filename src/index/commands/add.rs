@@ -83,6 +83,11 @@ impl Index {
                 });
             }
 
+            // it filters out `.ragit/` and `.git/`
+            else if ignore.is_strong_match(&self.root_dir, file) {
+                continue;
+            }
+
             else if is_symlink(file) {
                 result.ignored += 1;
             }
