@@ -8,12 +8,16 @@ mod tests;
 #[derive(Debug)]
 pub struct Ignore {
     patterns: Vec<Pattern>,
+
+    /// Some patterns are stronger than others. For example, you cannot `rag add .ragit/` even with `--force`.
+    strong_patterns: Vec<Pattern>,
 }
 
 impl Ignore {
     pub fn new() -> Self {
         Ignore {
             patterns: vec![],
+            strong_patterns: vec![],
         }
     }
 
@@ -21,6 +25,10 @@ impl Ignore {
         if !line.is_empty() && !line.starts_with("#") {
             self.patterns.push(Pattern::parse(line));
         }
+    }
+
+    pub fn add_strong_pattern(&mut self, pattern: &str) {
+        self.strong_patterns.push(Pattern::parse(pattern));
     }
 
     // like `.gitignore`, `.ragignore` never fails to parse
@@ -37,31 +45,52 @@ impl Ignore {
             patterns.push(Pattern::parse(t));
         }
 
-        Ignore { patterns }
+        Ignore { patterns, strong_patterns: vec![] }
     }
 
     /// It returns `Vec<(ignored: bool, file: String)>`. It only returns files, not dirs.
-    pub fn walk_tree(&self, root_dir: &str, dir: &str, follow_symlink: bool) -> Result<Vec<(bool, String)>, FileError> {
+    pub fn walk_tree(
+        &self,
+        root_dir: &str,
+        dir: &str,
+        follow_symlink: bool,
+        skip_ignored_dirs: bool,
+    ) -> Result<Vec<(bool, String)>, FileError> {
         let mut result = vec![];
-        self.walk_tree_worker(root_dir, dir, &mut result, follow_symlink)?;
+        self.walk_tree_worker(root_dir, dir, &mut result, follow_symlink, skip_ignored_dirs, false)?;
         Ok(result)
     }
 
-    fn walk_tree_worker(&self, root_dir: &str, file: &str, buffer: &mut Vec<(bool, String)>, follow_symlink: bool) -> Result<(), FileError> {
+    fn walk_tree_worker(
+        &self,
+        root_dir: &str,
+        file: &str,
+        buffer: &mut Vec<(bool, String)>,
+        follow_symlink: bool,
+        skip_ignored_dirs: bool,
+        already_ignored: bool,  // if a file is inside an ignored directory, there's no need to call `is_match` again
+    ) -> Result<(), FileError> {
+        if self.is_strong_match(root_dir, file) {
+            return Ok(());
+        }
+
+        // ragit doesn't track sym links at all
         if is_symlink(file) && !follow_symlink {
             return Ok(());
         }
 
+        let is_match = already_ignored || self.is_match(root_dir, file);
+
         if is_dir(file) {
-            if !self.is_match(root_dir, file) {
+            if !skip_ignored_dirs || !is_match {
                 for entry in read_dir(file, false)? {
-                    self.walk_tree_worker(root_dir, &entry, buffer, follow_symlink)?;
+                    self.walk_tree_worker(root_dir, &entry, buffer, follow_symlink, skip_ignored_dirs, is_match)?;
                 }
             }
         }
 
         else {
-            buffer.push((self.is_match(root_dir, file), file.to_string()));
+            buffer.push((is_match, file.to_string()));
         }
 
         Ok(())
@@ -71,6 +100,19 @@ impl Ignore {
         let Ok(rel_path) = get_relative_path(&root_dir.to_string(), &file.to_string()) else { return false; };
 
         for pattern in self.patterns.iter() {
+            if pattern.is_match(&rel_path) {
+                return true;
+            }
+        }
+
+        false
+    }
+
+    /// Some patterns are stronger than others. For example, you cannot `rag add .ragit/` even with `--force`.
+    pub fn is_strong_match(&self, root_dir: &str, file: &str) -> bool {
+        let Ok(rel_path) = get_relative_path(&root_dir.to_string(), &file.to_string()) else { return false; };
+
+        for pattern in self.strong_patterns.iter() {
             if pattern.is_match(&rel_path) {
                 return true;
             }

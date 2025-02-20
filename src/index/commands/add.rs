@@ -60,6 +60,7 @@ impl Index {
         ignore: &Ignore,
     ) -> Result<AddResult, Error> {
         let mut result = AddResult::default();
+        let force = mode == Some(AddMode::Force);
 
         if files.is_empty() {
             return Ok(result);
@@ -87,7 +88,7 @@ impl Index {
             }
 
             else if is_dir(file) {
-                for (ignored, sub) in ignore.walk_tree(&self.root_dir, file, false /* follow symlink */)? {
+                for (ignored, sub) in ignore.walk_tree(&self.root_dir, file, false /* follow symlink */, !force /* skip ignored dirs */)? {
                     if ignored {
                         match mode {
                             None => {
@@ -217,10 +218,10 @@ impl Index {
             Ignore::parse(&read_string(&ignore_file_at)?)
         };
 
-        result.add_line(".git");
-        result.add_line(INDEX_DIR_NAME);
-        result.add_line(".ragignore");
-        // result.add_line(".gitignore");  -> it's tracked by git!
+        result.add_strong_pattern(".git");
+        result.add_strong_pattern(INDEX_DIR_NAME);
+        result.add_strong_pattern(".ragignore");
+        // result.add_strong_pattern(".gitignore");  -> it's tracked by git!
 
         Ok(result)
     }

@@ -11,6 +11,7 @@ from empty import empty
 from end_to_end import end_to_end
 from external_bases import external_bases
 from extract_keywords import extract_keywords
+from ignore import ignore
 from ii import ii
 from images import images
 from images2 import images2
@@ -90,6 +91,9 @@ Commands
 
     add_and_rm2                 run `add_and_rm2` test
                                 Like `add_and_rm`, but it's more focused on `rag rm`.
+
+    ignore                      run `ignore` test
+                                It tests whether `rag add` respects `.ragignore` or `.gitignore`.
 
     archive                     run `archive` test
                                 It runs `archive-create` and `archive-extract` and check
@@ -218,6 +222,9 @@ if __name__ == "__main__":
         elif command == "add_and_rm2":
             add_and_rm2()
 
+        elif command == "ignore":
+            ignore()
+
         elif command == "recover":
             recover()
 
@@ -316,6 +323,7 @@ if __name__ == "__main__":
                 ("cargo_tests", cargo_tests),
                 ("add_and_rm", add_and_rm),
                 ("add_and_rm2", add_and_rm2),
+                ("ignore", ignore),
                 ("recover", recover),
                 ("clone", clone),
                 ("clone2", clone2),
