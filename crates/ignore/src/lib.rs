@@ -40,6 +40,7 @@ impl Ignore {
         Ignore { patterns }
     }
 
+    /// It returns `Vec<(ignored: bool, file: String)>`. It only returns files, not dirs.
     pub fn walk_tree(&self, root_dir: &str, dir: &str, follow_symlink: bool) -> Result<Vec<(bool, String)>, FileError> {
         let mut result = vec![];
         self.walk_tree_worker(root_dir, dir, &mut result, follow_symlink)?;
@@ -52,11 +53,7 @@ impl Ignore {
         }
 
         if is_dir(file) {
-            if self.is_match(root_dir, file) {
-                buffer.push((true, file.to_string()));
-            }
-
-            else {
+            if !self.is_match(root_dir, file) {
                 for entry in read_dir(file, false)? {
                     self.walk_tree_worker(root_dir, &entry, buffer, follow_symlink)?;
                 }
