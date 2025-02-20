@@ -41,7 +41,6 @@ def cli():
     cargo_run(["add", "-f", "."])
     assert_cli_error(["add", "-f", "--force", "."])
     assert_cli_error(["add", "-c", "."])
-    cargo_run(["rm", "--all"])
 
     write_string("--file", "file whose name starts with a dash")
     assert_cli_error(["add", "--file"])
