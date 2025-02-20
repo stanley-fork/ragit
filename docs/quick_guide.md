@@ -27,7 +27,7 @@ ai_tutorials/
 
 `.ragit/` is like `.git/` of git repositories. It saves metadata and chunks. After `rag init`, the knowledge-base is empty. You have to add files to the staging using `rag add` command.
 
-Run `rag add *.txt`. Now you're ready to build the knowledge-base. Run `rag build` to start the work. The default model is `llama3.3-70b-groq` and you need `GROQ_API_KEY` to run. If you want to run gpt-4o-mini, run `rag config --set model gpt-4o-mini`. You can see the list of the models using `rag ls-models`.
+Run `rag add --all`. Now you're ready to build the knowledge-base. Run `rag build` to start the work. The default model is `llama3.3-70b-groq` and you need `GROQ_API_KEY` to run. If you want to run gpt-4o-mini, run `rag config --set model gpt-4o-mini`. You can see the list of the models using `rag ls-models`. You can also add models manually to `.ragit/models.json`.
 
 ```
 elapsed time: 00:23
@@ -57,11 +57,11 @@ ai_tutorials/
  ╰ ... and many more txt files
 ```
 
-After it's built, you'll see many data files in the `.ragit/` directory. You can ask queries on the knowledge-base now. Here are brief explanations on data files:
+After it's built, you'll see many data files in the `.ragit/` directory. You can ask queries on the knowledge-base now.
 
 NOTE: You can ask queries on an incomplete knowledge-base, too.
 
-## 2. (Optional) Pull Knowledge-Bases from web
+## 2. (Optional) Clone Knowledge-Bases from web
 
 This is the key part. You can download knowledge-bases from the internet and extend your knowledge-base with those. You can also share your knowledge-base with others.
 

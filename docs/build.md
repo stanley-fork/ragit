@@ -28,4 +28,4 @@ python scripts/tests.py all
 
 ## Download pre-built binary
 
-http://ragit.baehyunsol.com provides pre-built binary files. Pick a version that passes the tests, and download the binary. It's still half-broken and only provides linux binaries.
+Check out [github release page](https://github.com/baehyunsol/ragit/releases)

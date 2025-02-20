@@ -18,7 +18,6 @@ RAGIT is very different from the other RAG frameworks.
 3. It supports markdown files with images.
 4. It supports multi-turn queries (experimental).
 5. You can clone/push knowledge-bases, like git.
-  - `push` command is WIP.
 
 ## More documents
 
@@ -30,3 +29,13 @@ RAGIT is very different from the other RAG frameworks.
 - [Pipeline](./docs/pipeline.md)
 - [Prompt Engineering](./docs/prompt_engineering.md)
 - [Quick Guide](./docs/quick_guide.md)
+
+## Interactive documents
+
+```sh
+cargo install ragit;
+rag clone http://ragit.baehyunsol.com/sample/ragit;
+cd ragit;
+export GROQ_API_KEY=YOUR_API_KEY;
+rag query "How do I contribute to ragit?";
+```
