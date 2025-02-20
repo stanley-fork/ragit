@@ -71,7 +71,7 @@ impl Index {
         let mut downloaded_bytes = 0;
 
         for (index, archive) in archive_list.iter().enumerate() {
-            let archive_url = url.join(&format!("archive/{archive}/"))?;
+            let archive_url = url.join("archive/")?.join(archive)?;
             let archive_blob = request_binary_file(archive_url.as_str()).await?;
             downloaded_bytes += archive_blob.len();
             Index::render_clone_dashboard(
