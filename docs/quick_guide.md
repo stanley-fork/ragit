@@ -30,13 +30,14 @@ ai_tutorials/
 Run `rag add --all`. Now you're ready to build the knowledge-base. Run `rag build` to start the work. The default model is `llama3.3-70b-groq` and you need `GROQ_API_KEY` to run. If you want to run gpt-4o-mini, run `rag config --set model gpt-4o-mini`. You can see the list of the models using `rag ls-models`. You can also add models manually to `.ragit/models.json`.
 
 ```
-elapsed time: 00:23
+elapsed time: 00:33
 staged files: 15, processed files: 13
+remaining chunks (approx): 27
 committed chunks: 1
 currently processing files: `ai_tutorial_14.txt`, `ai_tutorial_21.txt`
 buffered files: 8, buffered chunks: 8
 model: gpt-4o-mini
-input tokens: 2081 (0.000$), output tokens: 327 (0.000$)
+input tokens: 14081 (0.001$), output tokens: 1327 (0.000$)
 ```
 
 `rag build` takes very long time and money (if you're using a proprietary api). It creates chunks and add title and summary to each chunk, using AI.
