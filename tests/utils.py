@@ -1,3 +1,4 @@
+import json
 import os
 from random import randint, random
 import re
@@ -87,30 +88,45 @@ def cargo_run(
     else:
         return result.returncode
 
-def count_files(args: Optional[list[str]] = None) -> Tuple[int, int, int]:
+def count_files(args: Optional[list[str]] = None, extra_check: bool = True) -> Tuple[int, int, int]:
     files = cargo_run(["ls-files"] + (args or []), stdout=True)
     first_line = files.split("\n")[0]
     total, staged, processed = re.search(r"(\d+)\stotal\sfiles\,\s(\d+)\sstaged\sfiles\,\s(\d+)\sprocessed\sfiles", first_line).groups()
-    return int(total), int(staged), int(processed)
+    total, staged, processed = int(total), int(staged), int(processed)
 
-def count_chunks(args: Optional[list[str]] = None) -> int:
+    if extra_check:
+        files = cargo_run(["ls-files", "--json", "--stat-only"] + (args or []), stdout=True)
+        files = json.loads(files.strip())
+        total_, staged_, processed_ = files["total files"], files["staged files"], files["processed files"]
+        assert (total, staged, processed) == (total_, staged_, processed_)
+
+    return total, staged, processed
+
+def count_chunks(args: Optional[list[str]] = None, extra_check: bool = True) -> int:
     chunks = cargo_run(["ls-chunks"] + (args or []), stdout=True)
     first_line = chunks.split("\n")[0]
-    return int(re.search(r"^(\d+)\schunks", first_line).group(1))
+    chunks = int(re.search(r"^(\d+)\schunks", first_line).group(1))
 
-def count_images(args: Optional[list[str]] = None) -> int:
+    if extra_check:
+        chunks_ = cargo_run(["ls-chunks", "--json", "--stat-only"] + (args or []), stdout=True)
+        chunks_ = json.loads(chunks_.strip())
+        chunks_ = chunks_["chunks"]
+        assert chunks == chunks_
+
+    return chunks
+
+def count_images(args: Optional[list[str]] = None, extra_check: bool = True) -> int:
     images = cargo_run(["ls-images"] + (args or []), stdout=True)
     first_line = images.split("\n")[0]
-    return int(re.search(r"^(\d+)\simages", first_line).group(1))
+    images = int(re.search(r"^(\d+)\simages", first_line).group(1))
 
-def parse_tfidf_output(args: list[str]) -> int:
-    output = cargo_run(["tfidf"] + args, stdout=True)
+    if extra_check:
+        images_ = cargo_run(["ls-images", "--json", "--stat-only"] + (args or []), stdout=True)
+        images_ = json.loads(images_.strip())
+        images_ = images_["images"]
+        assert images == images_
 
-    for line in output.split("\n"):
-        if (r := re.match(r"^found\s(\d+)\sresults$", line)) is not None:
-            return int(r.group(1))
-
-    raise Exception("no result found")
+    return images
 
 def ls_recursive(ext: str, path: Optional[list[str]] = None) -> list[str]:
     result = []
