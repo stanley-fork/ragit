@@ -853,6 +853,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("ls-images") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only", "--stat-only"])
+                .optional_flag(&["--json"])
                 .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -862,6 +863,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let json_mode = parsed_args.get_flag(1).is_some();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
@@ -871,14 +873,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     &|image| image,  // no map
                     &|_| 0,  // no sort
                 )?;
-
-                if !uid_only {
-                    println!("{} images", result.len());
-                }
-
-                if stat_only {
-                    return Ok(());
-                }
 
                 result
             } else {
@@ -907,14 +901,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     return Err(Error::UidQueryError(format!("There's no chunk/file/image that matches `{}`.", args.join(" "))));
                 }
 
-                if !uid_only {
-                    println!("{} images", image_uids.len());
-                }
-
-                if stat_only {
-                    return Ok(());
-                }
-
                 let mut result = Vec::with_capacity(image_uids.len());
 
                 for image_uid in image_uids.iter() {
@@ -924,17 +910,54 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 result
             };
 
-            for image in images.iter() {
-                if uid_only {
-                    println!("{}", image.uid);
-                    continue;
+            if uid_only {
+                if json_mode {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(
+                            &images.iter().map(
+                                |image| image.uid.to_string()
+                            ).collect::<Vec<_>>(),
+                        )?,
+                    );
                 }
 
-                println!("--------");
-                println!("uid: {}", image.uid);
-                println!("explanation: {}", image.explanation);
-                println!("extracted_text: {}", image.extracted_text);
-                println!("size: {}", image.size);
+                else {
+                    for image in images.iter() {
+                        println!("{}", image.uid);
+                    }
+                }
+            }
+
+            else if stat_only {
+                if json_mode {
+                    println!("{}\"images\": {}{}", '{', images.len(), '}');
+                }
+
+                else {
+                    println!("{} images", images.len());
+                }
+            }
+
+            else {
+                if json_mode {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&images.prettify()?)?,
+                    );
+                }
+
+                else {
+                    println!("{} images", images.len());
+
+                    for image in images.iter() {
+                        println!("--------");
+                        println!("uid: {}", image.uid);
+                        println!("explanation: {}", image.explanation);
+                        println!("extracted_text: {}", image.extracted_text);
+                        println!("size: {}", image.size);
+                    }
+                }
             }
         },
         Some("ls-models") => {

@@ -8,9 +8,15 @@ rag-ls-images - Show information about images
 SYNOPSIS
 --------
 [verse]
-'rag ls-images' [--stat-only | --uid-only] [<uid>..]
+'rag ls-images' [--stat-only | --uid-only] [--json] [<uid>..]
 
 DESCRIPTION
 -----------
 Run `rag help uid-query` to read how uid-query works. If the uid is not of
 an image, it dies.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+- no flags: `[image: object]`
+- `--uid-only`: `[uid: string]`
+- `--stat-only`: `{ "images": integer }`
