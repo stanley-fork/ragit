@@ -730,16 +730,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let files = if args.is_empty() {
                 if !uid_only && !name_only {
-                    if !json_mode {
-                        println!(
-                            "{} total files, {} staged files, {} processed files",
-                            index.staged_files.len() + index.processed_files.len(),
-                            index.staged_files.len(),
-                            index.processed_files.len(),
-                        );
-                    }
-
-                    else if stat_only {
+                    if json_mode && stat_only {
                         println!(
                             "{}\"total files\": {}, \"staged files\": {}, \"processed files\": {}{}",
                             "{",
@@ -747,6 +738,15 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                             index.staged_files.len(),
                             index.processed_files.len(),
                             "}",
+                        );
+                    }
+
+                    else if !json_mode {
+                        println!(
+                            "{} total files, {} staged files, {} processed files",
+                            index.staged_files.len() + index.processed_files.len(),
+                            index.staged_files.len(),
+                            index.processed_files.len(),
                         );
                     }
                 }
@@ -781,12 +781,25 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 if !uid_only && !name_only {
-                    println!(
-                        "{} total files, {} staged files, {} processed files",
-                        processed_files_len + staged_files_len,
-                        staged_files_len,
-                        processed_files_len,
-                    );
+                    if json_mode && stat_only {
+                        println!(
+                            "{}\"total files\": {}, \"staged files\": {}, \"processed files\": {}{}",
+                            "{",
+                            staged_files_len + processed_files_len,
+                            staged_files_len,
+                            processed_files_len,
+                            "}",
+                        );
+                    }
+
+                    else if !json_mode {
+                        println!(
+                            "{} total files, {} staged files, {} processed files",
+                            staged_files_len + processed_files_len,
+                            staged_files_len,
+                            processed_files_len,
+                        );
+                    }
                 }
 
                 if stat_only {
