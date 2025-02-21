@@ -15,7 +15,6 @@ mod migrate;
 mod push;
 mod recover;
 mod remove;
-mod reset;
 
 pub use add::{AddMode, AddResult};
 pub use merge::{MergeMode, MergeResult};

@@ -23,7 +23,7 @@ def ii():
     os.chdir("src")
 
     if ".ragit" in os.listdir():
-        cargo_run(["reset", "--hard"])
+        shutil.rmtree(".ragit")
 
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])

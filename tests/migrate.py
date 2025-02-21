@@ -19,7 +19,8 @@ def checkout(version: str):
     except CalledProcessError:
         raise Exception(f"Cannot git-checkout to ragit version {version}, please commit your changes before running the test.")
 
-# run `rag reset --hard` before calling this, if there's an existing knowledge-base
+# make sure that there's no `.ragit/` directory
+# if so, remove it
 def init_knowledge_base():
     write_string("sample0.md", "Hi! My name is Baehyunsol.")
     write_string("sample1.md", sample1)
@@ -82,7 +83,7 @@ def migrate():
 
     # step 7: direct migrate from 0.1.1 to 0.3.0
     checkout("0.1.1")
-    cargo_run(["reset", "--hard"])
+    shutil.rmtree(".ragit")
     init_knowledge_base()
 
     checkout('0.3.0')

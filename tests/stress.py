@@ -7,6 +7,7 @@
 
 import json
 import os
+import shutil
 import subprocess
 import time
 from utils import cargo_run, clean, goto_root, mk_and_cd_tmp_dir, write_string
@@ -41,7 +42,7 @@ def run():
     timeit("ii-build from scratch", lambda: cargo_run(["ii-build"]), result)
     timeit("tfidf with ii", lambda: cargo_run(["tfidf", "file system"]), result)
 
-    cargo_run(["reset", "--hard"])
+    shutil.rmtree(".ragit")
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["add", "--all"])

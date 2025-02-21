@@ -19,7 +19,7 @@ def end_to_end(test_model: str):
     files = ls_recursive("txt") + ls_recursive("md")
 
     if ".ragit" in os.listdir():
-        cargo_run(["reset", "--hard"])
+        shutil.rmtree(".ragit")
 
     assert len(files) > 10  # `rag build` has to take at least 20 seconds
     cargo_run(["init"])

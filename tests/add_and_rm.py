@@ -110,8 +110,8 @@ def add_and_rm():
 
             os.chdir("..")
 
-    # step 2: reset --soft
-    cargo_run(["reset", "--soft"])
+    # step 2: rm --all
+    cargo_run(["rm", "--all"])
     cargo_run(["check"])
     write_string(".ragignore", "")
 

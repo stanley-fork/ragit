@@ -1372,26 +1372,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
             println!("removed {} staged files and {} processed files", result.staged, result.processed);
         },
-        Some("reset") => {
-            let parsed_args = ArgParser::new().flag(&["--soft", "--hard"]).parse(&args[2..])?;
-
-            if parsed_args.show_help() {
-                println!("{}", include_str!("../docs/commands/reset.txt"));
-                return Ok(());
-            }
-
-            let soft = parsed_args.get_flag(0).unwrap() == "--soft";
-
-            if soft {
-                let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
-                index.reset_soft()?;
-                index.save_to_file()?;
-            }
-
-            else {
-                Index::reset_hard(&root_dir?)?;
-            }
-        },
         // tmp command for testing `Index::summary_file`
         // this interface is likely to change
         Some("summary-file") => {

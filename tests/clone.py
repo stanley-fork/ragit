@@ -54,7 +54,7 @@ def clone(base2_size: int = 8000):
 
         # step 3: create another local knowledge-base
         #         base 2: a larger base with 8k markdown files
-        cargo_run(["reset", "--hard"])
+        shutil.rmtree(".ragit")
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", "dummy"])
         files = []
