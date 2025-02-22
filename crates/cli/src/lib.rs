@@ -12,7 +12,7 @@ pub struct ArgParser {
     flags: Vec<Flag>,
 
     // `--N=20`, `--prefix=rust`
-    arg_flags: HashMap<String, (Option<String> /* default value */, ArgType)>,
+    arg_flags: HashMap<String, ArgFlag>,
 
     // '-f' -> '--force'
     short_flags: HashMap<String, String>,
@@ -54,12 +54,17 @@ impl ArgParser {
     }
 
     pub fn arg_flag(&mut self, flag: &str, arg_type: ArgType) -> &mut Self {
-        self.arg_flags.insert(flag.to_string(), (None, arg_type));
+        self.arg_flags.insert(flag.to_string(), ArgFlag { flag: flag.to_string(), optional: false, default: None, arg_type });
         self
     }
 
-    pub fn optional_arg_flag(&mut self, flag: &str, default: &str, arg_type: ArgType) -> &mut Self {
-        self.arg_flags.insert(flag.to_string(), (Some(default.to_string()), arg_type));
+    pub fn optional_arg_flag(&mut self, flag: &str, arg_type: ArgType) -> &mut Self {
+        self.arg_flags.insert(flag.to_string(), ArgFlag { flag: flag.to_string(), optional: true, default: None, arg_type });
+        self
+    }
+
+    pub fn arg_flag_with_default(&mut self, flag: &str, default: &str, arg_type: ArgType) -> &mut Self {
+        self.arg_flags.insert(flag.to_string(), ArgFlag { flag: flag.to_string(), optional: true, default: Some(default.to_string()), arg_type });
         self
     }
 
@@ -107,7 +112,7 @@ impl ArgParser {
         let mut args = vec![];
         let mut flags = vec![None; self.flags.len()];
         let mut arg_flags = HashMap::new();
-        let mut expecting_flag_arg: Option<(String, ArgType)> = None;
+        let mut expecting_flag_arg: Option<ArgFlag> = None;
         let mut no_more_flags = false;
 
         if raw_args.get(0).map(|arg| arg.as_str()) == Some("--help") {
@@ -122,10 +127,10 @@ impl ArgParser {
 
         'raw_arg_loop: for (arg_index, raw_arg) in raw_args.iter().enumerate() {
             if raw_arg == "--" {
-                if let Some((arg, arg_type)) = expecting_flag_arg {
+                if let Some(arg_flag) = expecting_flag_arg {
                     return Err(Error {
                         span: Span::End,
-                        kind: ErrorKind::MissingArgument(arg.to_string(), arg_type),
+                        kind: ErrorKind::MissingArgument(arg_flag.flag.to_string(), arg_flag.arg_type),
                     });
                 }
 
@@ -133,16 +138,16 @@ impl ArgParser {
                 continue;
             }
 
-            if let Some((flag, arg_type)) = expecting_flag_arg {
+            if let Some(arg_flag) = expecting_flag_arg {
                 expecting_flag_arg = None;
-                arg_type.parse(raw_arg, Span::Exact(arg_index))?;
+                arg_flag.arg_type.parse(raw_arg, Span::Exact(arg_index))?;
 
-                if let Some(_) = arg_flags.insert(flag.clone(), raw_arg.to_string()) {
+                if let Some(_) = arg_flags.insert(arg_flag.flag.clone(), raw_arg.to_string()) {
                     return Err(Error {
                         span: Span::Exact(arg_index),
                         kind: ErrorKind::SameFlagMultipleTimes(
-                            flag.clone(),
-                            flag.clone(),
+                            arg_flag.flag.clone(),
+                            arg_flag.flag.clone(),
                         ),
                     });
                 }
@@ -172,8 +177,8 @@ impl ArgParser {
                     }
                 }
 
-                if let Some((_, arg_type)) = self.arg_flags.get(&mapped_flag) {
-                    expecting_flag_arg = Some((mapped_flag.to_string(), *arg_type));
+                if let Some(arg_flag) = self.arg_flags.get(&mapped_flag) {
+                    expecting_flag_arg = Some(arg_flag.clone());
                     continue;
                 }
 
@@ -182,8 +187,8 @@ impl ArgParser {
                     let flag = self.map_short_flag(splitted[0]);
                     let flag_arg = splitted[1];
 
-                    if let Some((_, arg_type)) = self.arg_flags.get(&flag) {
-                        arg_type.parse(flag_arg, Span::Exact(arg_index))?;
+                    if let Some(arg_flag) = self.arg_flags.get(&flag) {
+                        arg_flag.arg_type.parse(flag_arg, Span::Exact(arg_index))?;
 
                         if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {
                             return Err(Error {
@@ -217,10 +222,10 @@ impl ArgParser {
             }
         }
 
-        if let Some((arg, arg_type)) = expecting_flag_arg {
+        if let Some(arg_flag) = expecting_flag_arg {
             return Err(Error {
                 span: Span::End,
-                kind: ErrorKind::MissingArgument(arg.to_string(), arg_type),
+                kind: ErrorKind::MissingArgument(arg_flag.flag.to_string(), arg_flag.arg_type),
             });
         }
 
@@ -257,16 +262,16 @@ impl ArgParser {
             });
         }
 
-        for (flag, (default, _)) in self.arg_flags.iter() {
+        for (flag, arg_flag) in self.arg_flags.iter() {
             if arg_flags.contains_key(flag) {
                 continue;
             }
 
-            else if let Some(default) = default {
+            else if let Some(default) = &arg_flag.default {
                 arg_flags.insert(flag.to_string(), default.to_string());
             }
 
-            else {
+            else if !arg_flag.optional {
                 return Err(Error {
                     span: Span::End,
                     kind: ErrorKind::MissingFlag(flag.to_string()),
@@ -328,10 +333,19 @@ impl ArgType {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Flag {
     values: Vec<String>,
     optional: bool,
     default: Option<usize>,
+}
+
+#[derive(Clone, Debug)]
+pub struct ArgFlag {
+    flag: String,
+    optional: bool,
+    default: Option<String>,
+    arg_type: ArgType,
 }
 
 pub struct ParsedArgs {

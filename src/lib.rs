@@ -41,10 +41,6 @@ pub use query::{
     QueryConfig,
     QueryResponse,
     QueryTurn,
-    extract_keywords,
-    query,
-    retrieve_chunks,
-    single_turn,
 };
 pub use schema::{
     ChunkSchema,

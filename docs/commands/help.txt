@@ -3,8 +3,13 @@ ragit is an all-in-one RAG framework that helps you create, query and share know
 Run `rag help <COMMAND>` to read more documents.
 
 Create a new knowledge-base
+    archive-extract
     clone
     init
+
+Share a knowledge-base
+    archive-create
+    push
 
 Work with an existing knowledge-base
     add
@@ -13,7 +18,6 @@ Work with an existing knowledge-base
     ii-build
     ii-reset
     rm
-    reset
 
 Get information about a knowledge-base
     cat-file
@@ -28,10 +32,15 @@ Get information about a knowledge-base
 
 Query a knowledge-base
     query
+
+Simulate each pipeline
+    extract-keywords
     tfidf
+    retrieve-chunks
 
 ragit also has extra tutorial commands
     rag help chunks
     rag help config-reference
+    rag help pipeline
     rag help quick-guide
     rag help uid-query

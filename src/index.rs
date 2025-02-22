@@ -3,7 +3,7 @@ use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
 use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME};
 use crate::error::Error;
 use crate::prompts::{PROMPTS, PROMPT_DIR};
-use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME, extract_keywords};
+use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME};
 use crate::uid::{self, Uid, UidWriteMode};
 use ragit_api::{
     Model,
@@ -299,7 +299,7 @@ impl Index {
         query: &str,
     ) -> Result<Vec<Chunk>, Error> {
         if self.chunk_count > self.query_config.max_titles {
-            let keywords = extract_keywords(self, query).await?;
+            let keywords = self.extract_keywords(query).await?;
             let tfidf_results = self.run_tfidf(
                 keywords,
                 self.query_config.max_summaries,

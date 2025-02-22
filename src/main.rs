@@ -15,10 +15,8 @@ use ragit::{
     QueryTurn,
     RemoveResult,
     UidQueryConfig,
-    extract_keywords,
     get_compatibility_warning,
     merge_and_convert_chunks,
-    query,
 };
 use ragit_cli::{
     ArgCount,
@@ -161,8 +159,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("archive-create") => {
             let parsed_args = ArgParser::new()
-                .optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger)
-                .optional_arg_flag("--size-limit", "0", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
+                .optional_arg_flag("--size-limit", ArgType::UnsignedInteger)
                 .arg_flag("--output", ArgType::Path)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
@@ -177,8 +175,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
             let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
-            let size_limit = parsed_args.arg_flags.get("--size-limit").as_ref().unwrap().parse::<u64>().unwrap();
-            let size_limit = if size_limit == 0 { None } else { Some(size_limit) };
+            let size_limit = parsed_args.arg_flags.get("--size-limit").as_ref().map(|n| n.parse::<u64>().unwrap());
             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
@@ -194,7 +191,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("archive-extract") => {
             let parsed_args = ArgParser::new()
-                .optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
                 .arg_flag("--output", ArgType::Path)
                 .optional_flag(&["--force"])
                 .args(ArgType::Path, ArgCount::Geq(1))
@@ -218,7 +215,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             )?;
         },
         Some("build") => {
-            let parsed_args = ArgParser::new().optional_arg_flag("--jobs", "4", ArgType::UnsignedInteger).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/build.txt"));
@@ -444,8 +441,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let full_schema = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
             let query = &parsed_args.get_args_exact(1)?[0];
-
-            let result = extract_keywords(&index, query).await?;
+            let result = index.extract_keywords(query).await?;
 
             if full_schema {
                 if json_mode {
@@ -1072,7 +1068,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--ignore", "--force", "--interactive", "--reject"])
                 .optional_flag(&["--dry-run"])
-                .optional_arg_flag("--prefix", "", ArgType::Path)
+                .optional_arg_flag("--prefix", ArgType::Path)
                 .short_flag(&["--force"])
                 .args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
@@ -1210,7 +1206,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("push") => {
             let parsed_args = ArgParser::new()
-                .optional_arg_flag("--remote", "", ArgType::Path)
+                .optional_arg_flag("--remote", ArgType::Path)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .args(ArgType::String, ArgCount::None)
@@ -1222,10 +1218,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            let remote = match parsed_args.arg_flags.get("--remote").as_ref().unwrap() {
-                s if s.is_empty() => None,
-                s => Some(s.to_string()),
-            };
+            let remote = parsed_args.arg_flags.get("--remote").map(|s| s.to_string());
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
             index.push(
@@ -1265,8 +1258,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         print!(">>> ");
                         std::io::stdout().flush()?;
                         std::io::stdin().read_line(&mut curr_input)?;
-                        let response = query(
-                            &index,
+                        let response = index.query(
                             &curr_input,
                             history.clone(),
                         ).await?;
@@ -1275,8 +1267,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
                 },
                 _ => {
-                    let response = query(
-                        &index,
+                    let response = index.query(
                         &parsed_args.get_args_exact(1)?[0],
                         vec![],  // no history
                     ).await?;
@@ -1372,6 +1363,109 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.save_to_file()?;
             println!("removed {} staged files and {} processed files", result.staged, result.processed);
         },
+        Some("retrieve-chunks") => {
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--uid-only"])
+                .optional_flag(&["--json"])
+                .flag_with_default(&["--rerank", "--no-rerank"])
+                .optional_arg_flag("--max-retrieval", ArgType::UnsignedInteger)
+                .optional_arg_flag("--max-summaries", ArgType::UnsignedInteger)
+                .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/retrieve-chunks.txt"));
+                return Ok(());
+            }
+
+            let uid_only = parsed_args.get_flag(0).is_some();
+            let json_mode = parsed_args.get_flag(1).is_some();
+            let rerank = parsed_args.get_flag(2).unwrap() == "--rerank";
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+
+            let max_retrieval = match parsed_args.arg_flags.get("--max-chunks") {
+                Some(n) => n.parse::<usize>().unwrap(),
+                None => index.query_config.max_retrieval,
+            };
+            let max_summaries = match parsed_args.arg_flags.get("--max-summaries") {
+                Some(n) => n.parse::<usize>().unwrap(),
+                None => index.query_config.max_summaries,
+            };
+            let query = parsed_args.get_args_exact(1)?[0].clone();
+
+            let keywords = {
+                let keywords = index.extract_keywords(&parsed_args.get_args_exact(1)?[0]).await?;
+
+                if keywords.is_empty() {
+                    eprintln!("Warning: failed to extract keywords!");
+                    Keywords::from_raw(parsed_args.get_args())
+                }
+
+                else {
+                    keywords
+                }
+            };
+            let tfidf_results = index.run_tfidf(
+                keywords,
+                max_summaries,
+            )?;
+            let mut chunks = Vec::with_capacity(tfidf_results.len());
+
+            for tfidf_result in tfidf_results.iter() {
+                chunks.push(index.get_chunk_by_uid(tfidf_result.id)?);
+            }
+
+            if rerank {
+                chunks = index.summaries_to_chunks(
+                    &query,
+                    chunks,
+                    max_retrieval,
+                ).await?;
+            }
+
+            if json_mode {
+                if uid_only {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(
+                            &chunks.iter().map(
+                                |chunk| chunk.uid.to_string()
+                            ).collect::<Vec<_>>(),
+                        )?,
+                    );
+                }
+
+                else {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(
+                            &chunks.iter().map(
+                                |chunk| [
+                                    (String::from("uid"), chunk.uid.to_string().into()),
+                                    (String::from("source"), chunk.render_source().into()),
+                                    (String::from("title"), chunk.title.to_string().into()),
+                                    (String::from("summary"), chunk.summary.to_string().into()),
+                                ].into_iter().collect::<Map<String, Value>>(),
+                            ).collect::<Vec<_>>(),
+                        )?,
+                    );
+                }
+            }
+
+            else {
+                for chunk in chunks.iter() {
+                    if uid_only {
+                        println!("{}", chunk.uid);
+                        continue;
+                    }
+
+                    println!("--------------------------");
+                    println!("uid: {}", chunk.uid);
+                    println!("source: {}", chunk.render_source());
+                    println!("title: {}", chunk.title);
+                    println!("summary: {}", chunk.summary);
+                }
+            }
+        },
         // tmp command for testing `Index::summary_file`
         // this interface is likely to change
         Some("summary-file") => {
@@ -1386,7 +1480,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--keyword", "--query"])
-                .optional_arg_flag("--limit", "10", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--limit", "10", ArgType::UnsignedInteger)
                 .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1394,13 +1488,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
+            let uid_only = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
             let query_mode = parsed_args.get_flag(2).unwrap_or(String::new()) == "--query";
+
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let started_at = std::time::Instant::now();
             let keywords = if query_mode {
-                let keywords = extract_keywords(&index, &parsed_args.get_args_exact(1)?[0]).await?;
+                let keywords = index.extract_keywords(&parsed_args.get_args_exact(1)?[0]).await?;
 
                 if keywords.is_empty() {
                     eprintln!("Warning: failed to extract keywords!");
@@ -1414,7 +1509,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Keywords::from_raw(parsed_args.get_args())
             };
             let tokenized_keywords = keywords.tokenize();
-            let limit = parsed_args.arg_flags.get("--limit").map(|s| s.to_string()).unwrap().parse::<i64>().unwrap().max(0) as usize;
+            let limit = parsed_args.arg_flags.get("--limit").map(|n| n.parse::<usize>().unwrap()).unwrap();
 
             if !uid_only && !json_mode {
                 println!("search keywords: {:?}", parsed_args.get_args());

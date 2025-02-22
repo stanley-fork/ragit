@@ -12,6 +12,9 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
+This command is to test full-text search engine, not to retrieve chunks. If you want to retrieve chunks,
+run `rag retrieve-chunks`.
+
 You can run full-text search on your knowledge-base using this command. Be careful that its argument
 is `<keywords>`, not `<query>`. Ragit goes through an LLM prompt which extracts keywords from a query,
 but `rag tfidf` does not. If you want such behavior, try `rag tfidf --query <your_query>`.
