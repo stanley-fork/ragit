@@ -10,7 +10,7 @@ from utils import (
     write_string,
 )
 
-def clone(base2_size: int = 8000):
+def clone(base2_size: int = 600):
     goto_root()
     os.chdir("crates/server")
     os.makedirs("data/test-user/repo1")
@@ -70,8 +70,21 @@ def clone(base2_size: int = 8000):
         # step 4: push the local knowledge-base to the server
         cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo2"])
 
-        # step 5: clone and check base 1
+        # step 5: clone samples from ragit.baehyunsol.com and push it to the local server
         os.chdir("..")
+
+        for (base, url) in [
+            ("git", "http://ragit.baehyunsol.com/sample/git"),
+            ("ragit", "http://ragit.baehyunsol.com/sample/ragit"),
+            ("rustc", "http://ragit.baehyunsol.com/sample/rustc"),
+        ]:
+            cargo_run(["clone", url], timeout=100)
+            os.rename(base, base + "-cloned")
+            os.chdir(base + "-cloned")
+            cargo_run(["push", f"--remote=http://127.0.0.1/test-user/{base}"])
+            os.chdir("..")
+
+        # step 6: clone and check base 1
         cargo_run(["clone", "http://127.0.0.1/test-user/repo1"])
         os.chdir("repo1")
         cargo_run(["check"])
@@ -80,11 +93,24 @@ def clone(base2_size: int = 8000):
         assert "sample1.txt" in cargo_run(["tfidf", "replace"], stdout=True)
         assert "sample2.txt" not in cargo_run(["tfidf", "replace"], stdout=True)
 
-        # step 6: clone and check base 2
+        # step 7: clone and check base 2
         os.chdir("..")
         cargo_run(["clone", "http://127.0.0.1/test-user/repo2"])
         os.chdir("repo2")
         cargo_run(["check"])
+
+        # step 8: clone and check cloned bases
+        os.chdir("..")
+
+        for (base, url) in [
+            ("git", "http://127.0.0.1/test-user/git"),
+            ("ragit", "http://127.0.0.1/test-user/ragit"),
+            ("rustc", "http://127.0.0.1/test-user/rustc"),
+        ]:
+            cargo_run(["clone", url])
+            os.chdir(base)
+            cargo_run(["check"])
+            os.chdir("..")
 
     finally:
         server_process.kill()
