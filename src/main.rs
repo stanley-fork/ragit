@@ -333,7 +333,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             match Index::load(root_dir.clone(), LoadMode::OnlyJson) {
                 Ok(mut index) => if index.curr_processing_file.is_some() && recover {
                     let recover_result = index.recover()?;
-                    index.save_to_file()?;
                     index.check()?;
                     println!("recovered from a corrupted knowledge-base: {recover_result}");
                 } else {
@@ -343,7 +342,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         },
                         Err(e) => if recover {
                             let recover_result = index.recover()?;
-                            index.save_to_file()?;
                             index.check()?;
                             println!("recovered from a corrupted knowledge-base: {recover_result}");
                         } else {
@@ -354,7 +352,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Err(e) => if recover {
                     let mut index = Index::load(root_dir, LoadMode::Minimum)?;
                     let recover_result = index.recover()?;
-                    index.save_to_file()?;
                     index.check()?;
                     println!("recovered from a corrupted knowledge-base: {recover_result}");
                 } else {
@@ -1105,8 +1102,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     )?;
                 }
             }
-
-            index.save_to_file()?;
         },
         Some("meta") => {
             let parsed_args = ArgParser::new()
@@ -1201,8 +1196,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             if !recover_result.is_empty() {
                 println!("recovered from a corrupted knowledge-base: {recover_result}");
             }
-
-            index.save_to_file()?;
         },
         Some("push") => {
             let parsed_args = ArgParser::new()
@@ -1360,7 +1353,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
             }
 
-            index.save_to_file()?;
             println!("removed {} staged files and {} processed files", result.staged, result.processed);
         },
         Some("retrieve-chunks") => {

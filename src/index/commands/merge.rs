@@ -281,6 +281,10 @@ impl Index {
             self.ii_status = IIStatus::Outdated;
         }
 
+        if !dry_run {
+            self.save_to_file()?;
+        }
+
         Ok(result)
     }
 

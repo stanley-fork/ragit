@@ -100,7 +100,6 @@ impl Index {
             processed_candidates = processed_candidates_new;
         }
 
-        // TODO: `if !dry_run {}` must not return, but it's extremely hard to do so
         if !dry_run {
             let staged_candidates: HashSet<_> = staged_candidates.iter().collect();
             self.staged_files = self.staged_files.iter().filter(
@@ -136,6 +135,8 @@ impl Index {
                     _ => {},
                 }
             }
+
+            self.save_to_file()?;
         }
 
         Ok(RemoveResult {
