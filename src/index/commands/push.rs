@@ -15,13 +15,6 @@ use reqwest::Url;
 use std::time::Instant;
 
 impl Index {
-    /// TODO: It's not implemented
-    ///
-    /// It returns Option<(username, Option<password>)> if available.
-    pub fn auth(&self) -> Option<(String, Option<String>)> {
-        None
-    }
-
     pub async fn push(
         &self,
         mut remote: Option<String>,
