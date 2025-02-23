@@ -1,11 +1,10 @@
 use super::Index;
 use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
-use crate::chunk::{CHUNK_DIR_NAME, ChunkSource};
+use crate::chunk::ChunkSource;
+use crate::constant::{CHUNK_DIR_NAME, FILE_INDEX_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::{
-    FILE_INDEX_DIR_NAME,
     IIStatus,
-    INDEX_DIR_NAME,
     tfidf,
 };
 use crate::uid::{self, Uid, UidType, UidWriteMode};

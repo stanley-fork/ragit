@@ -1,7 +1,7 @@
-use crate::INDEX_DIR_NAME;
-use crate::chunk::{Chunk, CHUNK_DIR_NAME};
+use crate::chunk::Chunk;
+use crate::constant::{CHUNK_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
-use crate::index::{IMAGE_DIR_NAME, Index};
+use crate::index::Index;
 use ragit_fs::{
     WriteMode,
     extension,

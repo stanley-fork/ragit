@@ -1,18 +1,20 @@
 use super::{BlockType, decompress};
-use crate::INDEX_DIR_NAME;
+use crate::constant::{
+    CHUNK_DIR_NAME,
+    CONFIG_DIR_NAME,
+    IMAGE_DIR_NAME,
+    INDEX_DIR_NAME,
+    INDEX_FILE_NAME,
+    METADATA_FILE_NAME,
+    PROMPT_DIR_NAME,
+};
 use crate::chunk::{self, Chunk};
 use crate::error::Error;
 use crate::index::{
-    CHUNK_DIR_NAME,
-    CONFIG_DIR_NAME,
     ImageDescription,
-    IMAGE_DIR_NAME,
     Index,
-    INDEX_FILE_NAME,
     LoadMode,
-    METADATA_FILE_NAME,
 };
-use crate::prompts::PROMPT_DIR;
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
@@ -406,7 +408,7 @@ fn event_loop(
                                 &join4(
                                     &root_dir,
                                     INDEX_DIR_NAME,
-                                    PROMPT_DIR,
+                                    PROMPT_DIR_NAME,
                                     &set_extension(name, "pdl")?,
                                 )?,
                                 pdl,

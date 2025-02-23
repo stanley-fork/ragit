@@ -1,6 +1,7 @@
 use super::{Prettify, prettify_uid};
+use crate::constant::IMAGE_DIR_NAME;
 use crate::error::Error;
-use crate::index::{Index, IMAGE_DIR_NAME};
+use crate::index::Index;
 use crate::uid::Uid;
 use ragit_api::JsonType;
 use ragit_fs::{

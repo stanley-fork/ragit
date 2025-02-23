@@ -1,5 +1,6 @@
 mod api_config;
 mod chunk;
+mod constant;
 mod error;
 mod index;
 mod prompts;
@@ -8,8 +9,6 @@ mod schema;
 mod tree;
 mod uid;
 
-pub const INDEX_DIR_NAME: &str = ".ragit";
-
 pub use api_config::{ApiConfig, ApiConfigRaw};
 pub use chunk::{
     Chunk,
@@ -17,6 +16,7 @@ pub use chunk::{
     ChunkSource,
     merge_and_convert_chunks,
 };
+pub use constant::*;
 pub use error::Error;
 pub use index::{
     AddMode,
@@ -27,7 +27,6 @@ pub use index::{
     LoadMode,
     MergeMode,
     MergeResult,
-    MODEL_FILE_NAME,
     ProcessedDoc,
     RecoverResult,
     RemoveResult,

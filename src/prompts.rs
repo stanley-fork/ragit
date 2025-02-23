@@ -1,8 +1,6 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
-pub const PROMPT_DIR: &str = "prompts";
-
 lazy_static! {
     pub static ref PROMPTS: HashMap<String, String> = {
         let mut result = HashMap::new();

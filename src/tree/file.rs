@@ -1,7 +1,8 @@
 use super::{Leaf, Tree, generate_tree};
 use async_recursion::async_recursion;
 use chrono::Local;
-use crate::chunk::{self, Chunk, CHUNK_DIR_NAME, ChunkBuildInfo, ChunkSchema, ChunkSource};
+use crate::chunk::{self, Chunk, ChunkBuildInfo, ChunkSchema, ChunkSource};
+use crate::constant::CHUNK_DIR_NAME;
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;

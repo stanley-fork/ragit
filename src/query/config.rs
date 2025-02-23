@@ -1,7 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-pub const QUERY_CONFIG_FILE_NAME: &str = "query.json";
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct QueryConfig {
     /// If there are more than this amount of chunks, it runs tf-idf to select chunks.

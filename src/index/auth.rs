@@ -1,5 +1,5 @@
 use super::Index;
-use crate::INDEX_DIR_NAME;
+use crate::constant::INDEX_DIR_NAME;
 use ragit_fs::{join3, read_string};
 
 impl Index {

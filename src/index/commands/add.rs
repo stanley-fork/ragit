@@ -1,5 +1,5 @@
 use super::Index;
-use crate::INDEX_DIR_NAME;
+use crate::constant::INDEX_DIR_NAME;
 use crate::error::Error;
 use crate::uid::Uid;
 use ragit_fs::{exists, get_relative_path, is_dir, is_symlink, join, read_string};

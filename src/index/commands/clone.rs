@@ -1,7 +1,7 @@
 use super::Index;
-use crate::INDEX_DIR_NAME;
+use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
-use crate::index::{ARCHIVE_DIR_NAME, LoadMode};
+use crate::index::LoadMode;
 use ragit_fs::{
     FileError,
     FileErrorKind,

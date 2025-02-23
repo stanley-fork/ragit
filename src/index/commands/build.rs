@@ -1,11 +1,11 @@
 use super::Index;
-use crate::chunk::{self, CHUNK_DIR_NAME};
+use crate::chunk;
+use crate::constant::{CHUNK_DIR_NAME, IMAGE_DIR_NAME};
 use crate::error::Error;
 use crate::index::{
     ChunkBuildInfo,
     FileReader,
     IIStatus,
-    IMAGE_DIR_NAME,
     LoadMode,
 };
 use crate::uid::Uid;

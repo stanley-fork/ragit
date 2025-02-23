@@ -1,8 +1,12 @@
 use super::Uid;
-use crate::INDEX_DIR_NAME;
-use crate::chunk::CHUNK_DIR_NAME;
+use crate::constant::{
+    CHUNK_DIR_NAME,
+    FILE_INDEX_DIR_NAME,
+    IMAGE_DIR_NAME,
+    INDEX_DIR_NAME,
+};
 use crate::error::Error;
-use crate::index::{FILE_INDEX_DIR_NAME, IMAGE_DIR_NAME, Index};
+use crate::index::Index;
 use lazy_static::lazy_static;
 use ragit_fs::{
     exists,

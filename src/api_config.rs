@@ -4,8 +4,6 @@ use ragit_api::record::{Record, Tracker};
 use ragit_fs::join;
 use serde::{Deserialize, Serialize};
 
-pub const API_CONFIG_FILE_NAME: &str = "api.json";
-
 // one that the user initializes
 // it's later converted to `ApiConfig` by `Index`
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

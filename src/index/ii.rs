@@ -5,8 +5,8 @@
 // 2. You can only remove the entire ii. There's no removing a single file or a chunk.
 // 3. If something goes wrong while an ii is building, you have to build it from scratch.
 
-use super::{II_DIR_NAME, Index};
-use crate::INDEX_DIR_NAME;
+use super::Index;
+use crate::constant::{II_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::uid::{self, Uid, UidWriteMode};
 use ragit_fs::{

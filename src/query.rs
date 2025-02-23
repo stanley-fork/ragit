@@ -16,7 +16,7 @@ use serde_json::Value;
 mod config;
 mod keyword;
 
-pub use config::{QueryConfig, QUERY_CONFIG_FILE_NAME};
+pub use config::QueryConfig;
 pub use keyword::Keywords;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

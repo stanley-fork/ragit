@@ -1,0 +1,15 @@
+pub const API_CONFIG_FILE_NAME: &str = "api.json";
+pub const ARCHIVE_DIR_NAME: &str = "archives";
+pub const BUILD_CONFIG_FILE_NAME: &str = "build.json";
+pub const CHUNK_DIR_NAME: &str = "chunks";
+pub const CONFIG_DIR_NAME: &str = "configs";
+pub const FILE_INDEX_DIR_NAME: &str = "files";
+pub const II_DIR_NAME: &str = "ii";
+pub const IMAGE_DIR_NAME: &str = "images";
+pub const INDEX_DIR_NAME: &str = ".ragit";
+pub const INDEX_FILE_NAME: &str = "index.json";
+pub const LOG_DIR_NAME: &str = "logs";
+pub const METADATA_FILE_NAME: &str = "meta.json";
+pub const MODEL_FILE_NAME: &str = "models.json";
+pub const PROMPT_DIR_NAME: &str = "prompts";
+pub const QUERY_CONFIG_FILE_NAME: &str = "query.json";

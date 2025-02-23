@@ -1,7 +1,7 @@
 use super::{BlockType, compress};
-use crate::INDEX_DIR_NAME;
+use crate::constant::{INDEX_DIR_NAME, INDEX_FILE_NAME};
 use crate::error::Error;
-use crate::index::{ii::IIStatus, Index, INDEX_FILE_NAME, LoadMode};
+use crate::index::{ii::IIStatus, Index, LoadMode};
 use crate::uid::{self, Uid};
 use ragit_fs::{
     FileError,

@@ -1,6 +1,6 @@
 use super::Index;
+use crate::constant::METADATA_FILE_NAME;
 use crate::error::Error;
-use crate::index::METADATA_FILE_NAME;
 use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,

@@ -37,8 +37,6 @@ pub use build_info::ChunkBuildInfo;
 pub use renderable::RenderableChunk;
 pub use source::ChunkSource;
 
-pub const CHUNK_DIR_NAME: &str = "chunks";
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Chunk {
     pub data: String,

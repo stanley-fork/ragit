@@ -1,9 +1,23 @@
-use crate::INDEX_DIR_NAME;
-use crate::api_config::{ApiConfig, API_CONFIG_FILE_NAME, ApiConfigRaw};
-use crate::chunk::{self, Chunk, ChunkBuildInfo, CHUNK_DIR_NAME};
+use crate::api_config::{ApiConfig, ApiConfigRaw};
+use crate::chunk::{self, Chunk, ChunkBuildInfo};
+use crate::constant::{
+    API_CONFIG_FILE_NAME,
+    BUILD_CONFIG_FILE_NAME,
+    CHUNK_DIR_NAME,
+    CONFIG_DIR_NAME,
+    FILE_INDEX_DIR_NAME,
+    II_DIR_NAME,
+    IMAGE_DIR_NAME,
+    INDEX_DIR_NAME,
+    INDEX_FILE_NAME,
+    LOG_DIR_NAME,
+    MODEL_FILE_NAME,
+    PROMPT_DIR_NAME,
+    QUERY_CONFIG_FILE_NAME,
+};
 use crate::error::Error;
-use crate::prompts::{PROMPTS, PROMPT_DIR};
-use crate::query::{Keywords, QueryConfig, QUERY_CONFIG_FILE_NAME};
+use crate::prompts::PROMPTS;
+use crate::query::{Keywords, QueryConfig};
 use crate::uid::{self, Uid, UidWriteMode};
 use ragit_api::{
     Model,
@@ -57,20 +71,10 @@ pub use commands::{
     VersionInfo,
     get_compatibility_warning,
 };
-pub use config::{BuildConfig, BUILD_CONFIG_FILE_NAME};
+pub use config::BuildConfig;
 pub use file::{FileReader, ImageDescription};
 pub use ii::IIStatus;
 pub use tfidf::{ProcessedDoc, TfidfResult, TfidfState, consume_processed_doc};
-
-pub const CONFIG_DIR_NAME: &str = "configs";
-pub const II_DIR_NAME: &str = "ii";
-pub const IMAGE_DIR_NAME: &str = "images";
-pub const FILE_INDEX_DIR_NAME: &str = "files";
-pub const INDEX_FILE_NAME: &str = "index.json";
-pub const METADATA_FILE_NAME: &str = "meta.json";
-pub const MODEL_FILE_NAME: &str = "models.json";
-pub const LOG_DIR_NAME: &str = "logs";
-pub const ARCHIVE_DIR_NAME: &str = "archives";
 
 pub type Path = String;
 
@@ -724,7 +728,7 @@ impl Index {
             let prompt_path = Index::get_rag_path(
                 &self.root_dir,
                 &join(
-                    PROMPT_DIR,
+                    PROMPT_DIR_NAME,
                     &set_extension(
                         prompt_name,
                         "pdl",
@@ -754,7 +758,7 @@ impl Index {
     pub fn save_prompts(&self) -> Result<(), Error> {
         let prompt_real_dir = Index::get_rag_path(
             &self.root_dir,
-            &PROMPT_DIR.to_string(),
+            &PROMPT_DIR_NAME.to_string(),
         )?;
 
         if !exists(&prompt_real_dir) {
