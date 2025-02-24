@@ -36,12 +36,12 @@ static mut SESSIONS: [Option<Session>; SESSION_POOL_SIZE] = [None; SESSION_POOL_
 
 // TODO: some handlers return 500, some 404 or 503, but I'm not sure which one is correct in which cases
 
-pub fn post_begin_push(user: String, repo: String, auth: Option<String>) -> Box<dyn Reply> {
+pub fn post_begin_push(user: String, repo: String, auth_info: Option<String>) -> Box<dyn Reply> {
     let session_id = rand::random::<u128>();
     let root_dir = get_rag_path(&user, &repo);
     let mut auth_parsed: Option<(String, Option<String>)> = None;
 
-    if let Some(auth_) = auth {
+    if let Some(auth_) = auth_info {
         if let Some(auth_) = auth_.get(6..) {  // `Basic {auth_}`
             if let Ok(auth_) = decode_base64(&auth_) {
                 let auth_ = String::from_utf8_lossy(&auth_).to_string();
@@ -57,7 +57,12 @@ pub fn post_begin_push(user: String, repo: String, auth: Option<String>) -> Box<
         }
     };
 
-    // TODO: do something with auth
+    if !auth(&user, &repo, &auth_parsed) {
+        return Box::new(with_status(
+            String::new(),
+            StatusCode::from_u16(403).unwrap(),
+        ));
+    }
 
     if !exists(&root_dir) {
         create_dir_all(&parent(&root_dir).unwrap()).unwrap();
@@ -344,4 +349,9 @@ fn clean_session_fs(session_id: u128) -> Result<(), ()> {
     ).map_err(|_| ())?;
     remove_dir_all(&path).map_err(|_| ())?;
     Ok(())
+}
+
+fn auth(user: &str, repo: &str, auth_info: &Option<(String, Option<String>)>) -> bool {
+    // TODO
+    true
 }
