@@ -8,7 +8,7 @@ rag-clone - Clone a knowledge-base into a new directory
 SYNOPSIS
 --------
 [verse]
-'rag clone' <remote url> [<directory>]
+'rag clone' <remote url> [<directory>] [--quiet | -q]
 
 DESCRIPTION
 -----------

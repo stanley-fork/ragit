@@ -8,7 +8,8 @@ rag-push - Push a knowledge-base to remote
 SYNOPSIS
 --------
 [verse]
-'rag push' [--remote=<remote url>] [--[no-]configs] [--[no-]configs]
+'rag push' [--remote=<remote url>] [--[no-]configs] [--[no-]configs] [--quiet | -q]
 
 DESCRIPTION
 -----------
+If the knowledge-base was created by `rag clone`, you don't have to specify `--remote`.

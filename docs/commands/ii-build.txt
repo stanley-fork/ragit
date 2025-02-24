@@ -8,7 +8,7 @@ rag-ii-build - Build an inverted index
 SYNOPSIS
 --------
 [verse]
-'rag ii-build'
+'rag ii-build' [--quiet | -q]
 
 DESCRIPTION
 -----------

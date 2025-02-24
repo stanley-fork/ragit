@@ -117,7 +117,7 @@ impl Index {
         }
     }
 
-    pub fn build_ii(&mut self) -> Result<(), Error> {
+    pub fn build_ii(&mut self, quiet: bool) -> Result<(), Error> {
         match self.ii_status {
             IIStatus::None => {},
             IIStatus::Complete => {
@@ -142,7 +142,10 @@ impl Index {
             state.total_uid += 1;
             state.buffer_uid += 1;
             state.buffer_term = buffer.len();
-            self.render_ii_build_dashboard(&state);
+
+            if !quiet {
+                self.render_ii_build_dashboard(&state);
+            }
 
             if buffer.len() > AUTO_FLUSH {
                 self.ii_status = IIStatus::Ongoing(uid_check_point.unwrap());
@@ -160,7 +163,10 @@ impl Index {
             self.flush_ii_buffer(buffer)?;
         }
 
-        self.render_ii_build_dashboard(&state);
+        if !quiet {
+            self.render_ii_build_dashboard(&state);
+        }
+
         self.ii_status = IIStatus::Complete;
         self.save_to_file()?;
         Ok(())
