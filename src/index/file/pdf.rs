@@ -3,6 +3,7 @@ use crate::error::Error;
 use crate::index::BuildConfig;
 use crate::uid::Uid;
 use ragit_fs::{
+    exists,
     extension,
     read_bytes,
     read_dir,
@@ -25,7 +26,13 @@ pub struct PdfReader {
 
 impl FileReaderImpl for PdfReader {
     fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
-        let pages = read_dir(&format!("{path}-pages"), true)?;
+        let pages_at = format!("{path}-pages/");
+
+        if !exists(&pages_at) {
+            return Err(Error::FileReaderError(format!("`{pages_at}` not found! Ragit's pdf reader is still experimental and requires extra steps to run. Please run [this](https://github.com/baehyunsol/ragit/blob/main/src/index/file/pdf.py) python script and run ragit again.")));
+        }
+
+        let pages = read_dir(&pages_at, true)?;
         Ok(PdfReader {
             images: vec![],
             pages,
