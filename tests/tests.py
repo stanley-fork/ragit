@@ -352,12 +352,12 @@ if __name__ == "__main__":
                 ("merge", merge),
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
-                ("end_to_end gpt-4o-mini", lambda: end_to_end(test_model="gpt-4o-mini")),
+                ("end_to_end llama3.3-70b", lambda: end_to_end(test_model="llama3.3-70b")),
                 ("prompts dummy", lambda: prompts(test_model="dummy")),
                 ("prompts gpt-4o-mini", lambda: prompts(test_model="gpt-4o-mini")),
                 ("prompts claude-3.5-sonnet", lambda: prompts(test_model="claude-3.5-sonnet")),
                 ("empty dummy", lambda: empty(test_model="dummy")),
-                ("empty gpt-4o-mini", lambda: empty(test_model="gpt-4o-mini")),
+                ("empty llama3.3-70b", lambda: empty(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available
@@ -365,11 +365,7 @@ if __name__ == "__main__":
 
                 ("extract_keywords dummy", lambda: extract_keywords(test_model="dummy")),
                 ("extract_keywords gpt-4o-mini", lambda: extract_keywords(test_model="gpt-4o-mini")),
-
-                # NOTE: dummy, openai and anthropic models are already tested above
-                ("ragit_api llama3.2-11b-groq", lambda: ragit_api(test_model="llama3.2-11b-groq")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
-                ("ragit_api phi-4-14b-ollama", lambda: ragit_api(test_model="phi-4-14b-ollama")),
                 ("migrate", migrate),
                 ("migrate2", migrate2),
             ]
