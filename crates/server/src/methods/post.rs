@@ -1,6 +1,6 @@
 use bytes::{Bytes, BufMut};
 use chrono::Local;
-use crate::utils::get_rag_path;
+use crate::utils::{decode_base64, get_rag_path};
 use futures_util::TryStreamExt;
 use ragit::Index;
 use ragit_fs::{
@@ -36,10 +36,28 @@ static mut SESSIONS: [Option<Session>; SESSION_POOL_SIZE] = [None; SESSION_POOL_
 
 // TODO: some handlers return 500, some 404 or 503, but I'm not sure which one is correct in which cases
 
-// TODO: handle auth
-pub fn post_begin_push(user: String, repo: String) -> Box<dyn Reply> {
+pub fn post_begin_push(user: String, repo: String, auth: Option<String>) -> Box<dyn Reply> {
     let session_id = rand::random::<u128>();
     let root_dir = get_rag_path(&user, &repo);
+    let mut auth_parsed: Option<(String, Option<String>)> = None;
+
+    if let Some(auth_) = auth {
+        if let Some(auth_) = auth_.get(6..) {  // `Basic {auth_}`
+            if let Ok(auth_) = decode_base64(&auth_) {
+                let auth_ = String::from_utf8_lossy(&auth_).to_string();
+                let splitted = auth_.split(":").collect::<Vec<_>>();
+
+                match (splitted.get(0), splitted.get(1)) {
+                    (Some(username), None) => { auth_parsed = Some((username.to_string(), None)); },
+                    (Some(username), Some(password)) if !password.is_empty() => { auth_parsed = Some((username.to_string(), Some(password.to_string()))); },
+                    (Some(username), Some(_)) => { auth_parsed = Some((username.to_string(), None)); },
+                    (None, _) => {},
+                }
+            }
+        }
+    };
+
+    // TODO: do something with auth
 
     if !exists(&root_dir) {
         create_dir_all(&parent(&root_dir).unwrap()).unwrap();

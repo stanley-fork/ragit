@@ -190,6 +190,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("begin-push"))
+        .and(warp::header::optional::<String>("authorization"))
         .map(post_begin_push);
 
     let post_archive_handler = warp::post()
