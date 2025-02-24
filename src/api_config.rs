@@ -16,6 +16,9 @@ pub struct ApiConfigRaw {
     pub timeout: Option<u64>,
     pub sleep_between_retries: u64,
     pub max_retry: usize,
+
+    // in milliseconds
+    // if you see 429 too often, use this option
     pub sleep_after_llm_call: Option<u64>,
 
     // it records every LLM conversation, including failed ones
@@ -33,9 +36,9 @@ impl Default for ApiConfigRaw {
             api_key: None,
             dump_log: false,
             dump_api_usage: true,
-            max_retry: 3,
-            sleep_between_retries: 20_000,
-            timeout: Some(90_000),
+            max_retry: 5,
+            sleep_between_retries: 15_000,
+            timeout: Some(120_000),
             sleep_after_llm_call: None,
             model: String::from("llama3.3-70b-groq"),
         }

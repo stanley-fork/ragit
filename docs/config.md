@@ -82,9 +82,9 @@ struct QueryConfig {
 // api_key: None,
 // dump_log: false,
 // dump_api_usage: true,
-// max_retry: 3,
-// sleep_between_retries: 20000,
-// timeout: 90000,
+// max_retry: 5,
+// sleep_between_retries: 15000,
+// timeout: 120000,
 // sleep_after_llm_call: None,
 // model: "llama3.3-70b-groq",
 struct ApiConfig {
@@ -96,6 +96,9 @@ struct ApiConfig {
     timeout: Option<u64>,
     sleep_between_retries: u64,
     max_retry: usize,
+
+    // in milliseconds
+    // if you see 429 too often, use this option
     sleep_after_llm_call: Option<u64>,
 
     // it records every LLM conversation, including failed ones
