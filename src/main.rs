@@ -165,7 +165,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--force"])
-                .short_flag(&["--force", "--output"])
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--force", "--output", "--quiet"])
                 .parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -180,6 +181,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
             let force = parsed_args.get_flag(2).is_some();
+            let quiet = parsed_args.get_flag(3).is_some();
             index.create_archive(
                 jobs,
                 size_limit,
@@ -187,6 +189,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 include_configs,
                 include_prompts,
                 force,
+                quiet,
             )?;
         },
         Some("archive-extract") => {
@@ -194,8 +197,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
                 .arg_flag("--output", ArgType::Path)
                 .optional_flag(&["--force"])
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--force", "--output", "--quiet"])
                 .args(ArgType::Path, ArgCount::Geq(1))
-                .short_flag(&["--force", "--output"])
                 .parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -207,15 +211,21 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
             let archives = parsed_args.get_args();
             let force = parsed_args.get_flag(0).is_some();
+            let quiet = parsed_args.get_flag(1).is_some();
             Index::extract_archive(
                 &output,
                 archives,
                 jobs,
                 force,
+                quiet,
             )?;
         },
         Some("build") => {
-            let parsed_args = ArgParser::new().arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger).parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--quiet"])
+                .parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/build.txt"));
@@ -223,8 +233,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
+            let quiet = parsed_args.get_flag(0).is_some();
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            index.build(jobs).await?;
+            index.build(jobs, quiet).await?;
         },
         Some("cat-file") => {
             let parsed_args = ArgParser::new()
@@ -360,7 +371,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("clone") => {
-            let parsed_args = ArgParser::new().args(ArgType::String, ArgCount::Geq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--quiet"])
+                .args(ArgType::String, ArgCount::Geq(1))
+                .parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/clone.txt"));
@@ -372,9 +387,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let args = parsed_args.get_args();
+            let quiet = parsed_args.get_flag(0).is_some();
             Index::clone(
                 args[0].clone(),
                 args.get(1).map(|s| s.to_string()),
+                quiet,
             ).await?;
             return Ok(());
         },
@@ -537,7 +554,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("ii-build") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--quiet"])
+                .parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ii-build.txt"));
@@ -545,7 +565,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            index.build_ii()?;
+            let quiet = parsed_args.get_flag(0).is_some();
+            index.build_ii(quiet)?;
         },
         Some("ii-reset") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
@@ -1066,7 +1087,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--ignore", "--force", "--interactive", "--reject"])
                 .optional_flag(&["--dry-run"])
                 .optional_arg_flag("--prefix", ArgType::Path)
-                .short_flag(&["--force"])
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--force", "--quiet"])
                 .args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1078,6 +1100,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let bases = parsed_args.get_args();
             let merge_mode = MergeMode::parse_flag(&parsed_args.get_flag(0).unwrap_or(String::from("--ignore"))).unwrap();
             let dry_run = parsed_args.get_flag(1).is_some();
+            let quiet = parsed_args.get_flag(2).is_some();
 
             // if it's `--reject` mode, it first runs with `--dry-run` mode.
             // if the dry_run has no problem, then it actually runs
@@ -1086,7 +1109,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     base.to_string(),
                     parsed_args.arg_flags.get("--prefix").map(|p| p.to_string()),
                     merge_mode,
-                    false,  // quiet  // TODO: make it configurable
+
+                    // if it's run twice, the first run has to be `--quiet`.
+                    merge_mode == MergeMode::Reject && !dry_run || quiet,
                     dry_run || merge_mode == MergeMode::Reject,
                 )?;
             }
@@ -1097,7 +1122,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         base.to_string(),
                         parsed_args.arg_flags.get("--prefix").map(|p| p.to_string()),
                         merge_mode,
-                        false,  // quiet  // TODO: make it configurable
+                        quiet,
                         dry_run,
                     )?;
                 }
@@ -1202,6 +1227,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--remote", ArgType::Path)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
+                .optional_flag(&["--quiet"])
+                .short_flag(&["--quiet"])
                 .args(ArgType::String, ArgCount::None)
                 .parse(&args[2..])?;
 
@@ -1214,10 +1241,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let remote = parsed_args.arg_flags.get("--remote").map(|s| s.to_string());
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
+            let quiet = parsed_args.get_flag(2).is_some();
             index.push(
                 remote,
                 include_configs,
                 include_prompts,
+                quiet,
             ).await?;
         },
         Some("query") => {

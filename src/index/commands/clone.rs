@@ -20,7 +20,7 @@ use serde_json::Value;
 use std::time::Instant;
 
 impl Index {
-    pub async fn clone(url: String, repo_name: Option<String>) -> Result<(), Error> {
+    pub async fn clone(url: String, repo_name: Option<String>, quiet: bool) -> Result<(), Error> {
         let repo_name = repo_name.unwrap_or_else(|| infer_repo_name_from_url(&url));
         let mut archive_tmp_files_at = String::from("archives");
         let mut seq = 0;
@@ -39,7 +39,7 @@ impl Index {
             }.into());
         }
 
-        match Index::clone_worker(url, repo_name.clone(), &archive_tmp_files_at).await {
+        match Index::clone_worker(url, repo_name.clone(), &archive_tmp_files_at, quiet).await {
             Ok(()) => Ok(()),
             Err(e) => {
                 let _ = remove_dir_all(&archive_tmp_files_at);
@@ -52,7 +52,7 @@ impl Index {
     // It first downloads archive files at `archive_tmp_files_at`, and extract the files.
     // After extraction, a knowledge-base is created. It moves archive files in `archive_tmp_files_at`
     // to `{repo_name}/.ragit/archives` and removes `archive_tmp_files_at`.
-    async fn clone_worker(mut url: String, repo_name: String, archive_tmp_files_at: &str) -> Result<(), Error> {
+    async fn clone_worker(mut url: String, repo_name: String, archive_tmp_files_at: &str, quiet: bool) -> Result<(), Error> {
         if !url.ends_with("/") {
             url = format!("{url}/");
         }
@@ -74,12 +74,16 @@ impl Index {
             let archive_url = url.join("archive/")?.join(archive)?;
             let archive_blob = request_binary_file(archive_url.as_str()).await?;
             downloaded_bytes += archive_blob.len();
-            Index::render_clone_dashboard(
-                started_at.clone(),
-                index + 1,
-                archive_list.len(),
-                downloaded_bytes,
-            );
+
+            if !quiet {
+                Index::render_clone_dashboard(
+                    started_at.clone(),
+                    index + 1,
+                    archive_list.len(),
+                    downloaded_bytes,
+                );
+            }
+
             let archive_file = join(
                 archive_tmp_files_at,
                 archive,
@@ -98,6 +102,7 @@ impl Index {
             archive_files.clone(),
             4,  // workers  // TODO: make it configurable
             false,
+            quiet,
         )?;
         let archives_in_base = join3(
             &repo_name,

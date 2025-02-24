@@ -1,5 +1,6 @@
 pub use super::{BuildConfig, Index};
 
+// If a command dumps anything to stdout, its method must have `quiet: bool` argument.
 mod add;
 mod archive;
 mod build;

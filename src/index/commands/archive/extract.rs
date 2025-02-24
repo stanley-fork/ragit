@@ -51,6 +51,7 @@ impl Index {
         archives: Vec<String>,
         workers: usize,
         force: bool,
+        quiet: bool,
     ) -> Result<(), Error> {
         if exists(root_dir) {
             if force {
@@ -70,6 +71,7 @@ impl Index {
             root_dir,
             archives,
             &workers,
+            quiet,
         ) {
             Ok(()) => Ok(()),
             Err(e) => {
@@ -90,6 +92,7 @@ impl Index {
         root_dir: &str,
         mut archives: Vec<String>,
         workers: &[Channel],
+        quiet: bool,
     ) -> Result<(), Error> {
         let mut killed_workers = vec![];
         let mut round_robin = 0;
@@ -181,10 +184,12 @@ impl Index {
                 }
             }
 
-            Index::render_archive_extract_dashboard(
-                &status,
-                workers.len() - killed_workers.len(),
-            );
+            if !quiet {
+                Index::render_archive_extract_dashboard(
+                    &status,
+                    workers.len() - killed_workers.len(),
+                );
+            }
         }
 
         for worker in workers.iter() {
@@ -192,10 +197,12 @@ impl Index {
         }
 
         loop {
-            Index::render_archive_extract_dashboard(
-                &status,
-                workers.len() - killed_workers.len(),
-            );
+            if !quiet {
+                Index::render_archive_extract_dashboard(
+                    &status,
+                    workers.len() - killed_workers.len(),
+                );
+            }
 
             for (worker_id, worker) in workers.iter().enumerate() {
                 if killed_workers.contains(&worker_id) {
@@ -234,19 +241,23 @@ impl Index {
             remove_file(tmp_file_for_splitted_blocks)?;
         }
 
-        Index::render_archive_extract_dashboard(
-            &status,
-            workers.len() - killed_workers.len(),
-        );
+        if !quiet {
+            Index::render_archive_extract_dashboard(
+                &status,
+                workers.len() - killed_workers.len(),
+            );
+        }
 
         // it creates file indexes and tfidfs
         let mut index = Index::load(root_dir.to_string(), LoadMode::Minimum)?;
         index.recover()?;
 
-        Index::render_archive_extract_dashboard(
-            &status,
-            workers.len() - killed_workers.len(),
-        );
+        if !quiet {
+            Index::render_archive_extract_dashboard(
+                &status,
+                workers.len() - killed_workers.len(),
+            );
+        }
 
         Ok(())
     }

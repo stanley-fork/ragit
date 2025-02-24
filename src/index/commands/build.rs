@@ -23,15 +23,18 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
 impl Index {
-    pub async fn build(&mut self, workers: usize) -> Result<(), Error> {
+    pub async fn build(&mut self, workers: usize, quiet: bool) -> Result<(), Error> {
         let mut remaining_chunks = 0;
         let started_at = Instant::now();
 
         for (index, file) in self.staged_files.iter().enumerate() {
             let elapsed_time = Instant::now().duration_since(started_at).as_secs();
-            clearscreen::clear().expect("failed to clear screen");
-            println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
-            println!("counting chunks... {index}/{}", self.staged_files.len());
+
+            if !quiet {
+                clearscreen::clear().expect("failed to clear screen");
+                println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+                println!("counting chunks... {index}/{}", self.staged_files.len());
+            }
 
             let real_path = Index::get_data_path(
                 &self.root_dir,
@@ -47,7 +50,7 @@ impl Index {
 
         let mut workers = init_workers(workers, self.root_dir.clone());
 
-        match self.build_worker(&mut workers, remaining_chunks, started_at) {
+        match self.build_worker(&mut workers, remaining_chunks, started_at, quiet) {
             Ok(()) => Ok(()),
             Err(e) => {
                 for worker in workers.iter_mut() {
@@ -64,6 +67,7 @@ impl Index {
         workers: &mut Vec<Channel>,
         mut remaining_chunks: usize,
         started_at: Instant,
+        quiet: bool,
     ) -> Result<(), Error> {
         let mut killed_workers = vec![];
         let mut staged_files = self.staged_files.clone();
@@ -96,13 +100,15 @@ impl Index {
         }
 
         loop {
-            self.render_build_dashboard(
-                &buffer,
-                &completed_files,
-                started_at.clone(),
-                flush_count,
-                remaining_chunks,
-            );
+            if !quiet {
+                self.render_build_dashboard(
+                    &buffer,
+                    &completed_files,
+                    started_at.clone(),
+                    flush_count,
+                    remaining_chunks,
+                );
+            }
 
             for (worker_index, worker) in workers.iter_mut().enumerate() {
                 if killed_workers.contains(&worker_index) {
@@ -244,13 +250,15 @@ impl Index {
                 flush_count += 1;
 
                 if killed_workers.len() == workers.len() {
-                    self.render_build_dashboard(
-                        &buffer,
-                        &completed_files,
-                        started_at.clone(),
-                        flush_count,
-                        remaining_chunks,
-                    );
+                    if !quiet {
+                        self.render_build_dashboard(
+                            &buffer,
+                            &completed_files,
+                            started_at.clone(),
+                            flush_count,
+                            remaining_chunks,
+                        );
+                    }
                     break;
                 }
             }

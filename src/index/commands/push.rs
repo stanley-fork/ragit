@@ -20,6 +20,7 @@ impl Index {
         mut remote: Option<String>,
         include_configs: bool,
         include_prompts: bool,
+        quiet: bool,
     ) -> Result<(), Error> {
         if remote.is_none() {
             remote = self.repo_url.clone();
@@ -68,6 +69,7 @@ impl Index {
             include_configs,
             include_prompts,
             false,
+            quiet,
         )?;
         let get_session_id_url = url.join("begin-push")?;
         let session_id = self.get_session_id(get_session_id_url.as_str()).await?;
@@ -79,12 +81,15 @@ impl Index {
             uploaded_bytes += blob.len();
             let send_archive_file_url = url.join("archive")?;
             self.send_archive_file(send_archive_file_url.as_str(), &session_id, &archive_id, blob).await?;
-            self.render_push_dashboard(
-                started_at.clone(),
-                index + 1,
-                archives.len(),
-                uploaded_bytes,
-            );
+
+            if !quiet {
+                self.render_push_dashboard(
+                    started_at.clone(),
+                    index + 1,
+                    archives.len(),
+                    uploaded_bytes,
+                );
+            }
         }
 
         let finalize_push_url = url.join("finalize-push")?;

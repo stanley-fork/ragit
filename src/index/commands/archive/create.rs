@@ -52,6 +52,7 @@ impl Index {
         include_configs: bool,
         include_prompts: bool,
         force: bool,
+        quiet: bool,
     ) -> Result<(), Error> {
         let workers = init_workers(
             workers,
@@ -79,6 +80,7 @@ impl Index {
             output.clone(),
             include_configs,
             include_prompts,
+            quiet,
         ) {
             Ok(()) => Ok(()),
             Err(e) => {
@@ -143,6 +145,7 @@ impl Index {
         output: String,
         include_configs: bool,
         include_prompts: bool,
+        quiet: bool,
     ) -> Result<(), Error> {
         let mut curr_block = vec![];
         let mut curr_block_size = 0;
@@ -263,11 +266,13 @@ impl Index {
         }
 
         loop {
-            self.render_archive_create_dashboard(
-                &status,
-                workers.len() - killed_workers.len(),
-                curr_output_seq,
-            );
+            if !quiet {
+                self.render_archive_create_dashboard(
+                    &status,
+                    workers.len() - killed_workers.len(),
+                    curr_output_seq,
+                );
+            }
 
             for (worker_id, worker) in workers.iter().enumerate() {
                 if killed_workers.contains(&worker_id) {
@@ -382,11 +387,14 @@ impl Index {
             remove_file(&curr_output_file)?;
         }
 
-        self.render_archive_create_dashboard(
-            &status,
-            workers.len() - killed_workers.len(),
-            curr_output_seq,
-        );
+        if !quiet {
+            self.render_archive_create_dashboard(
+                &status,
+                workers.len() - killed_workers.len(),
+                curr_output_seq,
+            );
+        }
+
         Ok(())
     }
 

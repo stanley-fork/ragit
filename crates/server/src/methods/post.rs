@@ -212,6 +212,7 @@ pub fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<dyn Re
 
         // TODO: is it okay to force-extract? if there's an error, it might lose the original data
         true,
+        true,  // quiet
     ) {
         write_log("finalize_push", &format!("{e:?}"));
         return Box::new(with_status(
