@@ -26,6 +26,7 @@ impl Index {
     pub async fn build(&mut self, workers: usize, quiet: bool) -> Result<(), Error> {
         let mut remaining_chunks = 0;
         let started_at = Instant::now();
+        let mut errors = vec![];
 
         for (index, file) in self.staged_files.iter().enumerate() {
             let elapsed_time = Instant::now().duration_since(started_at).as_secs();
@@ -34,6 +35,18 @@ impl Index {
                 clearscreen::clear().expect("failed to clear screen");
                 println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
                 println!("counting chunks... {index}/{}", self.staged_files.len());
+
+                if !errors.is_empty() {
+                    println!("{} errors", errors.len());
+
+                    for (file, error) in errors.iter().take(5) {
+                        println!("    {file}: {error}");
+                    }
+
+                    if errors.len() > 5 {
+                        println!("    ... {} more errors", errors.len() - 5);
+                    }
+                }
             }
 
             let real_path = Index::get_data_path(
@@ -44,8 +57,16 @@ impl Index {
 
             while fd.can_generate_chunk() {
                 remaining_chunks += 1;
-                fd.next_chunk()?;
+
+                if let Err(e) = fd.next_chunk() {
+                    errors.push((file.to_string(), format!("{e:?}")));
+                    break;
+                };
             }
+        }
+
+        if !errors.is_empty() {
+            return Err(Error::CannotBuild(errors));
         }
 
         let mut workers = init_workers(workers, self.root_dir.clone());

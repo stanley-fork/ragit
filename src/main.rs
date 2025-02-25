@@ -49,6 +49,13 @@ async fn main() {
                 Error::InvalidConfigKey(k) => {
                     eprintln!("{k:?} is not a valid key for config.");
                 },
+                Error::CannotBuild(errors) => {
+                    eprintln!("Cannot build knowledge-base due to {} errors", errors.len());
+
+                    for (file, error) in errors.iter() {
+                        eprintln!("    {file}: {error}");
+                    }
+                },
                 Error::ApiError(e) => match e {
                     ragit_api::Error::InvalidModelName { name, candidates } => {
                         eprintln!(
