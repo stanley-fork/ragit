@@ -1,3 +1,4 @@
+import json
 from utils import (
     cargo_run,
     count_images,
@@ -20,9 +21,10 @@ def web_images(test_model: str):
     cargo_run(["check"])
 
     assert count_images() == 1
-    assert count_images("single.md") == 1
-    assert count_images("double.md") == 1
+    assert count_images(["single.md"]) == 1
+    assert count_images(["double.md"]) == 1
 
-    query = cargo_run(["query", "What do you see in sample image 1?"], stdout=True).lower()
-    assert "hello" in query
-    assert "world" in query
+    image = json.loads(cargo_run(["ls-images", "--json"], stdout=True))
+    extracted_text = image[0]["extracted_text"].lower()
+    assert "hello" in extracted_text
+    assert "world" in extracted_text

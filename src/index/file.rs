@@ -48,7 +48,7 @@ pub struct FileReader {  // of a single file
     config: BuildConfig,
 
     // this is a cache, purely for optimizing `fetch_images_from_web()`
-    fetched_images: HashMap<String, (Uid, ImageType)>,  // HashMap<hash, (image_uid, image_type)>
+    fetched_images: HashMap<String, Uid>,  // HashMap<hash, image_uid>
 }
 
 impl FileReader {
@@ -205,12 +205,12 @@ impl FileReader {
         for token in tokens.into_iter() {
             match &token {
                 AtomicToken::WebImage { url, hash, .. } => {
-                    if let Some((uid, image_type)) = self.fetched_images.get(hash) {
+                    if let Some(uid) = self.fetched_images.get(hash) {
                         let bytes = self.images.get(uid).unwrap();
 
                         new_tokens.push(AtomicToken::Image(Image {
                             bytes: bytes.to_vec(),
-                            image_type: *image_type,
+                            image_type: ImageType::Png,  // It's already normalized
                             uid: *uid,
                         }));
                     }
@@ -218,13 +218,15 @@ impl FileReader {
                     else {
                         match fetch_image_from_web(url).await {
                             Ok((bytes, image_type)) => {
+                                // `normalize_image` always returns a png
+                                let bytes = normalize_image(bytes, image_type)?;
                                 let uid = Uid::new_image(&bytes);
                                 self.images.insert(uid, bytes.clone());
-                                self.fetched_images.insert(hash.to_string(), (uid, image_type));
+                                self.fetched_images.insert(hash.to_string(), uid);
 
                                 new_tokens.push(AtomicToken::Image(Image {
                                     bytes,
-                                    image_type,
+                                    image_type: ImageType::Png,
                                     uid,
                                 }));
                             },

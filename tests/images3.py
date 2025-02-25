@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
@@ -22,6 +23,7 @@ def images3(test_model: str):
     cargo_run(["build"])
     cargo_run(["check"])
 
-    query = cargo_run(["query", "What do you see on a wooden plank?"], stdout=True).lower()
-    assert "hello" in query
-    assert "world" in query
+    image = json.loads(cargo_run(["ls-images", "hello_world.webp", "--json"], stdout=True))
+    extracted_text = image[0]["extracted_text"].lower()
+    assert "hello" in extracted_text
+    assert "world" in extracted_text

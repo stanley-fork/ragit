@@ -2,10 +2,22 @@ use super::{AtomicToken, FileReaderImpl};
 use crate::error::Error;
 use crate::index::BuildConfig;
 use crate::uid::Uid;
-use ragit_fs::{extension, read_bytes, remove_file};
+use ragit_fs::{extension, read_bytes};
 use ragit_pdl::ImageType;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+use std::io::Cursor;
+
+/*
+TODO: There's a subtle problem with ragit's image reader.
+
+1. All the images have to go through `normalize_image` before `generate_chunk`.
+  - In order to create an AtomicToken, an image needs a uid.
+  - A uid is generated from a hash value of the bytes of the image, and `normalize_image` alters the bytes.
+2. Each file reader implements `load_tokens`, which creates AtomicTokens.
+3. That means each file reader is responsible for calling `normalize_image`. If it forgets to do so, it will break the knowledge-base.
+4. If you're adding a new file reader, you're very likely to forget this fact.
+*/
 
 pub type Path = String;
 
@@ -40,12 +52,12 @@ pub fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>,
         return Ok(bytes);
     }
 
-    // TODO: I don't want to save it to a tmp file. I want a direct `Vec<u8>`
-    dynamic_image.save_with_format("._tmp.png", image::ImageFormat::Png)?;
-    let bytes = read_bytes("._tmp.png")?;
-    remove_file("._tmp.png")?;
+    let result = vec![];
+    let mut writer = Cursor::new(result);
+    dynamic_image.write_to(&mut writer, image::ImageFormat::Png)?;
+    let result = writer.into_inner();
 
-    Ok(bytes)
+    Ok(result)
 }
 
 pub struct ImageReader {
@@ -72,10 +84,11 @@ impl FileReaderImpl for ImageReader {
 
         else {
             let bytes = read_bytes(&self.path)?;
+            let bytes = normalize_image(bytes, self.image_type)?;
             let uid = Uid::new_image(&bytes);
             self.tokens.push(AtomicToken::Image(Image {
                 bytes,
-                image_type: self.image_type,
+                image_type: ImageType::Png,
                 uid,
             }));
             self.is_exhausted = true;
