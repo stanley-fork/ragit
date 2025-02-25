@@ -4,7 +4,7 @@ use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
 use ragit_fs::extension;
-use ragit_pdl::MessageContent;
+use ragit_pdl::{MessageContent, ImageType};
 use std::collections::{HashMap, VecDeque};
 
 mod csv;
@@ -46,6 +46,9 @@ pub struct FileReader {  // of a single file
     curr_buffer_size: usize,
     pub images: HashMap<Uid, Vec<u8>>,
     config: BuildConfig,
+
+    // this is a cache, purely for optimizing `fetch_images_from_web()`
+    fetched_images: HashMap<String, (Uid, ImageType)>,  // HashMap<hash, (image_uid, image_type)>
 }
 
 impl FileReader {
@@ -71,6 +74,7 @@ impl FileReader {
             curr_buffer_size: 0,
             images: HashMap::new(),
             config,
+            fetched_images: HashMap::new(),
         })
     }
 
@@ -153,6 +157,8 @@ impl FileReader {
         index_in_file: usize,
     ) -> Result<Chunk, Error> {
         let tokens = self.next_chunk()?;
+        let tokens = self.fetch_images_from_web(tokens).await?;
+
         let chunk = Chunk::create_chunk_from(
             index,
             &tokens,
@@ -191,6 +197,51 @@ impl FileReader {
     pub fn file_reader_key(&self) -> String {
         self.inner.key()
     }
+
+    /// It replaces `AtomicToken::WebImage` in `tokens` with `AtomicToken::Image`.
+    async fn fetch_images_from_web(&mut self, tokens: Vec<AtomicToken>) -> Result<Vec<AtomicToken>, Error> {
+        let mut new_tokens = Vec::with_capacity(tokens.len());
+
+        for token in tokens.into_iter() {
+            match &token {
+                AtomicToken::WebImage { url, hash, .. } => {
+                    if let Some((uid, image_type)) = self.fetched_images.get(hash) {
+                        let bytes = self.images.get(uid).unwrap();
+
+                        new_tokens.push(AtomicToken::Image(Image {
+                            bytes: bytes.to_vec(),
+                            image_type: *image_type,
+                            uid: *uid,
+                        }));
+                    }
+
+                    else {
+                        match fetch_image_from_web(url).await {
+                            Ok((bytes, image_type)) => {
+                                let uid = Uid::new_image(&bytes);
+                                self.images.insert(uid, bytes.clone());
+                                self.fetched_images.insert(hash.to_string(), (uid, image_type));
+
+                                new_tokens.push(AtomicToken::Image(Image {
+                                    bytes,
+                                    image_type,
+                                    uid,
+                                }));
+                            },
+                            Err(e) => if self.config.strict_file_reader {
+                                return Err(e);
+                            } else {
+                                new_tokens.push(token);
+                            },
+                        }
+                    }
+                },
+                _ => { new_tokens.push(token); },
+            }
+        }
+
+        Ok(new_tokens)
+    }
 }
 
 fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
@@ -200,7 +251,7 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
     for token in tokens.into_iter() {
         match token {
             AtomicToken::String { data, .. } => { buffer.push(data); },
-            AtomicToken::Image(_) => {
+            AtomicToken::Image(_) | AtomicToken::WebImage { .. } => {
                 if !buffer.is_empty() {
                     let s = buffer.concat();
                     result.push(AtomicToken::String {
@@ -229,6 +280,20 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
     result
 }
 
+async fn fetch_image_from_web(url: &str) -> Result<(Vec<u8>, ImageType), Error> {
+    let image_type = ImageType::from_extension(&extension(url)?.unwrap_or(String::new()))?;
+    let client = reqwest::Client::new();
+    let response = client.get(url).send().await?;
+    let status_code = response.status().as_u16();
+
+    if status_code != 200 {
+        return Err(Error::FileReaderError(format!("GET {url} returned {status_code}.")));
+    }
+
+    let bytes = response.bytes().await?.to_vec();
+    Ok((bytes, image_type))
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum AtomicToken {
     String {
@@ -237,10 +302,20 @@ pub enum AtomicToken {
     },
     Image(Image),
 
-    // It's an invisible AtomicToken.
-    // An AtomicToken before a separator and
-    // after a separator will never belong to the
-    // same chunk.
+    /// You can fetch images from web!
+    ///
+    /// If your file reader generates this token, ragit will
+    /// handle it. If it fails to fetch the image, 1) if it's
+    /// strict mode, it will crash. 2) Otherwise, it would create
+    /// a markdown image symbol with `desc` and `url`.
+    ///
+    /// `hash` is of `url`, not the bytes.
+    WebImage { desc: String, url: String, hash: String },
+
+    /// It's an invisible AtomicToken.
+    /// An AtomicToken before a separator and
+    /// after a separator will never belong to the
+    /// same chunk.
     Separator,
 }
 
@@ -249,6 +324,7 @@ impl AtomicToken {
         match self {
             AtomicToken::String { char_len, .. } => *char_len,
             AtomicToken::Image(_) => image_size,
+            AtomicToken::WebImage { .. } => image_size,
             AtomicToken::Separator => 0,
         }
     }
@@ -262,6 +338,10 @@ impl From<AtomicToken> for MessageContent {
                 image_type,
                 bytes,
             },
+
+            // This variant is supposed to be removed by `FileReader::generate_chunk`.
+            // If this branch is reached, that means it's failed to fetch the image.
+            AtomicToken::WebImage { desc, url, hash: _ } => MessageContent::String(format!("![{desc}]({url})")),
 
             // this branch is not supposed to be reached
             AtomicToken::Separator => MessageContent::String(String::new()),

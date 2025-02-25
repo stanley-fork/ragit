@@ -6,6 +6,7 @@ use lazy_static::lazy_static;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use ragit_pdl::ImageType;
 use regex::Regex;
+use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -13,6 +14,7 @@ use std::io::{BufRead, BufReader};
 lazy_static! {
     static ref FENCE_RE: Regex = Regex::new(r"(\s*)(\`{3,}|\~{3,})([^`]*)").unwrap();
     static ref DEF_RE: Regex = Regex::new(r"\s{0,3}\[([^\[\]]{1,999})\]\s?\:\s?(.+)").unwrap();
+    static ref WEB_URL_RE: Regex = Regex::new(r"[a-zA-Z]+\:\/\/.+\/.+").unwrap();
 }
 
 pub struct MarkdownReader {
@@ -144,7 +146,15 @@ impl MarkdownReader {
                         _ => unreachable!(),
                     };
 
-                    if !exists(&url) {
+                    if WEB_URL_RE.is_match(&url) {
+                        let mut hasher = Sha3_256::new();
+                        hasher.update(url.as_bytes());
+                        let hash = format!("{:064x}", hasher.finalize());
+                        self.tokens.push(AtomicToken::WebImage { desc: desc.to_string(), url: url.to_string(), hash });
+                        continue;
+                    }
+
+                    else if !exists(&url) {
                         if let Ok(joined_url) = join(&parent(&self.path)?, &url) {
                             url = joined_url;
                         }

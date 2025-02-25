@@ -29,6 +29,7 @@ from recover import recover
 from subdir import subdir
 from symlink import symlink
 from tfidf import tfidf
+from web_images import web_images
 
 import os
 import sys
@@ -170,6 +171,9 @@ Commands
                                 NOTE: It uses the vision capability of the model.
                                       Make sure that the model has one.
 
+    web_images [model]          run `web_images` test
+                                It tests whether ragit can fetch images from web.
+
     extract_keywords [model]    run `extract_keywords` test
                                 It tests whether `rag extract-keywords` command works.
 
@@ -288,6 +292,13 @@ if __name__ == "__main__":
 
             images2(test_model=test_model)
 
+        elif command == "web_images":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            web_images(test_model=test_model)
+
         elif command == "extract_keywords":
             if test_model is None:
                 print("Please specify which model to run the tests with.")
@@ -359,6 +370,7 @@ if __name__ == "__main__":
                 ("empty dummy", lambda: empty(test_model="dummy")),
                 ("empty llama3.3-70b", lambda: empty(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
+                ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available
                 ("images2 claude-3.5-sonnet", lambda: images2(test_model="claude-3.5-sonnet")),

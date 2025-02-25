@@ -165,6 +165,15 @@ impl Chunk {
                 AtomicToken::Separator => {
                     // invisible
                 },
+
+                // If this branch is reached, that means `FileReader::generate_chunk` has
+                // failed to fetch the image from web. As a fallback, it creates a
+                // markdown-syntaxed image.
+                AtomicToken::WebImage { desc, url, hash: _ } => {
+                    let dummy_image = format!("![{desc}]({url})");
+                    approx_data_len += dummy_image.chars().count();
+                    chunk.push(dummy_image);
+                },
             }
         }
 
@@ -208,6 +217,12 @@ impl Chunk {
                 },
                 AtomicToken::Separator => {
                     // invisible
+                },
+
+                // If this branch is reached, that means `FileReader::generate_chunk` has
+                // failed to fetch the image from web.
+                AtomicToken::WebImage { hash, .. } => {
+                    data.push(format!("web_img_{hash}"));
                 },
             }
         }

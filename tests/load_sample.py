@@ -151,6 +151,15 @@ if __name__ == "__main__":
             result_at = "./sample/nushell-book",
         )
         init()
+        load(
+            git_url = "https://github.com/nushell/nushell.github.io",
+            docs_at = "./nushell.github.io/assets",
+            repo_name = "nushell.github.io",
+            file_ext = [".png", ".gif"],
+            result_tmp = "./sample/assets",
+            result_at = "./sample/nushell-assets",
+        )
+        init()
 
         if os.path.exists("./sample/nushell"):
             shutil.rmtree("./sample/nushell")
@@ -159,6 +168,7 @@ if __name__ == "__main__":
         os.rename("./sample/nushell-commands", "./sample/nushell/commands")
         os.rename("./sample/nushell-cookbook", "./sample/nushell/cookbook")
         os.rename("./sample/nushell-book", "./sample/nushell/book")
+        os.rename("./sample/nushell-assets", "./sample/nushell/assets")
 
     elif arg == "nix":
         load(
