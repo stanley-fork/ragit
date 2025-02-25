@@ -15,6 +15,7 @@ from ignore import ignore
 from ii import ii
 from images import images
 from images2 import images2
+from images3 import images3
 from ls import ls
 from many_chunks import many_chunks
 from many_jobs import many_jobs
@@ -171,6 +172,10 @@ Commands
                                 NOTE: It uses the vision capability of the model.
                                       Make sure that the model has one.
 
+    images3 [model]             run `images3` test
+                                Other tests test images in markdown files, but they
+                                don't test image file readers. It does.
+
     web_images [model]          run `web_images` test
                                 It tests whether ragit can fetch images from web.
 
@@ -292,6 +297,13 @@ if __name__ == "__main__":
 
             images2(test_model=test_model)
 
+        elif command == "images3":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            images3(test_model=test_model)
+
         elif command == "web_images":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -370,6 +382,7 @@ if __name__ == "__main__":
                 ("empty dummy", lambda: empty(test_model="dummy")),
                 ("empty llama3.3-70b", lambda: empty(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
+                ("images3 gpt-4o-mini", lambda: images3(test_model="gpt-4o-mini")),
                 ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available
