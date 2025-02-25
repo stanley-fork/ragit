@@ -174,7 +174,7 @@ impl Index {
         let api_config = ApiConfig::default();
         let api_config_raw = ApiConfigRaw::default();
 
-        let result = Index {
+        let mut result = Index {
             ragit_version: crate::VERSION.to_string(),
             chunk_count: 0,
             staged_files: vec![],
@@ -188,9 +188,10 @@ impl Index {
             repo_url: None,
             ii_status: IIStatus::None,
             prompts: PROMPTS.clone(),
-            models: Model::default_models(),
+            models: vec![],
         };
 
+        result.load_or_init_models()?;
         write_bytes(
             &result.get_build_config_path()?,
             &serde_json::to_vec_pretty(&result.build_config)?,
@@ -237,12 +238,10 @@ impl Index {
         match load_mode {
             LoadMode::QuickCheck if result.curr_processing_file.is_some() => {
                 result.recover()?;
-                result.save_to_file()?;
                 Ok(result)
             },
             LoadMode::Check if result.curr_processing_file.is_some() || result.check().is_err() => {
                 result.recover()?;
-                result.save_to_file()?;
                 Ok(result)
             },
             _ => Ok(result),
