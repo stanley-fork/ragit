@@ -1,5 +1,4 @@
 import os
-from random import seed as rand_seed
 import shutil
 from utils import (
     cargo_run,
@@ -12,7 +11,6 @@ from utils import (
 )
 
 def merge():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
     docs = [" ".join([rand_word() for _ in range(1000)]) for _ in range(7)]

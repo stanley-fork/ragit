@@ -1,6 +1,6 @@
 import json
 import os
-from random import randint, seed as rand_seed
+from random import randint
 import re
 import shutil
 from utils import (
@@ -18,7 +18,6 @@ def create_doc_with_magic_words(magic_word1: str, magic_word2: str) -> str:
 
 # TODO: test with empty files
 def ls():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
     cargo_run(["init"])

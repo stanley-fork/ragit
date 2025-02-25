@@ -1,5 +1,5 @@
 import os
-from random import randint, seed as rand_seed
+from random import randint
 from subprocess import TimeoutExpired
 from utils import (
     cargo_run,
@@ -11,7 +11,6 @@ from utils import (
 )
 
 def external_bases():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
     os.mkdir("root")

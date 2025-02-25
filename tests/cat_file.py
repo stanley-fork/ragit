@@ -1,5 +1,5 @@
 import json
-from random import random, seed as rand_seed
+from random import random
 import shutil
 from utils import (
     cargo_run,
@@ -10,7 +10,6 @@ from utils import (
 )
 
 def cat_file():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
     cargo_run(["init"])

@@ -1,9 +1,8 @@
-from random import randint, seed as rand_seed, shuffle
+from random import randint, shuffle
 from subprocess import TimeoutExpired
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, rand_word, write_string
 
 def many_chunks():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
     txt_files = []

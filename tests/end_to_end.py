@@ -1,6 +1,6 @@
 import os
 import shutil
-from random import randint, seed as rand_seed
+from random import randint
 import re
 from subprocess import TimeoutExpired
 from utils import (
@@ -13,7 +13,6 @@ from utils import (
 )
 
 def end_to_end(test_model: str):
-    rand_seed(0)
     goto_root()
     os.chdir("docs")
     files = ls_recursive("txt") + ls_recursive("md")

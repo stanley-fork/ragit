@@ -1,7 +1,7 @@
 from images import sample_markdown
 import json
 import os
-from random import randint, seed as rand_seed
+from random import randint
 import shutil
 from utils import (
     cargo_run,
@@ -16,7 +16,6 @@ from utils import (
 )
 
 def archive():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
 

@@ -32,7 +32,9 @@ from symlink import symlink
 from tfidf import tfidf
 from web_images import web_images
 
+from datetime import datetime
 import os
+from random import seed as rand_seed
 import sys
 from utils import (
     clean,
@@ -216,8 +218,19 @@ Commands
 if __name__ == "__main__":
     no_clean = "--no-clean" in sys.argv
     args = [arg for arg in sys.argv if arg != "--no-clean"]
+    seed = [arg for arg in args if arg.startswith("--seed=")]
+
+    if len(seed) > 0:
+        args = [arg for arg in args if arg not in seed]
+        seed = int(seed[0].split("=")[1])
+
+    else:
+        now = datetime.now()
+        seed = int(f"{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}")
+
     command = args[1] if len(args) > 1 else None
     test_model = args[2] if len(args) > 2 else None
+    rand_seed(seed)
 
     try:
         if command == "end_to_end":
@@ -345,7 +358,6 @@ if __name__ == "__main__":
             cargo_tests()
 
         elif command == "all":
-            from datetime import datetime
             import json
             import time
             import traceback
@@ -403,6 +415,7 @@ if __name__ == "__main__":
                     "commit": get_commit_hash(),
                     "platform": get_platform_info(),
                     "ragit-version": get_ragit_version(),
+                    "rand_seed": seed,
                 },
                 "tests": {},
                 "result": {
@@ -420,6 +433,7 @@ if __name__ == "__main__":
             for seq, (name, test) in enumerate(tests):
                 try:
                     start = time.time()
+                    rand_seed(seed)
                     test()
 
                 except Exception as e:

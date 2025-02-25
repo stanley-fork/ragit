@@ -1,5 +1,4 @@
 import os
-from random import seed as rand_seed
 import re
 import shutil
 from utils import (
@@ -12,7 +11,6 @@ from utils import (
 )
 
 def ii():
-    rand_seed(0)
     goto_root()
     mk_and_cd_tmp_dir()
 
