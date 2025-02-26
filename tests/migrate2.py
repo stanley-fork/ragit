@@ -6,10 +6,10 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 def migrate2():
     goto_root()
     mk_and_cd_tmp_dir()
-    curr_version = "0.3.0"
+    curr_version = "0.3.1"
 
     # 0.1.1's clone is not compatible with the current version of ragit-server
-    for old_version in ["0.2.0", "0.2.1"]:
+    for old_version in ["0.2.0", "0.2.1", "0.3.0"]:
         checkout(old_version)
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/ragit"])
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/git"])

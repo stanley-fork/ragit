@@ -11,6 +11,7 @@ def checkout(version: str):
         "0.2.0": "d14773e55cce5",
         "0.2.1": "281a98f41f37",
         "0.3.0": "205f212adbd7",
+        "0.3.1": "181db1be62c4",
     }
 
     try:
@@ -81,12 +82,18 @@ def migrate():
     cargo_run(["migrate"])
     cargo_run(["check"])
 
-    # step 7: direct migrate from 0.1.1 to 0.3.0
+    # step 7: 0.3.0 to 0.3.1
+    checkout("0.3.1")
+    cargo_run(["check"])
+    cargo_run(["migrate"])
+    cargo_run(["check"])
+
+    # step 7: direct migrate from 0.1.1 to 0.3.1
     checkout("0.1.1")
     shutil.rmtree(".ragit")
     init_knowledge_base()
 
-    checkout('0.3.0')
+    checkout("0.3.1")
     assert cargo_run(["check"], check=False) != 0
     cargo_run(["migrate"])
     cargo_run(["check"])
