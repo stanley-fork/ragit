@@ -1043,6 +1043,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("ls-terms") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--term-only", "--stat-only"])
+                .optional_flag(&["--json"])
                 .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1052,6 +1053,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let term_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--term-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let json_mode = parsed_args.get_flag(1).is_some();
             let args = parsed_args.get_args();
 
             let processed_doc = if args.is_empty() {
@@ -1086,7 +1088,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
             };
 
-            println!("{}", processed_doc.render(term_only, stat_only));
+            println!("{}", processed_doc.render(term_only, stat_only, json_mode));
             return Ok(());
         },
         Some("merge") => {

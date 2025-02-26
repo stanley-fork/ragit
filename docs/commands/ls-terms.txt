@@ -8,7 +8,7 @@ rag-ls-terms - Show information about search terms
 SYNOPSIS
 --------
 [verse]
-'rag ls-terms' [--term-only | --stat-only] [<uid>..]
+'rag ls-terms' [--term-only | --stat-only] [--json] [<uid>..]
 
 DESCRIPTION
 -----------
@@ -23,3 +23,9 @@ sliding windows. If a term appears once in a file, but is included in a sliding 
 will tell you that the term appears twice.
 
 If no uid is given, it shows a merged TF of all the chunks.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+- no flags: `{ term: term_count }`
+- `--term-only`: `[term: string]`
+- `--stat-only`: `{ "terms": integer, "unique terms": integer }`

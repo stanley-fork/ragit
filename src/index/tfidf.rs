@@ -145,8 +145,22 @@ impl ProcessedDoc {
         self.length
     }
 
-    pub fn render(&self, term_only: bool, stat_only: bool) -> String {
+    pub fn render(&self, term_only: bool, stat_only: bool, json_mode: bool) -> String {
         let mut lines = vec![];
+
+        if json_mode {
+            if term_only {
+                return format!("{:?}", self.term_frequency.keys().collect::<Vec<_>>());
+            }
+
+            else if stat_only {
+                return format!("{}\"terms\": {}, \"unique terms\": {}{}", "{", self.length, self.term_frequency.len(), "}");
+            }
+
+            else {
+                return format!("{:?}", self.term_frequency);
+            }
+        }
 
         if !term_only {
             lines.push(format!(
