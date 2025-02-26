@@ -4,7 +4,7 @@ use crate::index::Index;
 use ragit_pdl::{encode_base64, escape_pdl_tokens};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct RenderableChunk {
     pub data: String,
     pub source: String,

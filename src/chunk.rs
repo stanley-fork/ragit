@@ -33,6 +33,9 @@ mod build_info;
 mod renderable;
 mod source;
 
+#[cfg(test)]
+mod tests;
+
 pub use build_info::ChunkBuildInfo;
 pub use renderable::RenderableChunk;
 pub use source::ChunkSource;
@@ -140,6 +143,25 @@ pub fn save_to_file(
 }
 
 impl Chunk {
+    pub fn dummy(data: String, source: ChunkSource) -> Self {
+        let mut result = Chunk {
+            images: vec![],
+            char_len: data.chars().count(),
+            image_count: 0,
+            title: String::new(),
+            summary: String::new(),
+            uid: Uid::dummy(),
+            timestamp: Local::now().timestamp(),
+            searchable: true,
+            build_info: ChunkBuildInfo::dummy(),
+            data,
+            source,
+        };
+
+        result.uid = Uid::new_chunk(&result);
+        result
+    }
+
     pub(crate) async fn create_chunk_from(
         index: &Index,
         tokens: &[AtomicToken],
@@ -284,31 +306,51 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
 
     for chunk in chunks.into_iter() {
         match &chunk.source {
+            ChunkSource::File { path, index } if *index > 0 => {
+                merge_candidates.insert((path.clone(), *index - 1));
+                curr_chunks.insert((path.clone(), *index), chunk);
+            },
             ChunkSource::File { path, index } => {
-                merge_candidates.insert((path.clone(), *index + 1));
-                assert!(curr_chunks.insert((path.clone(), *index), chunk).is_none());
+                curr_chunks.insert((path.clone(), *index), chunk);
             },
             ChunkSource::Chunks { .. } => {},  // it's unsearchable
         }
     }
 
-    // it has to merge from left to right
+    // it has to merge from right to left
     let mut merge_candidates: Vec<_> = merge_candidates.into_iter().collect();
-    merge_candidates.sort_by_key(|(_, index)| *index);
+    merge_candidates.sort_by_key(|(_, index)| usize::MAX - *index);
 
     for candidate in merge_candidates.iter() {
         if curr_chunks.contains_key(candidate) {
-            let pre = curr_chunks.remove(&(candidate.0.clone(), candidate.1 - 1)).unwrap();
-            let post = curr_chunks.remove(candidate).unwrap();
+            let pre = curr_chunks.remove(candidate).unwrap();
+            let post = curr_chunks.remove(&(candidate.0.clone(), candidate.1 + 1)).unwrap();
             curr_chunks.insert((candidate.0.clone(), candidate.1), merge_chunks(pre, post));
 
             return merge_and_convert_chunks(index, curr_chunks.into_values().collect());
         }
     }
 
+    // Chunks are sorted by file name and index
+    // 1. sort by index: It makes more sense to preserve the order
+    // 2. sort by file name: In order to run tests, the order has to be deterministic.
+    let mut curr_chunks = curr_chunks.into_values().collect::<Vec<_>>();
+    curr_chunks.sort_by_key(
+        |chunk| match &chunk.source {
+            ChunkSource::File { index, .. } => *index,
+            ChunkSource::Chunks { .. } => 0,  // unreachable
+        }
+    );
+    curr_chunks.sort_by_key(
+        |chunk| match &chunk.source {
+            ChunkSource::File { path, .. } => path.to_string(),
+            ChunkSource::Chunks { .. } => String::new(),  // unreachable
+        }
+    );
+
     let mut result = Vec::with_capacity(curr_chunks.len());
 
-    for (_, chunk) in curr_chunks.into_iter() {
+    for chunk in curr_chunks.into_iter() {
         result.push(chunk.into_renderable(index)?);
     }
 
@@ -341,10 +383,12 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         data: new_data,
         images: new_images,
         image_count: 0,  // TODO: count images
-        source: ChunkSource::File { path: post_path, index: post_index },
         timestamp: Local::now().timestamp(),
 
-        // if source is `File`, it must be searchable
+        // When 1st and 2nd chunks are merged, the result is 1st, not 2nd.
+        source: ChunkSource::File { path: pre_path, index: pre_index },
+
+        // If source is `File`, it must be searchable
         searchable: true,
 
         // TODO: is it okay to leave these fields empty?

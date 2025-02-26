@@ -280,6 +280,7 @@ impl Index {
                             remaining_chunks,
                         );
                     }
+
                     break;
                 }
             }
@@ -287,6 +288,8 @@ impl Index {
             std::thread::sleep(Duration::from_millis(100));
         }
 
+        self.curr_processing_file = None;
+        self.save_to_file()?;
         Ok(())
     }
 

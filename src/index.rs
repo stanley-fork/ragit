@@ -142,6 +142,25 @@ pub enum LoadMode {
 }
 
 impl Index {
+    pub fn dummy() -> Self {
+        Index {
+            ragit_version: String::new(),
+            chunk_count: 0,
+            staged_files: vec![],
+            processed_files: HashMap::new(),
+            curr_processing_file: None,
+            repo_url: None,
+            ii_status: IIStatus::None,
+            api_config_raw: ApiConfigRaw::default(),
+            root_dir: String::from("."),
+            build_config: BuildConfig::default(),
+            query_config: QueryConfig::default(),
+            api_config: ApiConfig::default(),
+            prompts: HashMap::new(),
+            models: vec![],
+        }
+    }
+
     /// It works like git. `root_dir` is the root of the repo. And it creates dir `.ragit/`, like `.git/`.
     /// It reads the files in the repo and creates index.
     pub fn new(
