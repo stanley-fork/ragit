@@ -14,49 +14,59 @@ from utils import (
 )
 
 def create_doc_with_magic_words(magic_word1: str, magic_word2: str) -> str:
-    return "\n".join([magic_word1] + ["aaaa" for _ in range(randint(150, 750))] + [magic_word2])
+    return "\n".join([magic_word1] + ["delim" for _ in range(randint(150, 750))] + [magic_word2])
 
 # TODO: test with empty files
 def ls():
-    goto_root()
-    mk_and_cd_tmp_dir()
-    cargo_run(["init"])
-    cargo_run(["config", "--set", "model", "dummy"])
-    cargo_run(["config", "--set", "chunk_size", "512"])
-    cargo_run(["config", "--set", "slide_len", "128"])
-    magic_words = []
-    file_names = []
-    magic_words_map = {}  # magic_word -> file_name
-    file_map = {}  # file_uid -> file_name
-    file_map_rev = {}  # file_name -> file_uid
-    uid_map = {}  # chunk_uid -> file_uid
-    file_image_map = {}  # file_name -> image_name
-    image_uid_map = {}  # image_name -> image_uid
+    while True:
+        goto_root()
+        mk_and_cd_tmp_dir()
+        cargo_run(["init"])
+        cargo_run(["config", "--set", "model", "dummy"])
+        cargo_run(["config", "--set", "chunk_size", "512"])
+        cargo_run(["config", "--set", "slide_len", "128"])
+        magic_words = []
+        file_names = []
+        magic_words_map = {}  # magic_word -> file_name
+        file_map = {}  # file_uid -> file_name
+        file_map_rev = {}  # file_name -> file_uid
+        uid_map = {}  # chunk_uid -> file_uid
+        file_image_map = {}  # file_name -> image_name
+        image_uid_map = {}  # image_name -> image_uid
 
-    for i in range(8):
-        file_name = f"sample_file_{i}.txt"
-        magic_word1, magic_word2 = rand_word().lower(), rand_word().lower()  # tfidfs' are case-insensitive, and Python's `in` operator is case-sensitive
-        write_string(file_name, create_doc_with_magic_words(magic_word1, magic_word2))
-        magic_words += [magic_word1, magic_word2]
-        file_names.append(file_name)
-        magic_words_map[magic_word1] = file_name
-        magic_words_map[magic_word2] = file_name
-        cargo_run(["add", file_name])
+        for i in range(8):
+            file_name = f"sample_file_{i}.txt"
+            magic_word1, magic_word2 = rand_word().lower(), rand_word().lower()  # tfidfs' are case-insensitive, and Python's `in` operator is case-sensitive
+            write_string(file_name, create_doc_with_magic_words(magic_word1, magic_word2))
+            magic_words += [magic_word1, magic_word2]
+            file_names.append(file_name)
+            magic_words_map[magic_word1] = file_name
+            magic_words_map[magic_word2] = file_name
+            cargo_run(["add", file_name])
 
-    write_string("image1.md", "![image](sample1.png)")
-    write_string("image2.md", "![image](sample2.jpg)")
-    write_string("no_image.md", "This is not an image.")
-    shutil.copyfile("../tests/images/empty.png", "sample1.png")
-    shutil.copyfile("../tests/images/empty.jpg", "sample2.jpg")
-    file_names += ["image1.md", "image2.md", "no_image.md"]
-    cargo_run(["add", "image1.md", "image2.md", "no_image.md"])
-    file_image_map["image1.md"] = "sample1.png"
-    file_image_map["image2.md"] = "sample2.jpg"
-    assert count_images() == 0
+        write_string("image1.md", "![image](sample1.png)")
+        write_string("image2.md", "![image](sample2.jpg)")
+        write_string("no_image.md", "This is not an image.")
+        shutil.copyfile("../tests/images/empty.png", "sample1.png")
+        shutil.copyfile("../tests/images/empty.jpg", "sample2.jpg")
+        file_names += ["image1.md", "image2.md", "no_image.md"]
+        cargo_run(["add", "image1.md", "image2.md", "no_image.md"])
+        file_image_map["image1.md"] = "sample1.png"
+        file_image_map["image2.md"] = "sample2.jpg"
+        assert count_images() == 0
 
-    cargo_run(["build"])
-    cargo_run(["check"])
-    assert count_images() == 2
+        cargo_run(["build"])
+        cargo_run(["check"])
+        assert count_images() == 2
+
+        # `rag ls-terms` dumps stemmed terms. For example, if a magic word is `ragagapic`, the tfidf engine would turn it into `ragagap`.
+        print("step 0: reconcile ragit's stemmer and python")
+        terms = json.loads(cargo_run(["ls-terms", "--term-only", "--json"], stdout=True))
+        terms = [term for term in terms if term != "delim"]
+
+        # I'm too lazy to create a map. Let's just initialize over and over until there's no stemmer issue
+        if all([magic_word in terms for magic_word in magic_words]):
+            break
 
     print("step 1: check if `tfidf` command can retrieve the magic words (with and without ii-build)")
 
