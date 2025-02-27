@@ -120,6 +120,8 @@ impl Index {
             }
         }
 
+        self.save_to_file()?;
+
         loop {
             if !quiet {
                 self.render_build_dashboard(

@@ -174,6 +174,9 @@ impl Index {
             remove_dir_all(&dir)?;
         }
 
+        // TODO: It cannot notice if there are two chunks with the same `file` and same `index`.
+        //       It has to recover from such situation, not panicking, not ignoring.
+        //       The easiest approach is to remove either chunk.
         for (file, mut chunks) in processed_files.into_iter() {
             chunks.sort_by_key(|(_, index)| *index);
             let file_uid = self.processed_files.get(&file).unwrap();

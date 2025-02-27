@@ -15,9 +15,9 @@ def orphan_process(test_model: str):
         mk_and_cd_tmp_dir()
         cargo_run(["init"])
 
-        for i in range(15):
-            write_string(f"sample{i}.txt", "Hello, world!")
-            cargo_run(["add", f"sample{i}.txt"])
+        for j in range(15):
+            write_string(f"sample{j}.txt", "Hello, world!")
+            cargo_run(["add", f"sample{j}.txt"])
 
         # NOTE: we cannot use dummy models here: they always create the same chunk, with the same uids,
         #       so the chunks from step 2 overwrites chunks from step 1
