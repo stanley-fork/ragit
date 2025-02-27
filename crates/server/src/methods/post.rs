@@ -1,9 +1,12 @@
+use super::{HandleError, RawResponse, handler};
 use bytes::{Bytes, BufMut};
 use chrono::Local;
+use crate::error::Error;
 use crate::utils::{decode_base64, get_rag_path};
 use futures_util::TryStreamExt;
 use ragit::Index;
 use ragit_fs::{
+    FileError,
     WriteMode,
     create_dir_all,
     exists,
@@ -30,15 +33,19 @@ struct Session {
     last_updated: i64,
 }
 
-// TODO: any better way for global vars
+// TODO: any better way for global vars?
 const SESSION_POOL_SIZE: usize = 64;
 static mut SESSIONS: [Option<Session>; SESSION_POOL_SIZE] = [None; SESSION_POOL_SIZE];
 
 // TODO: some handlers return 500, some 404 or 503, but I'm not sure which one is correct in which cases
 
 pub fn post_begin_push(user: String, repo: String, auth_info: Option<String>) -> Box<dyn Reply> {
+    handler(post_begin_push_(user, repo, auth_info))
+}
+
+fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> RawResponse {
     let session_id = rand::random::<u128>();
-    let root_dir = get_rag_path(&user, &repo);
+    let root_dir = get_rag_path(&user, &repo).handle_error(404)?;
     let mut auth_parsed: Option<(String, Option<String>)> = None;
 
     if let Some(auth_) = auth_info {
@@ -58,159 +65,83 @@ pub fn post_begin_push(user: String, repo: String, auth_info: Option<String>) ->
     };
 
     if !auth(&user, &repo, &auth_parsed) {
-        return Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(403).unwrap(),
-        ));
+        return Err((403, format!("unauthorized access to `{user}/{repo}`")));
     }
 
     if !exists(&root_dir) {
-        create_dir_all(&parent(&root_dir).unwrap()).unwrap();
+        create_dir_all(&parent(&root_dir).handle_error(500)?).handle_error(500)?;
     }
 
-    match try_register_session(session_id) {
-        Ok(()) => {
-            let session_id = format!("{session_id:032x}");
-            Box::new(with_header(
-                session_id,
-                "Content-Type",
-                "text/plain",
-            ))
-        },
-        Err(()) => Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(503).unwrap(),
-        )),
-    }
+    try_register_session(session_id).handle_error(503)?;
+    let session_id = format!("{session_id:032x}");
+    Ok(Box::new(with_header(
+        session_id,
+        "Content-Type",
+        "text/plain",
+    )))
 }
 
 pub async fn post_archive(user: String, repo: String, form: FormData) -> Box<dyn Reply> {
-    let form: HashMap<String, Vec<u8>> = match form.and_then(|mut field| async move {
+    handler(post_archive_(user, repo, form).await)
+}
+
+async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawResponse {
+    let form: HashMap<String, Vec<u8>> = form.and_then(|mut field| async move {
         let mut buffer = Vec::new();
 
         while let Some(content) = field.data().await {
             buffer.put(content?);
         }
 
-        Ok((
-            field.name().to_string(),
-            buffer,
-        ))
-    }).try_collect().await {
-        Ok(f) => f,
-        Err(_) => {
-            return Box::new(with_status(
-                String::new(),
-                StatusCode::from_u16(500).unwrap(),
-            ));
-        },
-    };
+        Ok((field.name().to_string(), buffer))
+    }).try_collect().await.handle_error(500)?;
 
-    let session_id = match form.get("session-id") {
-        Some(n) => match u128::from_str_radix(&String::from_utf8_lossy(n), 16) {
-            Ok(n) => n,
-            Err(_) => {
-                return Box::new(with_status(
-                    String::new(),
-                    StatusCode::from_u16(400).unwrap(),
-                ));
-            },
-        },
-        None => {
-            return Box::new(with_status(
-                String::new(),
-                StatusCode::from_u16(400).unwrap(),
-            ));
-        },
-    };
-    let archive_id = match form.get("archive-id") {
-        Some(id) => match String::from_utf8(id.to_vec()) {
-            Ok(id) => id,
-            Err(_) => {
-                return Box::new(with_status(
-                    String::new(),
-                    StatusCode::from_u16(400).unwrap(),
-                ));
-            },
-        },
-        None => {
-            return Box::new(with_status(
-                String::new(),
-                StatusCode::from_u16(400).unwrap(),
-            ));
-        },
-    };
-    let archive = match form.get("archive") {
-        Some(bytes) => bytes,
-        None => {
-            return Box::new(with_status(
-                String::new(),
-                StatusCode::from_u16(400).unwrap(),
-            ));
-        },
-    };
+    let session_id = form.get("session-id").ok_or_else(|| "session-id not found").handle_error(400)?;
+    let session_id = u128::from_str_radix(&String::from_utf8_lossy(session_id), 16).handle_error(400)?;
+    let archive_id = form.get("archive-id").ok_or_else(|| "archive-id not found").handle_error(400)?;
+    let archive_id = String::from_utf8(archive_id.to_vec()).handle_error(400)?;
+    let archive = form.get("archive").ok_or_else(|| "archive not found").handle_error(400)?;
 
-    if let Err(()) = try_update_timestamp(session_id) {
-        return Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(404).unwrap(),
-        ));
-    }
+    try_update_timestamp(session_id).handle_error(404)?;
 
-    let Ok(path) = join3(
+    let path = join3(
         "./session",
         &format!("{session_id:032x}"),
         &archive_id,
-    ) else {
-        return Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(500).unwrap(),
-        ));
-    };
+    ).handle_error(500)?;
 
-    if let Err(_) = write_bytes(
+    write_bytes(
         &path,
         &archive,
         WriteMode::AlwaysCreate,
-    ) {
-        return Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(500).unwrap(),
-        ));
-    }
+    ).handle_error(500)?;
 
-    Box::new(with_status(
+    Ok(Box::new(with_status(
         String::new(),
         StatusCode::from_u16(200).unwrap(),
-    ))
+    )))
 }
 
 pub fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<dyn Reply> {
-    let session_id = match String::from_utf8(body.into_iter().collect::<Vec<u8>>()) {
-        Ok(session_id) => match u128::from_str_radix(&session_id, 16) {
-            Ok(n) => n,
-            Err(_) => {
-                return Box::new(with_status(
-                    String::new(),
-                    StatusCode::from_u16(400).unwrap(),
-                ));
-            },
-        },
-        Err(_) => {
-            return Box::new(with_status(
-                String::new(),
-                StatusCode::from_u16(400).unwrap(),
-            ));
-        },
-    };
-    let root_dir = parent(&get_rag_path(&user, &repo)).unwrap();
+    handler(post_finalize_push_(user, repo, body))
+}
+
+fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
+    let session_id = String::from_utf8(body.into_iter().collect::<Vec<u8>>()).handle_error(400)?;
+    let session_id = u128::from_str_radix(&session_id, 16).handle_error(400)?;
+    let root_dir = parent(&get_rag_path(&user, &repo).handle_error(404)?).handle_error(404)?;
     let archives_at = join(
         "./session",
         &format!("{session_id:032x}"),
-    ).unwrap();
-    let archives = read_dir(&archives_at, false).unwrap_or(vec![]);
+    ).handle_error(404)?;
+    let archives = read_dir(&archives_at, false).handle_error(404)?;
 
-    if let Err(e) = Index::extract_archive(
+    write_log(
+        "post_finalize_push",
+        &format!("start extracting archive at `{root_dir}`"),
+    );
+
+    Index::extract_archive(
         &root_dir,
         archives.clone(),
         4,
@@ -218,24 +149,18 @@ pub fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<dyn Re
         // TODO: is it okay to force-extract? if there's an error, it might lose the original data
         true,
         true,  // quiet
-    ) {
-        write_log("finalize_push", &format!("{e:?}"));
-        return Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(500).unwrap(),
-        ));
-    }
+    ).handle_error(500)?;
 
     if !exists(&join3(
         &root_dir,
         ".ragit",
         "archives",
-    ).unwrap()) {
+    ).handle_error(500)?) {
         create_dir_all(&join3(
             &root_dir,
             ".ragit",
             "archives",
-        ).unwrap()).unwrap();
+        ).handle_error(500)?).handle_error(500)?;
     }
 
     for archive in archives.iter() {
@@ -243,23 +168,19 @@ pub fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<dyn Re
             &root_dir,
             ".ragit",
             "archives",
-            &file_name(archive).unwrap(),
-        ).unwrap()).unwrap();
+            &file_name(archive).handle_error(500)?,
+        ).handle_error(500)?).handle_error(500)?;
     }
 
-    match try_unregister_session(session_id) {
-        Ok(()) => Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(200).unwrap(),
-        )),
-        Err(()) => Box::new(with_status(
-            String::new(),
-            StatusCode::from_u16(404).unwrap(),
-        )),
-    }
+    try_unregister_session(session_id).handle_error(500)?;
+
+    Ok(Box::new(with_status(
+        String::new(),
+        StatusCode::from_u16(200).unwrap(),
+    )))
 }
 
-fn try_register_session(session_id: u128) -> Result<(), ()> {
+fn try_register_session(session_id: u128) -> Result<(), Error> {
     let now = Local::now().timestamp();
 
     unsafe {
@@ -290,11 +211,10 @@ fn try_register_session(session_id: u128) -> Result<(), ()> {
         }
     }
 
-    // has to wait until the other operations are complete
-    Err(())
+    Err(Error::ServerBusy)
 }
 
-fn try_update_timestamp(session_id: u128) -> Result<(), ()> {
+fn try_update_timestamp(session_id: u128) -> Result<(), Error> {
     let now = Local::now().timestamp();
 
     unsafe {
@@ -312,11 +232,10 @@ fn try_update_timestamp(session_id: u128) -> Result<(), ()> {
         }
     }
 
-    // no such session
-    Err(())
+    Err(Error::NoSuchSession(session_id))
 }
 
-fn try_unregister_session(session_id: u128) -> Result<(), ()> {
+fn try_unregister_session(session_id: u128) -> Result<(), Error> {
     unsafe {
         for i in 0..SESSION_POOL_SIZE {
             match SESSIONS[i] {
@@ -330,28 +249,28 @@ fn try_unregister_session(session_id: u128) -> Result<(), ()> {
         }
     }
 
-    Err(())
+    Err(Error::NoSuchSession(session_id))
 }
 
-fn init_session_fs(session_id: u128) -> Result<(), ()> {
+fn init_session_fs(session_id: u128) -> Result<(), FileError> {
     let path = join(
         "./session",
         &format!("{session_id:032x}"),
-    ).map_err(|_| ())?;
-    create_dir_all(&path).map_err(|_| ())?;
+    )?;
+    create_dir_all(&path)?;
     Ok(())
 }
 
-fn clean_session_fs(session_id: u128) -> Result<(), ()> {
+fn clean_session_fs(session_id: u128) -> Result<(), FileError> {
     let path = join(
         "./session",
         &format!("{session_id:032x}"),
-    ).map_err(|_| ())?;
-    remove_dir_all(&path).map_err(|_| ())?;
+    )?;
+    remove_dir_all(&path)?;
     Ok(())
 }
 
-fn auth(user: &str, repo: &str, auth_info: &Option<(String, Option<String>)>) -> bool {
+fn auth(_user: &str, _repo: &str, _auth_info: &Option<(String, Option<String>)>) -> bool {
     // TODO
     true
 }

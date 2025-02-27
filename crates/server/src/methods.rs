@@ -1,3 +1,5 @@
+use crate::utils::trim_long_string;
+use ragit_fs::write_log;
 use warp::Reply;
 use warp::http::status::StatusCode;
 use warp::reply::with_status;
@@ -28,6 +30,38 @@ pub use post::{
     post_finalize_push,
 };
 
+pub type RawResponse = Result<Box<dyn Reply>, (u16, String)>;
+
 pub fn not_found() -> Box<dyn Reply> {
     Box::new(with_status(String::new(), StatusCode::from_u16(404).unwrap()))
+}
+
+pub fn handler(r: RawResponse) -> Box<dyn Reply> {
+    match r {
+        Ok(r) => r,
+        Err((code, error)) => Box::new(with_status(
+            error,
+            StatusCode::from_u16(code).unwrap(),
+        )),
+    }
+}
+
+pub trait HandleError<T> {
+    fn handle_error(self, code: u16) -> Result<T, (u16, String)>;
+}
+
+impl<T, E: std::fmt::Debug> HandleError<T> for Result<T, E> {
+    fn handle_error(self, code: u16) -> Result<T, (u16, String)> {
+        self.map_err(|e| {
+            let e = format!("{e:?}");
+            write_log(
+                "handle_error",
+                &format!("{code}, {}", trim_long_string(&e, 200, 200)),
+            );
+
+            // let's not expose the error message to the client
+            // (code, e)
+            (code, String::new())
+        })
+    }
 }
