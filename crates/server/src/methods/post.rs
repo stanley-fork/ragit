@@ -77,7 +77,7 @@ fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> Ra
     Ok(Box::new(with_header(
         session_id,
         "Content-Type",
-        "text/plain",
+        "text/plain; charset=utf-8",
     )))
 }
 

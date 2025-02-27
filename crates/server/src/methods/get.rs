@@ -71,7 +71,7 @@ fn get_prompt_(user: String, repo: String, prompt: String) -> RawResponse {
     Ok(Box::new(with_header(
         p,
         "Content-Type",
-        "text/plain",
+        "text/plain; charset=utf-8",
     )))
 }
 
@@ -321,7 +321,7 @@ fn get_version_(user: String, repo: String) -> RawResponse {
                     return Ok(Box::new(with_header(
                         v.to_string(),
                         "Content-Type",
-                        "text/plain",
+                        "text/plain; charset=utf-8",
                     )));
                 },
                 None => (500, format!("`{v:?}` is not a valid string")),
@@ -338,6 +338,6 @@ pub fn get_server_version() -> Box<dyn Reply> {
     Box::new(with_header(
         ragit::VERSION,
         "Content-Type",
-        "text/plain",
+        "text/plain; charset=utf-8",
     ))
 }
