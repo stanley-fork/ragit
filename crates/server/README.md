@@ -9,7 +9,7 @@ There's no frontend. You have to write one on your own.
 You can self-host `ragit-server` and it must be quite useful. But it's not production-ready!
 
 - Auth
-  - It does not implement any kind of Auth. There is `fn auth() -> bool;`, but it's body is empty.
+  - It does not implement any kind of Auth. There is `fn auth() -> bool;`, but its body is empty.
 - Scalability
   - It does not use any kind of DB. It stores everything on disk. This design makes self-hosting simpler, but not suitable for large-scale services.
 
