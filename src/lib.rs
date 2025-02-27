@@ -1,5 +1,5 @@
 mod api_config;
-mod chunk;
+pub mod chunk;
 mod constant;
 mod error;
 mod index;

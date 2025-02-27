@@ -44,7 +44,7 @@ impl Index {
 
         match description {
             Value::Object(obj) => match (obj.get("extracted_text"), obj.get("explanation")) {
-                (Some(extracted_text), Some(explanation)) => Ok(ImageSchema {
+                (Some(Value::String(extracted_text)), Some(Value::String(explanation))) => Ok(ImageSchema {
                     uid,
                     extracted_text: extracted_text.to_string(),
                     explanation: explanation.to_string(),

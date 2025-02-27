@@ -31,8 +31,8 @@ You can self-host `ragit-server` and it must be quite useful. But it's not produ
   - application/json: array[string]
   - It returns all the chunk uids.
 - GET `/{user-name}/{repo-name}/chunk/{chunk-uid}`
-  - application/octet-stream: a chunk
-  - You have to use `chunk::load_from_file()` to deserialize this data.
+  - application/json: a chunk
+  - `chunk::load_from_file()` can also deserialize this data.
 - GET `/{user-name}/{repo-name}/archive-list`
   - application/json: array[string]
 - GET `/{user-name}/{repo-name}/archive/{archive-key}`

@@ -28,6 +28,7 @@ from orphan_process import orphan_process
 from prompts import prompts
 from ragit_api import ragit_api
 from recover import recover
+from server import server
 from subdir import subdir
 from symlink import symlink
 from tfidf import tfidf
@@ -118,6 +119,10 @@ Commands
 
     clone2                      run `clone2` test
                                 It clones knowledge-bases from ragit.baehyunsol.com.
+
+    server                      run `server` test
+                                It sends requests to every endpoint of ragit-server, except the
+                                ones that are tested by `clone`, and checks them.
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
@@ -271,6 +276,9 @@ if __name__ == "__main__":
         elif command == "clone2":
             clone2()
 
+        elif command == "server":
+            server()
+
         elif command == "cli":
             cli()
 
@@ -394,6 +402,7 @@ if __name__ == "__main__":
                 ("recover", recover),
                 ("clone", clone),
                 ("clone2", clone2),
+                ("server", server),
                 ("cli", cli),
                 ("archive", archive),
                 ("many_chunks", many_chunks),

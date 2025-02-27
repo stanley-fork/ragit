@@ -1,5 +1,6 @@
 use super::{HandleError, RawResponse, handler};
 use crate::utils::get_rag_path;
+use ragit::chunk;
 use ragit_fs::{
     basename,
     exists,
@@ -111,7 +112,7 @@ fn get_chunk_list_(user: String, repo: String, prefix: String) -> RawResponse {
         "chunks",
         &prefix,
     ).handle_error(404)?;
-    let chunks = read_dir(&chunk_path, false).handle_error(404)?;
+    let chunks = read_dir(&chunk_path, false).unwrap_or(vec![]);
     Ok(Box::new(json(
         &chunks.iter().filter_map(
             |chunk| match extension(chunk) {
@@ -142,7 +143,7 @@ fn get_chunk_list_all_(user: String, repo: String) -> RawResponse {
         ).handle_error(404)?;
 
         if exists(&chunks_at) {
-            for chunk in read_dir(&chunks_at, false).handle_error(404)? {
+            for chunk in read_dir(&chunks_at, false).unwrap_or(vec![]) {
                 if extension(&chunk).unwrap_or(None).unwrap_or(String::new()) == "chunk" {
                     result.push(format!("{prefix}{}", file_name(&chunk).handle_error(500)?));
                 }
@@ -167,12 +168,14 @@ fn get_chunk_(user: String, repo: String, uid: String) -> RawResponse {
         &prefix,
         &set_extension(&suffix, "chunk").handle_error(404)?,
     ).handle_error(404)?;
-    let bytes = read_bytes(&chunk_path).handle_error(404)?;
+    let chunk = chunk::load_from_file(&chunk_path).handle_error(404)?;
+    let json_str = serde_json::to_string(&chunk).handle_error(500)?;
 
     Ok(Box::new(with_header(
-        bytes,
+        // '\n' is for backward-compatibility with older versions
+        format!("\n{json_str}"),
         "Content-Type",
-        "application/octet-stream",
+        "application/json",
     )))
 }
 
