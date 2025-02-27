@@ -174,11 +174,21 @@ impl Index {
             remove_dir_all(&dir)?;
         }
 
-        // TODO: It cannot notice if there are two chunks with the same `file` and same `index`.
-        //       It has to recover from such situation, not panicking, not ignoring.
-        //       The easiest approach is to remove either chunk.
         for (file, mut chunks) in processed_files.into_iter() {
             chunks.sort_by_key(|(_, index)| *index);
+
+            if chunks[0].1 != 0 {
+                return Err(Error::BrokenIndex(format!("The first chunk of `{file}` is missing.")));
+            }
+
+            // There may be multiple chunks with the same index (https://github.com/baehyunsol/ragit/issues/8), (https://github.com/baehyunsol/ragit/issues/9).
+            // In such cases, it keeps only one of them and remove the others.
+            chunks.dedup_by_key(|(_, index)| *index);
+
+            if chunks[chunks.len() - 1].1 != chunks.len() - 1 {
+                return Err(Error::BrokenIndex(format!("Some chunks of `{file}` is missing.")));
+            }
+
             let file_uid = self.processed_files.get(&file).unwrap();
             let file_index_path = Index::get_uid_path(
                 &self.root_dir,

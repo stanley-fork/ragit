@@ -32,6 +32,7 @@ from subdir import subdir
 from symlink import symlink
 from tfidf import tfidf
 from web_images import web_images
+from write_lock import write_lock
 
 from datetime import datetime
 import os
@@ -189,6 +190,10 @@ Commands
                                 It reproduces gh issue #9.
                                 https://github.com/baehyunsol/ragit/issues/9
 
+    write_lock                  run `write_lock` test
+                                It reproduces gh issue #8.
+                                https://github.com/baehyunsol/ragit/issues/9
+
     markdown_reader             run `markdown_reader` test
                                 I have found many bugs in `markdown_reader_v0`. The bugs
                                 are reproduced in this test. If you find a new one, please
@@ -337,11 +342,18 @@ if __name__ == "__main__":
             extract_keywords(test_model=test_model)
 
         elif command == "orphan_process":
-            if test_model is None:
-                print("Please specify which model to run the tests with.")
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
                 sys.exit(1)
 
             orphan_process(test_model=test_model)
+
+        elif command == "write_lock":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            write_lock(test_model=test_model)
 
         elif command == "markdown_reader":
             markdown_reader()
@@ -415,6 +427,7 @@ if __name__ == "__main__":
                 ("extract_keywords dummy", lambda: extract_keywords(test_model="dummy")),
                 ("extract_keywords gpt-4o-mini", lambda: extract_keywords(test_model="gpt-4o-mini")),
                 ("orphan_process llama3.3-70b", lambda: orphan_process(test_model="llama3.3-70b")),
+                ("write_lock llama3.3-70b", lambda: write_lock(test_model="llama3.3-70b")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
                 ("migrate", migrate),
                 ("migrate2", migrate2),
