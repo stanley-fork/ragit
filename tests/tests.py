@@ -24,6 +24,7 @@ from merge import merge
 from meta import meta
 from migrate import migrate
 from migrate2 import migrate2
+from orphan_process import orphan_process
 from prompts import prompts
 from ragit_api import ragit_api
 from recover import recover
@@ -184,6 +185,10 @@ Commands
     extract_keywords [model]    run `extract_keywords` test
                                 It tests whether `rag extract-keywords` command works.
 
+    orphan_process              run `orphan_process` test
+                                It reproduces gh issue #9.
+                                https://github.com/baehyunsol/ragit/issues/9
+
     markdown_reader             run `markdown_reader` test
                                 I have found many bugs in `markdown_reader_v0`. The bugs
                                 are reproduced in this test. If you find a new one, please
@@ -331,6 +336,13 @@ if __name__ == "__main__":
 
             extract_keywords(test_model=test_model)
 
+        elif command == "orphan_process":
+            if test_model is None:
+                print("Please specify which model to run the tests with.")
+                sys.exit(1)
+
+            orphan_process(test_model=test_model)
+
         elif command == "markdown_reader":
             markdown_reader()
 
@@ -402,6 +414,7 @@ if __name__ == "__main__":
 
                 ("extract_keywords dummy", lambda: extract_keywords(test_model="dummy")),
                 ("extract_keywords gpt-4o-mini", lambda: extract_keywords(test_model="gpt-4o-mini")),
+                ("orphan_process llama3.3-70b", lambda: orphan_process(test_model="llama3.3-70b")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
                 ("migrate", migrate),
                 ("migrate2", migrate2),
