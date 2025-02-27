@@ -817,12 +817,58 @@ impl Index {
         )?;
 
         if !exists(&models_at) {
-            let default_models = ModelRaw::default_models();
-            write_string(
-                &models_at,
-                &serde_json::to_string_pretty(&default_models)?,
-                WriteMode::Atomic,
-            )?;
+            // Check for environment variable RAGIT_MODEL_CONFIG
+            if let Ok(env_path) = std::env::var("RAGIT_MODEL_CONFIG") {
+                if exists(&env_path) {
+                    // Copy from the environment variable path
+                    let env_content = read_string(&env_path)?;
+                    write_string(
+                        &models_at,
+                        &env_content,
+                        WriteMode::Atomic,
+                    )?;
+                } else {
+                    eprintln!("Warning: RAGIT_MODEL_CONFIG points to non-existent file: {}", env_path);
+                }
+            } else {
+                // Check for ~/.config/ragit/models.json
+                let home_dir = match std::env::var("HOME") {
+                    Ok(path) => path,
+                    Err(_) => {
+                        eprintln!("Warning: HOME environment variable not set, cannot check ~/.config/ragit/models.json");
+                        String::new()
+                    }
+                };
+                
+                if !home_dir.is_empty() {
+                    let config_path = join3(&home_dir, ".config/ragit", "models.json")?;
+                    if exists(&config_path) {
+                        // Copy from ~/.config/ragit/models.json
+                        let config_content = read_string(&config_path)?;
+                        write_string(
+                            &models_at,
+                            &config_content,
+                            WriteMode::Atomic,
+                        )?;
+                    } else {
+                        // Fall back to default models
+                        let default_models = ModelRaw::default_models();
+                        write_string(
+                            &models_at,
+                            &serde_json::to_string_pretty(&default_models)?,
+                            WriteMode::Atomic,
+                        )?;
+                    }
+                } else {
+                    // Fall back to default models
+                    let default_models = ModelRaw::default_models();
+                    write_string(
+                        &models_at,
+                        &serde_json::to_string_pretty(&default_models)?,
+                        WriteMode::Atomic,
+                    )?;
+                }
+            }
         }
 
         let j = read_string(&models_at)?;
