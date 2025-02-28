@@ -13,6 +13,12 @@ You can self-host `ragit-server` and it must be quite useful. But it's not produ
 - Scalability
   - It does not use any kind of DB. It stores everything on disk. This design makes self-hosting simpler, but not suitable for large-scale services.
 
+## Logs
+
+By default, it writes logs to `./ragit-server-logs`. I wrote a [simple python script] that converts the text file to a sqlite db.
+
+TODO: add link to `[simple python script]`.
+
 ## Endpoints
 
 - GET `/{user-name}/{repo-name}/index`
