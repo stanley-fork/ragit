@@ -49,7 +49,8 @@ impl Index {
             chunk_count += 1;
             all_chunk_uids.insert(chunk_uid);
 
-            // TODO: this condition has to be checked, but it's too tough for `migration` to pass this condition
+            // TODO: This condition has to be checked, but it's too tough for old versions of `migration` to pass this condition.
+            //       When time passes and almost no user uses old versions, I have to revive this condition.
             // if chunk.uid != Uid::new_chunk(&chunk) {  // Check A-0
             //     return Err(Error::BrokenIndex(format!("Corrupted chunk: `{chunk_file}`'s uid is supposed to be `{}`, but is `{}`.", Uid::new_chunk(&chunk), chunk.uid)));
             // }

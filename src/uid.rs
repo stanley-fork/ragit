@@ -67,7 +67,6 @@ pub enum UidWriteMode {
 pub fn load_from_file(path: &str) -> Result<Vec<Uid>, Error> {
     let bytes = read_bytes(path)?;
 
-    // TODO: use `Vec::with_capacity()` for all cases
     match bytes.get(0) {
         // naive
         Some((b'a'..=b'f') | (b'0'..=b'9')) => match String::from_utf8(bytes) {

@@ -209,7 +209,7 @@ impl Index {
                 }
             }
 
-            // It flushes and commits 8 files at once.
+            // It flushes and commits 9 or more files at once.
             // TODO: this number has to be configurable
             if completed_files.len() > 8 || killed_workers.len() == workers.len() {
                 self.staged_files = self.staged_files.iter().filter(
@@ -368,7 +368,7 @@ async fn event_loop(
     // Each process requires an instance of `Index`, but I found
     // it too difficult to send the instance via mpsc channels.
     // So I'm just instantiating new ones here.
-    // TODO: is there a better way?
+    // Be careful not to modify the index!
     let index = Index::load(
         root_dir,
         LoadMode::OnlyJson,

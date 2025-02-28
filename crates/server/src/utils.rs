@@ -1,7 +1,6 @@
 use base64::Engine;
 use ragit_fs::{FileError, join4};
 
-// TODO: don't unwrap this: return 500 if the user name or the repo name contains an invalid character
 // ROOT/{user}/{repo}/.ragit
 pub fn get_rag_path(user: &str, repo: &str) -> Result<String, FileError> {
     join4(

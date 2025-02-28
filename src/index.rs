@@ -95,8 +95,6 @@ pub struct Index {
     // and this field does that. If it's `Some(_)`, something's wrong and
     // clean-up has to be done.
     pub curr_processing_file: Option<Path>,
-
-    // TODO: we should not use the term `repo` in this repo
     repo_url: Option<String>,
 
     /// `ii` stands for `inverted-index`.
@@ -843,7 +841,6 @@ impl Index {
             create_dir_all(&prompt_real_dir)?;
         }
 
-        // TODO: what if `prompt_name` has `"/"` in it?
         for (prompt_name, prompt) in self.prompts.iter() {
             let prompt_path = join(
                 &prompt_real_dir,

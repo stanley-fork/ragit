@@ -486,7 +486,6 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
                                             },
                                         }
 
-                                        // TODO: respect build_config.compress_threshold
                                         write_bytes(
                                             &join(&chunk_at, &format!("{}.chunk", new_uid.get(2..).unwrap()))?,
                                             &vec![

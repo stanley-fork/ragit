@@ -171,7 +171,6 @@ fn uid_add_sub() {
 
 #[test]
 fn uid_save_and_load() {
-    // TODO: test with more real-world samples (e.g. random generated 40K uids)
     let samples = [
         vec![],
         UID_SAMPLES[..1].to_vec(),

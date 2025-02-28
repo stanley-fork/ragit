@@ -330,8 +330,6 @@ fn try_parse_inline_block(bytes: &[u8], index: usize, curr_dir: &str) -> Result<
             else if let Some(cap) = media_re.captures(token) {
                 let path = &cap[1];
                 let file = join(curr_dir, &String::from_utf8_lossy(path).to_string())?;
-
-                // TODO: handle pdf files
                 Ok(Some((ImageType::from_extension(&extension(&file)?.unwrap_or(String::new()))?, read_bytes(&file)?, new_index)))
             }
 
