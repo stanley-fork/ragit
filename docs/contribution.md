@@ -26,7 +26,7 @@ See [prompt engineering.md](./prompt_engineering.md)
 
 ## Write Documents
 
-It also helps a lot.
+It also helps a lot. More than 90% of documents is written by a Korean who is not that good at English. Please correct my grammar mistakes and silly word choices.
 
 ## Issuing Bugs
 
@@ -37,4 +37,8 @@ Opening a github issue helps us a lot. What's even better is reproducing your bu
 
 ## Run tests
 
-After writing some code, please make sure to run tests. You can find the tests in `tests/tests.py`. The python file itself is an executable that runs tests. Just run `python tests/tests.py all`. Some tests require api keys. For example, `python tests.py images2 gpt-4o-mini` requires an environment variable: `OPENAI_API_KEY`.
+After writing some code, please make sure to run tests. You can find the tests in `tests/tests.py`. The python file itself is an executable that runs tests. Just run `python tests/tests.py all`.
+
+`python tests/tests.py all` requires API keys: `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY` and `COHERE_API_KEY`. `COHERE_API_KEY` is not critical, tho. In order to pass all the test, you need an ollama instance on your local machine with phi4-14b. It's also not that critical.
+
+I highly recommend you run `python tests/tests.py all` in an isolated environment, like VM or an EC2 instance. It resets `docs/.ragit` multiple times, and fails if there's `~/.config/ragit`.
