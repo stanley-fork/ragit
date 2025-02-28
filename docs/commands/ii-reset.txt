@@ -13,3 +13,8 @@ SYNOPSIS
 DESCRIPTION
 -----------
 It removes an inverted index, if exists.
+
+In most cases, you don't have to run this command. `rag ii-build` is
+smart enough to know whether the inverted index is dirty or not. If
+it's dirty `ii-build` will silently call `ii-reset`. If you just want
+to disable the inverted index, just run `rag config --set enable_ii false`.
