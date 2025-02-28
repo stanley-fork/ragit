@@ -1,7 +1,6 @@
 import json
 import os
-import shutil
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 
 def models_init():
     """Test the initialization of models.json and model selection in api.json."""

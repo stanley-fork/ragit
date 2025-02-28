@@ -24,7 +24,7 @@ from merge import merge
 from meta import meta
 from migrate import migrate
 from migrate2 import migrate2
-from models_init import models_init
+from models_init import models_init, test_home_config_override
 from orphan_process import orphan_process
 from prompts import prompts
 from ragit_api import ragit_api
@@ -396,6 +396,7 @@ if __name__ == "__main__":
             
         elif command == "models_init":
             models_init()
+            test_home_config_override()
 
         elif command == "all":
             import json
@@ -447,6 +448,7 @@ if __name__ == "__main__":
                 ("write_lock llama3.3-70b", lambda: write_lock(test_model="llama3.3-70b")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
                 ("models_init", models_init),
+                ("test_home_config_override", test_home_config_override),
                 ("migrate", migrate),
                 ("migrate2", migrate2),
             ]
