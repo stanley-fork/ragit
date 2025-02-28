@@ -212,14 +212,16 @@ impl Index {
             models: vec![],
         };
         
-        // Try to load build config from home directory
-        if let Ok(Some(home_build_config)) = temp_index.load_build_config_from_home() {
-            build_config = home_build_config;
+        // Try to load build config from home directory and apply to defaults
+        if let Ok(Some(partial_build_config)) = temp_index.load_build_config_from_home() {
+            // Apply partial config to the default config
+            partial_build_config.apply_to(&mut build_config);
         }
         
-        // Try to load query config from home directory
-        if let Ok(Some(home_query_config)) = temp_index.load_query_config_from_home() {
-            query_config = home_query_config;
+        // Try to load query config from home directory and apply to defaults
+        if let Ok(Some(partial_query_config)) = temp_index.load_query_config_from_home() {
+            // Apply partial config to the default config
+            partial_query_config.apply_to(&mut query_config);
         }
         
         let mut result = Index {
@@ -1092,13 +1094,13 @@ impl Index {
         self.load_config_from_home("api.json")
     }
     
-    /// Attempts to load QueryConfig from ~/.config/ragit/query.json
-    fn load_query_config_from_home(&self) -> Result<Option<QueryConfig>, Error> {
+    /// Attempts to load PartialQueryConfig from ~/.config/ragit/query.json
+    fn load_query_config_from_home(&self) -> Result<Option<crate::query::config::PartialQueryConfig>, Error> {
         self.load_config_from_home("query.json")
     }
     
-    /// Attempts to load BuildConfig from ~/.config/ragit/build.json
-    fn load_build_config_from_home(&self) -> Result<Option<BuildConfig>, Error> {
+    /// Attempts to load PartialBuildConfig from ~/.config/ragit/build.json
+    fn load_build_config_from_home(&self) -> Result<Option<crate::index::config::PartialBuildConfig>, Error> {
         self.load_config_from_home("build.json")
     }
 

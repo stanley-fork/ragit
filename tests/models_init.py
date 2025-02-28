@@ -163,24 +163,18 @@ def test_home_config_override():
         "dump_api_usage": True
     }
     
-    # Create a custom build.json in ~/.config/ragit
+    # Create a custom build.json in ~/.config/ragit with only a subset of fields
     home_build_json = {
         "chunk_size": 2000,  # Different from default
         "slide_len": 500,  # Different from default
-        "image_size": 1000,  # Different from default
-        "min_summary_len": 100,  # Different from default
-        "max_summary_len": 500,  # Different from default
-        "strict_file_reader": True,  # Different from default
-        "compression_threshold": 1024,  # Different from default
-        "compression_level": 5  # Different from default
+        # Omitting other fields to test partial configuration
     }
     
-    # Create a custom query.json in ~/.config/ragit
+    # Create a custom query.json in ~/.config/ragit with only a subset of fields
     home_query_json = {
         "max_titles": 16,  # Different from default
-        "max_summaries": 5,  # Different from default
-        "max_retrieval": 2,  # Different from default
         "enable_ii": False  # Different from default
+        # Omitting other fields to test partial configuration
     }
     
     # Write the config files
@@ -232,21 +226,39 @@ def test_home_config_override():
     assert api_json.get('sleep_after_llm_call') == home_api_json['sleep_after_llm_call'], f"Expected sleep_after_llm_call {home_api_json['sleep_after_llm_call']}, got {api_json.get('sleep_after_llm_call')}"
     assert api_json.get('dump_log') == home_api_json['dump_log'], f"Expected dump_log {home_api_json['dump_log']}, got {api_json.get('dump_log')}"
     
-    # Verify that values from ~/.config/ragit/build.json were used
+    # Verify that specified values from ~/.config/ragit/build.json were used
     assert build_json.get('chunk_size') == home_build_json['chunk_size'], f"Expected chunk_size {home_build_json['chunk_size']}, got {build_json.get('chunk_size')}"
     assert build_json.get('slide_len') == home_build_json['slide_len'], f"Expected slide_len {home_build_json['slide_len']}, got {build_json.get('slide_len')}"
-    assert build_json.get('image_size') == home_build_json['image_size'], f"Expected image_size {home_build_json['image_size']}, got {build_json.get('image_size')}"
-    assert build_json.get('min_summary_len') == home_build_json['min_summary_len'], f"Expected min_summary_len {home_build_json['min_summary_len']}, got {build_json.get('min_summary_len')}"
-    assert build_json.get('max_summary_len') == home_build_json['max_summary_len'], f"Expected max_summary_len {home_build_json['max_summary_len']}, got {build_json.get('max_summary_len')}"
-    assert build_json.get('strict_file_reader') == home_build_json['strict_file_reader'], f"Expected strict_file_reader {home_build_json['strict_file_reader']}, got {build_json.get('strict_file_reader')}"
-    assert build_json.get('compression_threshold') == home_build_json['compression_threshold'], f"Expected compression_threshold {home_build_json['compression_threshold']}, got {build_json.get('compression_threshold')}"
-    assert build_json.get('compression_level') == home_build_json['compression_level'], f"Expected compression_level {home_build_json['compression_level']}, got {build_json.get('compression_level')}"
     
-    # Verify that values from ~/.config/ragit/query.json were used
+    # Verify that default values were used for unspecified fields in build.json
+    default_build = {
+        "image_size": 2000,
+        "min_summary_len": 200,
+        "max_summary_len": 1000,
+        "strict_file_reader": False,
+        "compression_threshold": 2048,
+        "compression_level": 3,
+    }
+    
+    assert build_json.get('image_size') == default_build['image_size'], f"Expected default image_size {default_build['image_size']}, got {build_json.get('image_size')}"
+    assert build_json.get('min_summary_len') == default_build['min_summary_len'], f"Expected default min_summary_len {default_build['min_summary_len']}, got {build_json.get('min_summary_len')}"
+    assert build_json.get('max_summary_len') == default_build['max_summary_len'], f"Expected default max_summary_len {default_build['max_summary_len']}, got {build_json.get('max_summary_len')}"
+    assert build_json.get('strict_file_reader') == default_build['strict_file_reader'], f"Expected default strict_file_reader {default_build['strict_file_reader']}, got {build_json.get('strict_file_reader')}"
+    assert build_json.get('compression_threshold') == default_build['compression_threshold'], f"Expected default compression_threshold {default_build['compression_threshold']}, got {build_json.get('compression_threshold')}"
+    assert build_json.get('compression_level') == default_build['compression_level'], f"Expected default compression_level {default_build['compression_level']}, got {build_json.get('compression_level')}"
+    
+    # Verify that specified values from ~/.config/ragit/query.json were used
     assert query_json.get('max_titles') == home_query_json['max_titles'], f"Expected max_titles {home_query_json['max_titles']}, got {query_json.get('max_titles')}"
-    assert query_json.get('max_summaries') == home_query_json['max_summaries'], f"Expected max_summaries {home_query_json['max_summaries']}, got {query_json.get('max_summaries')}"
-    assert query_json.get('max_retrieval') == home_query_json['max_retrieval'], f"Expected max_retrieval {home_query_json['max_retrieval']}, got {query_json.get('max_retrieval')}"
     assert query_json.get('enable_ii') == home_query_json['enable_ii'], f"Expected enable_ii {home_query_json['enable_ii']}, got {query_json.get('enable_ii')}"
+    
+    # Verify that default values were used for unspecified fields in query.json
+    default_query = {
+        "max_summaries": 10,
+        "max_retrieval": 3,
+    }
+    
+    assert query_json.get('max_summaries') == default_query['max_summaries'], f"Expected default max_summaries {default_query['max_summaries']}, got {query_json.get('max_summaries')}"
+    assert query_json.get('max_retrieval') == default_query['max_retrieval'], f"Expected default max_retrieval {default_query['max_retrieval']}, got {query_json.get('max_retrieval')}"
     
     print("SUCCESS: Values from ~/.config/ragit/*.json were correctly used to override defaults!")
     

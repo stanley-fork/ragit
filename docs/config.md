@@ -10,6 +10,15 @@ You can set global configuration defaults by placing configuration files in `~/.
 - `~/.config/ragit/build.json` - For build configuration
 - `~/.config/ragit/query.json` - For query configuration
 
+These files can contain a subset of the configuration fields that you want to override. You don't need to include all fields - any fields not specified will use the default values. For example, if you only want to override the `model` and `dump_log` fields in api.json, your file might look like:
+
+```json
+{
+  "model": "gpt-4o",
+  "dump_log": true
+}
+```
+
 Any values found in these files will override the default values when creating a new repository. This allows you to have consistent configuration across all your ragit repositories.
 
 ## `config` command
