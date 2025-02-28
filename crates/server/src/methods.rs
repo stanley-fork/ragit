@@ -21,7 +21,9 @@ pub use get::{
     get_index,
     get_meta,
     get_prompt,
+    get_repo_list,
     get_server_version,
+    get_user_list,
     get_version,
 };
 pub use post::{

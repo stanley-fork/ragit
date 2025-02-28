@@ -114,6 +114,17 @@ async fn main() {
         .and(warp::path("version"))
         .map(get_server_version);
 
+    let get_user_list_handler = warp::get()
+        .and(warp::path("user-list"))
+        .and(warp::path::end())
+        .map(get_user_list);
+
+    let get_repo_list_handler = warp::get()
+        .and(warp::path("repo-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .map(get_repo_list);
+
     let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -141,6 +152,8 @@ async fn main() {
 
     warp::serve(
         get_server_version_handler
+            .or(get_user_list_handler)
+            .or(get_repo_list_handler)
             .or(get_index_handler)
             .or(get_config_handler)
             .or(get_prompt_handler)

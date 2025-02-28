@@ -97,6 +97,12 @@ def server():
         version_local = cargo_run(["version"], stdout=True).strip()
         assert version_api in version_local
 
+        user_list = request_json("http://127.0.0.1:41127/user-list", raw_url=True)
+        assert "test-user" in user_list
+
+        repo_list = request_json("http://127.0.0.1:41127/repo-list/test-user", raw_url=True)
+        assert "repo1" in repo_list
+
     finally:
         server_process.kill()
 

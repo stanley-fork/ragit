@@ -6,6 +6,7 @@ use ragit_fs::{
     exists,
     extension,
     file_name,
+    is_dir,
     join,
     join3,
     join4,
@@ -343,4 +344,38 @@ pub fn get_server_version() -> Box<dyn Reply> {
         "Content-Type",
         "text/plain; charset=utf-8",
     ))
+}
+
+pub fn get_user_list() -> Box<dyn Reply> {
+    handler(get_user_list_())
+}
+
+fn get_user_list_() -> RawResponse {
+    let dir = read_dir("data", true).unwrap_or(vec![]);
+    let mut users = vec![];
+
+    for d in dir.iter() {
+        if is_dir(d) {
+            users.push(file_name(d).handle_error(500)?);
+        }
+    }
+
+    Ok(Box::new(json(&users)))
+}
+
+pub fn get_repo_list(user: String) -> Box<dyn Reply> {
+    handler(get_repo_list_(user))
+}
+
+fn get_repo_list_(user: String) -> RawResponse {
+    let dir = read_dir(&join("data", &user).handle_error(400)?, true).handle_error(404)?;
+    let mut repos = vec![];
+
+    for d in dir.iter() {
+        if is_dir(d) {
+            repos.push(file_name(d).handle_error(500)?);
+        }
+    }
+
+    Ok(Box::new(json(&repos)))
 }

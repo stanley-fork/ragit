@@ -55,6 +55,10 @@ You can self-host `ragit-server` and it must be quite useful. But it's not produ
   - text/plain
   - "{major}.{minor}.{patch}"
   - "{major}.{minor}.{patch}-dev"
+- GET `/user-list`
+  - application/json: array[string]
+- GET `/repo-list/{user-name}`
+  - application/json: array[string]
 - POST `/{user-name}/{repo-name}/begin-push`
   - text/plain: a session id
 - POST `/{user-name}/{repo-name}/archive`
