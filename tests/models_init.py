@@ -142,5 +142,124 @@ def models_init():
     if "RAGIT_MODEL_CONFIG" in os.environ:
         del os.environ["RAGIT_MODEL_CONFIG"]
 
+def test_home_config_override():
+    """Test that ~/.config/ragit/*.json values override defaults when creating new config files."""
+    goto_root()
+    
+    # Create a temporary ~/.config/ragit directory
+    home_dir = os.path.expanduser("~")
+    config_dir = os.path.join(home_dir, ".config", "ragit")
+    os.makedirs(config_dir, exist_ok=True)
+    
+    # Create a custom api.json in ~/.config/ragit
+    home_api_json = {
+        "api_key": None,
+        "model": "gpt-4o",  # Different from default
+        "timeout": 240000,  # Different from default
+        "sleep_between_retries": 30000,  # Different from default
+        "max_retry": 10,  # Different from default
+        "sleep_after_llm_call": 1000,  # Different from default
+        "dump_log": True,  # Different from default
+        "dump_api_usage": True
+    }
+    
+    # Create a custom build.json in ~/.config/ragit
+    home_build_json = {
+        "chunk_size": 2000,  # Different from default
+        "slide_len": 500,  # Different from default
+        "image_size": 1000,  # Different from default
+        "min_summary_len": 100,  # Different from default
+        "max_summary_len": 500,  # Different from default
+        "strict_file_reader": True,  # Different from default
+        "compression_threshold": 1024,  # Different from default
+        "compression_level": 5  # Different from default
+    }
+    
+    # Create a custom query.json in ~/.config/ragit
+    home_query_json = {
+        "max_titles": 16,  # Different from default
+        "max_summaries": 5,  # Different from default
+        "max_retrieval": 2,  # Different from default
+        "enable_ii": False  # Different from default
+    }
+    
+    # Write the config files
+    home_api_path = os.path.join(config_dir, "api.json")
+    with open(home_api_path, 'w') as f:
+        json.dump(home_api_json, f, indent=2)
+    
+    home_build_path = os.path.join(config_dir, "build.json")
+    with open(home_build_path, 'w') as f:
+        json.dump(home_build_json, f, indent=2)
+    
+    home_query_path = os.path.join(config_dir, "query.json")
+    with open(home_query_path, 'w') as f:
+        json.dump(home_query_json, f, indent=2)
+    
+    print("\n--- Testing with ~/.config/ragit/*.json override ---")
+    mk_and_cd_tmp_dir()
+    
+    # Run the ragit init command
+    print("Running 'rag init'...")
+    cargo_run(["init"])
+    
+    # Check if the config files exist
+    api_json_path = os.path.join(".ragit", "configs", "api.json")
+    build_json_path = os.path.join(".ragit", "configs", "build.json")
+    query_json_path = os.path.join(".ragit", "configs", "query.json")
+    
+    assert os.path.exists(api_json_path), f"api.json file does not exist at: {api_json_path}"
+    assert os.path.exists(build_json_path), f"build.json file does not exist at: {build_json_path}"
+    assert os.path.exists(query_json_path), f"query.json file does not exist at: {query_json_path}"
+    
+    print(f"Config files exist at: {os.path.join('.ragit', 'configs')}")
+    
+    # Read the content of the config files
+    with open(api_json_path, 'r') as f:
+        api_json = json.load(f)
+    
+    with open(build_json_path, 'r') as f:
+        build_json = json.load(f)
+    
+    with open(query_json_path, 'r') as f:
+        query_json = json.load(f)
+    
+    # Verify that values from ~/.config/ragit/api.json were used
+    assert api_json.get('model') == home_api_json['model'], f"Expected model '{home_api_json['model']}', got '{api_json.get('model')}'"
+    assert api_json.get('timeout') == home_api_json['timeout'], f"Expected timeout {home_api_json['timeout']}, got {api_json.get('timeout')}"
+    assert api_json.get('sleep_between_retries') == home_api_json['sleep_between_retries'], f"Expected sleep_between_retries {home_api_json['sleep_between_retries']}, got {api_json.get('sleep_between_retries')}"
+    assert api_json.get('max_retry') == home_api_json['max_retry'], f"Expected max_retry {home_api_json['max_retry']}, got {api_json.get('max_retry')}"
+    assert api_json.get('sleep_after_llm_call') == home_api_json['sleep_after_llm_call'], f"Expected sleep_after_llm_call {home_api_json['sleep_after_llm_call']}, got {api_json.get('sleep_after_llm_call')}"
+    assert api_json.get('dump_log') == home_api_json['dump_log'], f"Expected dump_log {home_api_json['dump_log']}, got {api_json.get('dump_log')}"
+    
+    # Verify that values from ~/.config/ragit/build.json were used
+    assert build_json.get('chunk_size') == home_build_json['chunk_size'], f"Expected chunk_size {home_build_json['chunk_size']}, got {build_json.get('chunk_size')}"
+    assert build_json.get('slide_len') == home_build_json['slide_len'], f"Expected slide_len {home_build_json['slide_len']}, got {build_json.get('slide_len')}"
+    assert build_json.get('image_size') == home_build_json['image_size'], f"Expected image_size {home_build_json['image_size']}, got {build_json.get('image_size')}"
+    assert build_json.get('min_summary_len') == home_build_json['min_summary_len'], f"Expected min_summary_len {home_build_json['min_summary_len']}, got {build_json.get('min_summary_len')}"
+    assert build_json.get('max_summary_len') == home_build_json['max_summary_len'], f"Expected max_summary_len {home_build_json['max_summary_len']}, got {build_json.get('max_summary_len')}"
+    assert build_json.get('strict_file_reader') == home_build_json['strict_file_reader'], f"Expected strict_file_reader {home_build_json['strict_file_reader']}, got {build_json.get('strict_file_reader')}"
+    assert build_json.get('compression_threshold') == home_build_json['compression_threshold'], f"Expected compression_threshold {home_build_json['compression_threshold']}, got {build_json.get('compression_threshold')}"
+    assert build_json.get('compression_level') == home_build_json['compression_level'], f"Expected compression_level {home_build_json['compression_level']}, got {build_json.get('compression_level')}"
+    
+    # Verify that values from ~/.config/ragit/query.json were used
+    assert query_json.get('max_titles') == home_query_json['max_titles'], f"Expected max_titles {home_query_json['max_titles']}, got {query_json.get('max_titles')}"
+    assert query_json.get('max_summaries') == home_query_json['max_summaries'], f"Expected max_summaries {home_query_json['max_summaries']}, got {query_json.get('max_summaries')}"
+    assert query_json.get('max_retrieval') == home_query_json['max_retrieval'], f"Expected max_retrieval {home_query_json['max_retrieval']}, got {query_json.get('max_retrieval')}"
+    assert query_json.get('enable_ii') == home_query_json['enable_ii'], f"Expected enable_ii {home_query_json['enable_ii']}, got {query_json.get('enable_ii')}"
+    
+    print("SUCCESS: Values from ~/.config/ragit/*.json were correctly used to override defaults!")
+    
+    # Clean up
+    os.remove(home_api_path)
+    os.remove(home_build_path)
+    os.remove(home_query_path)
+    if not os.listdir(config_dir):
+        os.rmdir(config_dir)
+        parent_dir = os.path.dirname(config_dir)
+        if not os.listdir(parent_dir):
+            os.rmdir(parent_dir)
+
 if __name__ == "__main__":
     models_init()
+    test_home_config_override()

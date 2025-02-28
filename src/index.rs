@@ -189,9 +189,38 @@ impl Index {
             )?)?;
         }
 
-        let build_config = BuildConfig::default();
-        let query_config = QueryConfig::default();
+        // Start with default configs
+        let mut build_config = BuildConfig::default();
+        let mut query_config = QueryConfig::default();
         let api_config = ApiConfig::default();
+        
+        // Create a temporary Index to use for loading configs from home
+        let temp_index = Index {
+            ragit_version: crate::VERSION.to_string(),
+            chunk_count: 0,
+            staged_files: vec![],
+            processed_files: HashMap::new(),
+            curr_processing_file: None,
+            build_config: build_config.clone(),
+            query_config: query_config.clone(),
+            api_config_raw: ApiConfigRaw::default(),
+            api_config: api_config.clone(),
+            root_dir: root_dir.clone(),
+            repo_url: None,
+            ii_status: IIStatus::None,
+            prompts: PROMPTS.clone(),
+            models: vec![],
+        };
+        
+        // Try to load build config from home directory
+        if let Ok(Some(home_build_config)) = temp_index.load_build_config_from_home() {
+            build_config = home_build_config;
+        }
+        
+        // Try to load query config from home directory
+        if let Ok(Some(home_query_config)) = temp_index.load_query_config_from_home() {
+            query_config = home_query_config;
+        }
         
         let mut result = Index {
             ragit_version: crate::VERSION.to_string(),
@@ -1029,21 +1058,94 @@ impl Index {
             })
     }
     
+    /// Attempts to load a config file from ~/.config/ragit/
+    fn load_config_from_home<T: serde::de::DeserializeOwned>(&self, filename: &str) -> Result<Option<T>, Error> {
+        // Check for HOME environment variable
+        let home_dir = match std::env::var("HOME") {
+            Ok(path) => path,
+            Err(_) => {
+                eprintln!("Warning: HOME environment variable not set, cannot check ~/.config/ragit/{}", filename);
+                return Ok(None);
+            }
+        };
+        
+        let config_path = join4(&home_dir, ".config", "ragit", filename)?;
+        if exists(&config_path) {
+            // Load from ~/.config/ragit/filename
+            let config_content = read_string(&config_path)?;
+            match serde_json::from_str::<T>(&config_content) {
+                Ok(config) => {
+                    eprintln!("Info: Using configuration from ~/.config/ragit/{}", filename);
+                    return Ok(Some(config));
+                },
+                Err(e) => {
+                    eprintln!("Warning: Could not parse {} from ~/.config/ragit/{}: {}", filename, filename, e);
+                }
+            }
+        }
+        
+        Ok(None)
+    }
+
+    /// Attempts to load ApiConfigRaw from ~/.config/ragit/api.json
+    fn load_api_config_from_home(&self) -> Result<Option<ApiConfigRaw>, Error> {
+        self.load_config_from_home("api.json")
+    }
+    
+    /// Attempts to load QueryConfig from ~/.config/ragit/query.json
+    fn load_query_config_from_home(&self) -> Result<Option<QueryConfig>, Error> {
+        self.load_config_from_home("query.json")
+    }
+    
+    /// Attempts to load BuildConfig from ~/.config/ragit/build.json
+    fn load_build_config_from_home(&self) -> Result<Option<BuildConfig>, Error> {
+        self.load_config_from_home("build.json")
+    }
+
     /// Returns a default ApiConfigRaw with a valid model.
-    /// If the default model from ApiConfigRaw::default() doesn't exist in the loaded models,
+    /// If ~/.config/ragit/api.json exists, values from there will override the defaults.
+    /// If the default model doesn't exist in the loaded models,
     /// it selects the lowest-cost model instead.
     fn get_default_api_config_raw(&self) -> Result<ApiConfigRaw, Error> {
+        // Start with default config
         let mut config = ApiConfigRaw::default();
         
-        // Check if the default model exists in the loaded models
-        let default_model_exists = ragit_api::get_model_by_name(&self.models, &config.model).is_ok();
+        // Try to load config from home directory
+        if let Ok(Some(home_config)) = self.load_api_config_from_home() {
+            // Override default values with values from home config
+            if home_config.api_key.is_some() {
+                config.api_key = home_config.api_key;
+            }
+            
+            if !home_config.model.is_empty() {
+                config.model = home_config.model;
+            }
+            
+            if home_config.timeout.is_some() {
+                config.timeout = home_config.timeout;
+            }
+            
+            config.sleep_between_retries = home_config.sleep_between_retries;
+            config.max_retry = home_config.max_retry;
+            
+            if home_config.sleep_after_llm_call.is_some() {
+                config.sleep_after_llm_call = home_config.sleep_after_llm_call;
+            }
+            
+            config.dump_log = home_config.dump_log;
+            config.dump_api_usage = home_config.dump_api_usage;
+        }
         
-        if !default_model_exists && !self.models.is_empty() {
+        // Check if the model exists in the loaded models
+        let model_exists = ragit_api::get_model_by_name(&self.models, &config.model).is_ok();
+        
+        if !model_exists && !self.models.is_empty() {
             // Find the lowest-cost model
             if let Some(lowest_cost_model) = self.find_lowest_cost_model() {
                 // Update the model in the config
                 config.model = lowest_cost_model.name.clone();
-                eprintln!("Warning: Default model not found in models.json. Using lowest-cost model '{}' instead.", config.model);
+                eprintln!("Warning: Model '{}' not found in models.json. Using lowest-cost model '{}' instead.", 
+                         config.model, lowest_cost_model.name);
             }
         }
         

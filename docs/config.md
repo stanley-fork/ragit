@@ -2,6 +2,16 @@
 
 Ragit is highly configurable. The config files can be found at `.ragit/configs`, but I don't recommend you modifying it manually. If you have modified it manually and have trouble accessing a knowledge-base, try `rag check --recover`.
 
+## Global Configuration
+
+You can set global configuration defaults by placing configuration files in `~/.config/ragit/`. When initializing a new ragit repository, it will check for the following files:
+
+- `~/.config/ragit/api.json` - For API configuration
+- `~/.config/ragit/build.json` - For build configuration
+- `~/.config/ragit/query.json` - For query configuration
+
+Any values found in these files will override the default values when creating a new repository. This allows you to have consistent configuration across all your ragit repositories.
+
 ## `config` command
 
 A recommended way of reading/writing config is `rag config` command.
