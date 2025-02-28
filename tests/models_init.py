@@ -178,17 +178,21 @@ def test_home_config_override():
     
     # Write the config files
     home_api_path = os.path.join(config_dir, "api.json")
+    home_build_path = os.path.join(config_dir, "build.json")
+    home_query_path = os.path.join(config_dir, "query.json")
+
+    if os.path.exists(p := home_api_path) or os.path.exists(p := home_build_path) or os.path.exists(p := home_query_path):
+        raise Exception(f"{p} already exists! This test might overwrite your config file. Please run this test in an isolated environment.")
+
     with open(home_api_path, 'w') as f:
         json.dump(home_api_json, f, indent=2)
-    
-    home_build_path = os.path.join(config_dir, "build.json")
+
     with open(home_build_path, 'w') as f:
         json.dump(home_build_json, f, indent=2)
-    
-    home_query_path = os.path.join(config_dir, "query.json")
+
     with open(home_query_path, 'w') as f:
         json.dump(home_query_json, f, indent=2)
-    
+
     print("\n--- Testing with ~/.config/ragit/*.json override ---")
     mk_and_cd_tmp_dir()
     
