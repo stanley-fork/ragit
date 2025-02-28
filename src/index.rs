@@ -34,6 +34,7 @@ use ragit_fs::{
     is_dir,
     join,
     join3,
+    join4,
     normalize,
     parent,
     read_bytes,
@@ -259,7 +260,7 @@ impl Index {
         result.load_or_init_models()?;
         
         // Check if the model in api_config_raw exists in the loaded models
-        let model_exists = result.models.iter().any(|m| m.name == result.api_config_raw.model);
+        let model_exists = ragit_api::get_model_by_name(&result.models, &result.api_config_raw.model).is_ok();
         
         if !model_exists && !result.models.is_empty() {
             // Find the lowest-cost model and update api_config_raw
@@ -899,7 +900,7 @@ impl Index {
         };
         
         if !home_dir.is_empty() {
-            let config_path = join3(&home_dir, ".config/ragit", "models.json")?;
+            let config_path = join4(&home_dir, ".config", "ragit", "models.json")?;
             if exists(&config_path) {
                 // Load from ~/.config/ragit/models.json
                 let config_content = read_string(&config_path)?;
@@ -1035,7 +1036,7 @@ impl Index {
         let mut config = ApiConfigRaw::default();
         
         // Check if the default model exists in the loaded models
-        let default_model_exists = self.models.iter().any(|m| m.name == config.model);
+        let default_model_exists = ragit_api::get_model_by_name(&self.models, &config.model).is_ok();
         
         if !default_model_exists && !self.models.is_empty() {
             // Find the lowest-cost model
