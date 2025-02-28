@@ -1,6 +1,12 @@
 use super::{HandleError, RawResponse, handler};
 use crate::utils::get_rag_path;
-use ragit::chunk;
+use ragit::{
+    Index,
+    LoadMode,
+    UidQueryConfig,
+    chunk,
+    merge_and_convert_chunks,
+};
 use ragit_fs::{
     basename,
     exists,
@@ -247,6 +253,64 @@ fn get_image_desc_(user: String, repo: String, uid: String) -> RawResponse {
         "Content-Type",
         "application/json",
     )))
+}
+
+pub fn get_cat_file(user: String, repo: String, uid: String) -> Box<dyn Reply> {
+    handler(get_cat_file_(user, repo, uid))
+}
+
+fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
+    let rag_path = join3(
+        "data",
+        &user,
+        &repo,
+    ).handle_error(404)?;
+    let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
+    let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
+
+    if query.has_multiple_matches() {
+        Err((400, format!("There are multiple file/chunk that match `{uid}`.")))
+    }
+
+    else if let Some(uid) = query.get_chunk_uid() {
+        let chunk = index.get_chunk_by_uid(uid).handle_error(500)?;
+
+        Ok(Box::new(with_header(
+            chunk.data,
+            "Content-Type",
+            "text/plain; charset=utf-8",
+        )))
+    }
+
+    else if let Some((_, uid)) = query.get_processed_file() {
+        let chunk_uids = index.get_chunks_of_file(uid).handle_error(500)?;
+        let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+        for chunk_uid in chunk_uids {
+            chunks.push(index.get_chunk_by_uid(chunk_uid).handle_error(500)?);
+        }
+
+        chunks.sort_by_key(|chunk| chunk.source.sortable_string());
+        let chunks = merge_and_convert_chunks(&index, chunks).handle_error(500)?;
+
+        let result = match chunks.len() {
+            0 => String::new(),
+            1 => chunks[0].data.clone(),
+            _ => {
+                return Err((500, format!("`index.get_chunks_of_file({uid})` returned chunks from different files.")));
+            },
+        };
+
+        Ok(Box::new(with_header(
+            result,
+            "Content-Type",
+            "text/plain; charset=utf-8",
+        )))
+    }
+
+    else {
+        Err((404, format!("There's no file/chunk that matches `{uid}`")))
+    }
 }
 
 pub fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {

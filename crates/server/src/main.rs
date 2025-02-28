@@ -85,6 +85,13 @@ async fn main() {
         .and(warp::path::param::<String>())
         .map(get_image_desc);
 
+    let get_cat_file_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("cat-file"))
+        .and(warp::path::param::<String>())
+        .map(get_cat_file);
+
     let get_archive_list_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -164,6 +171,7 @@ async fn main() {
             .or(get_image_list_handler)
             .or(get_image_handler)
             .or(get_image_desc_handler)
+            .or(get_cat_file_handler)
             .or(get_archive_list_handler)
             .or(get_archive_handler)
             .or(get_meta_handler)

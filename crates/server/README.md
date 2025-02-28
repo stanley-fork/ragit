@@ -17,9 +17,11 @@ You can self-host `ragit-server` and it must be quite useful. But it's not produ
 
 By default, it writes logs to `./ragit-server-logs`. I wrote a [simple python script] that converts the text file to a sqlite db.
 
-TODO: add link to `[simple python script]`.
+[simple python script]: https://github.com/baehyunsol/ragit/blob/main/crates/server/analyze-log.py
 
 ## Endpoints
+
+It always uses utf-8 for text/plain.
 
 - GET `/{user-name}/{repo-name}/index`
   - application/json: index.json
@@ -51,6 +53,10 @@ TODO: add link to `[simple python script]`.
   - image/png
 - GET `/{user-name}/{repo-name}/image-desc/{image-uid}`
   - application/json: { extracted_text: string, explanation: string }
+- GET `/{user-name}/{repo-name}/cat-file/{uid}`
+  - text/plain
+  - This is similar to running `rag cat-file` command on a local knowledge-base.
+  - It only works for chunks and images, you can't use API to `cat-file` an image.
 - GET `/{user-name}/{repo-name}/meta`
   - application/json: meta.json
 - GET `/{user-name}/{repo-name}/version`

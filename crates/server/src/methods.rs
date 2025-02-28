@@ -10,6 +10,7 @@ mod post;
 pub use get::{
     get_archive,
     get_archive_list,
+    get_cat_file,
     get_chunk,
     get_chunk_count,
     get_chunk_list,

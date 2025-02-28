@@ -20,6 +20,9 @@ def server():
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample"])
         os.chdir("sample")
 
+        sample_chunk_uid = json.loads(cargo_run(["ls-chunks", "--json"], stdout=True))[0]["uid"]
+        sample_file_uid = [file for file in json.loads(cargo_run(["ls-files", "--json"], stdout=True)) if file["chunks"] > 1][0]["uid"]
+
         # before we push this to server, let's wait until `ragit-server` is compiled
         for _ in range(300):
             path1 = "../../crates/server/target/release/ragit-server"
@@ -102,6 +105,14 @@ def server():
 
         repo_list = request_json("http://127.0.0.1:41127/repo-list/test-user", raw_url=True)
         assert "repo1" in repo_list
+
+        cat_file_chunk_api = request_text(f"cat-file/{sample_chunk_uid}").strip()
+        cat_file_chunk_local = cargo_run(["cat-file", sample_chunk_uid], stdout=True).strip()
+        assert cat_file_chunk_api == cat_file_chunk_local
+
+        cat_file_file_api = request_text(f"cat-file/{sample_file_uid}").strip()
+        cat_file_file_local = cargo_run(["cat-file", sample_file_uid], stdout=True).strip()
+        assert cat_file_file_api == cat_file_file_local
 
     finally:
         server_process.kill()
