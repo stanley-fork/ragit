@@ -19,6 +19,14 @@ RAGIT is very different from the other RAG frameworks.
 4. It supports multi-turn queries (experimental).
 5. You can clone/push knowledge-bases, like git.
 
+## Platform support
+
+Ragit is primarily supported on Linux (x64) and Mac (aarch64). It goes through a full test process before each release, on Linux and Mac. It is primarily developed on Linux and Mac.
+
+You can use ragit on Windows, but you're likely to have issues. A few tests fail on Windows due to subtle platform issues, but I don't have enough time and energy to fix those.
+
+Other than those 3 platforms, I haven't tested ragit on any platform.
+
 ## More documents
 
 - [Build](./build.md)
