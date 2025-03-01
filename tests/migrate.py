@@ -7,12 +7,13 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 # TODO: any better way?
 def checkout(version: str):
     commit_hashes = {
-        "0.1.1": "a168d13af967",
-        "0.2.0": "d14773e55cce",
-        "0.2.1": "281a98f41f37",
-        "0.3.0": "205f212adbd7",
-        "0.3.1": "19e4876bf56b",
-        "0.3.2": "5387e6decf26",
+        "0.1.1": "v0.1.1",
+        "0.2.0": "v0.2.0",
+        "0.2.1": "v0.2.1",
+        "0.3.0": "v0.3.0",
+        "0.3.1": "v0.3.1",
+        "0.3.2": "v0.3.2",
+        "0.3.3": "734b6a226",  # 0.3.3-dev
     }
 
     try:
@@ -83,18 +84,18 @@ def migrate():
     cargo_run(["migrate"])
     cargo_run(["check"])
 
-    # step 7: 0.3.0 to 0.3.2
-    checkout("0.3.2")
+    # step 7: 0.3.0 to 0.3.3
+    checkout("0.3.3")
     cargo_run(["check"])
     cargo_run(["migrate"])
     cargo_run(["check"])
 
-    # step 7: direct migrate from 0.1.1 to 0.3.2
+    # step 7: direct migrate from 0.1.1 to 0.3.3
     checkout("0.1.1")
     shutil.rmtree(".ragit")
     init_knowledge_base()
 
-    checkout("0.3.2")
+    checkout("0.3.3")
     assert cargo_run(["check"], check=False) != 0
     cargo_run(["migrate"])
     cargo_run(["check"])
