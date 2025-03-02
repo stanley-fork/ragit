@@ -1362,7 +1362,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             else if files.is_empty() {
                 return Err(Error::CliError {
-                    message: String::from("Please specify which files to add."),
+                    message: String::from("Please specify which files to remove."),
                     span: (String::new(), 0, 0),  // TODO
                 });
             }
