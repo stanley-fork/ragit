@@ -33,41 +33,32 @@ impl Index {
 
             // `--all`
             if rel_path == "/" {
-                if staged {
-                    staged_candidates = self.staged_files.iter().map(|f| f.to_string()).collect();
-                }
-
-                if processed {
-                    processed_candidates = self.processed_files.keys().map(|f| f.to_string()).collect();
-                }
+                staged_candidates = self.staged_files.iter().map(|f| f.to_string()).collect();
+                processed_candidates = self.processed_files.keys().map(|f| f.to_string()).collect();
             }
 
             else {
-                if staged {
-                    for file in self.staged_files.iter() {
-                        if file.starts_with(&rel_path) {
-                            staged_candidates.push(file.to_string());
-                        }
+                for file in self.staged_files.iter() {
+                    if file.starts_with(&rel_path) {
+                        staged_candidates.push(file.to_string());
                     }
                 }
 
-                if processed {
-                    for file in self.processed_files.keys() {
-                        if file.starts_with(&rel_path) {
-                            processed_candidates.push(file.to_string());
-                        }
+                for file in self.processed_files.keys() {
+                    if file.starts_with(&rel_path) {
+                        processed_candidates.push(file.to_string());
                     }
                 }
             }
 
             (staged_candidates, processed_candidates)
         } else {
-            let staged_candidates = if staged && self.staged_files.contains(&rel_path) {
+            let staged_candidates = if self.staged_files.contains(&rel_path) {
                 vec![rel_path.clone()]
             } else {
                 vec![]
             };
-            let processed_candidates = if processed && self.processed_files.contains_key(&rel_path) {
+            let processed_candidates = if self.processed_files.contains_key(&rel_path) {
                 vec![rel_path.clone()]
             } else {
                 vec![]
@@ -78,6 +69,14 @@ impl Index {
 
         if staged_candidates.is_empty() && processed_candidates.is_empty() {
             return Err(Error::NoSuchFile { path: Some(path), uid: None });
+        }
+
+        if !staged {
+            staged_candidates = vec![];
+        }
+
+        if !processed {
+            processed_candidates = vec![];
         }
 
         if auto {
@@ -143,6 +142,12 @@ impl Index {
             staged: staged_candidates.len(),
             processed: processed_candidates.len(),
         })
+    }
+}
+
+impl RemoveResult {
+    pub fn is_empty(&self) -> bool {
+        self.staged == 0 && self.processed == 0
     }
 }
 

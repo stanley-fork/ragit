@@ -1378,6 +1378,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 )?;
             }
 
+            if result.is_empty() {
+                return Err(Error::NoFileToRemove);
+            }
+
             if !dry_run {
                 for file in files.iter() {
                     index.remove_file(

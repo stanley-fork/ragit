@@ -20,6 +20,7 @@ pub enum Error {
     IndexNotFound,
     NoSuchChunk(Uid),
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
+    NoFileToRemove,
     NoSuchMeta(String),
     CorruptedFile { path: Path, message: Option<String> },
     CliError {

@@ -92,3 +92,15 @@ def add_and_rm2():
     os.remove("dir1/sample4.txt")
     assert parse_rm_output(["--auto", "--dry-run", "--all"]) == (1, 1)
     assert parse_rm_output(["--auto", "--all"]) == (1, 1)
+
+    cargo_run(["build"])
+    assert count_files() == (3, 0, 3)
+    assert cargo_run(["rm", "sample1.txt", "sample2.txt"], check=False) != 0
+    assert count_files() == (3, 0, 3)
+    write_string("sample1.txt", "sample1")
+    cargo_run(["add", "sample1.txt"])
+    assert count_files() == (4, 1, 3)
+    assert parse_rm_output(["sample1.txt", "sample2.txt", "--processed"]) == (0, 1)
+    assert count_files() == (3, 1, 2)
+    assert parse_rm_output(["sample1.txt", "dir1/sample3.txt", "--staged"]) == (1, 0)
+    assert count_files() == (2, 0, 2)
