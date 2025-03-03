@@ -1,11 +1,12 @@
 use chrono::offset::Local;
-use crate::constant::LOG_DIR_NAME;
+use crate::constant::{INDEX_DIR_NAME, LOG_DIR_NAME};
 use crate::error::Error;
 use ragit_api::record::{Record, RecordAt, Tracker};
 use ragit_fs::{
     WriteMode,
     exists,
     join,
+    join3,
     write_string,
 };
 use serde::{Deserialize, Serialize};
@@ -120,7 +121,7 @@ impl ApiConfig {
 
     pub fn dump_api_usage_at(&self, root_dir: &str, id: &str) -> Option<RecordAt> {
         if self.dump_api_usage {
-            match join(root_dir, "usage.json") {
+            match join3(root_dir, INDEX_DIR_NAME, "usage.json") {
                 Ok(path) => {
                     if !exists(&path) {
                         let _ = write_string(
