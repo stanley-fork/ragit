@@ -39,13 +39,6 @@ impl Index {
     pub async fn retrieve_chunks(&self, query: &str) -> Result<Vec<Chunk>, Error> {
         let mut chunks = self.load_chunks_or_tfidf(query).await?;
 
-        if chunks.len() > self.query_config.max_summaries {
-            chunks = self.titles_to_summaries(
-                query,
-                chunks.into_iter().map(|c| c.into()).collect(),
-            ).await?;
-        }
-
         if chunks.len() > self.query_config.max_retrieval {
             chunks = self.summaries_to_chunks(
                 query,
@@ -111,65 +104,6 @@ impl Index {
             retrieved_chunks: chunks,
             response,
         })
-    }
-
-    pub async fn titles_to_summaries(
-        &self,
-        query: &str,
-        chunks: Vec<Chunk>,
-    ) -> Result<Vec<Chunk>, Error> {
-        let mut tera_context = tera::Context::new();
-        tera_context.insert(
-            "titles",
-            &chunks.iter().enumerate().map(
-                |(index, chunk)| format!("{}. {}", index + 1, escape_pdl_tokens(&chunk.title))
-            ).collect::<Vec<_>>().join("\n"),
-        );
-        tera_context.insert(
-            "query",
-            &escape_pdl_tokens(&query),
-        );
-        tera_context.insert(
-            "max_index",
-            &chunks.len(),
-        );
-
-        // It's good to allow LLMs choose as many chunks as possible.
-        // But allowing it to choose all the chunks might lead to an infinite loop.
-        tera_context.insert(
-            "max_retrieval",
-            &(chunks.len() - 1),
-        );
-
-        let Pdl { messages, schema } = parse_pdl(
-            &self.get_prompt("rerank_title")?,
-            &tera_context,
-            "/",  // TODO: `<|media|>` is not supported for this prompt
-            true,
-            true,
-        )?;
-        let request = Request {
-            messages,
-            frequency_penalty: None,
-            max_tokens: None,
-            temperature: None,
-            timeout: self.api_config.timeout,
-            max_retry: self.api_config.max_retry,
-            sleep_between_retries: self.api_config.sleep_between_retries,
-            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "rerank_title"),
-            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
-            model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rerank_title"),
-            schema,
-            schema_max_try: 3,
-        };
-        let title_indices = request.send_and_validate::<Vec<usize>>(vec![]).await?;
-
-        Ok(chunks.into_iter().enumerate().filter(
-            |(index, _)| title_indices.contains(&(index + 1))
-        ).map(
-            |(_, chunk)| chunk
-        ).collect())
     }
 
     pub async fn summaries_to_chunks(

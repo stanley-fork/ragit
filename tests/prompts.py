@@ -40,15 +40,6 @@ def prompts(test_model: str):
         raise Exception(f"Expected 12~15 chunks, got {chunks}.")
 
     # `extract_keyword.pdl`, `rerank_summary.pdl`, `answer_query.pdl`
-    cargo_run(["config", "--set", "max_titles", "5"])
-    cargo_run(["config", "--set", "max_summaries", "4"])
-    cargo_run(["config", "--set", "max_retrieval", "2"])
-    cargo_run(["query", "You're looking at a source code of a command line utility. What does the main function do?"])
-
-    # `rerank_title.pdl`, `answer_query.pdl`
-    cargo_run(["config", "--set", "max_titles", "32"])
-    cargo_run(["config", "--set", "max_summaries", "4"])
-    cargo_run(["config", "--set", "max_retrieval", "2"])
     cargo_run(["query", "You're looking at a source code of a command line utility. What does the main function do?"])
 
     # TODO: `multi_turn.pdl`

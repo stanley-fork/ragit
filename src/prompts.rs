@@ -29,10 +29,6 @@ lazy_static! {
             include_str!(".././prompts/rerank_summary.pdl").to_string(),
         );
         result.insert(
-            String::from("rerank_title"),
-            include_str!(".././prompts/rerank_title.pdl").to_string(),
-        );
-        result.insert(
             String::from("summarize"),
             include_str!(".././prompts/summarize.pdl").to_string(),
         );

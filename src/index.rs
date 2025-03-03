@@ -369,7 +369,7 @@ impl Index {
         &self,
         query: &str,
     ) -> Result<Vec<Chunk>, Error> {
-        if self.chunk_count > self.query_config.max_titles {
+        if self.chunk_count > self.query_config.max_summaries {
             let keywords = self.extract_keywords(query).await?;
             let tfidf_results = self.run_tfidf(
                 keywords,

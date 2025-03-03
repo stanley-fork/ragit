@@ -29,10 +29,10 @@ impl PartialQueryConfig {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct QueryConfig {
-    /// If there are more than this amount of chunks, it runs tf-idf to select chunks.
+    /// This is deprecated and not used any more. It's here for backward compatibility.
     pub max_titles: usize,
 
-    /// If there are more than this amount of chunks, it runs `rerank_title` prompt to select chunks.
+    /// If there are more than this amount of chunks, it runs tf-idf to select chunks.
     pub max_summaries: usize,
 
     /// If there are more than this amount of chunks, it runs `rerank_summary` prompt to select chunks.

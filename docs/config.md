@@ -82,10 +82,10 @@ struct BuildConfig {
 // max_retrieval: 3,
 // enable_ii: true,
 struct QueryConfig {
-    /// If there are more than this amount of chunks, it runs tf-idf to select chunks.
+    /// This is deprecated and not used any more. It's here for backward compatibility.
     max_titles: usize,
 
-    /// If there are more than this amount of chunks, it runs `rerank_title` prompt to select chunks.
+    /// If there are more than this amount of chunks, it runs tf-idf to select chunks.
     max_summaries: usize,
 
     /// If there are more than this amount of chunks, it runs `rerank_summary` prompt to select chunks.
