@@ -1,10 +1,7 @@
 use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
-use ragit_api::{
-    RecordAt,
-    Request,
-};
+use ragit_api::Request;
 use ragit_pdl::{
     Pdl,
     escape_pdl_tokens,
@@ -159,12 +156,10 @@ impl Index {
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
-            dump_pdl_at: self.api_config.create_pdl_path("rerank_title"),
-            dump_json_at: self.api_config.dump_log_at.clone(),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "rerank_title"),
+            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("rerank_title") }
-            ),
+            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rerank_title"),
             schema,
             schema_max_try: 3,
         };
@@ -224,12 +219,10 @@ impl Index {
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
-            dump_pdl_at: self.api_config.create_pdl_path("rerank_summary"),
-            dump_json_at: self.api_config.dump_log_at.clone(),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "rerank_summary"),
+            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("rerank_summary") }
-            ),
+            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rerank_summary"),
             schema,
             schema_max_try: 3,
         };
@@ -270,12 +263,10 @@ impl Index {
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
-            dump_pdl_at: self.api_config.create_pdl_path("answer_query_with_chunks"),
-            dump_json_at: self.api_config.dump_log_at.clone(),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "answer_query_with_chunks"),
+            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("answer_query_with_chunks") }
-            ),
+            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "answer_query_with_chunks"),
             schema: None,
             ..Request::default()
         };
@@ -310,12 +301,10 @@ impl Index {
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
-            dump_pdl_at: self.api_config.create_pdl_path("rephrase_multi_turn"),
-            dump_json_at: self.api_config.dump_log_at.clone(),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "rephrase_multi_turn"),
+            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("rephrase_multi_turn") }
-            ),
+            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rephrase_multi_turn"),
             schema,
             schema_max_try: 3,
         };
@@ -344,12 +333,10 @@ impl Index {
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
-            dump_pdl_at: self.api_config.create_pdl_path("raw_request"),
-            dump_json_at: self.api_config.dump_log_at.clone(),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "raw_request"),
+            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("raw_request") }
-            ),
+            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "raw_request"),
             schema: None,
             ..Request::default()
         };

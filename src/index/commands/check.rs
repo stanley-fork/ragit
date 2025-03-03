@@ -1,5 +1,5 @@
 use super::Index;
-use crate::{ApiConfigRaw, IIStatus, QueryConfig};
+use crate::{ApiConfig, IIStatus, QueryConfig};
 use crate::chunk::{self, ChunkSource};
 use crate::error::Error;
 use crate::index::{BuildConfig, ImageDescription, tfidf};
@@ -177,10 +177,9 @@ impl Index {
         serde_json::from_str::<QueryConfig>(
             &read_string(&self.get_query_config_path()?)?,
         )?;
-        let api_config_raw = serde_json::from_str::<ApiConfigRaw>(
+        serde_json::from_str::<ApiConfig>(
             &read_string(&self.get_api_config_path()?)?,
         )?;
-        self.init_api_config(&api_config_raw)?;
 
         // Extra check: It checks whether the keys in the config files are unique.
         let mut keys = HashSet::new();

@@ -107,10 +107,11 @@ struct QueryConfig {
 // sleep_after_llm_call: None,
 // model: "llama3.3-70b-groq",
 struct ApiConfig {
-    // I recommend you use env var, instead of this.
+    // This value is NOT used anymore. It's here for backward-compatibility
+    // You have to use env var or `models.json`.
     api_key: Option<String>,
 
-    // run `rag ls --models` to see the list
+    // run `rag ls-models` to see the list
     model: String,
     timeout: Option<u64>,
     sleep_between_retries: u64,

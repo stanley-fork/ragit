@@ -1,5 +1,5 @@
 use super::{BuildConfig, Index};
-use crate::{ApiConfigRaw, QueryConfig};
+use crate::{ApiConfig, QueryConfig};
 use crate::error::Error;
 use ragit_api::JsonType;
 use ragit_fs::{WriteMode, read_string, write_bytes, write_string};
@@ -152,10 +152,9 @@ impl Index {
         self.query_config = serde_json::from_str::<QueryConfig>(
             &read_string(&self.get_query_config_path()?)?,
         )?;
-        self.api_config_raw = serde_json::from_str::<ApiConfigRaw>(
+        self.api_config = serde_json::from_str::<ApiConfig>(
             &read_string(&self.get_api_config_path()?)?,
         )?;
-        self.api_config = self.init_api_config(&self.api_config_raw)?;
 
         Ok(previous_value)
     }

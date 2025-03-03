@@ -6,7 +6,7 @@ use crate::constant::CHUNK_DIR_NAME;
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
-use ragit_api::{Request, RecordAt};
+use ragit_api::Request;
 use ragit_pdl::{Pdl, parse_pdl};
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
@@ -145,11 +145,9 @@ impl Index {
                     max_retry: self.api_config.max_retry,
                     sleep_between_retries: self.api_config.sleep_between_retries,
                     timeout: self.api_config.timeout,
-                    record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                        |path| RecordAt { path, id: String::from("summary_chunks") }
-                    ),
-                    dump_pdl_at: self.api_config.create_pdl_path("summary_chunks"),
-                    dump_json_at: self.api_config.dump_log_at.clone(),
+                    record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "summary_chunks"),
+                    dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "summary_chunks"),
+                    dump_json_at: self.api_config.dump_log_at(&self.root_dir),
                     schema,
                     schema_max_try: 3,
                     ..Request::default()

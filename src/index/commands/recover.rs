@@ -1,5 +1,5 @@
 use super::Index;
-use crate::{ApiConfigRaw, BuildConfig, QueryConfig, chunk};
+use crate::{ApiConfig, BuildConfig, QueryConfig, chunk};
 use crate::chunk::ChunkSource;
 use crate::constant::{CHUNK_DIR_NAME, FILE_INDEX_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
@@ -247,17 +247,14 @@ impl Index {
         }
 
         let reset_api_config = match read_string(&self.get_api_config_path()?) {
-            Ok(j) => match serde_json::from_str::<ApiConfigRaw>(&j) {
-                Ok(api_config_raw) => self.init_api_config(&api_config_raw).is_err(),
-                _ => true,
-            },
+            Ok(j) => serde_json::from_str::<ApiConfig>(&j).is_err(),
             _ => true,
         };
 
         if reset_api_config {
             write_bytes(
                 &self.get_api_config_path()?,
-                &serde_json::to_vec_pretty(&ApiConfigRaw::default())?,
+                &serde_json::to_vec_pretty(&ApiConfig::default())?,
                 WriteMode::Atomic,
             )?;
             result.replaced_configs.push(String::from("api"));

@@ -1,4 +1,4 @@
-use crate::api_config::{ApiConfig, ApiConfigRaw};
+use crate::api_config::{ApiConfig, PartialApiConfig};
 use crate::chunk::{self, Chunk, ChunkBuildInfo};
 use crate::constant::{
     API_CONFIG_FILE_NAME,
@@ -22,7 +22,6 @@ use crate::uid::{self, Uid, UidWriteMode};
 use ragit_api::{
     Model,
     ModelRaw,
-    RecordAt,
     Request,
 };
 use ragit_fs::{
@@ -100,12 +99,6 @@ pub struct Index {
     /// `ii` stands for `inverted-index`.
     pub ii_status: IIStatus,
 
-    // it's not used by code, but used by serde
-    // users modify json file, which is deserialized to `ApiConfigRaw`,
-    // which is then converted to `ApiConfig` by `.init_api_config()`
-    #[serde(skip)]
-    api_config_raw: ApiConfigRaw,
-
     #[serde(skip)]
     pub root_dir: Path,
     #[serde(skip)]
@@ -150,7 +143,6 @@ impl Index {
             curr_processing_file: None,
             repo_url: None,
             ii_status: IIStatus::None,
-            api_config_raw: ApiConfigRaw::default(),
             root_dir: String::from("."),
             build_config: BuildConfig::default(),
             query_config: QueryConfig::default(),
@@ -201,27 +193,26 @@ impl Index {
             curr_processing_file: None,
             build_config: build_config.clone(),
             query_config: query_config.clone(),
-            api_config_raw: ApiConfigRaw::default(),
-            api_config: api_config.clone(),
+            api_config: ApiConfig::default(),
             root_dir: root_dir.clone(),
             repo_url: None,
             ii_status: IIStatus::None,
             prompts: PROMPTS.clone(),
             models: vec![],
         };
-        
+
         // Try to load build config from home directory and apply to defaults
         if let Ok(Some(partial_build_config)) = temp_index.load_build_config_from_home() {
             // Apply partial config to the default config
             partial_build_config.apply_to(&mut build_config);
         }
-        
+
         // Try to load query config from home directory and apply to defaults
         if let Ok(Some(partial_query_config)) = temp_index.load_query_config_from_home() {
             // Apply partial config to the default config
             partial_query_config.apply_to(&mut query_config);
         }
-        
+
         let mut result = Index {
             ragit_version: crate::VERSION.to_string(),
             chunk_count: 0,
@@ -230,7 +221,6 @@ impl Index {
             curr_processing_file: None,
             build_config,
             query_config,
-            api_config_raw: ApiConfigRaw::default(), // Temporary default, will be updated after loading models
             api_config,
             root_dir,
             repo_url: None,
@@ -242,8 +232,8 @@ impl Index {
         // Load models first so we can choose an appropriate default model
         result.load_or_init_models()?;
         
-        // Now update api_config_raw with a valid model
-        result.api_config_raw = result.get_default_api_config_raw()?;
+        // Now update api_config with a valid model
+        result.api_config = result.get_default_api_config()?;
         write_bytes(
             &result.get_build_config_path()?,
             &serde_json::to_vec_pretty(&result.build_config)?,
@@ -256,7 +246,7 @@ impl Index {
         )?;
         write_bytes(
             &result.get_api_config_path()?,
-            &serde_json::to_vec_pretty(&result.api_config_raw)?,
+            &serde_json::to_vec_pretty(&result.api_config)?,
             WriteMode::AlwaysCreate,
         )?;
         result.save_to_file()?;
@@ -280,7 +270,7 @@ impl Index {
         result.query_config = serde_json::from_str::<QueryConfig>(
             &read_string(&result.get_query_config_path()?)?,
         )?;
-        result.api_config_raw = serde_json::from_str::<ApiConfigRaw>(
+        result.api_config = serde_json::from_str::<ApiConfig>(
             &read_string(&result.get_api_config_path()?)?,
         )?;
         
@@ -288,29 +278,29 @@ impl Index {
         result.load_or_init_prompts()?;
         result.load_or_init_models()?;
         
-        // Check if the model in api_config_raw exists in the loaded models
-        let model_exists = ragit_api::get_model_by_name(&result.models, &result.api_config_raw.model).is_ok();
-        
+        // Check if the model in api_config exists in the loaded models
+        let model_exists = ragit_api::get_model_by_name(&result.models, &result.api_config.model).is_ok();
+
         if !model_exists && !result.models.is_empty() {
-            // Find the lowest-cost model and update api_config_raw
+            // Find the lowest-cost model and update api_config
             if let Some(lowest_cost_model) = result.find_lowest_cost_model() {
-                eprintln!("Warning: Model '{}' not found in models.json. Using lowest-cost model '{}' instead.", 
-                         result.api_config_raw.model, lowest_cost_model.name);
-                
+                eprintln!(
+                    "Warning: Model '{}' not found in models.json. Using lowest-cost model '{}' instead.", 
+                    result.api_config.model,
+                    lowest_cost_model.name,
+                );
+
                 // Update the model in the config
-                result.api_config_raw.model = lowest_cost_model.name.clone();
-                
+                result.api_config.model = lowest_cost_model.name.clone();
+
                 // Save the updated config
                 write_bytes(
                     &result.get_api_config_path()?,
-                    &serde_json::to_vec_pretty(&result.api_config_raw)?,
+                    &serde_json::to_vec_pretty(&result.api_config)?,
                     WriteMode::Atomic,
                 )?;
             }
         }
-        
-        // Now initialize the API config with the validated model
-        result.api_config = result.init_api_config(&result.api_config_raw)?;
 
         match load_mode {
             LoadMode::QuickCheck if result.curr_processing_file.is_some() => {
@@ -537,11 +527,9 @@ impl Index {
             sleep_between_retries: self.api_config.sleep_between_retries,
             timeout: self.api_config.timeout,
             temperature: None,
-            record_api_usage_at: self.api_config.dump_api_usage_at.clone().map(
-                |path| RecordAt { path, id: String::from("describe_image") }
-            ),
-            dump_pdl_at: self.api_config.create_pdl_path("describe_image"),
-            dump_json_at: self.api_config.dump_log_at.clone(),
+            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "describe_image"),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "describe_image"),
+            dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             schema,
             schema_max_try: 3,
         };
@@ -743,57 +731,6 @@ impl Index {
                 QUERY_CONFIG_FILE_NAME,
             )?,
         )?)
-    }
-
-    pub(crate) fn init_api_config(&self, raw: &ApiConfigRaw) -> Result<ApiConfig, Error> {
-        let dump_log_at = if raw.dump_log {
-            let path = Index::get_rag_path(
-                &self.root_dir,
-                &LOG_DIR_NAME.to_string(),
-            )?;
-
-            if !exists(&path) || !is_dir(&path) {
-                create_dir_all(&path)?;
-            }
-
-            Some(path)
-        }
-
-        else {
-            None
-        };
-
-        let dump_api_usage_at = if raw.dump_api_usage {
-            let path = Index::get_rag_path(
-                &self.root_dir,
-                &"usages.json".to_string(),
-            )?;
-
-            if !exists(&path) || is_dir(&path) {
-                write_string(
-                    &path,
-                    "{}",
-                    WriteMode::AlwaysCreate,
-                )?;
-            }
-
-            Some(path)
-        }
-
-        else {
-            None
-        };
-
-        Ok(ApiConfig {
-            api_key: raw.api_key.clone(),
-            max_retry: raw.max_retry,
-            model: raw.model.clone(),
-            timeout: raw.timeout,
-            sleep_after_llm_call: raw.sleep_after_llm_call,
-            sleep_between_retries: raw.sleep_between_retries,
-            dump_log_at,
-            dump_api_usage_at,
-        })
     }
 
     // `Index::load` calls this function. There's no need to call this again.
@@ -1067,8 +1004,9 @@ impl Index {
                 return Ok(None);
             }
         };
-        
+
         let config_path = join4(&home_dir, ".config", "ragit", filename)?;
+
         if exists(&config_path) {
             // Load from ~/.config/ragit/filename
             let config_content = read_string(&config_path)?;
@@ -1079,65 +1017,44 @@ impl Index {
                 },
                 Err(e) => {
                     eprintln!("Warning: Could not parse {} from ~/.config/ragit/{}: {}", filename, filename, e);
-                }
+                },
             }
         }
         
         Ok(None)
     }
 
-    /// Attempts to load ApiConfigRaw from ~/.config/ragit/api.json
-    fn load_api_config_from_home(&self) -> Result<Option<ApiConfigRaw>, Error> {
+    /// Attempts to load PartialApiConfig from ~/.config/ragit/api.json
+    fn load_api_config_from_home(&self) -> Result<Option<PartialApiConfig>, Error> {
         self.load_config_from_home("api.json")
     }
-    
+
     /// Attempts to load PartialQueryConfig from ~/.config/ragit/query.json
     fn load_query_config_from_home(&self) -> Result<Option<crate::query::config::PartialQueryConfig>, Error> {
         self.load_config_from_home("query.json")
     }
-    
+
     /// Attempts to load PartialBuildConfig from ~/.config/ragit/build.json
     fn load_build_config_from_home(&self) -> Result<Option<crate::index::config::PartialBuildConfig>, Error> {
         self.load_config_from_home("build.json")
     }
 
-    /// Returns a default ApiConfigRaw with a valid model.
+    /// Returns a default ApiConfig with a valid model.
     /// If ~/.config/ragit/api.json exists, values from there will override the defaults.
     /// If the default model doesn't exist in the loaded models,
     /// it selects the lowest-cost model instead.
-    fn get_default_api_config_raw(&self) -> Result<ApiConfigRaw, Error> {
+    fn get_default_api_config(&self) -> Result<ApiConfig, Error> {
         // Start with default config
-        let mut config = ApiConfigRaw::default();
-        
-        // Try to load config from home directory
+        let mut config = ApiConfig::default();
+
+        // Try to load partial api config from home directory
         if let Ok(Some(home_config)) = self.load_api_config_from_home() {
-            // Override default values with values from home config
-            if home_config.api_key.is_some() {
-                config.api_key = home_config.api_key;
-            }
-            
-            if !home_config.model.is_empty() {
-                config.model = home_config.model;
-            }
-            
-            if home_config.timeout.is_some() {
-                config.timeout = home_config.timeout;
-            }
-            
-            config.sleep_between_retries = home_config.sleep_between_retries;
-            config.max_retry = home_config.max_retry;
-            
-            if home_config.sleep_after_llm_call.is_some() {
-                config.sleep_after_llm_call = home_config.sleep_after_llm_call;
-            }
-            
-            config.dump_log = home_config.dump_log;
-            config.dump_api_usage = home_config.dump_api_usage;
+            home_config.apply_to(&mut config);
         }
-        
+
         // Check if the model exists in the loaded models
         let model_exists = ragit_api::get_model_by_name(&self.models, &config.model).is_ok();
-        
+
         if !model_exists && !self.models.is_empty() {
             // Find the lowest-cost model
             if let Some(lowest_cost_model) = self.find_lowest_cost_model() {

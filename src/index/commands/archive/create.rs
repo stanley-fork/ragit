@@ -508,7 +508,7 @@ fn event_loop(
                     },
                     BlockType::Config => {
                         let mut obj = Map::new();
-                        obj.insert(String::from("api"), serde_json::to_value(&index.api_config_raw)?);
+                        obj.insert(String::from("api"), serde_json::to_value(&index.api_config)?);
                         obj.insert(String::from("build"), serde_json::to_value(&index.build_config)?);
                         obj.insert(String::from("query"), serde_json::to_value(&index.query_config)?);
                         let bytes = serde_json::to_vec(&obj)?;

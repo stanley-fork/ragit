@@ -9,7 +9,7 @@ mod schema;
 mod tree;
 mod uid;
 
-pub use api_config::{ApiConfig, ApiConfigRaw};
+pub use api_config::ApiConfig;
 pub use chunk::{
     Chunk,
     ChunkBuildInfo,

@@ -338,7 +338,7 @@ impl Index {
         let mut input_cost = 0;
         let mut output_cost = 0;
 
-        match self.api_config.get_api_usage("create_chunk_from") {
+        match self.api_config.get_api_usage(&self.root_dir, "create_chunk_from") {
             Ok(api_records) => {
                 for Record { input, output, input_weight, output_weight, .. } in api_records.iter() {
                     input_tokens += input;

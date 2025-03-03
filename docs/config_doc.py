@@ -113,13 +113,13 @@ def main():
 
     api_config = extract_struct(
         api_config_file,
-        "ApiConfigRaw",
+        "ApiConfig",
         "ApiConfig",
         True,
     )
     api_defaults = extract_default_values(
         api_config_file,
-        "ApiConfigRaw",
+        "ApiConfig",
         True,
         "// ",
     )
