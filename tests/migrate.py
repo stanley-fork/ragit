@@ -100,3 +100,13 @@ def migrate():
     cargo_run(["migrate"])
     cargo_run(["check"])
     assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)
+
+    # step 8: init knowledge-base in version 0.3.0 and migrate to 0.3.3
+    checkout("0.3.0")
+    shutil.rmtree(".ragit")
+    init_knowledge_base()
+
+    checkout("0.3.3")
+    cargo_run(["migrate"])
+    cargo_run(["check"])
+    assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)

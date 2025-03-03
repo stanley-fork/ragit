@@ -9,8 +9,8 @@ def migrate2():
     errors = []
     curr_version = "0.3.3"
 
-    # 0.1.1's clone is not compatible with the current version of ragit-server
-    for old_version in ["0.2.0", "0.2.1", "0.3.0", "0.3.1", "0.3.2"]:
+    # ragit 0.2.1 or older versions are not compatible with the current implementation of ragit-server
+    for old_version in ["0.3.0", "0.3.1", "0.3.2"]:
         checkout(old_version)
 
         for url in [
