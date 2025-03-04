@@ -181,6 +181,12 @@ pub fn join(path: &str, child: &str) -> Result<String, FileError> {
     }
 }
 
+/// alias for `join`
+#[inline]
+pub fn join2(path: &str, child: &str) -> Result<String, FileError> {
+    join(path, child)
+}
+
 pub fn join3(path1: &str, path2: &str, path3: &str) -> Result<String, FileError> {
     join(
         path1,
@@ -192,6 +198,13 @@ pub fn join4(path1: &str, path2: &str, path3: &str, path4: &str) -> Result<Strin
     join(
         &join(path1, path2)?,
         &join(path3, path4)?,
+    )
+}
+
+pub fn join5(path1: &str, path2: &str, path3: &str, path4: &str, path5: &str) -> Result<String, FileError> {
+    join(
+        &join(path1, path2)?,
+        &join(path3, &join(path4, path5)?)?,
     )
 }
 
