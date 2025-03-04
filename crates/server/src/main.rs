@@ -10,6 +10,7 @@ use warp::Filter;
 
 mod error;
 mod methods;
+mod models;
 mod utils;
 
 #[tokio::main]
@@ -132,6 +133,13 @@ async fn main() {
         .and(warp::path::end())
         .map(get_repo_list);
 
+    let get_chat_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chat"))
+        .and(warp::path::param::<String>())
+        .map(get_chat);
+
     let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -155,6 +163,22 @@ async fn main() {
         .and(warp::body::bytes())
         .map(post_finalize_push);
 
+    let create_chat_handler = warp::post()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chats"))
+        .and(warp::path::end())
+        .map(create_chat);
+
+    let post_chat_handler = warp::post()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chat"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::multipart::form())
+        .then(post_chat);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
@@ -176,9 +200,12 @@ async fn main() {
             .or(get_archive_handler)
             .or(get_meta_handler)
             .or(get_version_handler)
+            .or(get_chat_handler)
             .or(post_begin_push_handler)
             .or(post_archive_handler)
             .or(post_finalize_push_handler)
+            .or(post_chat_handler)
+            .or(create_chat_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
                 |info| {

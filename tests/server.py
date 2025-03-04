@@ -5,7 +5,7 @@ import subprocess
 import time
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, read_string
 
-# It does not test api endpoints that are tested by `clone.py`.
+# It does not test api endpoints that are tested by `clone.py` or `server2.py`.
 def server():
     goto_root()
     os.chdir("crates/server")

@@ -2,9 +2,10 @@ use super::{HandleError, RawResponse, handler};
 use bytes::{Bytes, BufMut};
 use chrono::Local;
 use crate::error::Error;
+use crate::models::Chat;
 use crate::utils::{decode_base64, get_rag_path};
 use futures_util::TryStreamExt;
-use ragit::Index;
+use ragit::{Index, LoadMode, QueryTurn};
 use ragit_fs::{
     FileError,
     WriteMode,
@@ -18,14 +19,16 @@ use ragit_fs::{
     read_dir,
     remove_dir_all,
     rename,
+    set_extension,
     write_bytes,
+    write_string,
     write_log,
 };
 use std::collections::HashMap;
 use warp::Reply;
 use warp::filters::multipart::FormData;
 use warp::http::StatusCode;
-use warp::reply::{with_header, with_status};
+use warp::reply::{json, with_header, with_status};
 
 #[derive(Copy, Clone)]
 struct Session {
@@ -86,16 +89,7 @@ pub async fn post_archive(user: String, repo: String, form: FormData) -> Box<dyn
 }
 
 async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawResponse {
-    let form: HashMap<String, Vec<u8>> = form.and_then(|mut field| async move {
-        let mut buffer = Vec::new();
-
-        while let Some(content) = field.data().await {
-            buffer.put(content?);
-        }
-
-        Ok((field.name().to_string(), buffer))
-    }).try_collect().await.handle_error(500)?;
-
+    let form = fetch_form_data(form).await.handle_error(400)?;
     let session_id = form.get("session-id").ok_or_else(|| "session-id not found").handle_error(400)?;
     let session_id = u128::from_str_radix(&String::from_utf8_lossy(session_id), 16).handle_error(400)?;
     let archive_id = form.get("archive-id").ok_or_else(|| "archive-id not found").handle_error(400)?;
@@ -178,6 +172,96 @@ fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
         String::new(),
         StatusCode::from_u16(200).unwrap(),
     )))
+}
+
+pub async fn post_chat(user: String, repo: String, chat_id: String, form: FormData) -> Box<dyn Reply> {
+    handler(post_chat_(user, repo, chat_id, form).await)
+}
+
+async fn post_chat_(user: String, repo: String, chat_id: String, form: FormData) -> RawResponse {
+    let form = fetch_form_data(form).await.handle_error(400)?;
+    let query = match form.get("query") {
+        Some(query) => String::from_utf8_lossy(query).to_string(),
+        None => {
+            return Err((400, String::from("`query` field is missing")));
+        },
+    };
+    let model = match form.get("model") {
+        Some(model) => Some(String::from_utf8_lossy(model).to_string()),
+        None => None,
+    };
+    let index_at = join3(
+        "data",
+        &user,
+        &repo,
+    ).handle_error(400)?;
+    let chat_at = join3(
+        &index_at,
+        "chats",
+        &set_extension(&chat_id, "json").handle_error(400)?,
+    ).handle_error(400)?;
+
+    let mut chat = Chat::load_from_file(&chat_at).handle_error(404)?;
+    let mut index = Index::load(index_at, LoadMode::OnlyJson).handle_error(500)?;
+
+    if let Some(model) = model {
+        index.api_config.model = model;
+    }
+
+    let response = index.query(&query, chat.history.clone()).await.handle_error(500)?;
+    chat.history.push(QueryTurn { query, response: response.clone() });
+    chat.updated_at = Local::now().timestamp();
+    chat.save_to_file(&chat_at).handle_error(500)?;
+
+    Ok(Box::new(json(&response)))
+}
+
+pub fn create_chat(user: String, repo: String) -> Box<dyn Reply> {
+    handler(create_chat_(user, repo))
+}
+
+fn create_chat_(user: String, repo: String) -> RawResponse {
+    let index_at = join3(
+        "data",
+        &user,
+        &repo,
+    ).handle_error(400)?;
+
+    if !exists(&index_at) {
+        return Err((404, format!("`{index_at}` not found")));
+    }
+
+    let chat_at = join(&index_at, "chats").handle_error(500)?;
+
+    if !exists(&chat_at) {
+        create_dir_all(&chat_at).handle_error(500)?;
+    }
+
+    let id = format!("{:016x}", rand::random::<u64>());
+    let chat = Chat::new(id.clone());
+    write_string(
+        &join(&chat_at, &set_extension(&id, "json").handle_error(500)?).handle_error(500)?,
+        &serde_json::to_string(&chat).handle_error(500)?,
+        WriteMode::AlwaysCreate,
+    ).handle_error(500)?;
+
+    Ok(Box::new(with_header(
+        id,
+        "Content-Type",
+        "text/plain; charset=utf-8",
+    )))
+}
+
+async fn fetch_form_data(form: FormData) -> Result<HashMap<String, Vec<u8>>, Error> {
+    Ok(form.and_then(|mut field| async move {
+        let mut buffer = Vec::new();
+
+        while let Some(content) = field.data().await {
+            buffer.put(content?);
+        }
+
+        Ok((field.name().to_string(), buffer))
+    }).try_collect().await?)
 }
 
 fn try_register_session(session_id: u128) -> Result<(), Error> {

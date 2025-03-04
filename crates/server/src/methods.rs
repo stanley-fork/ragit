@@ -11,6 +11,7 @@ pub use get::{
     get_archive,
     get_archive_list,
     get_cat_file,
+    get_chat,
     get_chunk,
     get_chunk_count,
     get_chunk_list,
@@ -28,8 +29,10 @@ pub use get::{
     get_version,
 };
 pub use post::{
+    create_chat,
     post_archive,
     post_begin_push,
+    post_chat,
     post_finalize_push,
 };
 

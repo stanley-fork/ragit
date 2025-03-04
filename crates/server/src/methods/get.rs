@@ -1,4 +1,5 @@
 use super::{HandleError, RawResponse, handler};
+use crate::models::Chat;
 use crate::utils::get_rag_path;
 use ragit::{
     Index,
@@ -16,6 +17,7 @@ use ragit_fs::{
     join,
     join3,
     join4,
+    join5,
     read_bytes,
     read_dir,
     read_string,
@@ -442,4 +444,19 @@ fn get_repo_list_(user: String) -> RawResponse {
     }
 
     Ok(Box::new(json(&repos)))
+}
+
+pub fn get_chat(user: String, repo: String, chat_id: String) -> Box<dyn Reply> {
+    handler(get_chat_(user, repo, chat_id))
+}
+
+fn get_chat_(user: String, repo: String, chat_id: String) -> RawResponse {
+    let chat_at = join5(
+        "data",
+        &user,
+        &repo,
+        "chats",
+        &set_extension(&chat_id, "json").handle_error(400)?,
+    ).handle_error(400)?;
+    Ok(Box::new(json(&Chat::load_from_file(&chat_at).handle_error(404)?)))
 }

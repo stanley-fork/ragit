@@ -1,3 +1,4 @@
+use chrono::Local;
 use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
@@ -21,6 +22,10 @@ pub struct QueryResponse {
     pub multi_turn_schema: Option<MultiTurnSchema>,
     pub retrieved_chunks: Vec<Chunk>,
     pub response: String,
+
+    // for chat interface
+    pub timestamp: i64,
+    pub model: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -103,6 +108,8 @@ impl Index {
             multi_turn_schema,
             retrieved_chunks: chunks,
             response,
+            timestamp: Local::now().timestamp(),
+            model: self.api_config.model.to_string(),
         })
     }
 

@@ -42,7 +42,7 @@ def prompts(test_model: str):
     # `extract_keyword.pdl`, `rerank_summary.pdl`, `answer_query.pdl`
     cargo_run(["query", "You're looking at a source code of a command line utility. What does the main function do?"])
 
-    # TODO: `multi_turn.pdl`
+    # `multi_turn.pdl` is tested by `server2.py`
 
     # `raw.pdl`
     cargo_run(["remove", "sample.md"])

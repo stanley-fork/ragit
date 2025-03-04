@@ -63,6 +63,8 @@ It always uses utf-8 for text/plain.
   - text/plain
   - "{major}.{minor}.{patch}"
   - "{major}.{minor}.{patch}-dev"
+- GET `/{user-name}/{repo-name}/chat/{chat-id}`
+  - application/json
 - GET `/version`
   - text/plain
   - "{major}.{minor}.{patch}"
@@ -77,3 +79,11 @@ It always uses utf-8 for text/plain.
   - request body (multiform): { "session-id": str, "archive-id": str, "archive": bytes }
 - POST `/{user-name}/{repo-name}/finalize-push`
   - request body (plain text): session-id
+- POST `/{user-name}/{repo-name}/chats`
+  - text/plain: a new chat id
+  - It creates a new chat and returns its id.
+- POST `/{user-name}/{repo-name}/chat/{chat-id}`
+  - application/json: [QueryResponse](https://docs.rs/ragit/latest/ragit/struct.QueryResponse.html)
+  - request body (multiform): { "query": str, "model": optional[str] }
+
+TODO: api for remote ii-build

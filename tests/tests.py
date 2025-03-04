@@ -30,6 +30,7 @@ from prompts import prompts
 from ragit_api import ragit_api
 from recover import recover
 from server import server
+from server2 import server2
 from subdir import subdir
 from symlink import symlink
 from tfidf import tfidf
@@ -123,7 +124,10 @@ Commands
 
     server                      run `server` test
                                 It sends requests to every endpoint of ragit-server, except the
-                                ones that are tested by `clone`, and checks them.
+                                ones that are tested by `clone` or `server2`, and checks them.
+
+    server2 [model=dummy]       run `server2` test
+                                It tests chat-related endpoints of ragit-server.
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
@@ -284,6 +288,10 @@ if __name__ == "__main__":
         elif command == "server":
             server()
 
+        elif command == "server2":
+            test_model = test_model or "dummy"
+            server2(test_model=test_model)
+
         elif command == "cli":
             cli()
 
@@ -435,6 +443,8 @@ if __name__ == "__main__":
                 ("prompts claude-3.5-sonnet", lambda: prompts(test_model="claude-3.5-sonnet")),
                 ("empty dummy", lambda: empty(test_model="dummy")),
                 ("empty llama3.3-70b", lambda: empty(test_model="llama3.3-70b")),
+                ("server2 dummy", lambda: server2(test_model="dummy")),
+                ("server2 llama3.3-70b", lambda: server2(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
                 ("images3 gpt-4o-mini", lambda: images3(test_model="gpt-4o-mini")),
                 ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),
