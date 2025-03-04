@@ -34,6 +34,7 @@ Other than those 3 platforms, I haven't tested ragit on any platform.
 - [Configuration](./config.md)
 - [Contribution](./contribution.md)
 - [Evaluation](./eval.md)
+- [Multi Turn](./multi_turn.md)
 - [Pipeline](./pipeline.md)
 - [Prompt Engineering](./prompt_engineering.md)
 - [Quick Guide](./quick_guide.md)
