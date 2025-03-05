@@ -21,6 +21,7 @@ pub use error::Error;
 pub use index::{
     AddMode,
     AddResult,
+    Audit,
     BuildConfig,
     IIStatus,
     Index,

@@ -1,6 +1,7 @@
 from add_and_rm import add_and_rm
 from add_and_rm2 import add_and_rm2
 from archive import archive
+from audit import audit
 from cargo_tests import cargo_tests
 from cat_file import cat_file
 from cli import cli
@@ -175,6 +176,8 @@ Commands
 
     cat_file                    run `cat_file` test
 
+    audit [model]               run `audit` test
+
     images                      run `images` test
                                 It creates a markdown file with images and check
                                 whether the markdown reader can parse the file
@@ -294,6 +297,13 @@ if __name__ == "__main__":
 
         elif command == "cli":
             cli()
+
+        elif command == "audit":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            audit(test_model=test_model)
 
         elif command == "migrate":
             migrate()
@@ -438,6 +448,7 @@ if __name__ == "__main__":
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end llama3.3-70b", lambda: end_to_end(test_model="llama3.3-70b")),
+                ("audit llama3.3-70b", lambda: audit(test_model="llama3.3-70b")),
                 ("prompts dummy", lambda: prompts(test_model="dummy")),
                 ("prompts gpt-4o-mini", lambda: prompts(test_model="gpt-4o-mini")),
                 ("prompts claude-3.5-sonnet", lambda: prompts(test_model="claude-3.5-sonnet")),

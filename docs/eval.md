@@ -8,7 +8,7 @@ Any command that uses LLM will write a log file. The log files are found in `.ra
 
 ## token usage
 
-By running `rag config --set dump_api_usage true`, you can enable api usage logs. It records the token counts. Unfortunately, there's no fancy ui for the record yet.
+By running `rag config --set dump_api_usage true`, you can enable api usage logs. It records the token counts. You can use `rag audit` command to see how much you spent using LLMs.
 
 ## manual tfidf
 

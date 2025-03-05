@@ -20,6 +20,7 @@ Work with an existing knowledge-base
     rm
 
 Get information about a knowledge-base
+    audit
     cat-file
     config
     ii-status

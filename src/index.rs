@@ -64,6 +64,7 @@ pub mod tfidf;
 pub use commands::{
     AddMode,
     AddResult,
+    Audit,
     MergeMode,
     MergeResult,
     RecoverResult,

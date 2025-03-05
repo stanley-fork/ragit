@@ -3,6 +3,7 @@ pub use super::{BuildConfig, Index};
 // If a command dumps anything to stdout, its method must have `quiet: bool` argument.
 mod add;
 mod archive;
+mod audit;
 mod build;
 mod check;
 mod clone;
@@ -17,6 +18,7 @@ mod recover;
 mod remove;
 
 pub use add::{AddMode, AddResult};
+pub use audit::Audit;
 pub use merge::{MergeMode, MergeResult};
 pub use migrate::{VersionInfo, get_compatibility_warning};
 pub use recover::RecoverResult;
