@@ -1,4 +1,5 @@
 use crate::methods::*;
+use crate::utils::fetch_form_data;
 use ragit_fs::{
     exists,
     initialize_log_file,
@@ -6,7 +7,11 @@ use ragit_fs::{
     set_log_file_path,
     write_log,
 };
+use std::collections::HashMap;
 use warp::Filter;
+use warp::filters::multipart::FormData;
+use warp::http::status::StatusCode;
+use warp::reply::with_status;
 
 mod error;
 mod methods;
@@ -170,14 +175,38 @@ async fn main() {
         .and(warp::path::end())
         .map(create_chat);
 
-    let post_chat_handler = warp::post()
+    // NOTE: warp::body::form::<HashMap<String, String>> can catch `application/x-www-form-urlencoded`,
+    //       but `warp::body::form::<HashMap<String, Vec<u8>>>` cannot. Is this an upstream issue?
+    let post_chat_handler_body_form = warp::post()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chat"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::body::form())
+        .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>| {
+            post_chat(
+                user,
+                repo,
+                chat_id,
+                form.into_iter().map(|(key, value)| (key, value.as_bytes().to_vec())).collect(),
+            ).await
+        });
+
+    // TODO: what's the difference between multipart::form and body::form? I'm noob to this...
+    let post_chat_handler_multipart_form = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chat"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
         .and(warp::multipart::form())
-        .then(post_chat);
+        .then(async |user: String, repo: String, chat_id: String, form: FormData| {
+            match fetch_form_data(form).await.handle_error(400) {
+                Ok(form) => post_chat(user, repo, chat_id, form).await,
+                Err((code, _)) => Box::new(with_status(String::new(), StatusCode::from_u16(code).unwrap())),
+            }
+        });
 
     let not_found_handler = warp::get().map(not_found);
 
@@ -204,7 +233,8 @@ async fn main() {
             .or(post_begin_push_handler)
             .or(post_archive_handler)
             .or(post_finalize_push_handler)
-            .or(post_chat_handler)
+            .or(post_chat_handler_body_form)
+            .or(post_chat_handler_multipart_form)
             .or(create_chat_handler)
             .or(not_found_handler)
             .with(warp::log::custom(

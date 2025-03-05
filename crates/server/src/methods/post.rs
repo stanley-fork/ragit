@@ -1,10 +1,9 @@
 use super::{HandleError, RawResponse, handler};
-use bytes::{Bytes, BufMut};
+use bytes::Bytes;
 use chrono::Local;
 use crate::error::Error;
 use crate::models::Chat;
-use crate::utils::{decode_base64, get_rag_path};
-use futures_util::TryStreamExt;
+use crate::utils::{decode_base64, fetch_form_data, get_rag_path};
 use ragit::{Index, LoadMode, QueryTurn};
 use ragit_fs::{
     FileError,
@@ -174,12 +173,11 @@ fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
     )))
 }
 
-pub async fn post_chat(user: String, repo: String, chat_id: String, form: FormData) -> Box<dyn Reply> {
+pub async fn post_chat(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> Box<dyn Reply> {
     handler(post_chat_(user, repo, chat_id, form).await)
 }
 
-async fn post_chat_(user: String, repo: String, chat_id: String, form: FormData) -> RawResponse {
-    let form = fetch_form_data(form).await.handle_error(400)?;
+async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> RawResponse {
     let query = match form.get("query") {
         Some(query) => String::from_utf8_lossy(query).to_string(),
         None => {
@@ -250,18 +248,6 @@ fn create_chat_(user: String, repo: String) -> RawResponse {
         "Content-Type",
         "text/plain; charset=utf-8",
     )))
-}
-
-async fn fetch_form_data(form: FormData) -> Result<HashMap<String, Vec<u8>>, Error> {
-    Ok(form.and_then(|mut field| async move {
-        let mut buffer = Vec::new();
-
-        while let Some(content) = field.data().await {
-            buffer.put(content?);
-        }
-
-        Ok((field.name().to_string(), buffer))
-    }).try_collect().await?)
 }
 
 fn try_register_session(session_id: u128) -> Result<(), Error> {

@@ -1,5 +1,22 @@
 use base64::Engine;
+use bytes::BufMut;
+use crate::error::Error;
+use futures_util::TryStreamExt;
 use ragit_fs::{FileError, join4};
+use std::collections::HashMap;
+use warp::filters::multipart::FormData;
+
+pub async fn fetch_form_data(form: FormData) -> Result<HashMap<String, Vec<u8>>, Error> {
+    Ok(form.and_then(|mut field| async move {
+        let mut buffer = Vec::new();
+
+        while let Some(content) = field.data().await {
+            buffer.put(content?);
+        }
+
+        Ok((field.name().to_string(), buffer))
+    }).try_collect().await?)
+}
 
 // ROOT/{user}/{repo}/.ragit
 pub fn get_rag_path(user: &str, repo: &str) -> Result<String, FileError> {
