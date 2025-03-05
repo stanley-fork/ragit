@@ -629,7 +629,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("gc") => {
-            let parsed_args = ArgParser::new().flag(&["--logs", "--images", "--usages"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().flag(&["--logs", "--images", "--audit"]).parse(&args[2..])?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/gc.txt"));
@@ -647,10 +647,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let removed = index.gc_images()?;
                     println!("removed {removed} files");
                 },
-                "--usages" => {
+                "--audit" => {
                     let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
-                    index.gc_usages()?;
-                    println!("removed usages");
+                    index.gc_audit()?;
+                    println!("removed audit logs");
                 },
                 _ => unreachable!(),
             }

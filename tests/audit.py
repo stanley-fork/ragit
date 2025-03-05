@@ -36,3 +36,9 @@ def audit(test_model: str):
 
     assert parse_audit_output("answer_query_with_chunks") > 0
     assert parse_audit_output("create_chunk_from") > 0
+
+    cargo_run(["gc", "--audit"])
+
+    assert parse_audit_output("total") == 0
+    assert parse_audit_output("answer_query_with_chunks") == 0
+    assert parse_audit_output("create_chunk_from") == 0

@@ -8,11 +8,10 @@ rag-gc - Clean up unnecessary files
 SYNOPSIS
 --------
 [verse]
-'rag gc' [--logs | --images | --usages]
+'rag gc' [--logs | --images | --audit]
 
 DESCRIPTION
 -----------
 `rag gc --logs` removes all the logs in `.ragit/logs`.
 `rag gc --images` removes all the images in `.ragit/images`.
-`rag gc --usages` resets `.ragit/usages.json`. This file keeps track of
-how much you spent for LLM api calls.
+`rag gc --audit` removes internal logs for `rag audit`.

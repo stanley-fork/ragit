@@ -68,8 +68,8 @@ impl Index {
         Ok(count)
     }
 
-    /// `rag gc --usages`
-    pub fn gc_usages(&self) -> Result<(), Error> {
+    /// `rag gc --audit`
+    pub fn gc_audit(&self) -> Result<(), Error> {
         let usages_at = Index::get_rag_path(
             &self.root_dir,
             &"usages.json".to_string(),
