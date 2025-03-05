@@ -295,6 +295,10 @@ impl Chunk {
     }
 }
 
+/// It does some preprocessing on chunks, before fed to LLMs.
+///
+/// 1. If there are multiple chunks from the same file, it sorts the chunks.
+/// 2. If there are consecutive chunks, it merges them. Their sliding windows are redundant.
 pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();

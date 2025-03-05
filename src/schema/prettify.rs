@@ -5,6 +5,7 @@ use serde_json::Value;
 /// Sometimes internal representations are not very readable. For example,
 /// ragit internally represents a uid with 2 integers, but users expect a
 /// hexadecimal string. This trait removes those quirks and makes it readable.
+/// I know this is a bad practice, but there's no fix now.
 pub trait Prettify {
     fn prettify(&self) -> Result<Value, Error>;
 }

@@ -1,7 +1,9 @@
-// Ragit uses json to interact with the world. This module defines json schema
-// of ragit objects. Some objects are valid json schema by themselves. For example,
-// a chunk is just a json file. There's no need to define a new schema for it. So
-// it's just a type alias: `type ChunkSchema = Chunk;`.
+//! Ragit uses json to interact with the world. This module defines json schema
+//! of ragit objects. Some objects are valid json schema by themselves. For example,
+//! a chunk is just a json file. There's no need to define a new schema for it. So
+//! it's just a type alias: `type ChunkSchema = Chunk;`.
+//! There's a `Prettify` trait, which makes ragit needlessly complex. Please read the
+//! doc of the trait.
 
 mod chunk;
 mod file;

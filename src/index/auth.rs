@@ -5,7 +5,7 @@ use ragit_fs::{join3, read_string};
 impl Index {
     /// For now, it only supports very naive way: it checks `.ragit/.auth`.
     /// The file's first line is a username and the next line is password.
-    /// It returns Option<(username, Option<password>)> if available.
+    /// It returns `Option<(username, Option<password>)>` if available.
     pub fn auth(&self) -> Option<(String, Option<String>)> {
         let Ok(auth_path) = join3(
             &self.root_dir,

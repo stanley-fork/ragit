@@ -79,7 +79,9 @@ pub use tfidf::{ProcessedDoc, TfidfResult, TfidfState, consume_processed_doc};
 
 pub type Path = String;
 
-// all the `Path` are normalized relative paths
+/// This is a knowledge-base itself. I am trying my best to define a method
+/// for each command.
+// NOTE: all the `Path` are normalized relative paths
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Index {
     ragit_version: String,
@@ -87,13 +89,13 @@ pub struct Index {
     pub staged_files: Vec<Path>,
     pub processed_files: HashMap<Path, Uid>,
 
-    // Previously, all the builds were in serial and this field tells
-    // which file the index is building. When something goes wrong, ragit
-    // reads this field and clean up garbages. Now, all the builds are in
-    // parallel and there's no such thing like `curr_processing_file`. But
-    // we still need to tell whether something went wrong while building
-    // and this field does that. If it's `Some(_)`, something's wrong and
-    // clean-up has to be done.
+    /// Previously, all the builds were in serial and this field tells
+    /// which file the index is building. When something goes wrong, ragit
+    /// reads this field and clean up garbages. Now, all the builds are in
+    /// parallel and there's no such thing like `curr_processing_file`. But
+    /// we still need to tell whether something went wrong while building
+    /// and this field does that. If it's `Some(_)`, something's wrong and
+    /// clean-up has to be done.
     pub curr_processing_file: Option<Path>,
     repo_url: Option<String>,
 

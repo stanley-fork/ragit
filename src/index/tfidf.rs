@@ -36,8 +36,11 @@ pub struct TfidfResult<DocId: Clone> {
     pub score: f32,
 }
 
+/// It stores term-frequency of each chunk.
 #[derive(Clone, Debug, Deserialize, Eq, Serialize, PartialEq)]
 pub struct ProcessedDoc {
+    /// If this `ProcessedDoc` is made from a chunk, this field stores the uid of the chunk.
+    /// If you merge multiple `ProcessedDoc`s into one, this field is None.
     pub uid: Option<Uid>,
     pub term_frequency: HashMap<Term, usize>,
     length: usize,

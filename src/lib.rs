@@ -5,7 +5,7 @@ mod error;
 mod index;
 mod prompts;
 mod query;
-mod schema;
+pub mod schema;
 mod tree;
 mod uid;
 
@@ -41,14 +41,6 @@ pub use query::{
     QueryConfig,
     QueryResponse,
     QueryTurn,
-};
-pub use schema::{
-    ChunkSchema,
-    FileSchema,
-    ImageSchema,
-    ModelSchema,
-    Prettify,
-    QueryResponseSchema,
 };
 pub use uid::{Uid, UidQueryConfig, UidQueryResult};
 

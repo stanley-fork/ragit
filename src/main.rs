@@ -3,7 +3,6 @@ use chrono::Local;
 use ragit::{
     AddMode,
     Audit,
-    ChunkSchema,
     Error,
     IIStatus,
     Index,
@@ -12,7 +11,6 @@ use ragit::{
     LoadMode,
     MODEL_FILE_NAME,
     MergeMode,
-    Prettify,
     ProcessedDoc,
     QueryTurn,
     RemoveResult,
@@ -20,6 +18,7 @@ use ragit::{
     get_compatibility_warning,
     merge_and_convert_chunks,
 };
+use ragit::schema::{ChunkSchema, Prettify};
 use ragit_cli::{
     ArgCount,
     ArgParser,
