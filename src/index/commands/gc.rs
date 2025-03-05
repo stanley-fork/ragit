@@ -4,12 +4,14 @@ use crate::error::Error;
 use crate::index::LOG_DIR_NAME;
 use crate::uid::Uid;
 use ragit_fs::{
+    WriteMode,
     exists,
     file_name,
     parent,
     read_dir,
     remove_file,
     set_extension,
+    write_string,
 };
 use std::collections::HashSet;
 
@@ -64,5 +66,19 @@ impl Index {
         }
 
         Ok(count)
+    }
+
+    /// `rag gc --usages`
+    pub fn gc_usages(&self) -> Result<(), Error> {
+        let usages_at = Index::get_rag_path(
+            &self.root_dir,
+            &"usages.json".to_string(),
+        )?;
+
+        Ok(write_string(
+            &usages_at,
+            "{}",
+            WriteMode::CreateOrTruncate,
+        )?)
     }
 }
