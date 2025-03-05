@@ -121,7 +121,7 @@ impl ApiConfig {
 
     pub fn dump_api_usage_at(&self, root_dir: &str, id: &str) -> Option<RecordAt> {
         if self.dump_api_usage {
-            match join3(root_dir, INDEX_DIR_NAME, "usage.json") {
+            match join3(root_dir, INDEX_DIR_NAME, "usages.json") {
                 Ok(path) => {
                     if !exists(&path) {
                         let _ = write_string(
