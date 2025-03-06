@@ -44,8 +44,8 @@ def server2(test_model: str):
         os.chdir("..")
 
         # step 3: let's ask questions!
-        chat_id1 = requests.post("http://127.0.0.1:41127/test-user/sample1/chats").text
-        chat_id2 = requests.post("http://127.0.0.1:41127/test-user/sample2/chats").text
+        chat_id1 = requests.post("http://127.0.0.1:41127/test-user/sample1/chat-list").text
+        chat_id2 = requests.post("http://127.0.0.1:41127/test-user/sample2/chat-list").text
         responses1 = []
         responses2 = []
 

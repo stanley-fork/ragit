@@ -63,8 +63,12 @@ It always uses utf-8 for text/plain.
   - text/plain
   - "{major}.{minor}.{patch}"
   - "{major}.{minor}.{patch}-dev"
+- GET `/{user-name}/{repo-name}/chat-list`
+  - application/json: array[chat]
+  - query string
+    - `?history=0` if you don't want chat history. `?history=1` if you want chat history (default).
 - GET `/{user-name}/{repo-name}/chat/{chat-id}`
-  - application/json
+  - application/json: chat
 - GET `/version`
   - text/plain
   - "{major}.{minor}.{patch}"
@@ -79,7 +83,7 @@ It always uses utf-8 for text/plain.
   - request body (multiform): { "session-id": str, "archive-id": str, "archive": bytes }
 - POST `/{user-name}/{repo-name}/finalize-push`
   - request body (plain text): session-id
-- POST `/{user-name}/{repo-name}/chats`
+- POST `/{user-name}/{repo-name}/chat-list`
   - text/plain: a new chat id
   - It creates a new chat and returns its id.
 - POST `/{user-name}/{repo-name}/chat/{chat-id}`

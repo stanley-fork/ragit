@@ -171,7 +171,7 @@ async fn main() {
     let create_chat_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
-        .and(warp::path("chats"))
+        .and(warp::path("chat-list"))
         .and(warp::path::end())
         .map(create_chat);
 
