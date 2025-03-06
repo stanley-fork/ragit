@@ -294,7 +294,7 @@ fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
         }
 
         chunks.sort_by_key(|chunk| chunk.source.sortable_string());
-        let chunks = merge_and_convert_chunks(&index, chunks).handle_error(500)?;
+        let chunks = merge_and_convert_chunks(&index, chunks, true /* render_image */).handle_error(500)?;
 
         let result = match chunks.len() {
             0 => String::new(),
