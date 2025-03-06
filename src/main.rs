@@ -409,7 +409,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 chunks.sort_by_key(|chunk| chunk.source.sortable_string());
-                let chunks = merge_and_convert_chunks(&index, chunks)?;
+                let chunks = merge_and_convert_chunks(&index, chunks, false /* render_image */)?;
 
                 match chunks.len() {
                     0 => {

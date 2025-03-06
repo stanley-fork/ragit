@@ -100,7 +100,7 @@ impl Index {
         } else {
             self.answer_query_with_chunks(
                 &query,
-                merge_and_convert_chunks(self, chunks.clone())?,
+                merge_and_convert_chunks(self, chunks.clone(), true /* render image */)?,
             ).await?
         };
 

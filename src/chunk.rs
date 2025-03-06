@@ -206,7 +206,7 @@ impl Chunk {
         );
 
         if let Some((previous_chunk, previous_schema)) = &previous_turn {
-            let previous_request = previous_chunk.clone().into_renderable(index)?.data;
+            let previous_request = previous_chunk.clone().into_renderable(index, true /* render image */)?.data;
             context.insert("previous_request", &previous_request);
             context.insert("previous_response", &previous_schema.render());
         }
@@ -299,7 +299,7 @@ impl Chunk {
 ///
 /// 1. If there are multiple chunks from the same file, it sorts the chunks.
 /// 2. If there are consecutive chunks, it merges them. Their sliding windows are redundant.
-pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderableChunk>, Error> {
+pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image: bool) -> Result<Vec<RenderableChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
 
@@ -326,7 +326,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
             let post = curr_chunks.remove(&(candidate.0.clone(), candidate.1 + 1)).unwrap();
             curr_chunks.insert((candidate.0.clone(), candidate.1), merge_chunks(pre, post));
 
-            return merge_and_convert_chunks(index, curr_chunks.into_values().collect());
+            return merge_and_convert_chunks(index, curr_chunks.into_values().collect(), render_image);
         }
     }
 
@@ -350,7 +350,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
     let mut result = Vec::with_capacity(curr_chunks.len());
 
     for chunk in curr_chunks.into_iter() {
-        result.push(chunk.into_renderable(index)?);
+        result.push(chunk.into_renderable(index, render_image)?);
     }
 
     Ok(result)

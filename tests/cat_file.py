@@ -50,3 +50,6 @@ def cat_file():
 
     with open("empty.png", "rb") as f:
         assert f.read() == cargo_run(["cat-file", image_uid], stdout=True, raw_output=True)
+
+    # step 3: See if `cat-file` on a text file with images dumps the uid of the image, not the raw bytes.
+    assert image_uid in cargo_run(["cat-file", "sample.md"], stdout=True)
