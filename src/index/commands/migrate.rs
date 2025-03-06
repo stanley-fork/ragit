@@ -181,7 +181,7 @@ fn update_version_string(root_dir: &Path, new_version: &str) -> Result<(), Error
     let mut j = serde_json::from_str::<Value>(&j)?;
 
     match &mut j {
-        Value::Object(ref mut index) => {
+        Value::Object(index) => {
             index.insert(String::from("ragit_version"), new_version.into());
         },
         _ => {
@@ -215,7 +215,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
     let mut image_uid_map = HashMap::new();
 
     match &mut j {
-        Value::Object(ref mut index) => {
+        Value::Object(index) => {
             index.insert(String::from("ragit_version"), "0.2.0".into());
             index.insert(String::from("ii_status"), Value::Object(vec![(String::from("type"), String::from("None").into())].into_iter().collect()));
 
@@ -224,7 +224,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
             }
 
             match index.get_mut("processed_files") {
-                Some(Value::Object(ref mut processed_files)) => {
+                Some(Value::Object(processed_files)) => {
                     processed_files_cache = HashMap::with_capacity(processed_files.len());
 
                     for (file_name, file_uid) in processed_files.clone().iter() {
@@ -364,7 +364,7 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
             Value::Array(mut chunks) => {
                 for chunk in chunks.iter_mut() {
                     match chunk {
-                        Value::Object(ref mut obj) => {
+                        Value::Object(obj) => {
                             match obj.get("images") {
                                 Some(Value::Array(images)) if images.len() > 0 => {
                                     let mut new_images: Vec<Value> = Vec::with_capacity(images.len());
@@ -796,7 +796,7 @@ fn update_configs(root_dir: &str, updates: Vec<ConfigUpdate>) -> Result<(), Erro
         let mut v = serde_json::from_str::<Value>(&j)?;
 
         match &mut v {
-            Value::Object(ref mut obj) => match update {
+            Value::Object(obj) => match update {
                 ConfigUpdate::Add { key, value, .. } => {
                     obj.insert(key, value);
                 },

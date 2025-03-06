@@ -109,7 +109,7 @@ impl Index {
             let mut j = serde_json::from_str::<Value>(&j)?;
 
             match &mut j {
-                Value::Object(ref mut obj) => match obj.get(&key) {
+                Value::Object(obj) => match obj.get(&key) {
                     Some(original_value) => {
                         // Assumption: the original value always has a correct type
                         let original_type = JsonType::from(original_value);

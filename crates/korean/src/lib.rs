@@ -15,7 +15,7 @@ rules
 use crate::term_kind::{TermKind, get_term_kind};
 
 mod fsm;
-pub mod gen;
+pub mod generator;
 mod jamo;
 mod hangul;
 mod term_kind;
