@@ -43,7 +43,7 @@ fn test_merge_and_convert_chunks() {
     let index = Index::dummy();
 
     for (sample, answer) in samples.into_iter() {
-        let result = merge_and_convert_chunks(&index, sample).unwrap();
+        let result = merge_and_convert_chunks(&index, sample, true).unwrap();
         let answer = answer.into_iter().map(
             |(data, file, index)| RenderableChunk { data: data.to_string(), source: ChunkSource::File { path: file.to_string(), index }.render() }
         ).collect::<Vec<_>>();
