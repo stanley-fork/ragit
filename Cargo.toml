@@ -1,6 +1,6 @@
 [package]
 name = "ragit"
-version = "0.3.3"
+version = "0.3.4"
 edition = "2024"
 license = "MIT"
 description = "git-like rag pipeline"
@@ -17,12 +17,12 @@ csv = "1.3.1"
 flate2 = "1.1.0"
 image = "0.25.5"
 lazy_static = "1.5.0"
-ragit-api = { path = "./crates/api", version = "0.3.3" }
-ragit-cli = { path = "./crates/cli", version = "0.3.3" }
-ragit-fs = { path = "./crates/fs", version = "0.3.3" }
-ragit-ignore = { path = "./crates/ignore", version = "0.3.3" }
-ragit-korean = { path = "./crates/korean", version = "0.3.3" }
-ragit-pdl = { path = "./crates/pdl", version = "0.3.3" }
+ragit-api = { path = "./crates/api", version = "0.3.4" }
+ragit-cli = { path = "./crates/cli", version = "0.3.4" }
+ragit-fs = { path = "./crates/fs", version = "0.3.4" }
+ragit-ignore = { path = "./crates/ignore", version = "0.3.4" }
+ragit-korean = { path = "./crates/korean", version = "0.3.4" }
+ragit-pdl = { path = "./crates/pdl", version = "0.3.4" }
 regex = "1.11.1"
 reqwest = { version = "0.12.12", features = ["multipart"] }
 rust-stemmers = "1.2.0"
