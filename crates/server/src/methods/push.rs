@@ -1,10 +1,9 @@
-use super::{HandleError, RawResponse, handler};
+use super::{HandleError, RawResponse, auth, handler};
 use bytes::Bytes;
 use chrono::Local;
 use crate::error::Error;
-use crate::models::Chat;
 use crate::utils::{decode_base64, fetch_form_data, get_rag_path};
-use ragit::{Index, LoadMode, QueryTurn};
+use ragit::Index;
 use ragit_fs::{
     FileError,
     WriteMode,
@@ -18,16 +17,12 @@ use ragit_fs::{
     read_dir,
     remove_dir_all,
     rename,
-    set_extension,
     write_bytes,
-    write_string,
     write_log,
 };
-use std::collections::HashMap;
-use warp::Reply;
 use warp::filters::multipart::FormData;
 use warp::http::StatusCode;
-use warp::reply::{json, with_header, with_status};
+use warp::reply::{Reply, with_header, with_status};
 
 #[derive(Copy, Clone)]
 struct Session {
@@ -171,83 +166,6 @@ fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
     )))
 }
 
-pub async fn post_chat(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> Box<dyn Reply> {
-    handler(post_chat_(user, repo, chat_id, form).await)
-}
-
-async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> RawResponse {
-    let query = match form.get("query") {
-        Some(query) => String::from_utf8_lossy(query).to_string(),
-        None => {
-            return Err((400, String::from("`query` field is missing")));
-        },
-    };
-    let model = match form.get("model") {
-        Some(model) => Some(String::from_utf8_lossy(model).to_string()),
-        None => None,
-    };
-    let index_at = join3(
-        "data",
-        &user,
-        &repo,
-    ).handle_error(400)?;
-    let chat_at = join3(
-        &index_at,
-        "chats",
-        &set_extension(&chat_id, "json").handle_error(400)?,
-    ).handle_error(400)?;
-
-    let mut chat = Chat::load_from_file(&chat_at).handle_error(404)?;
-    let mut index = Index::load(index_at, LoadMode::OnlyJson).handle_error(500)?;
-
-    if let Some(model) = model {
-        index.api_config.model = model;
-    }
-
-    let response = index.query(&query, chat.history.clone()).await.handle_error(500)?;
-    chat.history.push(QueryTurn { query, response: response.clone() });
-    chat.updated_at = Local::now().timestamp();
-    chat.save_to_file(&chat_at).handle_error(500)?;
-
-    Ok(Box::new(json(&response)))
-}
-
-pub fn create_chat(user: String, repo: String) -> Box<dyn Reply> {
-    handler(create_chat_(user, repo))
-}
-
-fn create_chat_(user: String, repo: String) -> RawResponse {
-    let index_at = join3(
-        "data",
-        &user,
-        &repo,
-    ).handle_error(400)?;
-
-    if !exists(&index_at) {
-        return Err((404, format!("`{index_at}` not found")));
-    }
-
-    let chat_at = join(&index_at, "chats").handle_error(500)?;
-
-    if !exists(&chat_at) {
-        create_dir_all(&chat_at).handle_error(500)?;
-    }
-
-    let id = format!("{:016x}", rand::random::<u64>());
-    let chat = Chat::new(id.clone());
-    write_string(
-        &join(&chat_at, &set_extension(&id, "json").handle_error(500)?).handle_error(500)?,
-        &serde_json::to_string(&chat).handle_error(500)?,
-        WriteMode::AlwaysCreate,
-    ).handle_error(500)?;
-
-    Ok(Box::new(with_header(
-        id,
-        "Content-Type",
-        "text/plain; charset=utf-8",
-    )))
-}
-
 fn try_register_session(session_id: u128) -> Result<(), Error> {
     let now = Local::now().timestamp();
 
@@ -336,9 +254,4 @@ fn clean_session_fs(session_id: u128) -> Result<(), FileError> {
     )?;
     remove_dir_all(&path)?;
     Ok(())
-}
-
-fn auth(_user: &str, _repo: &str, _auth_info: &Option<(String, Option<String>)>) -> bool {
-    // TODO
-    true
 }

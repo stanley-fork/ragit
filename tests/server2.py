@@ -83,5 +83,9 @@ def server2(test_model: str):
         assert [h["response"] for h in history1] == responses1
         assert [h["response"] for h in history2] == responses2
 
+        for _ in range(3):
+            assert requests.post("http://127.0.0.1:41127/test-user/sample1/ii-build").status_code == 200
+            assert requests.post("http://127.0.0.1:41127/test-user/sample2/ii-build").status_code == 200
+
     finally:
         server_process.kill()

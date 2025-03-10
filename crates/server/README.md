@@ -92,5 +92,5 @@ It always uses utf-8 for text/plain.
 - POST `/{user-name}/{repo-name}/chat/{chat-id}`
   - application/json: [QueryResponse](https://docs.rs/ragit/latest/ragit/struct.QueryResponse.html)
   - request body (multiform): { "query": str, "model": optional[str] }
-
-TODO: api for remote ii-build
+- POST `/{user-name}/{repo-name}/ii-build`
+  - It's like running `rag ii-build` in the remote knowledge-base. If an inverted index is already built, it does nothing.

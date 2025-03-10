@@ -1,3 +1,5 @@
+#![recursion_limit = "256"]
+
 use crate::methods::*;
 use crate::utils::fetch_form_data;
 use ragit_fs::{
@@ -27,6 +29,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("index"))
+        .and(warp::path::end())
         .map(get_index);
 
     let get_config_handler = warp::get()
@@ -34,6 +37,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("config"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_config);
 
     let get_prompt_handler = warp::get()
@@ -41,12 +45,14 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("prompt"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_prompt);
 
     let get_chunk_count_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chunk-count"))
+        .and(warp::path::end())
         .map(get_chunk_count);
 
     let get_chunk_list_handler = warp::get()
@@ -54,6 +60,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("chunk-list"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_chunk_list);
 
     let get_chunk_list_all_handler = warp::get()
@@ -68,6 +75,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("chunk"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_chunk);
 
     let get_image_list_handler = warp::get()
@@ -75,6 +83,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("image-list"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_image_list);
 
     let get_image_handler = warp::get()
@@ -82,6 +91,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("image"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_image);
 
     let get_image_desc_handler = warp::get()
@@ -89,6 +99,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("image-desc"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_image_desc);
 
     let get_cat_file_handler = warp::get()
@@ -96,12 +107,14 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("cat-file"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_cat_file);
 
     let get_archive_list_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("archive-list"))
+        .and(warp::path::end())
         .map(get_archive_list);
 
     let get_archive_handler = warp::get()
@@ -109,22 +122,26 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("archive"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_archive);
 
     let get_meta_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("meta"))
+        .and(warp::path::end())
         .map(get_meta);
 
     let get_version_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("version"))
+        .and(warp::path::end())
         .map(get_version);
 
     let get_server_version_handler = warp::get()
         .and(warp::path("version"))
+        .and(warp::path::end())
         .map(get_server_version);
 
     let get_user_list_handler = warp::get()
@@ -143,12 +160,14 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("chat"))
         .and(warp::path::param::<String>())
+        .and(warp::path::end())
         .map(get_chat);
 
     let get_chat_list_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chat-list"))
+        .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
         .map(get_chat_list);
 
@@ -156,12 +175,14 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("file-list"))
+        .and(warp::path::end())
         .map(get_file_list);
 
     let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("begin-push"))
+        .and(warp::path::end())
         .and(warp::header::optional::<String>("authorization"))
         .map(post_begin_push);
 
@@ -221,6 +242,13 @@ async fn main() {
             }
         });
 
+    let post_ii_build_handler = warp::post()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("ii-build"))
+        .and(warp::path::end())
+        .map(post_ii_build);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
@@ -251,6 +279,7 @@ async fn main() {
             .or(post_chat_handler_body_form)
             .or(post_chat_handler_multipart_form)
             .or(create_chat_handler)
+            .or(post_ii_build_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
                 |info| {
