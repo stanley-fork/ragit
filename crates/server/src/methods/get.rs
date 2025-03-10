@@ -28,15 +28,13 @@ use std::collections::HashMap;
 use warp::Reply;
 use warp::reply::{json, with_header};
 
-// TODO: some handlers return 500, some 404 or 503, but I'm not sure which one is correct in which cases
-
 pub fn get_index(user: String, repo: String) -> Box<dyn Reply> {
     handler(get_index_(user, repo))
 }
 
 fn get_index_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
-    let index_path = join(&rag_path, "index.json").handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+    let index_path = join(&rag_path, "index.json").handle_error(400)?;
     let j = read_string(&index_path).handle_error(404)?;
 
     Ok(Box::new(with_header(
@@ -51,11 +49,11 @@ pub fn get_config(user: String, repo: String, config: String) -> Box<dyn Reply> 
 }
 
 fn get_config_(user: String, repo: String, config: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let config_path = join3(
         &rag_path,
         "configs",
-        &set_extension(&config, "json").handle_error(404)?,
+        &set_extension(&config, "json").handle_error(400)?,
     ).handle_error(404)?;
     let j = read_string(&config_path).handle_error(404)?;
 
@@ -71,12 +69,12 @@ pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> 
 }
 
 fn get_prompt_(user: String, repo: String, prompt: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let prompt_path = join3(
         &rag_path,
         "prompts",
-        &set_extension(&prompt, "pdl").handle_error(404)?,
-    ).handle_error(404)?;
+        &set_extension(&prompt, "pdl").handle_error(400)?,
+    ).handle_error(400)?;
     let p = read_string(&prompt_path).handle_error(404)?;
 
     Ok(Box::new(with_header(
@@ -91,8 +89,8 @@ pub fn get_chunk_count(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_chunk_count_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
-    let index_path = join(&rag_path, "index.json").handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+    let index_path = join(&rag_path, "index.json").handle_error(400)?;
     let index_json = read_string(&index_path).handle_error(404)?;
     let index = serde_json::from_str::<Value>(&index_json).handle_error(500)?;
 
@@ -116,12 +114,12 @@ pub fn get_chunk_list(user: String, repo: String, prefix: String) -> Box<dyn Rep
 }
 
 fn get_chunk_list_(user: String, repo: String, prefix: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let chunk_path = join3(
         &rag_path,
         "chunks",
         &prefix,
-    ).handle_error(404)?;
+    ).handle_error(400)?;
     let chunks = read_dir(&chunk_path, false).unwrap_or(vec![]);
     Ok(Box::new(json(
         &chunks.iter().filter_map(
@@ -138,11 +136,11 @@ pub fn get_chunk_list_all(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_chunk_list_all_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let chunk_parents = join(
         &rag_path,
         "chunks",
-    ).handle_error(404)?;
+    ).handle_error(400)?;
     let mut result = vec![];
 
     for prefix in 0..256 {
@@ -150,7 +148,7 @@ fn get_chunk_list_all_(user: String, repo: String) -> RawResponse {
         let chunks_at = join(
             &chunk_parents,
             &prefix,
-        ).handle_error(404)?;
+        ).handle_error(400)?;
 
         if exists(&chunks_at) {
             for chunk in read_dir(&chunks_at, false).unwrap_or(vec![]) {
@@ -176,8 +174,8 @@ fn get_chunk_(user: String, repo: String, uid: String) -> RawResponse {
         &rag_path,
         "chunks",
         &prefix,
-        &set_extension(&suffix, "chunk").handle_error(404)?,
-    ).handle_error(404)?;
+        &set_extension(&suffix, "chunk").handle_error(400)?,
+    ).handle_error(400)?;
     let chunk = chunk::load_from_file(&chunk_path).handle_error(404)?;
     let json_str = serde_json::to_string(&chunk).handle_error(500)?;
 
@@ -194,12 +192,12 @@ pub fn get_image_list(user: String, repo: String, prefix: String) -> Box<dyn Rep
 }
 
 fn get_image_list_(user: String, repo: String, prefix: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let image_path = join3(
         &rag_path,
         "images",
         &prefix,
-    ).handle_error(404)?;
+    ).handle_error(400)?;
     let images = read_dir(&image_path, false).handle_error(404)?;
 
     Ok(Box::new(json(
@@ -217,15 +215,15 @@ pub fn get_image(user: String, repo: String, uid: String) -> Box<dyn Reply> {
 }
 
 fn get_image_(user: String, repo: String, uid: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let prefix = uid.get(0..2).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
     let suffix = uid.get(2..).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
     let image_path = join4(
         &rag_path,
         "images",
         &prefix,
-        &set_extension(&suffix, "png").handle_error(404)?,
-    ).handle_error(404)?;
+        &set_extension(&suffix, "png").handle_error(400)?,
+    ).handle_error(400)?;
     let bytes = read_bytes(&image_path).handle_error(404)?;
 
     Ok(Box::new(with_header(
@@ -247,8 +245,8 @@ fn get_image_desc_(user: String, repo: String, uid: String) -> RawResponse {
         &rag_path,
         "images",
         &prefix,
-        &set_extension(&suffix, "json").handle_error(404)?,
-    ).handle_error(404)?;
+        &set_extension(&suffix, "json").handle_error(400)?,
+    ).handle_error(400)?;
     let bytes = read_bytes(&image_path).handle_error(404)?;
 
     Ok(Box::new(with_header(
@@ -267,7 +265,7 @@ fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
         "data",
         &user,
         &repo,
-    ).handle_error(404)?;
+    ).handle_error(400)?;
     let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
     let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
 
@@ -321,7 +319,7 @@ pub fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_archive_list_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
     if !exists(&rag_path) {
         return Err((404, format!("No such repo: `{user}/{repo}`")));
@@ -341,8 +339,8 @@ pub fn get_archive(user: String, repo: String, archive_key: String) -> Box<dyn R
 }
 
 fn get_archive_(user: String, repo: String, archive_key: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
-    let archive_path = join3(&rag_path, "archives", &archive_key).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+    let archive_path = join3(&rag_path, "archives", &archive_key).handle_error(400)?;
     let bytes = read_bytes(&archive_path).handle_error(404)?;
 
     Ok(Box::new(with_header(
@@ -357,13 +355,13 @@ pub fn get_meta(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_meta_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
     if !exists(&rag_path) {
         return Err((404, format!("No such repo: `{user}/{repo}`")));
     }
 
-    let meta_path = join(&rag_path, "meta.json").handle_error(404)?;
+    let meta_path = join(&rag_path, "meta.json").handle_error(400)?;
 
     // NOTE: a `.ragit/` may or may not have `meta.json`
     let meta_json = read_string(&meta_path).unwrap_or(String::from("{}"));
@@ -380,8 +378,8 @@ pub fn get_version(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_version_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
-    let index_path = join(&rag_path, "index.json").handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+    let index_path = join(&rag_path, "index.json").handle_error(400)?;
     let index_json = read_string(&index_path).handle_error(404)?;
     let index = serde_json::from_str::<Value>(&index_json).handle_error(500)?;
 
@@ -498,4 +496,18 @@ fn get_chat_list_(user: String, repo: String, query: HashMap<String, String>) ->
     }
 
     Ok(Box::new(json(&result)))
+}
+
+pub fn get_file_list(user: String, repo: String) -> Box<dyn Reply> {
+    handler(get_file_list_(user, repo))
+}
+
+fn get_file_list_(user: String, repo: String) -> RawResponse {
+    let rag_path = join3(
+        "data",
+        &user,
+        &repo,
+    ).handle_error(400)?;
+    let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
+    Ok(Box::new(json(&index.processed_files.keys().collect::<Vec<_>>())))
 }

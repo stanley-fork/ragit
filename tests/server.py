@@ -89,6 +89,10 @@ def server():
                 uids_local = json.loads(cargo_run(["ls-images", "--json", "--uid-only", prefix], stdout=True))
                 assert set(uids_from_api) == set(uids_local)
 
+        file_api = request_json("file-list")
+        file_local = json.loads(cargo_run(["ls-files", "--name-only", "--json"], stdout=True))
+        assert set(file_api) == set(file_local)
+
         meta_api = request_json("meta")
         assert_eq_json("meta.json", meta_api)
 

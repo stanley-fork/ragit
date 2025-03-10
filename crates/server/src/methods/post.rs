@@ -39,15 +39,13 @@ struct Session {
 const SESSION_POOL_SIZE: usize = 64;
 static mut SESSIONS: [Option<Session>; SESSION_POOL_SIZE] = [None; SESSION_POOL_SIZE];
 
-// TODO: some handlers return 500, some 404 or 503, but I'm not sure which one is correct in which cases
-
 pub fn post_begin_push(user: String, repo: String, auth_info: Option<String>) -> Box<dyn Reply> {
     handler(post_begin_push_(user, repo, auth_info))
 }
 
 fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> RawResponse {
     let session_id = rand::random::<u128>();
-    let root_dir = get_rag_path(&user, &repo).handle_error(404)?;
+    let root_dir = get_rag_path(&user, &repo).handle_error(400)?;
     let mut auth_parsed: Option<(String, Option<String>)> = None;
 
     if let Some(auth_) = auth_info {
@@ -71,7 +69,7 @@ fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> Ra
     }
 
     if !exists(&root_dir) {
-        create_dir_all(&parent(&root_dir).handle_error(500)?).handle_error(500)?;
+        create_dir_all(&parent(&root_dir).handle_error(400)?).handle_error(500)?;
     }
 
     try_register_session(session_id).handle_error(503)?;
@@ -101,7 +99,7 @@ async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawRespo
         "./session",
         &format!("{session_id:032x}"),
         &archive_id,
-    ).handle_error(500)?;
+    ).handle_error(400)?;
 
     write_bytes(
         &path,
@@ -122,11 +120,11 @@ pub fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<dyn Re
 fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
     let session_id = String::from_utf8(body.into_iter().collect::<Vec<u8>>()).handle_error(400)?;
     let session_id = u128::from_str_radix(&session_id, 16).handle_error(400)?;
-    let root_dir = parent(&get_rag_path(&user, &repo).handle_error(404)?).handle_error(404)?;
+    let root_dir = parent(&get_rag_path(&user, &repo).handle_error(400)?).handle_error(400)?;
     let archives_at = join(
         "./session",
         &format!("{session_id:032x}"),
-    ).handle_error(404)?;
+    ).handle_error(400)?;
     let archives = read_dir(&archives_at, false).handle_error(404)?;
 
     write_log(
@@ -148,7 +146,7 @@ fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
         &root_dir,
         ".ragit",
         "archives",
-    ).handle_error(500)?) {
+    ).handle_error(400)?) {
         create_dir_all(&join3(
             &root_dir,
             ".ragit",
@@ -161,8 +159,8 @@ fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
             &root_dir,
             ".ragit",
             "archives",
-            &file_name(archive).handle_error(500)?,
-        ).handle_error(500)?).handle_error(500)?;
+            &file_name(archive).handle_error(400)?,
+        ).handle_error(400)?).handle_error(500)?;
     }
 
     try_unregister_session(session_id).handle_error(500)?;

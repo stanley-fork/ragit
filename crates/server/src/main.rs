@@ -152,6 +152,12 @@ async fn main() {
         .and(warp::query::<HashMap<String, String>>())
         .map(get_chat_list);
 
+    let get_file_list_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("file-list"))
+        .map(get_file_list);
+
     let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -238,6 +244,7 @@ async fn main() {
             .or(get_version_handler)
             .or(get_chat_handler)
             .or(get_chat_list_handler)
+            .or(get_file_list_handler)
             .or(post_begin_push_handler)
             .or(post_archive_handler)
             .or(post_finalize_push_handler)

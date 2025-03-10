@@ -18,6 +18,7 @@ pub use get::{
     get_chunk_list,
     get_chunk_list_all,
     get_config,
+    get_file_list,
     get_image,
     get_image_desc,
     get_image_list,

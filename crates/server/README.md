@@ -67,6 +67,9 @@ It always uses utf-8 for text/plain.
   - application/json: array[chat]
   - query string
     - `?history=0` if you don't want chat history. `?history=1` if you want chat history (default).
+- GET `/{user-name}/{repo-name}/file-list`
+  - application/json: array[string]
+  - It only returns the list of processed files.
 - GET `/{user-name}/{repo-name}/chat/{chat-id}`
   - application/json: chat
 - GET `/version`
