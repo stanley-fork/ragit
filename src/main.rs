@@ -1629,6 +1629,100 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
             }
         },
+        Some("status") => {
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::None).parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/status.txt"));
+                return Ok(());
+            }
+
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let json_mode = parsed_args.get_flag(0).is_some();
+
+            if json_mode {
+                let mut result = Map::new();
+                result.insert(String::from("staged files"), index.staged_files.clone().into());
+                result.insert(String::from("processed files"), index.processed_files.keys().map(|key| key.to_string()).collect::<Vec<_>>().into());
+                result.insert(String::from("chunks"), index.chunk_count.into());
+                result.insert(
+                    String::from("inverted index"),
+                    match index.ii_status {
+                        IIStatus::None => "none",
+                        IIStatus::Complete => "clean",
+                        IIStatus::Outdated
+                        | IIStatus::Ongoing(_) => "dirty",
+                    }.into(),
+                );
+                result.insert(
+                    String::from("build status"),
+                    if index.curr_processing_file.is_some() { "dirty" } else { "clean" }.into(),
+                );
+
+                println!("{}", serde_json::to_string_pretty(&result)?);
+            }
+
+            else {
+                // TODO: Do I have to sort this? If I'm to sort this, why not just call `index.staged_files.sort()` after `rag add`?
+                let staged_files = index.staged_files[0..(index.staged_files.len().min(5))].to_vec();
+                let processed_files = index.processed_files.keys().take(5).map(|f| f.to_string()).collect::<Vec<_>>();
+
+                if staged_files.len() > 0 {
+                    println!("The knowledge-base is not complete yet. Run `rag build` to finish building the knowledge-base.");
+                } else if index.curr_processing_file.is_some() {
+                    println!("Build status is dirty. Run `rag check --recover` to clean up the knowledge-base. It may take a while.");
+                } else if index.ii_status == IIStatus::None {
+                    println!("Inverted index not found. Run `rag ii-build` to speed up chunk retrievals.");
+                } else if index.ii_status != IIStatus::Complete {
+                    println!("Inverted index is dirty. Run `rag ii-build` to clean up and build an inverted index.");
+                } else {
+                    println!("The knowledge-base is clean. You can run `rag query`.");
+                }
+
+                // TODO: how about counting images?
+                println!("");
+                println!("chunks: {}", index.chunk_count);
+                println!("processed files: {}", index.processed_files.len());
+
+                for file in processed_files.iter() {
+                    println!("    {file}");
+                }
+
+                if index.processed_files.len() > processed_files.len() {
+                    let d = index.processed_files.len() - processed_files.len();
+                    println!("    ... ({d} more file{})", if d == 1 { "" } else { "s" });
+                }
+
+                println!("");
+                println!("staged files: {}", index.staged_files.len());
+
+                for file in staged_files.iter() {
+                    println!("    {file}");
+                }
+
+                if index.staged_files.len() > staged_files.len() {
+                    let d = index.staged_files.len() - staged_files.len();
+                    println!("    ... ({d} more file{})", if d == 1 { "" } else { "s" });
+                }
+
+                println!("");
+                println!(
+                    "inverted index: {}",
+                    match index.ii_status {
+                        IIStatus::None => "none",
+                        IIStatus::Complete => "clean",
+                        IIStatus::Outdated
+                        | IIStatus::Ongoing(_) => "dirty",
+                    },
+                );
+                println!(
+                    "build status: {}",
+                    if index.curr_processing_file.is_some() { "dirty" } else { "clean" },
+                );
+            }
+        },
         // tmp command for testing `Index::summary_file`
         // this interface is likely to change
         Some("summary-file") => {

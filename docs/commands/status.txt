@@ -1,0 +1,27 @@
+rag-status(1)
+==========
+
+NAME
+----
+rag-status - Show the knowledge-base status
+
+SYNOPSIS
+--------
+[verse]
+'rag status' [--json]
+
+DESCRIPTION
+-----------
+Displays the overall status of the knowledge-base.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+```
+{
+    "staged files": [string],
+    "processed files": [string],
+    "chunks": integer,
+    "inverted index": string,  # none | clean | dirty
+    "build status": string,  # clean | dirty
+}
+```

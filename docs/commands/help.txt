@@ -30,6 +30,7 @@ Get information about a knowledge-base
     ls-models
     ls-terms
     meta
+    status
 
 Query a knowledge-base
     query
