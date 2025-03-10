@@ -111,31 +111,24 @@ pub fn save_to_file(
         )?;
     }
 
-    if result.len() as u64 > compression_threshold {
+    let mut bytes = if result.len() as u64 > compression_threshold {
         let mut compressed = vec![];
         let mut gz = GzEncoder::new(&result[..], Compression::new(compression_level));
         gz.read_to_end(&mut compressed)?;
         result = compressed;
 
-        write_bytes(
-            path,
-            &[COMPRESS_PREFIX],
-            WriteMode::CreateOrTruncate,
-        )?;
+        vec![COMPRESS_PREFIX]
     }
 
     else {
-        write_bytes(
-            path,
-            &[UNCOMPRESS_PREFIX],
-            WriteMode::CreateOrTruncate,
-        )?;
-    }
+        vec![UNCOMPRESS_PREFIX]
+    };
 
+    bytes.append(&mut result);
     Ok(write_bytes(
         path,
-        &result,
-        WriteMode::AlwaysAppend,
+        &bytes,
+        WriteMode::Atomic,
     )?)
 }
 
