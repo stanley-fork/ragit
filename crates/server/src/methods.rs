@@ -15,6 +15,7 @@ mod clone;
 mod image;
 mod index;
 mod push;
+mod search;
 
 pub use chat::{
     create_chat,
@@ -52,6 +53,7 @@ pub use push::{
     post_begin_push,
     post_finalize_push,
 };
+pub use search::search;
 
 pub type RawResponse = Result<Box<dyn Reply>, (u16, String)>;
 

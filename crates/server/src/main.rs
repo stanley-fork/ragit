@@ -249,6 +249,14 @@ async fn main() {
         .and(warp::path::end())
         .map(post_ii_build);
 
+    let search_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("search"))
+        .and(warp::path::end())
+        .and(warp::query::<HashMap<String, String>>())
+        .map(search);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
@@ -280,6 +288,7 @@ async fn main() {
             .or(post_chat_handler_multipart_form)
             .or(create_chat_handler)
             .or(post_ii_build_handler)
+            .or(search_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
                 |info| {

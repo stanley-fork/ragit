@@ -72,6 +72,12 @@ It always uses utf-8 for text/plain.
   - It only returns the list of processed files.
 - GET `/{user-name}/{repo-name}/chat/{chat-id}`
   - application/json: chat
+- GET `/{user-name}/{repo-name}/search`
+  - application/json
+  - It's very experimental.
+  - query string
+    - `file`
+    - `limit`
 - GET `/version`
   - text/plain
   - "{major}.{minor}.{patch}"
