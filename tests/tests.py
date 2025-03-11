@@ -17,6 +17,7 @@ from ii import ii
 from images import images
 from images2 import images2
 from images3 import images3
+from logs import logs
 from ls import ls
 from many_chunks import many_chunks
 from many_jobs import many_jobs
@@ -160,6 +161,10 @@ Commands
     ls                          run `ls` test
                                 It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
                                 of different options.
+
+    logs [model]                run `logs` test
+                                It checks if `rag config --set dump_log true` and
+                                `rag gc --logs` work correctly.
 
     meta                        run `meta` test
                                 It runs `rag meta`-family commands and see if it works.
@@ -325,6 +330,13 @@ if __name__ == "__main__":
         elif command == "ls":
             ls()
 
+        elif command == "logs":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            logs(test_model=test_model)
+
         elif command == "meta":
             meta()
 
@@ -449,6 +461,7 @@ if __name__ == "__main__":
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end llama3.3-70b", lambda: end_to_end(test_model="llama3.3-70b")),
                 ("audit llama3.3-70b", lambda: audit(test_model="llama3.3-70b")),
+                ("logs llama3.3-70b", lambda: logs(test_model="llama3.3-70b")),
                 ("prompts dummy", lambda: prompts(test_model="dummy")),
                 ("prompts gpt-4o-mini", lambda: prompts(test_model="gpt-4o-mini")),
                 ("prompts claude-3.5-sonnet", lambda: prompts(test_model="claude-3.5-sonnet")),

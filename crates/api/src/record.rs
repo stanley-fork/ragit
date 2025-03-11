@@ -4,6 +4,9 @@ use crate::Error;
 use crate::json_type::JsonType;
 use ragit_fs::{
     WriteMode,
+    create_dir_all,
+    exists,
+    parent,
     read_string,
     write_string,
 };
@@ -309,6 +312,12 @@ pub fn dump_pdl(
         },
     ));
     markdown.push(format!("{}# {metadata} #{}", '{', '}'));  // tera format
+
+    if let Ok(parent) = parent(path) {
+        if !exists(&parent) {
+            create_dir_all(&parent)?;
+        }
+    }
 
     write_string(
         path,

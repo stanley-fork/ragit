@@ -111,7 +111,7 @@ impl ApiConfig {
 
     pub fn dump_log_at(&self, root_dir: &str) -> Option<String> {
         if self.dump_log {
-            join(root_dir, LOG_DIR_NAME).ok()
+            join3(root_dir, INDEX_DIR_NAME, LOG_DIR_NAME).ok()
         }
 
         else {

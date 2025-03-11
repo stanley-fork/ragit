@@ -9,7 +9,14 @@ use crate::record::{
     record_api_usage,
 };
 use crate::response::Response;
-use ragit_fs::{WriteMode, join, write_log, write_string};
+use ragit_fs::{
+    WriteMode,
+    create_dir_all,
+    exists,
+    join,
+    write_log,
+    write_string,
+};
 use ragit_pdl::{Message, Role, Schema};
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
@@ -387,6 +394,10 @@ impl Request {
 
     fn dump_json(&self, j: &Value, header: &str) -> Result<(), Error> {
         if let Some(dir) = &self.dump_json_at {
+            if !exists(dir) {
+                create_dir_all(dir)?;
+            }
+
             let path = join(
                 &dir,
                 &format!("{header}-{}.json", Local::now().to_rfc3339()),
