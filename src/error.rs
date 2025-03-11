@@ -1,4 +1,3 @@
-use crate::index::IIStatus;
 use crate::uid::Uid;
 pub use ragit_api::{Error as ApiError, JsonType};
 use ragit_fs::FileError;
@@ -49,7 +48,6 @@ pub enum Error {
     CannotClone(String),
     CannotPush(String),
     CannotBuild(Vec<(String, String)>),  // Vec<(file_name, error_message)>
-    CannotUpdateII(IIStatus),
     CannotAddFile {
         file: String,  // rel_path
         message: String,

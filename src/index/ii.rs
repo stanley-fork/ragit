@@ -102,21 +102,6 @@ impl Index {
         }
     }
 
-    /// Very naive way of incremental ii-build.
-    /// It works only when `self.ii_status` is `IIStatus::Complete`.
-    pub fn add_chunk_to_ii(&mut self, uid: Uid) -> Result<(), Error> {
-        if self.ii_status == IIStatus::Complete {
-            let mut buffer = HashMap::new();
-            self.update_ii_buffer(&mut buffer, uid)?;
-            self.flush_ii_buffer(buffer)?;
-            Ok(())
-        }
-
-        else {
-            Err(Error::CannotUpdateII(self.ii_status))
-        }
-    }
-
     pub fn build_ii(&mut self, quiet: bool) -> Result<(), Error> {
         match self.ii_status {
             IIStatus::None => {},
