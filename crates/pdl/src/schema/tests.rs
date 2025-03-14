@@ -11,6 +11,9 @@ fn schema_validate_test() {
         ("bool", "true", None),
         ("bool", "The answer is true", None),
         ("bool", "It's either true or false.", Some("please be specific")),
+        ("yesno", "yes", None),
+        ("yesno", "nope", None),
+        ("yesno", "yes or no", Some("Just say yes or no")),
         ("[int {}]", "2300", Some("cannot find `array`")),
         ("[int {}]", "[2300]", None),
         ("[int { min: 400 }]", "[2300]", None),
@@ -29,6 +32,17 @@ fn schema_validate_test() {
         ("[int] {max : 5}", "[1, 2, 3, 4, 5, true]", Some("`integer`, not `boolean`")),
         ("str", "Anything is okay", None),
         ("str { max: 10 }", "This is not okay", Some("at most 10 characters")),
+        ("code", "There's no code here", Some("I cannot find a code block")),
+        (
+            "code",
+            "This is a Python code that adds 2 numbers.
+
+```
+def add(a, b):
+    return a + b
+```",
+            None,
+        ),
     ];
     let mut dump = String::new();
     let mut failures = String::new();

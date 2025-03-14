@@ -14,8 +14,10 @@ lazy_static! {
     static ref UNIQUE_OBJECT: Regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
 }
 
+mod code_fence;
 mod parse;
 
+pub use code_fence::try_extract_code_fence;
 pub use parse::{SchemaParseError, parse_schema};
 
 #[cfg(test)]
@@ -30,6 +32,8 @@ pub enum SchemaType {
     Boolean,
     Object(Vec<(String, Schema)>),
     Null,
+    Yesno,
+    Code,
 }
 
 impl SchemaType {
@@ -42,6 +46,8 @@ impl SchemaType {
             SchemaType::Boolean => "boolean",
             SchemaType::Object(_) => "object",
             SchemaType::Null => "null",
+            SchemaType::Yesno => "yes or no",
+            SchemaType::Code => "code",
         }
     }
 
@@ -164,7 +170,7 @@ impl SchemaError {
                 _ => String::from("Please make sure that your output has a correct schema."),
             },
             SchemaError::TypeError { expected, got } => format!(
-                "Your output has a wrong type. It has to be `{}`, not `{}`",
+                "Your output has a wrong type. It has to be `{}`, not `{}`.",
                 expected.type_name(),
                 got.type_name(),
             ),
@@ -182,30 +188,6 @@ impl Schema {
     // If it's `Ok(s)`, `s` is an evaluable json string.
     // If it's `Err(e)`, `e` is an error message which must be sent to the LLM.
     pub fn validate(&self, s: &str) -> Result<Value, String> {
-        if let Schema { r#type: SchemaType::String, constraint } = self {
-            let (len_min, len_max) = constraint.as_ref().map(
-                |Constraint { min, max }| (
-                    min.as_ref().map(|n| n.parse::<usize>().unwrap()),
-                    max.as_ref().map(|n| n.parse::<usize>().unwrap()),
-                )
-            ).unwrap_or((None, None));
-            let s_len = s.chars().count();
-
-            if let Some(len_min) = len_min {
-                if s_len < len_min {
-                    return Err(format!("Your output is too short. Please make sure that it's at least {len_min} characters."));
-                }
-            }
-
-            if let Some(len_max) = len_max {
-                if s_len > len_max {
-                    return Err(format!("Your output is too long. Please make sure that it's at most {len_max} characters."));
-                }
-            }
-
-            return Ok(Value::String(s.to_string()));
-        }
-
         let extracted_text = self.extract_text(s)?;
         let v = match serde_json::from_str::<Value>(&extracted_text) {
             Ok(v) => v,
@@ -237,8 +219,8 @@ impl Schema {
                 },
                 None => unreachable!(),
             },
-            (SchemaType::String, Value::String(s)) => {
-                check_range(SchemaType::String, &self.constraint, s.len())?;
+            (ty @ (SchemaType::String | SchemaType::Code), Value::String(s)) => {
+                check_range(ty.clone(), &self.constraint, s.len())?;
                 Ok(())
             },
             (SchemaType::Array(schema), Value::Array(v)) => {
@@ -295,7 +277,7 @@ impl Schema {
                     Ok(())
                 }
             },
-            (SchemaType::Boolean, Value::Bool(_)) => Ok(()),
+            (SchemaType::Boolean | SchemaType::Yesno, Value::Bool(_)) => Ok(()),
             (t1, t2) => Err(SchemaError::TypeError {
                 expected: t1.clone(),
                 got: get_schema_type(t2),
@@ -306,46 +288,56 @@ impl Schema {
     // It tries to extract a json value from a haystack.
     // It raises an error if there are multiple candidates.
     // It can be more generous than json's syntax (e.g. it allows `true` and `True`),
-    // but it's return value must be a valid json.
+    // but its return value must be a valid json.
     fn extract_text(&self, s: &str) -> Result<String, String> {
-        if let SchemaType::Boolean = &self.r#type {
-            let s = s.to_ascii_lowercase();
-            let t = s.contains("true");
-            let f = s.contains("false");
+        match &self.r#type {
+            SchemaType::Boolean | SchemaType::Yesno => {
+                let s = s.to_ascii_lowercase();
+                let t = if self.r#type == SchemaType::Boolean { s.contains("true")} else { s.contains("yes") };
+                let f = if self.r#type == SchemaType::Boolean { s.contains("false")} else { s.contains("no") };
 
-            return match (t, f) {
-                (true, false) => Ok(String::from("true")),
-                (false, true) => Ok(String::from("false")),
-                (true, true) => Err(String::from("Your output contains both `true` and `false`. Please be specific.")),
-                (false, false) => Err(String::from("I cannot find `boolean` in your output. Please make sure that your output contains a valid json value.")),
-            };
-        }
+                match (t, f) {
+                    (true, false) => Ok(String::from("true")),
+                    (false, true) => Ok(String::from("false")),
+                    (true, true) => if self.r#type == SchemaType::Boolean {
+                        Err(String::from("Your output contains both `true` and `false`. Please be specific."))
+                    } else {
+                        Err(String::from("Just say yes or no."))
+                    },
+                    (false, false) => if self.r#type == SchemaType::Boolean {
+                        Err(String::from("I cannot find `boolean` in your output. Please make sure that your output contains a valid json value."))
+                    } else {
+                        Err(String::from("Just say yes or no."))
+                    },
+                }
+            },
+            SchemaType::Null => {
+                let low = s.to_ascii_lowercase();
 
-        if let SchemaType::Null = &self.r#type {
-            let low = s.to_ascii_lowercase();
+                if low == "null" || low == "none" {
+                    Ok(String::from("null"))
+                }
 
-            if low == "null" || low == "none" {
-                return Ok(String::from("null"));
-            }
+                else {
+                    Err(format!("{s:?} is not null."))
+                }
+            },
+            SchemaType::String => Ok(format!("{s:?}")),
+            SchemaType::Code => Ok(format!("{:?}", try_extract_code_fence(s)?)),
+            _ => {
+                let re = match &self.r#type {
+                    SchemaType::Integer => &UNIQUE_INTEGER as &Regex,
+                    SchemaType::Float => &UNIQUE_FLOAT,
+                    SchemaType::Array(_) => &UNIQUE_ARRAY,
+                    SchemaType::Object(_) => &UNIQUE_OBJECT,
+                    _ => unreachable!(),
+                };
 
-            else {
-                return Err(format!("{s:?} is not null."));
-            }
-        }
-
-        let re = match &self.r#type {
-            SchemaType::Integer => &UNIQUE_INTEGER as &Regex,
-            SchemaType::Float => &UNIQUE_FLOAT,
-            SchemaType::Array(_) => &UNIQUE_ARRAY,
-            SchemaType::Object(_) => &UNIQUE_OBJECT,
-            SchemaType::String => unreachable!(),
-            SchemaType::Boolean => unreachable!(),
-            SchemaType::Null => unreachable!(),
-        };
-
-        match re.captures(s) {
-            Some(cap) => Ok(cap[1].to_string()),
-            None => Err(format!("I cannot find `{}` in your output. Please make sure that your output contains a valid json value.", self.type_name())),
+                match re.captures(s) {
+                    Some(cap) => Ok(cap[1].to_string()),
+                    None => Err(format!("I cannot find `{}` in your output. Please make sure that your output contains a valid json value.", self.type_name())),
+                }
+            },
         }
     }
 
@@ -384,14 +376,28 @@ impl Schema {
         }
     }
 
+    pub fn default_yesno() -> Self {
+        Schema {
+            r#type: SchemaType::Yesno,
+            constraint: None,
+        }
+    }
+
+    pub fn default_code() -> Self {
+        Schema {
+            r#type: SchemaType::Code,
+            constraint: None,
+        }
+    }
+
     pub fn add_constraint(&mut self, constraint: Constraint) {
-        assert!(self.constraint.is_none());
+        debug_assert!(self.constraint.is_none());
         self.constraint = Some(constraint);
     }
 
     pub fn validate_constraint(&self) -> Result<(), SchemaParseError> {
         match (&self.r#type, &self.constraint) {
-            (ty @ (SchemaType::Integer | SchemaType::Array(_) | SchemaType::String), Some(constraint)) => {
+            (ty @ (SchemaType::Integer | SchemaType::Array(_) | SchemaType::String | SchemaType::Code), Some(constraint)) => {
                 let mut min_ = i64::MIN;
                 let mut max_ = i64::MAX;
 
@@ -457,7 +463,7 @@ impl Schema {
 
                 Ok(())
             },
-            (ty @ (SchemaType::Null | SchemaType::Boolean | SchemaType::Object(_)), Some(constraint)) => {
+            (ty @ (SchemaType::Null | SchemaType::Boolean | SchemaType::Object(_) | SchemaType::Yesno), Some(constraint)) => {
                 if constraint.min.is_some() {
                     Err(SchemaParseError::InvalidConstraint(format!(
                         "Type `{}` cannot have constraint `min`",

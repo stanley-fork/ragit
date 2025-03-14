@@ -192,6 +192,8 @@ fn token_to_schema(tokens: &[Token], index: &mut usize) -> Result<Schema, Schema
             "int" | "integer" => Schema::default_integer(),
             "float" | "number" => Schema::default_float(),
             "bool" | "boolean" => Schema::default_boolean(),
+            "yesno" => Schema::default_yesno(),
+            "code" => Schema::default_code(),
             _ => {
                 return Err(SchemaParseError::UnexpectedToken(t.clone()));
             },
@@ -363,15 +365,3 @@ fn matching_delim(c: u8) -> u8 {
         _ => unreachable!(),
     }
 }
-
-// `"str"`
-// `str`
-// `{ "extracted_text": str, "explanation": str }`
-// `{ "keywords": [str], "extra": [str] }`
-// `{ "is_query": bool, "in_context": bool, "query": str }`
-// `[int] { min: 0, max: 3 }`
-// `[int] { min: 0, max: 10 }`
-// `{ "title": str, "summary": str }`
-// `{ "title": str, "summary": str { min: 200, max: 1000 } }`
-// `{ "title": str { min: 20, max: 100 }, "summary": str }`
-// `{ "title": str { min: 20, max: 100 }, "summary": str { min: 200, max: 1000 } }`
