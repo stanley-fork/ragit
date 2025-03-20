@@ -561,8 +561,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                     println!("{}", '{');
 
-                    for (k, v) in kv.iter() {
-                        println!("    {k:?}: {v},");
+                    for (i, (k, v)) in kv.iter().enumerate() {
+                        println!(
+                            "    {k:?}: {v}{}",
+                            if i != kv.len() - 1 { "," } else { "" },
+                        );
                     }
 
                     println!("{}", '}');
