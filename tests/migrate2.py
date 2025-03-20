@@ -7,10 +7,10 @@ def migrate2():
     goto_root()
     mk_and_cd_tmp_dir()
     errors = []
-    curr_version = "0.3.4"
+    curr_version = "0.3.5"
 
     # ragit 0.2.1 or older versions are not compatible with the current implementation of ragit-server
-    for old_version in ["0.3.0", "0.3.1", "0.3.2", "0.3.3"]:
+    for old_version in ["0.3.0", "0.3.1", "0.3.2", "0.3.3", "0.3.4", "0.3.5"]:
         checkout(old_version)
 
         for url in [
