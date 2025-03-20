@@ -371,12 +371,13 @@ impl Index {
     pub(crate) async fn load_chunks_or_tfidf(
         &self,
         query: &str,
+        limit: usize,
     ) -> Result<Vec<Chunk>, Error> {
-        if self.chunk_count > self.query_config.max_summaries {
+        if self.chunk_count > limit {
             let keywords = self.extract_keywords(query).await?;
             let tfidf_results = self.run_tfidf(
                 keywords,
-                self.query_config.max_summaries,
+                limit,
             )?;
             let mut chunks = Vec::with_capacity(tfidf_results.len());
 

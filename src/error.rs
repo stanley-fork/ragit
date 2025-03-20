@@ -82,6 +82,9 @@ pub enum Error {
     /// see <https://docs.rs/url/latest/url/enum.ParseError.html>
     UrlParseError(url::ParseError),
 
+    /// see <https://docs.rs/tokio/latest/tokio/task/struct.JoinError.html>
+    JoinError(tokio::task::JoinError),
+
     FileError(FileError),
     StdIoError(std::io::Error),
     Utf8Error(FromUtf8Error),
@@ -138,6 +141,12 @@ impl From<FromUtf8Error> for Error {
 impl From<url::ParseError> for Error {
     fn from(e: url::ParseError) -> Error {
         Error::UrlParseError(e)
+    }
+}
+
+impl From<tokio::task::JoinError> for Error {
+    fn from(e: tokio::task::JoinError) -> Error {
+        Error::JoinError(e)
     }
 }
 

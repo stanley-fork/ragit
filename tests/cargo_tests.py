@@ -10,6 +10,7 @@ def run_cargo_test() -> list[str]:
     for action in [
         ["cargo", "test"],
         ["cargo", "test", "--release"],
+        ["cargo", "doc"],
     ]:
         result = subprocess.run(action, capture_output=True, text=True)
 

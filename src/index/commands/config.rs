@@ -1,10 +1,30 @@
 use super::{BuildConfig, Index};
 use crate::{ApiConfig, QueryConfig};
 use crate::error::Error;
+use lazy_static::lazy_static;
 use ragit_api::JsonType;
 use ragit_fs::{WriteMode, read_string, write_bytes, write_string};
 use serde_json::Value;
 use std::collections::HashMap;
+
+// This is a design mistake. I should have put all the configs in a single file.
+#[allow(dead_code)]
+enum ConfigType {
+    Build,
+    Query,
+    Api,
+}
+
+lazy_static! {
+    // These keys are added to ragit after the release of v0.1.1, so old knowledge-bases
+    // might not have these keys in their config files. `rag config` command takes special
+    // care to these keys.
+    static ref NEWLY_ADDED_CONFIGS: HashMap<String, (Value, ConfigType)> = vec![
+        ("super_rerank", (Value::Bool(false), ConfigType::Query)),
+    ].into_iter().map(
+        |(key, value)| (key.to_string(), value)
+    ).collect();
+}
 
 impl Index {
     pub fn get_config_by_key(&self, key: String) -> Result<Value, Error> {
@@ -30,13 +50,19 @@ impl Index {
             }
         }
 
-        Err(Error::InvalidConfigKey(key))
+        if let Some((value, _)) = NEWLY_ADDED_CONFIGS.get(&key) {
+            Ok(value.clone())
+        }
+
+        else {
+            Err(Error::InvalidConfigKey(key))
+        }
     }
 
     /// It returns `Vec` instead of `HashMap` or `Json` since `Vec` is easier to sort by key.
     /// It does not sort the keys. It's your responsibility to do that.
     pub fn get_all_configs(&self) -> Result<Vec<(String, Value)>, Error> {
-        let mut result = vec![];
+        let mut result = HashMap::new();
 
         for path in [
             self.get_build_config_path()?,
@@ -49,7 +75,7 @@ impl Index {
             match j {
                 Value::Object(obj) => {
                     for (k, v) in obj.iter() {
-                        result.push((k.to_string(), v.clone()));
+                        result.insert(k.to_string(), v.clone());
                     }
                 },
                 _ => {
@@ -61,7 +87,13 @@ impl Index {
             }
         }
 
-        Ok(result)
+        for (k, (v, _)) in NEWLY_ADDED_CONFIGS.iter() {
+            if !result.contains_key(k) {
+                result.insert(k.to_string(), v.clone());
+            }
+        }
+
+        Ok(result.into_iter().collect())
     }
 
     /// It returns the previous value, if exists.
@@ -143,7 +175,26 @@ impl Index {
         }
 
         if !updated {
-            return Err(Error::InvalidConfigKey(key));
+            if let Some((value, config)) = NEWLY_ADDED_CONFIGS.get(&key) {
+                let config_path = match config {
+                    ConfigType::Build => self.get_build_config_path()?,
+                    ConfigType::Query => self.get_query_config_path()?,
+                    ConfigType::Api => self.get_api_config_path()?,
+                };
+                let j = read_string(&config_path)?;
+                let mut j = serde_json::from_str::<Value>(&j)?;
+                let Value::Object(obj) = &mut j else { unreachable!() };
+                obj.insert(key.clone(), value.clone());
+                write_bytes(
+                    &config_path,
+                    &serde_json::to_vec_pretty(&j)?,
+                    WriteMode::CreateOrTruncate,
+                )?;
+            }
+
+            else {
+                return Err(Error::InvalidConfigKey(key));
+            }
         }
 
         self.build_config = serde_json::from_str::<BuildConfig>(

@@ -50,8 +50,8 @@ impl Tree {
         }
     }
 
-    // converts `Leaf::Count` to `Leaf::Range`
-    pub fn mark_range(&mut self, cur: &mut usize) {
+    // It converts `Leaf::Count` to `Leaf::Range`
+    pub(crate) fn mark_range(&mut self, cur: &mut usize) {
         match self {
             Tree::Leaf(Leaf::Count(n)) => {
                 let n = *n;
@@ -64,6 +64,60 @@ impl Tree {
                     child.mark_range(cur);
                 }
             },
+        }
+    }
+
+    // Do not call this function after `mark_range`.
+    #[allow(unused)]
+    pub(crate) fn flatten(&self) -> Vec<usize> {
+        match self {
+            Tree::Leaf(leaf) => vec![leaf.unwrap_count()],
+            Tree::Node(leaves) => {
+                let mut result = Vec::with_capacity(leaves.len());
+
+                for leaf in leaves.iter() {
+                    match leaf {
+                        Tree::Leaf(leaf) => { result.push(leaf.unwrap_count()); },
+                        Tree::Node(_) => { result.append(&mut leaf.flatten()); },
+                    }
+                }
+
+                result
+            },
+        }
+    }
+
+    pub(crate) fn flatten_range(&self) -> Vec<(usize, usize)> {
+        match self {
+            Tree::Leaf(leaf) => vec![leaf.unwrap_range()],
+            Tree::Node(leaves) => {
+                let mut result = Vec::with_capacity(leaves.len());
+
+                for leaf in leaves.iter() {
+                    match leaf {
+                        Tree::Leaf(leaf) => { result.push(leaf.unwrap_range()); },
+                        Tree::Node(_) => { result.append(&mut leaf.flatten_range()); },
+                    }
+                }
+
+                result
+            },
+        }
+    }
+}
+
+impl Leaf {
+    pub(crate) fn unwrap_count(&self) -> usize {
+        match self {
+            Leaf::Count(n) => *n,
+            _ => panic!(),
+        }
+    }
+
+    pub(crate) fn unwrap_range(&self) -> (usize, usize) {
+        match self {
+            Leaf::Range { from, to } => (*from, *to),
+            _ => panic!(),
         }
     }
 }
@@ -118,6 +172,7 @@ mod tests {
         assert_eq!(generate_tree(8, 10), Tree::Leaf(Leaf::Count(8)));
         assert_eq!(generate_tree(12, 10), Tree::Node(vec![Tree::Leaf(Leaf::Count(6)), Tree::Leaf(Leaf::Count(6))]));
         assert_eq!(generate_tree(30, 10), Tree::Node(vec![Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10))]));
+        assert_eq!(generate_tree(30, 10).flatten(), vec![10, 10, 10]);
         assert_eq!(generate_tree(210, 10), Tree::Node(vec![
             Tree::Node(vec![
                 Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10)),
@@ -132,6 +187,13 @@ mod tests {
                 Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10)), Tree::Leaf(Leaf::Count(10)),
             ]),
         ]));
+        assert_eq!(generate_tree(210, 10).flatten(), vec![
+            10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10,
+            10, 10, 10, 10, 10, 10, 10,
+        ]);
+        assert_eq!(generate_tree(30, 8), Tree::Node(vec![Tree::Leaf(Leaf::Count(8)), Tree::Leaf(Leaf::Count(8)), Tree::Leaf(Leaf::Count(7)), Tree::Leaf(Leaf::Count(7))]));
+        assert_eq!(generate_tree(30, 8).flatten(), vec![8, 8, 7, 7]);
     }
 
     #[test]
@@ -149,6 +211,10 @@ mod tests {
                     Tree::Leaf(Leaf::Range { from: 15, to: 20 }), Tree::Leaf(Leaf::Range { from: 20, to: 25 }), Tree::Leaf(Leaf::Range { from: 25, to: 30 }),
                 ]),
             ]),
+        );
+        assert_eq!(
+            t.flatten_range(),
+            vec![(0, 5), (5, 10), (10, 15), (15, 20), (20, 25), (25, 30)],
         );
     }
 }

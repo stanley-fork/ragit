@@ -47,32 +47,32 @@ A recommended way of reading/writing config is `rag config` command.
 // compression_threshold: 2048,
 // compression_level: 3,
 struct BuildConfig {
-    // it's not a max_chunk_size, and it's impossible to make every chunk have the same size because
-    // 1. an image cannot be splitted
-    // 2. different files cannot be merged
-    // but it's guaranteed that a chunk is never bigger than chunk_size * 2
+    /// It's not a max_chunk_size, and it's impossible to make every chunk have the same size because
+    ///
+    /// 1. An image cannot be splitted.
+    /// 2. Different files cannot be merged.
+    ///
+    /// But it's guaranteed that a chunk is never bigger than chunk_size * 2.
     chunk_size: usize,
 
     slide_len: usize,
 
-    // an image is treated like an N characters string
-    // this is N
+    /// An image is treated like an N characters string, and this is N.
     image_size: usize,
 
     min_summary_len: usize,
     max_summary_len: usize,
 
-    // If it's set, `rag build` panics if there's any error with a file.
-    // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
-    // If it cannot follow a link of an image in a markdown file, it would die.
-    // You don't need this option unless you're debugging ragit itself.
+    /// If it's set, `rag build` panics if there's any error with a file.
+    /// For example, if there's an invalid utf-8 character `PlainTextReader` would die.
+    /// If it cannot follow a link of an image in a markdown file, it would die.
+    /// You don't need this option unless you're debugging ragit itself.
     strict_file_reader: bool,
 
-    // if the `.chunks` file is bigger than this (in bytes),
-    // the file is compressed
+    /// If the `.chunks` file is bigger than this (in bytes), the file is compressed
     compression_threshold: u64,
 
-    // 0 ~ 9
+    /// 0 ~ 9
     compression_level: u32,
 }
 
@@ -81,6 +81,7 @@ struct BuildConfig {
 // max_summaries: 10,
 // max_retrieval: 3,
 // enable_ii: true,
+// super_rerank: false,
 struct QueryConfig {
     /// This is deprecated and not used any more. It's here for backward compatibility.
     max_titles: usize,
@@ -95,6 +96,10 @@ struct QueryConfig {
     /// It doesn't automatically build an inverted index when it's missing. You
     /// have to run `rag ii build` manually to build the index.
     enable_ii: bool,
+
+    /// If it's enabled, it runs `rerank_summary.pdl` multiple times (usually 5 times) with much more candidates.
+    /// It takes more time and money, but is likely to yield better result.
+    super_rerank: bool,
 }
 
 // default values
@@ -107,26 +112,26 @@ struct QueryConfig {
 // sleep_after_llm_call: None,
 // model: "llama3.3-70b-groq",
 struct ApiConfig {
-    // This value is NOT used anymore. It's here for backward-compatibility
-    // You have to use env var or `models.json`.
+    /// This value is NOT used anymore. It's here for backward-compatibility.
+    /// You have to use env var or `models.json`.
     api_key: Option<String>,
 
-    // run `rag ls-models` to see the list
+    /// Run `rag ls-models` to see the list of the models.
     model: String,
     timeout: Option<u64>,
     sleep_between_retries: u64,
     max_retry: usize,
 
-    // in milliseconds
-    // if you see 429 too often, use this option
+    /// It's in milliseconds.
+    /// If you see 429 too often, use this option.
     sleep_after_llm_call: Option<u64>,
 
-    // it records every LLM conversation, including failed ones
-    // it's useful if you wanna know what's going on!
-    // but be careful, it would take a lot of space
+    /// It records every LLM conversation, including failed ones.
+    /// It's useful if you wanna know what's going on!
+    /// But be careful, it would take a lot of space.
     dump_log: bool,
 
-    // it records how many tokens are used
+    /// It records how many tokens are used.
     dump_api_usage: bool,
 }
 ```

@@ -2,6 +2,7 @@ use chrono::Local;
 use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
+use crate::tree::generate_tree;
 use ragit_api::Request;
 use ragit_pdl::{
     Pdl,
@@ -10,6 +11,7 @@ use ragit_pdl::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use tokio::task::JoinSet;
 
 pub mod config;
 mod keyword;
@@ -41,14 +43,48 @@ impl QueryTurn {
 }
 
 impl Index {
-    pub async fn retrieve_chunks(&self, query: &str) -> Result<Vec<Chunk>, Error> {
-        let mut chunks = self.load_chunks_or_tfidf(query).await?;
+    /// It retrieves chunks that are related to `query`. If `super_rerank` is set, it calls `summaries_to_chunks` multiple times.
+    /// That takes longer time, but is likely to have a better result.
+    pub async fn retrieve_chunks(&self, query: &str, super_rerank: bool) -> Result<Vec<Chunk>, Error> {
+        let max_summaries = self.query_config.max_summaries;
+        let max_retrieval = self.query_config.max_retrieval;
+        let tfidf_limit = if super_rerank { max_summaries * 4 } else { max_summaries };
+        let mut chunks = self.load_chunks_or_tfidf(query, tfidf_limit).await?;
 
-        if chunks.len() > self.query_config.max_retrieval {
+        // Let's say `max_summaries` is 10 and `chunks.len()` is 40. That means the LLM can handle at most 10 chunks at a time,
+        // but 40 chunks are given. So, it calls LLMs 4 times: the first call with the first 10 chunks, the next call with the next
+        // 10 chunks, ... In each call, the LLM is asked to select at most 5 relevant chunks in the given 10 chunks.
+        // Then it collects the chunks from the 4 LLM calls. If `chunks.len()` is still greater than 10, it does the same thing again.
+        while chunks.len() > max_summaries {  // when `super_rerank` is set
+            let mut t = generate_tree(chunks.len(), max_summaries);
+            t.mark_range(&mut 0);
+            let ranges = t.flatten_range();
+            let each_chunk = ranges.iter().map(|(from, to)| chunks[*from..*to].to_vec()).collect::<Vec<Vec<Chunk>>>();
+            let mut join_set = JoinSet::new();
+            let mut new_chunks = vec![];
+
+            for ec in each_chunk.iter() {
+                let index = self.clone();
+                let query = query.to_string();
+                let ec = ec.to_vec();
+
+                join_set.spawn(async move {
+                    index.summaries_to_chunks(&query, ec, max_retrieval.max(max_summaries / 2)).await
+                });
+            }
+
+            while let Some(res) = join_set.join_next().await {
+                new_chunks.append(&mut res??);
+            }
+
+            chunks = new_chunks;
+        }
+
+        if chunks.len() > max_retrieval {
             chunks = self.summaries_to_chunks(
                 query,
-                chunks.into_iter().map(|c| c.into()).collect(),
-                self.query_config.max_retrieval,
+                chunks,
+                max_retrieval,
             ).await?;
         }
 
@@ -83,7 +119,7 @@ impl Index {
 
             (Some(multi_turn_schema), query)
         };
-        let chunks = self.retrieve_chunks(&query).await?;
+        let chunks = self.retrieve_chunks(&query, self.query_config.super_rerank).await?;
 
         let response = if chunks.is_empty() {
             let mut history_turns = Vec::with_capacity(history.len() * 2);

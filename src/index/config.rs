@@ -45,32 +45,34 @@ impl PartialBuildConfig {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct BuildConfig {
-    // it's not a max_chunk_size, and it's impossible to make every chunk have the same size because
-    // 1. an image cannot be splitted
-    // 2. different files cannot be merged
-    // but it's guaranteed that a chunk is never bigger than chunk_size * 2
+    /// It's not a max_chunk_size, and it's impossible to make every chunk have the same size because
+    ///
+    /// 1. An image cannot be splitted.
+    /// 2. Different files cannot be merged.
+    ///
+    /// But it's guaranteed that a chunk is never bigger than chunk_size * 2.
     pub chunk_size: usize,
 
     pub slide_len: usize,
 
-    // an image is treated like an N characters string
-    // this is N
+    /// An image is treated like an N characters string, and this is N.
     pub image_size: usize,
 
+    /// It forces the LLM to generate a summary that has at least `min_summary_len` characters
+    /// and at most `max_summary_len` characters.
     pub min_summary_len: usize,
     pub max_summary_len: usize,
 
-    // If it's set, `rag build` panics if there's any error with a file.
-    // For example, if there's an invalid utf-8 character `PlainTextReader` would die.
-    // If it cannot follow a link of an image in a markdown file, it would die.
-    // You don't need this option unless you're debugging ragit itself.
+    /// If it's set, `rag build` panics if there's any error with a file.
+    /// For example, if there's an invalid utf-8 character `PlainTextReader` would die.
+    /// If it cannot follow a link of an image in a markdown file, it would die.
+    /// You don't need this option unless you're debugging ragit itself.
     pub strict_file_reader: bool,
 
-    // if the `.chunks` file is bigger than this (in bytes),
-    // the file is compressed
+    /// If the `.chunks` file is bigger than this (in bytes), the file is compressed
     pub compression_threshold: u64,
 
-    // 0 ~ 9
+    /// 0 ~ 9
     pub compression_level: u32,
 }
 

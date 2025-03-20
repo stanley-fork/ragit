@@ -15,6 +15,8 @@ def extract_struct(
     original_name: str,
     rename_to: Optional[str],
     remove_pub_keywords: bool,
+    remove_internal_comments: bool = True,
+    remove_derives: bool = True,
 ) -> str:
     extracted = re.search(r"struct\s*" + original_name + r"\s*\{[^{}]+\}", haystack, re.DOTALL).group(0)
 
@@ -32,6 +34,26 @@ def extract_struct(
             extracted,
             flags=re.MULTILINE,
         )
+
+    if remove_internal_comments:
+        lines = extracted.split("\n")
+        extracted = []
+
+        for line in lines:
+            if re.match(r"^\s*//\s+.+", line) is None:
+                extracted.append(line)
+
+        extracted = "\n".join(extracted)
+
+    if remove_derives:
+        lines = extracted.split("\n")
+        extracted = []
+
+        for line in lines:
+            if re.match(r"^\s*\#\[.+\].*", line) is None:
+                extracted.append(line)
+
+        extracted = "\n".join(extracted)
 
     return extracted
 

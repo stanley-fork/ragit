@@ -7,6 +7,7 @@ from cat_file import cat_file
 from cli import cli
 from clone import clone
 from clone2 import clone2
+from config import config
 from csv_reader import csv_reader
 from empty import empty
 from end_to_end import end_to_end
@@ -145,6 +146,10 @@ Commands
     migrate2                    run `migrate2` test
                                 Like `migrate`, but clones knowledge-bases from web instead
                                 of creating a mock knowledge-base.
+
+    config                      run `config` test
+                                I have added new configs to ragit 0.3.5. And I want to see
+                                if it's compatible with older versions.
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -316,6 +321,9 @@ if __name__ == "__main__":
         elif command == "migrate2":
             migrate2()
 
+        elif command == "config":
+            config()
+
         elif command == "archive":
             archive()
 
@@ -485,6 +493,7 @@ if __name__ == "__main__":
                 ("test_home_config_override", test_home_config_override),
                 ("migrate", migrate),
                 ("migrate2", migrate2),
+                ("config", config),
             ]
             started_at = datetime.now()
             has_error = False

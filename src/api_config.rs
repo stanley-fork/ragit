@@ -56,26 +56,26 @@ impl PartialApiConfig {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct ApiConfig {
-    // This value is NOT used anymore. It's here for backward-compatibility
-    // You have to use env var or `models.json`.
+    /// This value is NOT used anymore. It's here for backward-compatibility.
+    /// You have to use env var or `models.json`.
     pub api_key: Option<String>,
 
-    // run `rag ls-models` to see the list
+    /// Run `rag ls-models` to see the list of the models.
     pub model: String,
     pub timeout: Option<u64>,
     pub sleep_between_retries: u64,
     pub max_retry: usize,
 
-    // in milliseconds
-    // if you see 429 too often, use this option
+    /// It's in milliseconds.
+    /// If you see 429 too often, use this option.
     pub sleep_after_llm_call: Option<u64>,
 
-    // it records every LLM conversation, including failed ones
-    // it's useful if you wanna know what's going on!
-    // but be careful, it would take a lot of space
+    /// It records every LLM conversation, including failed ones.
+    /// It's useful if you wanna know what's going on!
+    /// But be careful, it would take a lot of space.
     pub dump_log: bool,
 
-    // it records how many tokens are used
+    /// It records how many tokens are used.
     pub dump_api_usage: bool,
 }
 
