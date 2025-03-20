@@ -7,6 +7,7 @@ pub struct PartialQueryConfig {
     pub max_summaries: Option<usize>,
     pub max_retrieval: Option<usize>,
     pub enable_ii: Option<bool>,
+    pub enable_rag: Option<bool>,
     pub super_rerank: Option<bool>,
 }
 
@@ -31,6 +32,10 @@ impl PartialQueryConfig {
     }
 }
 
+// Some fields are added after v0.1.1 and old config files might not have this field. So
+// such field has to be decorated with `#[serde(default)]`. There's a small quirk
+// with using `serde(default)`: `rag config --set super_rerank 0` is supposed to fail (a type error),
+// but it does not fail and fallbacks to the default function.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct QueryConfig {
     /// This is deprecated and not used any more. It's here for backward compatibility.
@@ -47,9 +52,11 @@ pub struct QueryConfig {
     /// have to run `rag ii-build` manually to build the index.
     pub enable_ii: bool,
 
-    // This field is added at v0.3.5 and old config files might not have this field. There's a small quirk
-    // with using `serde(default)`: `rag config --set super_rerank 0` is supposed to fail (a type error),
-    // but it does not fail and fallbacks to the default function.
+    /// You can disable the entire rag pipeline. If it's set, ragit never retrieves
+    /// any chunk from the knowledge-base.
+    #[serde(default = "_true")]
+    pub enable_rag: bool,
+
     #[serde(default = "_false")]
     /// If it's enabled, it runs `rerank_summary.pdl` multiple times (usually 5 times) with much more candidates.
     /// It takes more time and money, but is likely to yield better result.
@@ -60,6 +67,10 @@ fn _false() -> bool {
     false
 }
 
+fn _true() -> bool {
+    true
+}
+
 impl Default for QueryConfig {
     fn default() -> Self {
         QueryConfig {
@@ -67,6 +78,7 @@ impl Default for QueryConfig {
             max_summaries: 10,
             max_retrieval: 3,
             enable_ii: true,
+            enable_rag: true,
             super_rerank: false,
         }
     }

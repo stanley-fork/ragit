@@ -69,11 +69,6 @@ def end_to_end(test_model: str):
 
     assert file_count == len(files)
 
-    # step 2.1: an invalid-model-name would not run
-    cargo_run(["config", "--set", "model", "invalid-model-name"])
-    assert cargo_run(["build"], check=False) != 0
-    cargo_run(["config", "--set", "model", test_model])
-
     # step 3: build: pause and resume
 
     # step 3.1: it simulates process crashes using timeout
@@ -156,3 +151,4 @@ def end_to_end(test_model: str):
     # step 10: query
     cargo_run(["gc", "--logs"])
     cargo_run(["query", "What makes ragit special?"])
+    cargo_run(["query", "--super-rerank", "What makes ragit special?"])

@@ -60,6 +60,8 @@ struct BuildConfig {
     /// An image is treated like an N characters string, and this is N.
     image_size: usize,
 
+    /// It forces the LLM to generate a summary that has at least `min_summary_len` characters
+    /// and at most `max_summary_len` characters.
     min_summary_len: usize,
     max_summary_len: usize,
 
@@ -81,6 +83,7 @@ struct BuildConfig {
 // max_summaries: 10,
 // max_retrieval: 3,
 // enable_ii: true,
+// enable_rag: true,
 // super_rerank: false,
 struct QueryConfig {
     /// This is deprecated and not used any more. It's here for backward compatibility.
@@ -94,8 +97,12 @@ struct QueryConfig {
 
     /// If it's enabled, it uses an inverted index when running tf-idf search.
     /// It doesn't automatically build an inverted index when it's missing. You
-    /// have to run `rag ii build` manually to build the index.
+    /// have to run `rag ii-build` manually to build the index.
     enable_ii: bool,
+
+    /// You can disable the entire rag pipeline. If it's set, ragit never retrieves
+    /// any chunk from the knowledge-base.
+    enable_rag: bool,
 
     /// If it's enabled, it runs `rerank_summary.pdl` multiple times (usually 5 times) with much more candidates.
     /// It takes more time and money, but is likely to yield better result.

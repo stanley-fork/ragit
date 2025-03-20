@@ -46,6 +46,10 @@ impl Index {
     /// It retrieves chunks that are related to `query`. If `super_rerank` is set, it calls `summaries_to_chunks` multiple times.
     /// That takes longer time, but is likely to have a better result.
     pub async fn retrieve_chunks(&self, query: &str, super_rerank: bool) -> Result<Vec<Chunk>, Error> {
+        if !self.query_config.enable_rag || self.chunk_count == 0 {
+            return Ok(vec![]);
+        }
+
         let max_summaries = self.query_config.max_summaries;
         let max_retrieval = self.query_config.max_retrieval;
         let tfidf_limit = if super_rerank { max_summaries * 4 } else { max_summaries };
@@ -105,21 +109,22 @@ impl Index {
         q: &str,
         history: Vec<QueryTurn>,
     ) -> Result<QueryResponse, Error> {
-        let (multi_turn_schema, query) = if history.is_empty() {
+        // There's no need to rephrase the query if the rag pipeline is disabled.
+        let (multi_turn_schema, rephrased_query) = if history.is_empty() || !self.query_config.enable_rag || self.chunk_count == 0 {
             (None, q.to_string())
         } else {
             let multi_turn_schema = self.rephrase_multi_turn(
                 select_turns_for_context(&history, q),
             ).await?;
-            let query = if multi_turn_schema.is_query && multi_turn_schema.in_context {
+            let rephrased_query = if multi_turn_schema.is_query && multi_turn_schema.in_context {
                 multi_turn_schema.query.clone()
             } else {
                 q.to_string()
             };
 
-            (Some(multi_turn_schema), query)
+            (Some(multi_turn_schema), rephrased_query)
         };
-        let chunks = self.retrieve_chunks(&query, self.query_config.super_rerank).await?;
+        let chunks = self.retrieve_chunks(&rephrased_query, self.query_config.super_rerank).await?;
 
         let response = if chunks.is_empty() {
             let mut history_turns = Vec::with_capacity(history.len() * 2);
@@ -135,7 +140,7 @@ impl Index {
             ).await?
         } else {
             self.answer_query_with_chunks(
-                &query,
+                &rephrased_query,
                 merge_and_convert_chunks(self, chunks.clone(), true /* render image */)?,
             ).await?
         };

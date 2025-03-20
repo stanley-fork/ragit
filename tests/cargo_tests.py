@@ -1,6 +1,5 @@
 import os
 import subprocess
-from subprocess import CalledProcessError
 from utils import goto_root
 
 # returns error messages, if exists

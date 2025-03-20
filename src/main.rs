@@ -1391,6 +1391,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--interactive", "--multi-turn"])
                 .optional_flag(&["--json"])
+                .optional_flag(&["--enable-ii", "--disable-ii"])
+                .optional_flag(&["--enable-rag", "--disable-rag"])
+                .optional_flag(&["--super-rerank", "--no-super-rerank"])
+                .optional_arg_flag("--max-summaries", ArgType::UnsignedInteger)
+                .optional_arg_flag("--max-retrieval", ArgType::UnsignedInteger)
                 .short_flag(&["--interactive"])
                 .args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
 
@@ -1399,7 +1404,28 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
-            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+
+            if let Some(enable_ii) = parsed_args.get_flag(2) {
+                index.query_config.enable_ii = enable_ii == "--enable-ii";
+            }
+
+            if let Some(enable_rag) = parsed_args.get_flag(3) {
+                index.query_config.enable_rag = enable_rag == "--enable-rag";
+            }
+
+            if let Some(super_rerank) = parsed_args.get_flag(4) {
+                index.query_config.super_rerank = super_rerank == "--super-rerank";
+            }
+
+            if let Some(max_summaries) = parsed_args.arg_flags.get("--max-summaries") {
+                index.query_config.max_summaries = max_summaries.parse().unwrap();
+            }
+
+            if let Some(max_retrieval) = parsed_args.arg_flags.get("--max-retrieval") {
+                index.query_config.max_retrieval = max_retrieval.parse().unwrap();
+            }
+
             let interactive_mode = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
 

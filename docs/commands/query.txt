@@ -8,11 +8,15 @@ rag-query - Query on knowledge-bases
 SYNOPSIS
 --------
 [verse]
-'rag query' <query> [--json]
-'rag query' --interactive | -i | --multi-turn
+'rag query' <query> [--json] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
+'rag query' --interactive | -i | --multi-turn [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
 
 DESCRIPTION
 -----------
 Ask AI about the knowledge-base.
+
+You can override the query configurations with cli options. For example,
+if you run `rag query --max-retrieval=5 <QUERY>`, it will retrieve at most 5 chunks regardless
+of the configuration. It's temporary, it doesn't write to the config file.
 
 If `--json` is set, it dumps the result as a json. The json contains AI's response and retrieved chunks.

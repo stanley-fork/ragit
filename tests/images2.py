@@ -38,6 +38,7 @@ def images2(test_model: str):
         j = json.load(f)
         extracted_text = j['extracted_text'].lower()
 
+    # It's practically correct, but not formally correct.
     assert "hello" in extracted_text
     assert "world" in extracted_text
 

@@ -30,6 +30,7 @@ from migrate2 import migrate2
 from models_init import models_init, test_home_config_override
 from orphan_process import orphan_process
 from prompts import prompts
+from query_options import query_options
 from ragit_api import ragit_api
 from recover import recover
 from server import server
@@ -131,6 +132,9 @@ Commands
 
     server2 [model=dummy]       run `server2` test
                                 It tests chat-related endpoints of ragit-server.
+
+    query_options [model]       run `query_options` test
+                                It tests various option flags of `rag query`.
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
@@ -263,7 +267,7 @@ if __name__ == "__main__":
 
     else:
         now = datetime.now()
-        seed = int(f"{now.year}{now.month}{now.day}{now.hour}{now.minute}{now.second}")
+        seed = int(f"{now.year:04}{now.month:02}{now.day:02}{now.hour:02}{now.minute:02}{now.second:02}")
 
     command = args[1] if len(args) > 1 else None
     test_model = args[2] if len(args) > 2 else None
@@ -304,6 +308,13 @@ if __name__ == "__main__":
         elif command == "server2":
             test_model = test_model or "dummy"
             server2(test_model=test_model)
+
+        elif command == "query_options":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            query_options(test_model=test_model)
 
         elif command == "cli":
             cli()
@@ -489,6 +500,7 @@ if __name__ == "__main__":
                 ("orphan_process llama3.3-70b", lambda: orphan_process(test_model="llama3.3-70b")),
                 ("write_lock llama3.3-70b", lambda: write_lock(test_model="llama3.3-70b")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
+                ("query_options llama3.3-70b", lambda: query_options(test_model="llama3.3-70b")),
                 ("models_init", models_init),
                 ("test_home_config_override", test_home_config_override),
                 ("migrate", migrate),

@@ -21,6 +21,7 @@ lazy_static! {
     // care to these keys.
     static ref NEWLY_ADDED_CONFIGS: HashMap<String, (Value, ConfigType)> = vec![
         ("super_rerank", (Value::Bool(false), ConfigType::Query)),
+        ("enable_rag", (Value::Bool(true), ConfigType::Query)),
     ].into_iter().map(
         |(key, value)| (key.to_string(), value)
     ).collect();
