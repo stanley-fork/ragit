@@ -176,7 +176,7 @@ impl Index {
         }
 
         if !updated {
-            if let Some((value, config)) = NEWLY_ADDED_CONFIGS.get(&key) {
+            if let Some((default_value, config)) = NEWLY_ADDED_CONFIGS.get(&key) {
                 let config_path = match config {
                     ConfigType::Build => self.get_build_config_path()?,
                     ConfigType::Query => self.get_query_config_path()?,
@@ -185,7 +185,7 @@ impl Index {
                 let j = read_string(&config_path)?;
                 let mut j = serde_json::from_str::<Value>(&j)?;
                 let Value::Object(obj) = &mut j else { unreachable!() };
-                obj.insert(key.clone(), value.clone());
+                obj.insert(key.clone(), JsonType::from(default_value).parse(&value)?);
                 write_bytes(
                     &config_path,
                     &serde_json::to_vec_pretty(&j)?,
