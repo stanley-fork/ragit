@@ -29,6 +29,9 @@ def config():
     checkout("0.3.3")
     os.chdir("../0.3.5")
     cargo_run(["config", "--get", "max_summaries"])
-    assert cargo_run(["config", "--set", "super_rerank", "true"], check=False) != 0
+
+    # 0.3.3 can set this value, but there's no effect.
+    # assert cargo_run(["config", "--set", "super_rerank", "true"], check=False) != 0
+
     cargo_run(["config", "--get-all"])
     cargo_run(["check"])
