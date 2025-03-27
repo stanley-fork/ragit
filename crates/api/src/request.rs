@@ -133,7 +133,7 @@ impl Request {
                 result.insert(String::from("messages"), messages.into());
 
                 if let Some(temperature) = self.temperature {
-                    result.insert(String::from("temperature"), temperature.into()).unwrap();
+                    result.insert(String::from("temperature"), temperature.into());
                 }
 
                 if let Some(frequency_penalty) = self.frequency_penalty {
