@@ -62,9 +62,9 @@ def ii_worker():
     #    It's goal is to make sure that the approximation is close enough.
     # 5. Rules
     #    - If answer has >= 10 chunks and approximation has >= 10 chunks,
-    #      - the top 3 of each other must be included in the top 10 of the other.
+    #      - The top 3 of each set must be included in the top 10 of the other.
     #    - If answer has < 10 chunks and approximation has < 10 chunks,
-    #      - The set of chunks must be the same.
+    #      - The set of the chunks must be the same.
     #    - Otherwise,
     #      - Error
     terms = generate_terms()
@@ -133,6 +133,7 @@ def generate_terms():
             dictionary.append((r.group(1), int(r.group(2))))
             words.add(r.group(1))
 
+    dictionary.sort(key=lambda x: x[0])  # For deterministic result
     dictionary.sort(key=lambda x: x[1], reverse=True)
     dictionary = [term for term, _ in dictionary]
 

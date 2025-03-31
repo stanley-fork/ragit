@@ -555,8 +555,10 @@ impl Index {
     ) -> Result<Vec<TfidfResult<Uid>>, Error> {
         let mut tfidf_state = TfidfState::new(&keywords);
 
-        // TODO: it must be configurable, or at least do much more experiment on this
-        let ii_coeff = 20;
+        // TODO: I'm still trying to figure out the best value for `ii_coeff`.
+        //       I found that 20 is too small. 50 works on most cases, but `tests/ii.py` is still failing.
+        // TODO: How about making it configurable?
+        let ii_coeff = 50;
 
         if self.query_config.enable_ii && self.is_ii_built() {
             for chunk_uid in self.get_search_candidates(
