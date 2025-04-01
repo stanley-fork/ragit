@@ -1,24 +1,17 @@
 // First and foremost goal of schema validation is to give nice error messages to LLMs.
 
-use lazy_static::lazy_static;
-use regex::Regex;
 use serde_json::Value;
 use std::collections::HashSet;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-lazy_static! {
-    static ref UNIQUE_INTEGER: Regex = Regex::new(r"^[^0-9]*([0-9]+)[^0-9]*$").unwrap();
-    static ref UNIQUE_FLOAT: Regex = Regex::new(r"^[^0-9]*([0-9]+(?:\.[0-9]+)?)[^0-9]*$").unwrap();
-    static ref UNIQUE_ARRAY: Regex = Regex::new(r"(?s)[^\[\]]*(\[.*\])[^\[\]]*").unwrap();
-    static ref UNIQUE_OBJECT: Regex = Regex::new(r"(?s)[^{}]*(\{.*\})[^{}]*").unwrap();
-}
-
 mod code_fence;
 mod parse;
+mod parse_value;
 
 pub use code_fence::try_extract_code_fence;
 pub use parse::{SchemaParseError, parse_schema};
+use parse_value::{JsonMatch, extract_jsonish_literal};
 
 #[cfg(test)]
 mod tests;
@@ -324,18 +317,14 @@ impl Schema {
             },
             SchemaType::String => Ok(format!("{s:?}")),
             SchemaType::Code => Ok(format!("{:?}", try_extract_code_fence(s)?)),
-            _ => {
-                let re = match &self.r#type {
-                    SchemaType::Integer => &UNIQUE_INTEGER as &Regex,
-                    SchemaType::Float => &UNIQUE_FLOAT,
-                    SchemaType::Array(_) => &UNIQUE_ARRAY,
-                    SchemaType::Object(_) => &UNIQUE_OBJECT,
-                    _ => unreachable!(),
-                };
+            SchemaType::Integer | SchemaType::Float
+            | SchemaType::Array(_) | SchemaType::Object(_) => {
+                let mut jsonish_literals = extract_jsonish_literal(s);
 
-                match re.captures(s) {
-                    Some(cap) => Ok(cap[1].to_string()),
-                    None => Err(format!("I cannot find `{}` in your output. Please make sure that your output contains a valid json value.", self.type_name())),
+                match jsonish_literals.get_matches(&self.r#type) {
+                    JsonMatch::NoMatch => Err(format!("I cannot find `{}` in your output. Please make sure that your output contains a valid json value.", self.type_name())),
+                    JsonMatch::MultipleMatches => Err(format!("I see more than 1 candidates that look like `{}`. I don't know which one to choose. Please give me just one `{}`.", self.type_name(), self.type_name())),
+                    JsonMatch::Match(s) => Ok(s.to_string()),
                 }
             },
         }

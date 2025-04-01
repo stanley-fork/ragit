@@ -1,4 +1,6 @@
 use super::parse::parse_schema;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[test]
 fn schema_validate_test() {
@@ -7,7 +9,7 @@ fn schema_validate_test() {
         ("{ name: str, age: int }", "{}", Some("missing fields: name, age")),
         ("{ name: str, age: int }", "{ \"name\": \"bae\", \"age\": 28 }", None),
         ("{ name: str, age: int }", "This is the result: { \"name\": \"bae\", \"age\": 28 }", None),
-        ("{ name: str, age: int }", " { \"e\": true } { \"name\": \"bae\", \"age\": 28 }", Some("cannot parse your json output")),
+        ("{ name: str, age: int }", " { \"e\": true } { \"name\": \"bae\", \"age\": 28 }", Some("more than 1 candidates")),
         ("bool", "true", None),
         ("bool", "The answer is true", None),
         ("bool", "It's either true or false.", Some("please be specific")),
@@ -43,6 +45,23 @@ def add(a, b):
 ```",
             None,
         ),
+        ("[[int]]", "[1, 2, 3]", Some("wrong type")),
+        ("[[int]]", "[[1, 2, 3], []]", None),
+        ("[str]", "Stop using regex and write your own parser: [\"[]\", \"[]\"]", None),
+        ("[str]", "Stop using regex and write your own parser: [\"]\", \"[\"]", None),
+        ("[str]", "Stop using regex and write your own parser: [\"]\"]", None),
+        ("[{ name: str, age: int }]", "[]", None),
+        ("[{ name: str, age: int }]", "{ \"name\": \"bae\", \"age\": 28 }", Some("cannot find `array`")),
+        ("[{ name: str, age: int }]", "[{ \"name\": \"bae\", \"age\": 28 }]", None),
+        ("[int]", "I guess [1, 2, 3] would be good.\n\nAnswer: [1, 2, 3]", None),
+        ("[int]", "I guess [1, 2, 3] would be good. No, come to think about it, I don't think 2 is appropriate for this.\n\nAnswer: [1, 3]", Some("more than 1 candidates")),
+        ("float", "It's either 1.5 or 2", Some("more than 1 candidates")),
+        ("float", "The answer is 1.5", None),
+        ("float", "정답: 1.5", None),
+        ("float", "정답은 1.5입니다.", None),
+        ("[float { max: 0.0 }]", "[1.5, 2.5]", Some("too big")),
+        ("[float { max: 0.0 }]", "[-1.5, -2.5]", None),
+        ("int", "Answer: -3", None),
     ];
     let mut dump = String::new();
     let mut failures = String::new();
@@ -220,4 +239,86 @@ fn generous_match(a: &str, b: &str) -> bool {
     let b = b.chars().filter(|c| c.is_ascii_alphanumeric()).collect::<String>().to_ascii_lowercase();
 
     a.contains(&b)
+}
+
+#[test]
+fn schema_value_test() {
+    // valid samples in `ragit_pdl::schema_parse_test`
+    let samples: Vec<(&str, &str, Value)> = vec![
+        ("{ name: str, age: int }", "{ \"name\": \"bae\", \"age\": 28 }", serde_json::to_value(Person { name: String::from("bae"), age: 28 }).unwrap()),
+        ("{ name: str, age: int }", "This is the result: { \"name\": \"bae\", \"age\": 28 }", serde_json::to_value(Person { name: String::from("bae"), age: 28 }).unwrap()),
+        ("bool", "true", Value::Bool(true)),
+        ("bool", "The answer is true", Value::Bool(true)),
+        ("yesno", "yes", Value::Bool(true)),
+        ("yesno", "nope", Value::Bool(false)),
+        ("[int {}]", "[2300]", vec![2300].into()),
+        ("[int { min: 400 }]", "[2300]", vec![2300].into()),
+        ("[int { max: 4000 }]", "[2300]", vec![2300].into()),
+        ("[] { max: 5 }", "[]", Value::Array(vec![])),
+        ("[] { max: 5 }", "[1, 2, 3, 4, 5]", vec![1, 2, 3, 4, 5].into()),
+        ("[] { max: 5 }", "[true, false]", vec![true, false].into()),
+        ("[] { max: 5 }", "[1, true]", Value::Array(vec![Value::Number(1.into()), Value::Bool(true)])),
+        ("[int] {max : 5}", "[]", Value::Array(vec![])),
+        ("[int] {max : 5}", "[1, 2, 3, 4, 5]", vec![1, 2, 3, 4, 5].into()),
+        ("str", "Anything is okay", "Anything is okay".into()),
+        (
+            "code",
+            "This is a Python code that adds 2 numbers.
+
+```
+def add(a, b):
+    return a + b
+```",
+            "def add(a, b):\n    return a + b".into(),
+        ),
+        ("[[int]]", "[[1, 2, 3], []]", vec![vec![1, 2, 3], vec![]].into()),
+        ("[str]", "Stop using regex and write your own parser: [\"[]\", \"[]\"]", vec!["[]", "[]"].into()),
+        ("[str]", "Stop using regex and write your own parser: [\"]\", \"[\"]", vec!["]", "["].into()),
+        ("[str]", "Stop using regex and write your own parser: [\"]\"]", vec!["]"].into()),
+        ("[{ name: str, age: int }]", "[]", Value::Array(vec![])),
+        ("[{ name: str, age: int }]", "[{ \"name\": \"bae\", \"age\": 28 }]", vec![serde_json::to_value(Person { name: String::from("bae"), age: 28 }).unwrap()].into()),
+        ("[int]", "I guess [1, 2, 3] would be good.\n\nAnswer: [1, 2, 3]", vec![1, 2, 3].into()),
+        ("float", "The answer is 1.5", Value::from(1.5)),
+        ("float", "정답: 1.5", Value::from(1.5)),
+        ("float", "정답은 1.5입니다.", Value::from(1.5)),
+        ("[float { max: 0.0 }]", "[-1.5, -2.5]", vec![-1.5, -2.5].into()),
+        ("int", "Answer: -3", Value::from(-3)),
+    ];
+    let mut failures = String::new();
+    let mut failure_count = 0;
+
+    for (index, (schema_str, value, answer)) in samples.clone().into_iter().enumerate() {
+        // If these `unwrap`s fail, go checkout `schema_validate_test` or `schema_parse_test`.
+        let schema = parse_schema(schema_str.as_bytes()).unwrap();
+        let value = schema.validate(&value).unwrap();
+
+        if value != answer {
+            failure_count += 1;
+            failures = format!(
+"{failures}
+----- # {index} -----
+<|schema|>
+
+{schema_str}
+
+<|value|>
+
+{value:?}
+
+<|answer|>
+
+{answer:?}",
+            );
+        }
+    }
+
+    if !failures.is_empty() {
+        panic!("{failures}\n\n{} cases, {} passed, {} failed", samples.len(), samples.len() - failure_count, failure_count);
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+struct Person {
+    name: String,
+    age: u32,
 }
