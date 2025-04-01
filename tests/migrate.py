@@ -16,6 +16,7 @@ def checkout(version: str):
         "0.3.3": "v0.3.3",
         "0.3.4": "v0.3.4",
         "0.3.5": "v0.3.5",
+        "0.4.0": "7f8e71b33cbd",
     }
 
     try:
@@ -86,29 +87,29 @@ def migrate():
     cargo_run(["migrate"])
     cargo_run(["check"])
 
-    # step 7: 0.3.0 to 0.3.5
-    checkout("0.3.5")
+    # step 7: 0.3.0 to 0.4.0
+    checkout("0.4.0")
     cargo_run(["check"])
     cargo_run(["migrate"])
     cargo_run(["check"])
 
-    # step 7: direct migrate from 0.1.1 to 0.3.5
+    # step 7: direct migrate from 0.1.1 to 0.4.0
     checkout("0.1.1")
     shutil.rmtree(".ragit")
     init_knowledge_base()
 
-    checkout("0.3.5")
+    checkout("0.4.0")
     assert cargo_run(["check"], check=False) != 0
     cargo_run(["migrate"])
     cargo_run(["check"])
     assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)
 
-    # step 8: init knowledge-base in version 0.3.0 and migrate to 0.3.5
+    # step 8: init knowledge-base in version 0.3.0 and migrate to 0.4.0
     checkout("0.3.0")
     shutil.rmtree(".ragit")
     init_knowledge_base()
 
-    checkout("0.3.5")
+    checkout("0.4.0")
     cargo_run(["migrate"])
     cargo_run(["check"])
     assert "sample0.md" in cargo_run(["tfidf", "baehyunsol"], stdout=True)
