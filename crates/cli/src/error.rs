@@ -20,9 +20,10 @@ pub enum ErrorKind {
         got: usize,
     },
     MissingFlag(String),
-
-    // TODO: suggest similar names
-    UnknownFlag(String),
+    UnknownFlag {
+        flag: String,
+        similar_flag: Option<String>,
+    },
 }
 
 impl ErrorKind {
@@ -49,7 +50,14 @@ impl ErrorKind {
                 },
             ),
             ErrorKind::MissingFlag(flag) => format!("Flag `{flag}` is missing."),
-            ErrorKind::UnknownFlag(flag) => format!("Unknown flag: `{flag}`."),
+            ErrorKind::UnknownFlag { flag, similar_flag } => format!(
+                "Unknown flag: `{flag}`.{}",
+                if let Some(flag) = similar_flag {
+                    format!(" There is a similar flag: `{flag}`.")
+                } else {
+                    String::new()
+                },
+            ),
         }
     }
 }

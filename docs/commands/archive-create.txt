@@ -4,6 +4,7 @@ rag-archive(1)
 NAME
 ----
 rag-archive-create - Create an archive of a knowledge-base
+rag-create-archive - Alias
 
 SYNOPSIS
 --------

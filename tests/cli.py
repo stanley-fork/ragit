@@ -2,8 +2,8 @@ import os
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
 # NOTE: raising a cli error must be idempotent
-def assert_cli_error(args: list[str]):
-    assert "cli error" in cargo_run(args, check=False, stderr=True)
+def assert_cli_error(args: list[str], error_message: str = "cli error"):
+    assert error_message in cargo_run(args, check=False, stderr=True)
     assert cargo_run(args, check=False) != 0
 
 def cli():
@@ -49,5 +49,19 @@ def cli():
     # regression tests
     assert_cli_error(["config", "--set", "model"])
     assert_cli_error(["archive-create"])
+
+    # suggest similar flags
+    assert_cli_error(["query", "--iterative"], error_message="--interactive")
+    assert_cli_error(["query", "-json"], error_message="--json")
+    assert_cli_error(["query", "--josn"], error_message="--json")
+
+    # suggest similar commands
+    assert_cli_error(["qeury"], error_message="query")
+    assert_cli_error(["archive-creat"], error_message="archive-create")
+
+    # suggest similar keys
+    assert_cli_error(["config", "--get", "modle"], error_message="model")
+    assert_cli_error(["config", "--set", "modle", "dummy"], error_message="model")
+    assert_cli_error(["config", "--get", "enable-rag"], error_message="enable_rag")
 
     # TODO: more tests...

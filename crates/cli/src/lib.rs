@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+mod dist;
 mod error;
 mod span;
 
+pub use dist::{get_closest_string, substr_edit_distance};
 pub use error::{Error, ErrorKind};
 pub use span::Span;
 
@@ -206,14 +208,20 @@ impl ArgParser {
                     else {
                         return Err(Error {
                             span: Span::Exact(arg_index),
-                            kind: ErrorKind::UnknownFlag(flag.to_string()),
+                            kind: ErrorKind::UnknownFlag {
+                                flag: flag.to_string(),
+                                similar_flag: self.get_similar_flag(&flag),
+                            },
                         });
                     }
                 }
 
                 return Err(Error {
                     span: Span::Exact(arg_index),
-                    kind: ErrorKind::UnknownFlag(raw_arg.to_string()),
+                    kind: ErrorKind::UnknownFlag {
+                        flag: raw_arg.to_string(),
+                        similar_flag: self.get_similar_flag(raw_arg),
+                    },
                 });
             }
 
@@ -286,6 +294,22 @@ impl ArgParser {
             arg_flags,
             show_help: false,
         })
+    }
+
+    fn get_similar_flag(&self, flag: &str) -> Option<String> {
+        let mut candidates = vec![];
+
+        for flag in self.flags.iter() {
+            for flag in flag.values.iter() {
+                candidates.push(flag.to_string());
+            }
+        }
+
+        for flag in self.arg_flags.keys() {
+            candidates.push(flag.to_string());
+        }
+
+        get_closest_string(&candidates, flag)
     }
 }
 

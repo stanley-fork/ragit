@@ -4,6 +4,7 @@ rag-ii-reset(1)
 NAME
 ----
 rag-ii-reset - Reset an inverted index
+rag-reset-ii - Alias
 
 SYNOPSIS
 --------

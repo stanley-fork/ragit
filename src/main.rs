@@ -23,6 +23,7 @@ use ragit_cli::{
     ArgCount,
     ArgParser,
     ArgType,
+    get_closest_string,
 };
 use ragit_fs::{
     basename,
@@ -48,7 +49,25 @@ async fn main() {
                     eprintln!("`.ragit/` not found. Make sure that it's a valid ragit repo.");
                 },
                 Error::InvalidConfigKey(k) => {
-                    eprintln!("{k:?} is not a valid key for config.");
+                    let similar_key = match find_root() {
+                        Ok(root) => match Index::load(root, LoadMode::OnlyJson) {
+                            Ok(index) => match index.get_all_configs() {
+                                Ok(configs) => get_closest_string(&configs.iter().map(|(key, _)| key.to_string()).collect::<Vec<_>>(), &k),
+                                _ => None,
+                            },
+                            _ => None,
+                        },
+                        _ => None,
+                    };
+
+                    eprintln!(
+                        "{k:?} is not a valid key for config.{}",
+                        if let Some(similar_key) = similar_key {
+                            format!(" There is a similar key: `{similar_key}`.")
+                        } else {
+                            String::new()
+                        },
+                    );
                 },
                 Error::CannotBuild(errors) => {
                     eprintln!("Cannot build knowledge-base due to {} errors", errors.len());
@@ -165,7 +184,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             println!("{result}");
         },
-        Some("archive-create") => {
+        Some("archive-create") | Some("create-archive") => {
             let parsed_args = ArgParser::new()
                 .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
                 .optional_arg_flag("--size-limit", ArgType::UnsignedInteger)
@@ -200,7 +219,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 quiet,
             )?;
         },
-        Some("archive-extract") => {
+        Some("archive-extract") | Some("extract-archive") => {
             let parsed_args = ArgParser::new()
                 .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
                 .arg_flag("--output", ArgType::Path)
@@ -692,7 +711,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
             }
         },
-        Some("ii-build") => {
+        Some("ii-build") | Some("build-ii") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
@@ -707,7 +726,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let quiet = parsed_args.get_flag(0).is_some();
             index.build_ii(quiet)?;
         },
-        Some("ii-reset") => {
+        Some("ii-reset") | Some("reset-ii") => {
             let parsed_args = ArgParser::new().parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1904,10 +1923,55 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             println!("ragit {}", ragit::VERSION);
         },
-        // TODO: suggest similar names
         Some(invalid_command) => {
+            // TODO: this is a very bad idea. I need a way to programatically load the list
+            // of the commands.
+            let similar_command = get_closest_string(
+                &[
+                    "add",
+                    "archive-create", "create-archive",
+                    "archive-extract", "extract-archive",
+                    "build",
+                    "audit",
+                    "cat-file",
+                    "check",
+                    "clone",
+                    "config",
+                    "extract-keywords",
+                    "gc",
+                    "help",
+                    "ii-build", "build-ii",
+                    "ii-reset", "reset-ii",
+                    "ii-status",
+                    "init",
+                    "ls-chunks",
+                    "ls-files",
+                    "ls-images",
+                    "ls-models",
+                    "ls-terms",
+                    "merge",
+                    "meta",
+                    "migrate",
+                    "push",
+                    "query",
+                    "remove", "rm",
+                    "retrieve-chunks",
+                    "status",
+                    "tfidf",
+                    "version",
+                ].iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+                invalid_command,
+            );
+
             return Err(Error::CliError {
-                message: format!("`{invalid_command}` is an invalid command. Run `rag help` to get help."),
+                message: format!(
+                    "`{invalid_command}` is an invalid command. {}",
+                    if let Some(similar_command) = similar_command {
+                        format!("There is a similar command: `{similar_command}`.")
+                    } else {
+                        String::from("Run `rag help` to get help.")
+                    },
+                ),
                 span: (String::new(), 0, 0),  // TODO
             });
         },
