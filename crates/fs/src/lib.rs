@@ -181,6 +181,15 @@ pub fn join(path: &str, child: &str) -> Result<String, FileError> {
     }
 }
 
+pub fn temp_dir() -> Result<String, FileError> {
+    let temp_dir = std::env::temp_dir();
+
+    match temp_dir.to_str() {
+        Some(result) => Ok(result.to_string()),
+        None => Err(FileError::os_str_err(temp_dir.into_os_string())),
+    }
+}
+
 /// alias for `join`
 #[inline]
 pub fn join2(path: &str, child: &str) -> Result<String, FileError> {

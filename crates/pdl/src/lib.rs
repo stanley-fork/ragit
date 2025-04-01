@@ -383,13 +383,23 @@ mod tests {
         parse_pdl,
         parse_pdl_from_file,
     };
-    use ragit_fs::{WriteMode, write_string};
+    use ragit_fs::{
+        WriteMode,
+        join,
+        temp_dir,
+        write_string,
+    };
 
     // more thorough test suites are in `tests/`
     #[test]
     fn messages_from_file_test() {
+        let tmp_path = join(
+            &temp_dir().unwrap(),
+            "test_messages.tera",
+        ).unwrap();
+
         write_string(
-            "/tmp/test_messages.tera",
+            &tmp_path,
 "
 <|system|>
 
@@ -405,7 +415,7 @@ Write me a sudoku-solver.
         ).unwrap();
 
         let Pdl { messages, schema } = parse_pdl_from_file(
-            "/tmp/test_messages.tera",
+            &tmp_path,
             &tera::Context::new(),
             true,
             true,
