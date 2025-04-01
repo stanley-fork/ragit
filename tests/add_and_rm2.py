@@ -104,3 +104,8 @@ def add_and_rm2():
     assert count_files() == (3, 1, 2)
     assert parse_rm_output(["sample1.txt", "dir1/sample3.txt", "--staged"]) == (1, 0)
     assert count_files() == (2, 0, 2)
+
+    assert parse_rm_output(["--all"]) == (0, 2)
+    assert count_files() == (0, 0, 0)
+    assert parse_rm_output(["--all"]) == (0, 0)
+    assert count_files() == (0, 0, 0)

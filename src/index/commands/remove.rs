@@ -32,7 +32,8 @@ impl Index {
             let mut processed_candidates = vec![];
 
             // `--all`
-            if rel_path == "/" {
+            // TODO: sometimes it's `"/"` and sometimes it's `""`. Why?
+            if rel_path == "/" || rel_path == "" {
                 staged_candidates = self.staged_files.iter().map(|f| f.to_string()).collect();
                 processed_candidates = self.processed_files.keys().map(|f| f.to_string()).collect();
             }

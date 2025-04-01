@@ -1533,6 +1533,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     });
                 }
 
+                if index.staged_files.is_empty() && index.processed_files.is_empty() {
+                    println!("removed {} staged files and {} processed files", result.staged, result.processed);
+                    return Ok(());
+                }
+
                 files = vec![root_dir];
                 recursive = true;
             }
