@@ -6,6 +6,7 @@
 // 3. If something goes wrong while an ii is building, you have to build it from scratch.
 
 use super::Index;
+use crate::index::commands::erase_lines;
 use crate::constant::{II_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::uid::{self, Uid, UidWriteMode};
@@ -117,8 +118,9 @@ impl Index {
         let mut buffer = HashMap::with_capacity(AUTO_FLUSH);
         let mut state = IIBuildState::default();
         let mut uid_check_point = None;
+        let mut has_to_erase_lines = false;
 
-        for uid in self.get_all_chunk_uids()? {
+        for (index, uid) in self.get_all_chunk_uids()?.into_iter().enumerate() {
             if uid_check_point.is_none() {
                 uid_check_point = Some(uid);
             }
@@ -128,8 +130,9 @@ impl Index {
             state.buffer_uid += 1;
             state.buffer_term = buffer.len();
 
-            if !quiet {
-                self.render_ii_build_dashboard(&state);
+            if !quiet && index % 8 == 0 {
+                self.render_ii_build_dashboard(&state, has_to_erase_lines);
+                has_to_erase_lines = true;
             }
 
             if buffer.len() > AUTO_FLUSH {
@@ -149,7 +152,7 @@ impl Index {
         }
 
         if !quiet {
-            self.render_ii_build_dashboard(&state);
+            self.render_ii_build_dashboard(&state, has_to_erase_lines);
         }
 
         self.ii_status = IIStatus::Complete;
@@ -332,8 +335,16 @@ impl Index {
         Ok(())
     }
 
-    fn render_ii_build_dashboard(&self, state: &IIBuildState) {
-        clearscreen::clear().expect("failed to clear screen");
+    fn render_ii_build_dashboard(
+        &self,
+        state: &IIBuildState,
+        has_to_erase_lines: bool,
+    ) {
+        if has_to_erase_lines {
+            erase_lines(6);
+        }
+
+        println!("---");
         println!("building an inverted index...");
         println!("total uid: {}", state.total_uid);
         println!("buffer uid: {}", state.buffer_uid);

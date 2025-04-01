@@ -1,4 +1,4 @@
-use super::Index;
+use super::{Index, erase_lines};
 use chrono::offset::Local;
 use crate::chunk;
 use crate::error::Error;
@@ -69,6 +69,7 @@ impl Index {
         let mut result = MergeResult::default();
         let mut old_images = HashSet::new();
         let other = Index::load(path, LoadMode::OnlyJson)?;
+        let mut has_to_erase_lines = false;
 
         for (rel_path, uid_other) in other.processed_files.iter() {
             let mut new_file_path = rel_path.clone();
@@ -119,7 +120,8 @@ impl Index {
             }
 
             if !quiet {
-                self.render_merge_dashboard(&result);
+                self.render_merge_dashboard(&result, has_to_erase_lines);
+                has_to_erase_lines = true;
             }
 
             let new_chunk_uids = other.get_chunks_of_file(*uid_other)?;
@@ -209,7 +211,7 @@ impl Index {
                 }
 
                 if !quiet {
-                    self.render_merge_dashboard(&result);
+                    self.render_merge_dashboard(&result, has_to_erase_lines);
                 }
             }
 
@@ -288,8 +290,16 @@ impl Index {
         Ok(result)
     }
 
-    fn render_merge_dashboard(&self, result: &MergeResult) {
-        clearscreen::clear().expect("failed to clear screen");
+    fn render_merge_dashboard(
+        &self,
+        result: &MergeResult,
+        has_to_erase_lines: bool,
+    ) {
+        if has_to_erase_lines {
+            erase_lines(10);
+        }
+
+        println!("---");
         println!("bases complete: {}", result.bases);
         println!("added files: {}", result.added_files);
         println!("overriden files: {}", result.overriden_files);
@@ -313,8 +323,7 @@ fn ask_merge(
     index2: &Index,
     uid2: Uid,
 ) -> Result<bool, Error> {
-    // TODO: is it desirable to clear the screen here?
-    clearscreen::clear().expect("failed to clear screen");
+    println!("---");
 
     // TODO: when [issue #4](https://github.com/baehyunsol/ragit/issues/4) is fixed,
     //       reuse the output formats used by `ls-files` and `ls-images`.

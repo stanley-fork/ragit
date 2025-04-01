@@ -1,4 +1,4 @@
-use super::{BlockType, compress};
+use super::{BlockType, compress, erase_lines};
 use crate::constant::{INDEX_DIR_NAME, INDEX_FILE_NAME};
 use crate::error::Error;
 use crate::index::{ii::IIStatus, Index, LoadMode};
@@ -154,6 +154,7 @@ impl Index {
             started_at: Instant::now(),
             block_count: HashMap::new(),
         };
+        let mut has_to_erase_lines = false;
 
         if let Some(size_limit) = size_limit {
             if size_limit < 4096 {
@@ -271,7 +272,9 @@ impl Index {
                     &status,
                     workers.len() - killed_workers.len(),
                     curr_output_seq,
+                    has_to_erase_lines,
                 );
+                has_to_erase_lines = true;
             }
 
             for (worker_id, worker) in workers.iter().enumerate() {
@@ -392,6 +395,7 @@ impl Index {
                 &status,
                 workers.len() - killed_workers.len(),
                 curr_output_seq,
+                has_to_erase_lines,
             );
         }
 
@@ -403,9 +407,14 @@ impl Index {
         status: &Status,
         workers: usize,
         output_seq: usize,
+        has_to_erase_lines: bool,
     ) {
-        clearscreen::clear().expect("failed to clear screen");
+        if has_to_erase_lines {
+            erase_lines(7);
+        }
+
         let elapsed_time = Instant::now().duration_since(status.started_at.clone()).as_secs();
+        println!("---");
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("workers: {workers}");
         println!("archives: {}", output_seq + 1);

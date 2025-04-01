@@ -1,4 +1,4 @@
-use super::{BlockType, decompress};
+use super::{BlockType, decompress, erase_lines};
 use crate::constant::{
     CHUNK_DIR_NAME,
     CONFIG_DIR_NAME,
@@ -105,6 +105,7 @@ impl Index {
         Index::new(root_dir.to_string())?;
         let mut splitted_blocks: HashMap<usize, HashMap<usize, Vec<u8>>> = HashMap::new();
         let mut tmp_files_for_splitted_blocks = vec![];
+        let mut has_to_erase_lines = false;
 
         while let Some(archive) = archives.pop() {
             let archive_size = file_size(&archive)?;
@@ -188,7 +189,9 @@ impl Index {
                 Index::render_archive_extract_dashboard(
                     &status,
                     workers.len() - killed_workers.len(),
+                    has_to_erase_lines,
                 );
+                has_to_erase_lines = true;
             }
         }
 
@@ -201,7 +204,9 @@ impl Index {
                 Index::render_archive_extract_dashboard(
                     &status,
                     workers.len() - killed_workers.len(),
+                    has_to_erase_lines,
                 );
+                has_to_erase_lines = true;
             }
 
             for (worker_id, worker) in workers.iter().enumerate() {
@@ -245,7 +250,9 @@ impl Index {
             Index::render_archive_extract_dashboard(
                 &status,
                 workers.len() - killed_workers.len(),
+                has_to_erase_lines,
             );
+            has_to_erase_lines = true;
         }
 
         // it creates file indexes and tfidfs
@@ -256,6 +263,7 @@ impl Index {
             Index::render_archive_extract_dashboard(
                 &status,
                 workers.len() - killed_workers.len(),
+                has_to_erase_lines,
             );
         }
 
@@ -265,8 +273,13 @@ impl Index {
     fn render_archive_extract_dashboard(
         status: &Status,
         workers: usize,
+        has_to_erase_lines: bool,
     ) {
-        clearscreen::clear().expect("failed to clear screen");
+        if has_to_erase_lines {
+            erase_lines(6);
+        }
+
+        println!("---");
         let elapsed_time = Instant::now().duration_since(status.started_at.clone()).as_secs();
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("workers: {workers}");

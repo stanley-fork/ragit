@@ -3,6 +3,8 @@ use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
 use std::io::Read;
 
+pub use super::erase_lines;
+
 mod create;
 mod extract;
 

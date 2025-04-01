@@ -1,4 +1,4 @@
-use super::Index;
+use super::{Index, erase_lines};
 use crate::chunk;
 use crate::constant::{CHUNK_DIR_NAME, IMAGE_DIR_NAME};
 use crate::error::Error;
@@ -27,24 +27,30 @@ impl Index {
         let mut remaining_chunks = 0;
         let started_at = Instant::now();
         let mut errors = vec![];
+        let mut prev_lines = 0;
 
         for (index, file) in self.staged_files.iter().enumerate() {
             let elapsed_time = Instant::now().duration_since(started_at).as_secs();
 
             if !quiet {
-                clearscreen::clear().expect("failed to clear screen");
+                erase_lines(prev_lines);
+                println!("---");
                 println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
-                println!("counting chunks... {index}/{}", self.staged_files.len());
+                println!("counting chunks... {}/{}", index + 1, self.staged_files.len());
+                prev_lines = 3;
 
                 if !errors.is_empty() {
                     println!("{} errors", errors.len());
+                    prev_lines += 1;
 
                     for (file, error) in errors.iter().take(5) {
                         println!("    {file}: {error}");
+                        prev_lines += 1;
                     }
 
                     if errors.len() > 5 {
                         println!("    ... {} more errors", errors.len() - 5);
+                        prev_lines += 1;
                     }
                 }
             }
@@ -121,6 +127,7 @@ impl Index {
         }
 
         self.save_to_file()?;
+        let mut has_to_erase_lines = false;
 
         loop {
             if !quiet {
@@ -130,7 +137,9 @@ impl Index {
                     started_at.clone(),
                     flush_count,
                     remaining_chunks,
+                    has_to_erase_lines,
                 );
+                has_to_erase_lines = true;
             }
 
             for (worker_index, worker) in workers.iter_mut().enumerate() {
@@ -280,6 +289,7 @@ impl Index {
                             started_at.clone(),
                             flush_count,
                             remaining_chunks,
+                            has_to_erase_lines,
                         );
                     }
 
@@ -302,8 +312,12 @@ impl Index {
         started_at: Instant,
         flush_count: usize,
         remaining_chunks: usize,
+        has_to_erase_lines: bool,
     ) {
-        clearscreen::clear().expect("failed to clear screen");
+        if has_to_erase_lines {
+            erase_lines(10);
+        }
+
         let elapsed_time = Instant::now().duration_since(started_at).as_secs();
         let mut curr_processing_files = vec![];
 
@@ -313,6 +327,7 @@ impl Index {
             }
         }
 
+        println!("---");
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
         println!("remaining chunks (approx): {remaining_chunks}");

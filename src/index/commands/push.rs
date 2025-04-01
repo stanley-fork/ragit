@@ -1,3 +1,4 @@
+use super::erase_lines;
 use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::Index;
@@ -53,6 +54,7 @@ impl Index {
             code: None,
             url: url.as_str().to_string(),
         })?;
+        let mut has_to_erase_lines = false;
 
         // TODO: I want it to reuse archives from
         // previous runs -> but how do I know whether
@@ -88,7 +90,9 @@ impl Index {
                     index + 1,
                     archives.len(),
                     uploaded_bytes,
+                    has_to_erase_lines,
                 );
+                has_to_erase_lines = true;
             }
         }
 
@@ -164,8 +168,12 @@ impl Index {
         completed_uploads: usize,
         total_uploads: usize,
         uploaded_bytes: usize,
+        has_to_erase_lines: bool,
     ) {
-        clearscreen::clear().expect("failed to clear screen");
+        if has_to_erase_lines {
+            erase_lines(3);
+        }
+
         let elapsed_time = Instant::now().duration_since(started_at).as_millis() as usize;
         let elapsed_sec = elapsed_time / 1000;
         let bytes_per_second = if elapsed_time < 100 || completed_uploads < 3 {
@@ -174,6 +182,7 @@ impl Index {
             uploaded_bytes * 1000 / elapsed_time
         };
 
+        println!("---");
         println!("elapsed time: {:02}:{:02}", elapsed_sec / 60, elapsed_sec % 60);
         println!(
             "uploading archives: {completed_uploads}/{total_uploads}, {} | {}",

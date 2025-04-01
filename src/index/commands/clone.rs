@@ -1,4 +1,4 @@
-use super::Index;
+use super::{Index, erase_lines};
 use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::LoadMode;
@@ -69,6 +69,7 @@ impl Index {
         let archive_list = serde_json::from_value::<Vec<String>>(archive_list)?;
         let mut archive_files = vec![];
         let mut downloaded_bytes = 0;
+        let mut has_to_erase_lines = false;
 
         for (index, archive) in archive_list.iter().enumerate() {
             let archive_url = url.join("archive/")?.join(archive)?;
@@ -81,7 +82,9 @@ impl Index {
                     index + 1,
                     archive_list.len(),
                     downloaded_bytes,
+                    has_to_erase_lines,
                 );
+                has_to_erase_lines = true;
             }
 
             let archive_file = join(
@@ -130,8 +133,12 @@ impl Index {
         completed_downloads: usize,
         total_downloads: usize,
         downloaded_bytes: usize,
+        has_to_erase_lines: bool,
     ) {
-        clearscreen::clear().expect("failed to clear screen");
+        if has_to_erase_lines {
+            erase_lines(3);
+        }
+
         let elapsed_time = Instant::now().duration_since(started_at).as_millis() as usize;
         let elapsed_sec = elapsed_time / 1000;
         let bytes_per_second = if elapsed_time < 100 || completed_downloads < 3 {
@@ -140,6 +147,7 @@ impl Index {
             downloaded_bytes * 1000 / elapsed_time
         };
 
+        println!("---");
         println!("elapsed time: {:02}:{:02}", elapsed_sec / 60, elapsed_sec % 60);
         println!(
             "fetching archives: {completed_downloads}/{total_downloads}, {} | {}",
