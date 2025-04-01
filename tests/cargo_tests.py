@@ -36,7 +36,7 @@ def cargo_tests():
     errors = run_cargo_test()
     os.chdir("crates")
 
-    for crate in ["api", "fs", "ignore", "korean", "pdl", "server"]:
+    for crate in ["api", "cli", "fs", "ignore", "korean", "pdl", "server"]:
         os.chdir(crate)
         errors += run_cargo_test()
         os.chdir("..")
