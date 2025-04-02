@@ -14,11 +14,15 @@ from utils import (
 # It does not test api endpoints that are tested by `clone.py` or `server2.py`.
 def server():
     goto_root()
+
+    if health_check():
+        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
+
     os.chdir("crates/server")
 
     try:
         # step 0: run a ragit-server
-        server_process = subprocess.Popen(["cargo", "run", "--release"])
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
 
@@ -47,17 +51,11 @@ def server():
 
             # before we push this to server, let's wait until `ragit-server` is compiled
             for _ in range(300):
-                path1 = "../../crates/server/target/release/ragit-server"
-                path2 = "../../crates/server/target/release/ragit-server.exe"
-
-                if not os.path.exists(path1) and not os.path.exists(path2):
-                    time.sleep(1)
-
-                else:
+                if health_check():
                     break
 
-            else:
-                raise Exception("failed to compile `ragit-server`")
+                print("waiting for ragit-server to start...")
+                time.sleep(1)
 
             cargo_run(["meta", "--set", "whatever-key", "whatever-value"])
             cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1/test-user/{repo}/"])
@@ -183,3 +181,11 @@ def request_bytes(url: str, repo: str, raw_url: bool = False):
 def assert_eq_bytes(path: str, value):
     with open(os.path.join(".ragit", path), "rb") as f:
         assert f.read() == value
+
+def health_check(port: int = 41127):
+    try:
+        response = requests.get(f"http://127.0.0.1:{port}/health", timeout=1)
+        return response.status_code == 200
+
+    except:
+        return False

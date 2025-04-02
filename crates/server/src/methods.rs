@@ -12,6 +12,7 @@ use warp::reply::{Reply, json, with_header, with_status};
 mod chat;
 mod chunk;
 mod clone;
+mod health;
 mod image;
 mod index;
 mod push;
@@ -32,6 +33,9 @@ pub use chunk::{
 pub use clone::{
     get_archive,
     get_archive_list,
+};
+pub use health::{
+    get_health,
 };
 pub use image::{
     get_image,

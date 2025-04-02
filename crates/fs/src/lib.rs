@@ -2,7 +2,7 @@
 
 mod log;
 
-pub use crate::log::{initialize_log_file, set_log_file_path, write_log};
+pub use crate::log::{initialize_log, write_log};
 
 use std::collections::hash_map;
 use std::ffi::OsString;

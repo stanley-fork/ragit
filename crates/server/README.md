@@ -82,6 +82,7 @@ It always uses utf-8 for text/plain.
   - text/plain
   - "{major}.{minor}.{patch}"
   - "{major}.{minor}.{patch}-dev"
+- GET `/health`
 - GET `/user-list`
   - application/json: array[string]
 - GET `/repo-list/{user-name}`

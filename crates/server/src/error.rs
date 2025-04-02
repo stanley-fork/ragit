@@ -7,6 +7,10 @@ pub enum Error {
     JsonSerdeError(serde_json::Error),
     WarpError(warp::Error),
     NoSuchSession(u128),
+    CliError {
+        message: String,
+        span: (String, usize, usize),  // (args, error_from, error_to)
+    },
     ServerBusy,
 }
 
@@ -25,5 +29,14 @@ impl From<serde_json::Error> for Error {
 impl From<warp::Error> for Error {
     fn from(e: warp::Error) -> Error {
         Error::WarpError(e)
+    }
+}
+
+impl From<ragit_cli::Error> for Error {
+    fn from(e: ragit_cli::Error) -> Self {
+        Error::CliError {
+            message: e.kind.render(),
+            span: e.span.unwrap_rendered(),
+        }
     }
 }

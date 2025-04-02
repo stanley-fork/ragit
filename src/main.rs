@@ -186,8 +186,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("archive-create") | Some("create-archive") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
-                .optional_arg_flag("--size-limit", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
+                .optional_arg_flag("--size-limit", ArgType::IntegerBetween { min: Some(0), max: None })
                 .arg_flag("--output", ArgType::Path)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
@@ -221,7 +221,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("archive-extract") | Some("extract-archive") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
                 .arg_flag("--output", ArgType::Path)
                 .optional_flag(&["--force"])
                 .optional_flag(&["--quiet"])
@@ -249,7 +249,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("build") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "4", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .parse(&args[2..])?;
@@ -1417,8 +1417,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--enable-rag", "--disable-rag"])
                 .optional_flag(&["--super-rerank", "--no-super-rerank"])
                 .optional_arg_flag("--model", ArgType::String)
-                .optional_arg_flag("--max-summaries", ArgType::UnsignedInteger)
-                .optional_arg_flag("--max-retrieval", ArgType::UnsignedInteger)
+                .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
+                .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
                 .short_flag(&["--interactive"])
                 .args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
 
@@ -1589,8 +1589,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--rerank", "--no-rerank"])
-                .optional_arg_flag("--max-retrieval", ArgType::UnsignedInteger)
-                .optional_arg_flag("--max-summaries", ArgType::UnsignedInteger)
+                .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
+                .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
                 .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {
@@ -1795,7 +1795,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--keyword", "--query"])
-                .arg_flag_with_default("--limit", "10", ArgType::UnsignedInteger)
+                .arg_flag_with_default("--limit", "10", ArgType::IntegerBetween { min: Some(0), max: None })
                 .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
 
             if parsed_args.show_help() {

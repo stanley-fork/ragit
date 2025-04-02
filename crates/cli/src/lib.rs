@@ -329,7 +329,12 @@ pub enum ArgType {
     Command,
     Query,  // uid or path
     Integer,
-    UnsignedInteger,
+
+    /// Both inclusive
+    IntegerBetween {
+        min: Option<i128>,
+        max: Option<i128>,
+    },
 }
 
 impl ArgType {
@@ -342,8 +347,28 @@ impl ArgType {
                     kind: ErrorKind::ParseIntError(e),
                 }),
             },
-            ArgType::UnsignedInteger => match arg.parse::<u128>() {
-                Ok(_) => Ok(arg.to_string()),
+            ArgType::IntegerBetween { min, max } => match arg.parse::<i128>() {
+                Ok(n) => {
+                    if let Some(min) = *min {
+                        if n < min {
+                            return Err(Error{
+                                span,
+                                kind: ErrorKind::IntegerNotInRange { min: Some(min), max: *max, n },
+                            });
+                        }
+                    }
+
+                    if let Some(max) = *max {
+                        if n > max {
+                            return Err(Error{
+                                span,
+                                kind: ErrorKind::IntegerNotInRange { min: *min, max: Some(max), n },
+                            });
+                        }
+                    }
+
+                    Ok(arg.to_string())
+                },
                 Err(e) => Err(Error {
                     span,
                     kind: ErrorKind::ParseIntError(e),

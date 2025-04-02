@@ -1,20 +1,26 @@
 #![recursion_limit = "256"]
 
+use crate::cli::{CliArgs, parse_cli_args};
+use crate::config::Config;
 use crate::methods::*;
 use crate::utils::fetch_form_data;
 use ragit_fs::{
+    WriteMode,
     exists,
-    initialize_log_file,
+    initialize_log,
     remove_dir_all,
-    set_log_file_path,
     write_log,
+    write_string,
 };
 use std::collections::HashMap;
+use std::io::Write;
 use warp::Filter;
 use warp::filters::multipart::FormData;
 use warp::http::status::StatusCode;
 use warp::reply::with_status;
 
+mod cli;
+mod config;
 mod error;
 mod methods;
 mod models;
@@ -22,7 +28,15 @@ mod utils;
 
 #[tokio::main]
 async fn main() {
-    initinalize_server();
+    let args = match parse_cli_args(std::env::args().collect::<Vec<_>>()) {
+        Ok(args) => args,
+        Err(e) => {
+            eprintln!("{e:?}");
+            return;
+        },
+    };
+    let config = initinalize_server(&args);
+
     write_log("server", "hello from ragit-server!");
 
     let get_index_handler = warp::get()
@@ -257,6 +271,10 @@ async fn main() {
         .and(warp::query::<HashMap<String, String>>())
         .map(search);
 
+    let get_health_handler = warp::get()
+        .and(warp::path("health"))
+        .map(get_health);
+
     let not_found_handler = warp::get().map(not_found);
 
     warp::serve(
@@ -289,6 +307,7 @@ async fn main() {
             .or(create_chat_handler)
             .or(post_ii_build_handler)
             .or(search_handler)
+            .or(get_health_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
                 |info| {
@@ -307,14 +326,74 @@ async fn main() {
                     );
                 }
             ))
-    ).run(([0, 0, 0, 0], 41127)).await;  // TODO: configurable port number
+    ).run(([0, 0, 0, 0], args.port_number.unwrap_or(config.port_number))).await;
 }
 
-fn initinalize_server() {
-    set_log_file_path(Some("ragit-server-logs".to_string()));
-    initialize_log_file("ragit-server-logs", true).unwrap();
+fn initinalize_server(args: &CliArgs) -> Config {
+    let config_file = args.config_file.clone().unwrap_or(String::from("./config.json"));
 
-    if exists("./session") {
-        remove_dir_all("./session").unwrap();
+    if !exists(&config_file) {
+        if args.force_default_config {
+            let config = Config::default();
+            write_string(
+                &config_file,
+                &serde_json::to_string(&config).unwrap(),
+                WriteMode::CreateOrTruncate,
+            ).unwrap();
+        }
+
+        else {
+            println!("Config file `{config_file}` does not exist. Would you like to create a new one?");
+            println!("");
+            println!("1) Create a default config file at `./config.json`.");
+            println!("2) Let me use a GUI to create a config file.");
+            println!("3) I don't know what you're talking about. Please help me.");
+
+            loop {
+                print!(">>> ");
+                let mut s = String::new();
+                std::io::stdout().flush().unwrap();
+                std::io::stdin().read_line(&mut s).unwrap();
+
+                match s.get(0..1) {
+                    Some("1") => {
+                        let config = Config::default();
+                        write_string(
+                            &config_file,
+                            &serde_json::to_string(&config).unwrap(),
+                            WriteMode::CreateOrTruncate,
+                        ).unwrap();
+                    },
+                    Some("2") => todo!(),
+                    Some("3") => todo!(),
+                    _ => {
+                        println!("Just say 1, 2 or 3.");
+                        continue;
+                    },
+                }
+
+                break;
+            }
+        }
     }
+
+    let config = match Config::load_from_file(&config_file) {
+        Ok(c) => c,
+        Err(e) => panic!("Failed to load config file: `{e:?}`."),
+    };
+
+    if !args.quiet {
+        initialize_log(
+            config.log_file.clone(),
+            args.verbose || config.dump_log_to_stdout,
+            false,    // dump_to_stderr
+            false,    // keep_previous_file
+        ).unwrap();
+    }
+
+    if exists(&config.push_session_dir) {
+        remove_dir_all(&config.push_session_dir).unwrap();
+    }
+
+    config
 }

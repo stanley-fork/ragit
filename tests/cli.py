@@ -64,4 +64,7 @@ def cli():
     assert_cli_error(["config", "--set", "modle", "dummy"], error_message="model")
     assert_cli_error(["config", "--get", "enable-rag"], error_message="enable_rag")
 
+    # integer ranges
+    assert_cli_error(["query", "--max-summaries=-1"], error_message="at least 0")
+
     # TODO: more tests...

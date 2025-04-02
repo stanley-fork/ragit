@@ -1,5 +1,6 @@
 import os
 import requests
+from server import health_check
 import subprocess
 import time
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
@@ -8,25 +9,22 @@ def server2(test_model: str):
     goto_root()
     os.chdir("crates/server")
 
+    if health_check():
+        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
+
     try:
         # step 0: run a ragit-server
-        server_process = subprocess.Popen(["cargo", "run", "--release"])
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
 
         # before we push this to server, let's wait until `ragit-server` is compiled
         for _ in range(300):
-            path1 = "../crates/server/target/release/ragit-server"
-            path2 = "../crates/server/target/release/ragit-server.exe"
-
-            if not os.path.exists(path1) and not os.path.exists(path2):
-                time.sleep(1)
-
-            else:
+            if health_check():
                 break
 
-        else:
-            raise Exception("failed to compile `ragit-server`")
+            print("waiting for ragit-server to start...")
+            time.sleep(1)
 
         # step 1: init sample 1 (rustc)
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample1"])
