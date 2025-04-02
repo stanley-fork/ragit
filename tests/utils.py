@@ -165,6 +165,11 @@ def clean_test_output(s: str) -> str:
     while (i := s.find(d)) != -1:
         s = s[i + len(d):]
 
+    d = "\x1b[J"
+
+    while (i := s.find(d)) != -1:
+        s = s[i + len(d):]
+
     return s
 
 def get_commit_hash():
