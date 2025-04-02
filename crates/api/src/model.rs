@@ -20,6 +20,7 @@ pub struct Model {
 }
 
 impl Model {
+    /// This is a test model. It always returns a string `"dummy"`.
     pub fn dummy() -> Self {
         Model {
             name: String::from("dummy"),
@@ -35,12 +36,29 @@ impl Model {
         }
     }
 
+    /// This is a test model. It takes a response from you.
     pub fn stdin() -> Self {
         Model {
             name: String::from("stdin"),
             api_name: String::new(),
             can_read_images: false,
             api_provider: ApiProvider::Test(TestModel::Stdin),
+            dollars_per_1b_input_tokens: 0,
+            dollars_per_1b_output_tokens: 0,
+            api_timeout: 180,
+            explanation: None,
+            api_key: None,
+            api_env_var: None,
+        }
+    }
+
+    /// This is a test model. It always throws an error.
+    pub fn error() -> Self {
+        Model {
+            name: String::from("error"),
+            api_name: String::new(),
+            can_read_images: false,
+            api_provider: ApiProvider::Test(TestModel::Error),
             dollars_per_1b_input_tokens: 0,
             dollars_per_1b_output_tokens: 0,
             api_timeout: 180,
@@ -375,6 +393,10 @@ pub fn get_model_by_name(models: &[Model], name: &str) -> Result<Model, Error> {
         Ok(Model::stdin())
     }
 
+    else if name == "error" {
+        Ok(Model::error())
+    }
+
     else{
         Err(Error::InvalidModelName {
             name: name.to_string(),
@@ -429,12 +451,13 @@ impl From<&Model> for ModelRaw {
 pub enum TestModel {
     Dummy,  // it always returns `"dummy"`
     Stdin,
+    Error,  // it always raises an error
 }
 
 impl TestModel {
-    pub fn get_dummy_response(&self, messages: &[Message]) -> String {
+    pub fn get_dummy_response(&self, messages: &[Message]) -> Result<String, Error> {
         match self {
-            TestModel::Dummy => String::from("dummy"),
+            TestModel::Dummy => Ok(String::from("dummy")),
             TestModel::Stdin => {
                 for message in messages.iter() {
                     println!(
@@ -445,12 +468,13 @@ impl TestModel {
                 }
 
                 print!("<|Assistant|>\n\n>>> ");
-                stdout().flush().unwrap();
+                stdout().flush()?;
 
                 let mut s = String::new();
-                stdin().read_to_string(&mut s).unwrap();
-                s
+                stdin().read_to_string(&mut s)?;
+                Ok(s)
             },
+            TestModel::Error => Err(Error::TestModel),
         }
     }
 }

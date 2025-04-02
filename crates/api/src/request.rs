@@ -198,7 +198,7 @@ impl Request {
         }
 
         if let ApiProvider::Test(test_model) = &self.model.api_provider {
-            let response = test_model.get_dummy_response(&self.messages);
+            let response = test_model.get_dummy_response(&self.messages)?;
 
             if let Some(key) = &self.record_api_usage_at {
                 if let Err(e) = record_api_usage(

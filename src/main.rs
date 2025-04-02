@@ -1416,6 +1416,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--enable-ii", "--disable-ii"])
                 .optional_flag(&["--enable-rag", "--disable-rag"])
                 .optional_flag(&["--super-rerank", "--no-super-rerank"])
+                .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--max-summaries", ArgType::UnsignedInteger)
                 .optional_arg_flag("--max-retrieval", ArgType::UnsignedInteger)
                 .short_flag(&["--interactive"])
@@ -1446,6 +1447,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             if let Some(max_retrieval) = parsed_args.arg_flags.get("--max-retrieval") {
                 index.query_config.max_retrieval = max_retrieval.parse().unwrap();
+            }
+
+            if let Some(model) = parsed_args.arg_flags.get("--model") {
+                index.api_config.model = model.to_string();
             }
 
             let interactive_mode = parsed_args.get_flag(0).is_some();

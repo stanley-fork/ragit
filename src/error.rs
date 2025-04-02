@@ -154,6 +154,7 @@ impl From<ApiError> for Error {
     fn from(e: ApiError) -> Self {
         match e {
             ApiError::JsonTypeError { expected, got } => Error::JsonTypeError { expected, got },
+            ApiError::StdIoError(e) => Error::StdIoError(e),
             ApiError::ReqwestError(e) => Error::ReqwestError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),

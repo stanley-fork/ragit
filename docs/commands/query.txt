@@ -8,8 +8,8 @@ rag-query - Query on knowledge-bases
 SYNOPSIS
 --------
 [verse]
-'rag query' <query> [--json] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
-'rag query' --interactive | -i | --multi-turn [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
+'rag query' <query> [--json] [--model <model>] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
+'rag query' --interactive | -i | --multi-turn [--model <model>] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
 
 DESCRIPTION
 -----------

@@ -21,3 +21,5 @@ def query_options(test_model: str):
 
     # Let's make sure that the options are temporary and does not affect the config.
     assert "ragit" in cargo_run(["query", "In which city did Baehyunsol live?"], stdout=True).lower()
+
+    assert cargo_run(["query", "--model=error", "It should fail."], check=False) != 0

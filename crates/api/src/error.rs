@@ -17,6 +17,7 @@ pub enum Error {
     PdlError(ragit_pdl::Error),
     FileError(FileError),
     ApiKeyNotFound { env_var: Option<String> },
+    StdIoError(std::io::Error),
 
     /// If you see this error, there must be a bug in this library
     NoTry,
@@ -38,6 +39,13 @@ pub enum Error {
     UnsupportedMediaFormat {
         extension: Option<String>,
     },
+    TestModel,
+}
+
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Error {
+        Error::StdIoError(e)
+    }
 }
 
 impl From<ragit_pdl::Error> for Error {
