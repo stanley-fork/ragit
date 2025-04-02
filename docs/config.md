@@ -33,7 +33,7 @@ A recommended way of reading/writing config is `rag config` command.
 
 ## Reference
 
-(Dear contributors, below section is auto-generated. Do not modify this manually)
+(Dear contributors, below section is auto-generated. Do not modify manually.)
 
 ```rust
 

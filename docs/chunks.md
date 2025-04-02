@@ -15,3 +15,5 @@ Once a file is processed, `rag query` can use the chunks from the file. `rag que
 ## Data format
 
 Chunks are saved in a content-addressable way. It's like git's object files. You can find the chunk files in `.ragit/chunks/`, a file per chunk. The first 2 characters of a chunk's uid is the directory name of the chunk file, and the remaining characters in uid consist its file name. For example, if its uid is `abcdef0123`, you'll find the chunk file at `.ragit/chunks/ab/cdef0123.chunk`.
+
+There's no compact format like `.pack` in git.
