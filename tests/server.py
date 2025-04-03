@@ -57,6 +57,9 @@ def server():
                 print("waiting for ragit-server to start...")
                 time.sleep(1)
 
+            else:
+                raise Exception("failed to compile `ragit-server`")
+
             cargo_run(["meta", "--set", "whatever-key", "whatever-value"])
             cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1/test-user/{repo}/"])
             index_json = request_json("index", repo)

@@ -26,6 +26,9 @@ def server2(test_model: str):
             print("waiting for ragit-server to start...")
             time.sleep(1)
 
+        else:
+            raise Exception("failed to compile `ragit-server`")
+
         # step 1: init sample 1 (rustc)
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample1"])
         os.chdir("sample1")

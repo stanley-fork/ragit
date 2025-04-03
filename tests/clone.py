@@ -1,4 +1,5 @@
 import os
+from server import health_check
 import shutil
 import subprocess
 import time
@@ -12,12 +13,16 @@ from utils import (
 
 def clone(base2_size: int = 600):
     goto_root()
+
+    if health_check():
+        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
+
     os.chdir("crates/server")
     os.makedirs("data/test-user/repo1")
 
     try:
         # step 0: run a ragit-server
-        server_process = subprocess.Popen(["cargo", "run", "--release"])
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
         os.mkdir("base")
@@ -37,14 +42,11 @@ def clone(base2_size: int = 600):
 
         # before we push this to server, let's wait until `ragit-server` is compiled
         for _ in range(300):
-            path1 = "../../crates/server/target/release/ragit-server"
-            path2 = "../../crates/server/target/release/ragit-server.exe"
-
-            if not os.path.exists(path1) and not os.path.exists(path2):
-                time.sleep(1)
-
-            else:
+            if health_check():
                 break
+
+            print("waiting for ragit-server to start...")
+            time.sleep(1)
 
         else:
             raise Exception("failed to compile `ragit-server`")
