@@ -26,7 +26,7 @@ def convert_file(input: str, chunk: Optional[str] = None):
     os.mkdir(pages_dir)
 
     for page_no in range(count_pages(input)):
-        image_path = os.path.join(pages_dir, f"page-{page_no:04}.png")
+        image_path = os.path.join(pages_dir, f"page-{page_no + 1:04}.png")
         convert_page_to_image(input, image_path, page_no, scale = 4)
         image = pygame.image.load(image_path)
         w, h = image.get_size()
@@ -36,7 +36,7 @@ def convert_file(input: str, chunk: Optional[str] = None):
                 for i in range(3):
                     surface = pygame.surface.Surface((w, h // 2))
                     surface.blit(image, (0, 0), (0, h * i // 4, w, h // 2))
-                    image_sub_path = os.path.join(pages_dir, f"page-{page_no:04}-chunk-{i:04}.png")
+                    image_sub_path = os.path.join(pages_dir, f"page-{page_no + 1:04}-chunk-{i:04}.png")
                     pygame.image.save(surface, image_sub_path)
                     print(f"Saved {image_sub_path}")
 
@@ -44,7 +44,7 @@ def convert_file(input: str, chunk: Optional[str] = None):
                 for i in range(3):
                     surface = pygame.surface.Surface((w // 2, h))
                     surface.blit(image, (0, 0), (w * i // 4, 0, w // 2, h))
-                    image_sub_path = os.path.join(pages_dir, f"page-{page_no:04}-chunk-{i:04}.png")
+                    image_sub_path = os.path.join(pages_dir, f"page-{page_no + 1:04}-chunk-{i:04}.png")
                     pygame.image.save(surface, image_sub_path)
                     print(f"Saved {image_sub_path}")
 
