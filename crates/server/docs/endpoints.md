@@ -44,6 +44,12 @@ It always uses utf-8 for text/plain.
   - "{major}.{minor}.{patch}-dev"
 - GET `/{user-name}/{repo-name}/chat-list`
   - application/json: array[chat]
+- POST `/{user-name}/{repo-name}/chat-list`
+  - text/plain: a new chat id
+  - It creates a new chat and returns its id.
+- POST `/{user-name}/{repo-name}/chat/{chat-id}`
+  - application/json: [QueryResponse](https://docs.rs/ragit/latest/ragit/struct.QueryResponse.html)
+  - request body (multiform): { "query": str, "model": optional[str] }
 - GET `/{user-name}/{repo-name}/file-list`
   - application/json: array[string]
   - It only returns the list of processed files.
@@ -62,19 +68,15 @@ It always uses utf-8 for text/plain.
 - GET `/health`
 - GET `/user-list`
   - application/json: array[string]
+- POST `/user-list`
 - GET `/repo-list/{user-name}`
   - application/json: array[string]
+- POST `/repo-list/{user-name}`
 - POST `/{user-name}/{repo-name}/begin-push`
   - text/plain: a session id
 - POST `/{user-name}/{repo-name}/archive`
   - request body (multiform): { "session-id": str, "archive-id": str, "archive": bytes }
 - POST `/{user-name}/{repo-name}/finalize-push`
   - request body (plain text): session-id
-- POST `/{user-name}/{repo-name}/chat-list`
-  - text/plain: a new chat id
-  - It creates a new chat and returns its id.
-- POST `/{user-name}/{repo-name}/chat/{chat-id}`
-  - application/json: [QueryResponse](https://docs.rs/ragit/latest/ragit/struct.QueryResponse.html)
-  - request body (multiform): { "query": str, "model": optional[str] }
 - POST `/{user-name}/{repo-name}/ii-build`
   - It's like running `rag ii-build` in the remote knowledge-base. If an inverted index is already built, it does nothing.

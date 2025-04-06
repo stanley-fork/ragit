@@ -22,10 +22,11 @@ pub async fn create_repo(user: String, body: HashMap<String, String>) -> Box<dyn
     handler(create_repo_(user, body).await)
 }
 
-async fn create_repo_(_user: String, body: HashMap<String, String>) -> RawResponse {
+async fn create_repo_(user: String, body: HashMap<String, String>) -> RawResponse {
     let pool = &get_pool().await;
     let repo = serde_json::to_value(&body).handle_error(400)?;
     let repo = serde_json::from_value::<RepoCreate>(repo).handle_error(400)?;
-    let repo_id = repo::create_and_return_id(&repo, pool).await.handle_error(500)?;
+    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
+    let repo_id = repo::create_and_return_id(user_id, &repo, pool).await.handle_error(500)?;
     Ok(Box::new(json(&repo_id)))
 }

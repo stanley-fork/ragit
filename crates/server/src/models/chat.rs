@@ -6,7 +6,7 @@ use serde::Serialize;
 use sqlx::postgres::PgPool;
 
 // `chat` table
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Chat {
     pub id: i32,
     pub repo_id: i32,
@@ -19,7 +19,7 @@ pub struct Chat {
 }
 
 // One that FrontEnd can render
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChatWithHistory {
     pub id: i32,
     pub repo_id: i32,
@@ -32,7 +32,7 @@ pub struct ChatWithHistory {
     pub history: Vec<ChatHistory>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChatHistory {
     pub query: String,
     pub response: String,

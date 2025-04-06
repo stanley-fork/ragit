@@ -17,34 +17,35 @@ impl PasswordHashType {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct UserDetail {
-    id: i32,
-    name: String,
-    normalized_name: String,
-    email: Option<String>,
-    readme: String,
-    created_at: DateTime<Utc>,
-    last_login_at: DateTime<Utc>,
+    pub id: i32,
+    pub name: String,
+    pub normalized_name: String,
+    pub email: Option<String>,
+    pub readme: String,
+    pub created_at: DateTime<Utc>,
+    pub last_login_at: DateTime<Utc>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct UserSimple {
-    name: String,
-    normalized_name: String,
-    email: Option<String>,
+    pub name: String,
+    pub normalized_name: String,
+    pub email: Option<String>,
     #[serde(with = "ts_milliseconds")]
-    created_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     #[serde(with = "ts_milliseconds_option")]
-    last_login_at: Option<DateTime<Utc>>,
+    pub last_login_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct UserCreate {
-    name: String,
-    email: Option<String>,
-    password: String,
-    readme: Option<String>,
-    public: bool,
+    pub name: String,
+    pub email: Option<String>,
+    pub password: String,
+    pub readme: Option<String>,
+    pub public: bool,
 }
 
 pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<UserSimple>, Error> {

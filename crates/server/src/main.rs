@@ -164,6 +164,8 @@ async fn main() {
         .and(warp::query::<HashMap<String, String>>())
         .then(get_user_list);
 
+    // TODO: a post request with `"content-type": "application/json"` isn't caught by this handler, why?
+    //       is it because `create_user` takes `HashMap<String, String>` as an input?
     let create_user_handler = warp::post()
         .and(warp::path("user-list"))
         .and(warp::path::end())

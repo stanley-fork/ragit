@@ -5,37 +5,36 @@ use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
-#[derive(Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RepoQuery {
-    id: i32,
-    name: String,
-    normalized_name: String,
-    owner_name: String,
-    owner_normalized_name: String,
-    description: Option<String>,
-    website: Option<String>,
-    stars: i32,
-    readme: Option<String>,
-    repo_size: i64,
+    pub id: i32,
+    pub name: String,
+    pub normalized_name: String,
+    pub owner_name: String,
+    pub owner_normalized_name: String,
+    pub description: Option<String>,
+    pub website: Option<String>,
+    pub stars: i32,
+    pub readme: Option<String>,
+    pub repo_size: i64,
     #[serde(with = "ts_milliseconds")]
-    created_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
     #[serde(with = "ts_milliseconds_option")]
-    pushed_at: Option<DateTime<Utc>>,
+    pub pushed_at: Option<DateTime<Utc>>,
     #[serde(with = "ts_milliseconds")]
-    updated_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RepoCreate {
-    owner_id: i32,
-    name: String,
-    description: Option<String>,
-    website: Option<String>,
-    readme: Option<String>,
-    public_read: bool,
-    public_write: bool,
-    public_clone: bool,
-    public_push: bool,
+    pub name: String,
+    pub description: Option<String>,
+    pub website: Option<String>,
+    pub readme: Option<String>,
+    pub public_read: bool,
+    pub public_write: bool,
+    pub public_clone: bool,
+    pub public_push: bool,
 }
 
 pub async fn get_id_by_name(user_name: &str, repo_name: &str, pool: &PgPool) -> Result<i32, Error> {
@@ -95,7 +94,7 @@ pub async fn get_list(user_id: i32, limit: i64, offset: i64, pool: &PgPool) -> R
     Ok(result)
 }
 
-pub async fn create_and_return_id(repo: &RepoCreate, pool: &PgPool) -> Result<i32, Error> {
+pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool) -> Result<i32, Error> {
     let repo_id = sqlx::query!(
         "INSERT
         INTO repository (
@@ -137,7 +136,7 @@ pub async fn create_and_return_id(repo: &RepoCreate, pool: &PgPool) -> Result<i3
             NOW()  -- updated_at
         )
         RETURNING id",
-        repo.owner_id,
+        user_id,
         repo.name.clone(),
         normalize(&repo.name),
         repo.description.clone(),

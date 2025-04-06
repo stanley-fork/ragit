@@ -3,6 +3,7 @@ import os
 import requests
 import subprocess
 import time
+from typing import Optional
 from utils import (
     cargo_run,
     goto_root,
@@ -153,6 +154,49 @@ def server():
 
     finally:
         server_process.kill()
+
+def create_user(
+    name: str,
+    email: Optional[str] = None,
+    password: str = "12345678",
+    readme: Optional[str] = None,
+    public: bool = True,
+) -> int:  # returns user_id
+    body = {
+        "name": name,
+        "email": email,
+        "password": password,
+        "readme": readme,
+        "public": public,
+    }
+    response = requests.post("http://127.0.0.1:41127/user-list", json=body)
+    assert response.status_code == 200
+    return response.json()
+
+def create_repo(
+    user: str,
+    repo: str,
+    description: Optional[str] = None,
+    website: Optional[str] = None,
+    readme: Optional[str] = None,
+    public_read: bool = True,
+    public_write: bool = True,
+    public_clone: bool = True,
+    public_push: bool = True,
+) -> int:  # returns repo_id
+    body = {
+        "name": repo,
+        "description": description,
+        "website": website,
+        "readme": readme,
+        "public_read": public_read,
+        "public_write": public_write,
+        "public_clone": public_clone,
+        "public_push": public_push,
+    }
+    response = requests.post(f"http://127.0.0.1:41127/{user}", json=body)
+    assert response.status_code == 200
+    return json.loads(response.json())
 
 def request_json(url: str, repo: str, raw_url: bool = False):
     response = requests.get(os.path.join(f"http://127.0.0.1:41127/test-user/{repo}", url) if not raw_url else url)

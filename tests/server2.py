@@ -1,6 +1,6 @@
 import os
 import requests
-from server import health_check
+from server import create_repo, create_user, health_check
 import subprocess
 import time
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
@@ -33,6 +33,8 @@ def server2(test_model: str):
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample1"])
         os.chdir("sample1")
         cargo_run(["config", "--set", "model", test_model])
+        create_user(name="test-user")
+        create_repo(user="test-user", repo="sample1")
         cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample1"])
         os.chdir("..")
 
