@@ -1,13 +1,8 @@
 use crate::utils::trim_long_string;
-use ragit_fs::{
-    file_name,
-    is_dir,
-    join,
-    read_dir,
-    write_log,
-};
+use ragit_fs::write_log;
+use sqlx::postgres::{PgPool, PgPoolOptions};
 use warp::http::status::StatusCode;
-use warp::reply::{Reply, json, with_header, with_status};
+use warp::reply::{Reply, with_header, with_status};
 
 mod chat;
 mod chunk;
@@ -16,7 +11,9 @@ mod health;
 mod image;
 mod index;
 mod push;
+mod repo;
 mod search;
+mod user;
 
 pub use chat::{
     create_chat,
@@ -57,7 +54,41 @@ pub use push::{
     post_begin_push,
     post_finalize_push,
 };
+pub use repo::{
+    create_repo,
+    get_repo_list,
+};
 pub use search::search;
+pub use user::{
+    create_user,
+    get_user_list,
+};
+
+static POOL: tokio::sync::OnceCell<PgPool> = tokio::sync::OnceCell::const_new();
+
+async fn get_pool() -> &'static PgPool {
+    POOL.get_or_init(|| async {
+        write_log(
+            "init_pg_pool",
+            "start initializing pg pool",
+        );
+
+        let database_url = std::env::var("DATABASE_URL").unwrap();
+
+        match PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&database_url).await {
+            Ok(pool) => pool,
+            Err(e) => {
+                write_log(
+                    "init_pg_pool",
+                    &format!("{e:?}"),
+                );
+                panic!("{e:?}");
+            },
+        }
+    }).await
+}
 
 pub type RawResponse = Result<Box<dyn Reply>, (u16, String)>;
 
@@ -71,40 +102,6 @@ pub fn get_server_version() -> Box<dyn Reply> {
         "Content-Type",
         "text/plain; charset=utf-8",
     ))
-}
-
-pub fn get_user_list() -> Box<dyn Reply> {
-    handler(get_user_list_())
-}
-
-fn get_user_list_() -> RawResponse {
-    let dir = read_dir("data", true).unwrap_or(vec![]);
-    let mut users = vec![];
-
-    for d in dir.iter() {
-        if is_dir(d) {
-            users.push(file_name(d).handle_error(500)?);
-        }
-    }
-
-    Ok(Box::new(json(&users)))
-}
-
-pub fn get_repo_list(user: String) -> Box<dyn Reply> {
-    handler(get_repo_list_(user))
-}
-
-fn get_repo_list_(user: String) -> RawResponse {
-    let dir = read_dir(&join("data", &user).handle_error(400)?, true).handle_error(404)?;
-    let mut repos = vec![];
-
-    for d in dir.iter() {
-        if is_dir(d) {
-            repos.push(file_name(d).handle_error(500)?);
-        }
-    }
-
-    Ok(Box::new(json(&repos)))
 }
 
 pub fn handler(r: RawResponse) -> Box<dyn Reply> {

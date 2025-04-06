@@ -6,11 +6,13 @@ pub enum Error {
     FileError(FileError),
     JsonSerdeError(serde_json::Error),
     WarpError(warp::Error),
-    NoSuchSession(u128),
+    NoSuchSession(String),
     CliError {
         message: String,
         span: (String, usize, usize),  // (args, error_from, error_to)
     },
+    SqlxError(sqlx::Error),
+    RagitError(ragit::Error),
     ServerBusy,
 }
 
@@ -32,11 +34,28 @@ impl From<warp::Error> for Error {
     }
 }
 
+impl From<sqlx::Error> for Error {
+    fn from(e: sqlx::Error) -> Error {
+        Error::SqlxError(e)
+    }
+}
+
 impl From<ragit_cli::Error> for Error {
     fn from(e: ragit_cli::Error) -> Self {
         Error::CliError {
             message: e.kind.render(),
             span: e.span.unwrap_rendered(),
+        }
+    }
+}
+
+impl From<ragit::Error> for Error {
+    fn from(e: ragit::Error) -> Self {
+        match e {
+            ragit::Error::FileError(e) => Error::FileError(e),
+            ragit::Error::JsonSerdeError(e) => Error::JsonSerdeError(e),
+            ragit::Error::CliError { message, span } => Error::CliError { message, span },
+            e => Error::RagitError(e),
         }
     }
 }

@@ -161,13 +161,28 @@ async fn main() {
     let get_user_list_handler = warp::get()
         .and(warp::path("user-list"))
         .and(warp::path::end())
-        .map(get_user_list);
+        .and(warp::query::<HashMap<String, String>>())
+        .then(get_user_list);
+
+    let create_user_handler = warp::post()
+        .and(warp::path("user-list"))
+        .and(warp::path::end())
+        .and(warp::body::json())
+        .then(create_user);
 
     let get_repo_list_handler = warp::get()
         .and(warp::path("repo-list"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_repo_list);
+        .and(warp::query::<HashMap<String, String>>())
+        .then(get_repo_list);
+
+    let create_repo_handler = warp::post()
+        .and(warp::path("repo-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::body::json())
+        .then(create_repo);
 
     let get_chat_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -175,7 +190,7 @@ async fn main() {
         .and(warp::path("chat"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_chat);
+        .then(get_chat);
 
     let get_chat_list_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -183,7 +198,7 @@ async fn main() {
         .and(warp::path("chat-list"))
         .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
-        .map(get_chat_list);
+        .then(get_chat_list);
 
     let get_file_list_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -198,7 +213,7 @@ async fn main() {
         .and(warp::path("begin-push"))
         .and(warp::path::end())
         .and(warp::header::optional::<String>("authorization"))
-        .map(post_begin_push);
+        .then(post_begin_push);
 
     let post_archive_handler = warp::post()
         .and(warp::path::param::<String>())
@@ -214,14 +229,14 @@ async fn main() {
         .and(warp::path("finalize-push"))
         .and(warp::path::end())
         .and(warp::body::bytes())
-        .map(post_finalize_push);
+        .then(post_finalize_push);
 
     let create_chat_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chat-list"))
         .and(warp::path::end())
-        .map(create_chat);
+        .then(create_chat);
 
     // NOTE: warp::body::form::<HashMap<String, String>> can catch `application/x-www-form-urlencoded`,
     //       but `warp::body::form::<HashMap<String, Vec<u8>>>` cannot. Is this an upstream issue?
@@ -299,6 +314,8 @@ async fn main() {
             .or(get_chat_handler)
             .or(get_chat_list_handler)
             .or(get_file_list_handler)
+            .or(create_user_handler)
+            .or(create_repo_handler)
             .or(post_begin_push_handler)
             .or(post_archive_handler)
             .or(post_finalize_push_handler)
@@ -330,6 +347,7 @@ async fn main() {
 }
 
 fn initinalize_server(args: &CliArgs) -> Config {
+    sqlx::migrate!("./migrations/");
     let config_file = args.config_file.clone().unwrap_or(String::from("./config.json"));
 
     if !exists(&config_file) {

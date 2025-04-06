@@ -147,8 +147,6 @@ impl Index {
     }
 
     async fn finalize_push(&self, url: &str, session_id: &str) -> Result<(), Error> {
-        // I don't know much about REST API, but people are saying that GET has to be idempotent.
-        // That's why I'm using POST.
         let client = reqwest::Client::new();
         let response = client.post(url).body(session_id.to_string()).send().await?;
 
