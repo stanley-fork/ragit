@@ -1,7 +1,7 @@
 use super::{HandleError, RawResponse, auth, get_pool, handler};
 use bytes::Bytes;
-use crate::models::{push, repo};
-use crate::models::push::PushResult;
+use crate::models::{archive, repo};
+use crate::models::archive::PushResult;
 use crate::utils::{decode_base64, fetch_form_data};
 use ragit::Index;
 use ragit_fs::{
@@ -23,7 +23,7 @@ pub async fn post_begin_push(user: String, repo: String, auth_info: Option<Strin
 }
 
 async fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let mut auth_parsed: Option<(String, Option<String>)> = None;
 
     // TODO: better auth implementation
@@ -48,7 +48,7 @@ async fn post_begin_push_(user: String, repo: String, auth_info: Option<String>)
     }
 
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
-    let session_id = push::create_new_session(repo_id, pool).await.handle_error(500)?;
+    let session_id = archive::create_new_session(repo_id, pool).await.handle_error(500)?;
 
     create_dir_all(
         &join(
@@ -69,14 +69,14 @@ pub async fn post_archive(user: String, repo: String, form: FormData) -> Box<dyn
 }
 
 async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let form = fetch_form_data(form).await.handle_error(400)?;
     let session_id = form.get("session-id").ok_or_else(|| "session-id not found").handle_error(400)?;
     let session_id = String::from_utf8_lossy(session_id).to_string();
     let archive_id = form.get("archive-id").ok_or_else(|| "archive-id not found").handle_error(400)?;
     let archive_id = String::from_utf8(archive_id.to_vec()).handle_error(400)?;
     let archive = form.get("archive").ok_or_else(|| "archive not found").handle_error(400)?;
-    push::add_archive(&session_id, &archive_id, &archive, pool).await.handle_error(500)?;
+    archive::add_archive(&session_id, &archive_id, &archive, pool).await.handle_error(500)?;
 
     let path = join3(
         "./session",
@@ -101,7 +101,7 @@ pub async fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<
 }
 
 async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let session_id = String::from_utf8(body.into_iter().collect::<Vec<u8>>()).handle_error(400)?;
     let archives_at = join(
         "./session",
@@ -129,10 +129,20 @@ async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResp
         true,
         true,  // quiet
     );
-    push::finalize_push(
+    let push_result = match push_result {
+        Ok(_) => PushResult::Completed,
+        Err(e) => {
+            write_log(
+                "post_finalize_push",
+                &format!("Error at `Index::extract_archive`: {e:?}"),
+            );
+            PushResult::Failed
+        },
+    };
+    archive::finalize_push(
         repo_id,
         &session_id,
-        if push_result.is_ok() { PushResult::Completed } else { PushResult::Failed },
+        push_result,
         pool,
     ).await.handle_error(500)?;
     remove_dir_all(

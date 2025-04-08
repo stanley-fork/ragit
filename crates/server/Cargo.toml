@@ -11,6 +11,7 @@ bytes = "1.10.0"
 chrono = { version = "0.4.40", features = ["serde"] }
 futures-util = "0.3.31"
 ragit = { path = "../..", version = "0.4.0" }
+ragit-api = { path = "../api", version = "0.4.0" }
 ragit-cli = { path = "../cli", version = "0.4.0" }
 ragit-fs = { path = "../fs", version = "0.4.0" }
 rand = "0.9.0"

@@ -23,7 +23,8 @@ def server():
 
     try:
         # step 0: run a ragit-server
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "--force-default-config"])
+        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"])
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "run", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
 
@@ -194,9 +195,9 @@ def create_repo(
         "public_clone": public_clone,
         "public_push": public_push,
     }
-    response = requests.post(f"http://127.0.0.1:41127/{user}", json=body)
+    response = requests.post(f"http://127.0.0.1:41127/repo-list/{user}", json=body)
     assert response.status_code == 200
-    return json.loads(response.json())
+    return response.json()
 
 def request_json(url: str, repo: str, raw_url: bool = False):
     response = requests.get(os.path.join(f"http://127.0.0.1:41127/test-user/{repo}", url) if not raw_url else url)

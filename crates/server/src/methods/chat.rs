@@ -1,5 +1,5 @@
 use super::{HandleError, RawResponse, get_pool, handler};
-use crate::models::{chat, repo};
+use crate::models::{ai_model, chat, repo, user};
 use ragit::{Index, LoadMode, QueryResponse, QueryTurn};
 use ragit_fs::join3;
 use std::collections::HashMap;
@@ -10,7 +10,7 @@ pub async fn get_chat(user: String, repo: String, chat_id: String) -> Box<dyn Re
 }
 
 async fn get_chat_(user: String, repo: String, chat_id: String) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
     let chat_id = chat_id.parse::<i32>().handle_error(400)?;
     let chat = chat::get_chat_with_history_by_id(chat_id, pool).await.handle_error(404)?;
@@ -27,7 +27,7 @@ pub async fn get_chat_list(user: String, repo: String, query: HashMap<String, St
 }
 
 async fn get_chat_list_(user: String, repo: String, query: HashMap<String, String>) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
     let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
@@ -41,16 +41,12 @@ pub async fn post_chat(user: String, repo: String, chat_id: String, form: HashMa
 }
 
 async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let query = match form.get("query") {
         Some(query) => String::from_utf8_lossy(query).to_string(),
         None => {
             return Err((400, String::from("`query` field is missing")));
         },
-    };
-    let model = match form.get("model") {
-        Some(model) => Some(String::from_utf8_lossy(model).to_string()),
-        None => None,
     };
     let index_at = join3(
         "data",
@@ -58,6 +54,7 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
         &repo,
     ).handle_error(400)?;
 
+    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
     let chat_id = chat_id.parse::<i32>().handle_error(400)?;
     let chat = chat::get_chat_by_id(chat_id, pool).await.handle_error(404)?;
@@ -66,13 +63,21 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
         return Err((400, format!("chat {chat_id} does not belong to {repo_id}")));
     }
 
-    let mut index = Index::load(index_at, LoadMode::OnlyJson).handle_error(500)?;
+    let mut model_name = ai_model::get_default_model_name(user_id, pool).await.handle_error(500)?;
 
-    if let Some(model) = model {
-        index.api_config.model = model;
+    if let Some(model) = form.get("model") {
+        model_name = String::from_utf8(model.to_vec()).handle_error(400)?;
     }
 
-    let model = index.api_config.model.clone();
+    // TODO: I want it to return more detailed error message
+    let model_schema = ai_model::get_model_schema(user_id, &model_name, pool).await.handle_error(400)?;
+
+    // There's a quirk. Ragit reads model info from `.ragit/models.json`, but ragit-server wants to
+    // store everything on DB. And it does so. So, it first reads model info from the DB and
+    // writes `.ragit/models.json` on the fly.
+    ai_model::update_model_schema(&user, &repo, &model_schema).handle_error(500)?;
+    let mut index = Index::load(index_at, LoadMode::OnlyJson).handle_error(500)?;
+    index.api_config.model = model_name.clone();
     let history = chat::get_history_by_id(chat_id, pool).await.handle_error(500)?;
     let mut real_history = Vec::with_capacity(history.len());
 
@@ -97,7 +102,7 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
         &history,
         &response,
         0,  // TODO: user_id
-        &model,
+        &model_name,
         pool,
     ).await.handle_error(500)?;
 
@@ -109,7 +114,7 @@ pub async fn create_chat(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 async fn create_chat_(user: String, repo: String) -> RawResponse {
-    let pool = &get_pool().await;
+    let pool = get_pool().await;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
     let chat_id = chat::create_and_return_id(repo_id, pool).await.handle_error(500)?;
 

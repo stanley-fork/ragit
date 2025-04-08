@@ -55,7 +55,7 @@ pub async fn create_and_return_id(repo_id: i32, pool: &PgPool) -> Result<i32, Er
 
 pub async fn get_chat_by_id(id: i32, pool: &PgPool) -> Result<Chat, Error> {
     let row = sqlx::query!(
-        "SELECT id, repo_id, title, created_at, updated_at FROM chat WHERE repo_id = $1",
+        "SELECT id, repo_id, title, created_at, updated_at FROM chat WHERE id = $1",
         id,
     ).fetch_one(pool).await?;
 

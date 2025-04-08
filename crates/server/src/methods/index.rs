@@ -1,4 +1,4 @@
-use super::{HandleError, RawResponse, handler};
+use super::{HandleError, RawResponse, check_secure_path, handler};
 use crate::utils::get_rag_path;
 use ragit::{Index, LoadMode, UidQueryConfig, merge_and_convert_chunks};
 use ragit_fs::{
@@ -34,6 +34,7 @@ pub fn get_config(user: String, repo: String, config: String) -> Box<dyn Reply> 
 
 fn get_config_(user: String, repo: String, config: String) -> RawResponse {
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+    check_secure_path(&config).handle_error(400)?;
     let config_path = join3(
         &rag_path,
         "configs",
@@ -54,6 +55,7 @@ pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> 
 
 fn get_prompt_(user: String, repo: String, prompt: String) -> RawResponse {
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+    check_secure_path(&prompt).handle_error(400)?;
     let prompt_path = join3(
         &rag_path,
         "prompts",
@@ -149,6 +151,8 @@ fn get_meta_(user: String, repo: String) -> RawResponse {
     )))
 }
 
+// TODO: it has to be a search endpoint for files
+//       we have to implement github-like file viewer
 pub fn get_file_list(user: String, repo: String) -> Box<dyn Reply> {
     handler(get_file_list_(user, repo))
 }

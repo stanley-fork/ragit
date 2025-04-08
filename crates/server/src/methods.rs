@@ -1,9 +1,11 @@
+use crate::error::Error;
 use crate::utils::trim_long_string;
 use ragit_fs::write_log;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use warp::http::status::StatusCode;
 use warp::reply::{Reply, with_header, with_status};
 
+mod admin;
 mod chat;
 mod chunk;
 mod clone;
@@ -15,6 +17,10 @@ mod repo;
 mod search;
 mod user;
 
+pub use admin::{
+    drop_all,
+    truncate_all,
+};
 pub use chat::{
     create_chat,
     get_chat,
@@ -137,4 +143,14 @@ impl<T, E: std::fmt::Debug> HandleError<T> for Result<T, E> {
 fn auth(_user: &str, _repo: &str, _auth_info: &Option<(String, Option<String>)>) -> bool {
     // TODO
     true
+}
+
+fn check_secure_path(path: &str) -> Result<(), Error> {
+    if path.starts_with(".") || path.contains("/") {
+        Err(Error::InsecurePath(path.to_string()))
+    }
+
+    else {
+        Ok(())
+    }
 }

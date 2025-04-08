@@ -1,7 +1,15 @@
 use crate::error::Error;
 use ragit_cli::{ArgParser, ArgType};
 
-pub struct CliArgs {
+#[derive(Clone, Debug)]
+pub enum CliCommand {
+    Run(RunArgs),
+    DropAll(DropArgs),
+    TruncateAll(DropArgs),
+}
+
+#[derive(Clone, Debug)]
+pub struct RunArgs {
     // It overrides config.
     pub port_number: Option<u16>,
 
@@ -16,20 +24,46 @@ pub struct CliArgs {
     pub force_default_config: bool,
 }
 
-pub fn parse_cli_args(args: Vec<String>) -> Result<CliArgs, Error> {
-    let parsed_args = ArgParser::new()
-        .optional_flag(&["--verbose", "--quiet"])
-        .optional_flag(&["--force-default-config"])
-        .optional_arg_flag("--port", ArgType::IntegerBetween { min: Some(0), max: Some(65535) })
-        .optional_arg_flag("--config", ArgType::Path)
-        .short_flag(&["--verbose", "--port"])
-        .parse(&args[1..])?;
+#[derive(Clone, Copy, Debug)]
+pub struct DropArgs {
+    pub force: bool,
+}
 
-    Ok(CliArgs {
-        port_number: parsed_args.arg_flags.get("--port").map(|n| n.parse::<u16>().unwrap()),
-        verbose: parsed_args.get_flag(0).unwrap_or(String::new()) == "--verbose",
-        quiet: parsed_args.get_flag(0).unwrap_or(String::new()) == "--quiet",
-        config_file: parsed_args.arg_flags.get("--config").map(|f| f.to_string()),
-        force_default_config: parsed_args.get_flag(1).is_some(),
-    })
+pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
+    match args.get(1).map(|arg| arg.as_str()) {
+        Some("run") => {
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--verbose", "--quiet"])
+                .optional_flag(&["--force-default-config"])
+                .optional_arg_flag("--port", ArgType::IntegerBetween { min: Some(0), max: Some(65535) })
+                .optional_arg_flag("--config", ArgType::Path)
+                .short_flag(&["--verbose", "--port"])
+                .parse(&args[2..])?;
+
+            Ok(CliCommand::Run(RunArgs {
+                port_number: parsed_args.arg_flags.get("--port").map(|n| n.parse::<u16>().unwrap()),
+                verbose: parsed_args.get_flag(0).unwrap_or(String::new()) == "--verbose",
+                quiet: parsed_args.get_flag(0).unwrap_or(String::new()) == "--quiet",
+                config_file: parsed_args.arg_flags.get("--config").map(|f| f.to_string()),
+                force_default_config: parsed_args.get_flag(1).is_some(),
+            }))
+        },
+        Some(c @ ("drop-all" | "truncate-all")) => {
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--force"])
+                .short_flag(&["--force"])
+                .parse(&args[2..])?;
+
+            let args = DropArgs {
+                force: parsed_args.get_flag(0).is_some(),
+            };
+
+            Ok(if c == "drop-all" { CliCommand::DropAll(args) } else { CliCommand::TruncateAll(args) })
+        },
+        // TODO: CliError
+        // TODO: suggest similar commands
+        Some(invalid_command) => panic!("invalid command: `{invalid_command}`"),
+        // TODO: help message
+        None => panic!(),
+    }
 }

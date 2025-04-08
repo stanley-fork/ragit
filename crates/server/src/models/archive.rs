@@ -1,4 +1,5 @@
 use crate::error::Error;
+use chrono::Datelike;
 use sqlx::postgres::PgPool;
 
 pub enum PushResult {
@@ -12,6 +13,30 @@ impl PushResult {
             PushResult::Completed => "completed",
             PushResult::Failed => "failed",
         }
+    }
+}
+
+pub async fn get_list(session_id: &str, pool: &PgPool) -> Result<Vec<String>, Error> {
+    let rows = sqlx::query!(
+        "SELECT archive_id FROM archive WHERE session_id = $1",
+        session_id,
+    ).fetch_all(pool).await?;
+
+    Ok(rows.into_iter().map(|row| row.archive_id).collect())
+}
+
+pub async fn get_archive(session_id: &str, archive_id: &str, pool: &PgPool) -> Result<Vec<u8>, Error> {
+    let blob = sqlx::query!(
+        "SELECT blob
+        FROM archive JOIN archive_blob ON archive_blob.id = archive.blob_id
+        WHERE session_id = $1 AND archive_id = $2",
+        session_id,
+        archive_id,
+    ).fetch_one(pool).await?;
+
+    match blob.blob {
+        Some(blob) => Ok(blob),
+        None => Err(Error::ArchiveBlobRemoved),
     }
 }
 
@@ -59,14 +84,14 @@ pub async fn add_archive(session_id: &str, archive_id: &str, archive: &[u8], poo
         rand::random::<u128>(),
     );
     sqlx::query!(
-        "INSERT INTO push_blob (id, blob) VALUES ($1, $2)",
+        "INSERT INTO archive_blob (id, blob) VALUES ($1, $2)",
         blob_id,
         archive,
     ).execute(pool).await?;
 
     sqlx::query!(
         "INSERT
-        INTO push_archive (session_id, archive_id, blob_size, blob_id)
+        INTO archive (session_id, archive_id, blob_size, blob_id)
         VALUES ($1, $2, $3, $4)",
         session_id,
         archive_id,
@@ -82,6 +107,9 @@ pub async fn finalize_push(
     result: PushResult,
     pool: &PgPool,
 ) -> Result<(), Error> {
+    let now = chrono::offset::Utc::now();
+    let (year, month, day) = (now.year(), now.month(), now.day());
+
     sqlx::query!(
         "UPDATE push_session SET session_state = $1, updated_at = NOW() WHERE id = $2",
         result.as_str(),
@@ -90,7 +118,7 @@ pub async fn finalize_push(
     sqlx::query!(
         "UPDATE repository
         SET
-            repo_size = (SELECT SUM(blob_size) FROM push_archive WHERE session_id = $1),
+            repo_size = (SELECT SUM(blob_size) FROM archive WHERE session_id = $1),
             push_session_id = $2,
             pushed_at = NOW(),
             updated_at = NOW()
@@ -99,8 +127,18 @@ pub async fn finalize_push(
         session_id,
         repo_id,
     ).execute(pool).await?;
-
-    // TODO: update `push_clone` table
+    sqlx::query!(
+        "INSERT
+        INTO repository_stat (repo_id, date_str, year, month, day, push, clone)
+        VALUES ($1, $2, $3, $4, $5, 1, 0)
+        ON CONFLICT (repo_id, date_str)
+        DO UPDATE SET push = repository_stat.push + 1;",
+        repo_id,
+        format!("{year:04}{month:02}{day:02}"),
+        year,
+        month as i32,
+        day as i32,
+    ).execute(pool).await?;
 
     Ok(())
 }

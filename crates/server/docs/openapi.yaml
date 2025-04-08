@@ -1,0 +1,489 @@
+openapi: "3.0.4"
+info:
+  title: ragit-server
+  description: todo
+  version: 0.1.0
+paths:
+  /{user}/{repo}/index/:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetIndex
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+      responses:
+        '200':
+          description: content of `index.json` file of the repository.
+          content:
+            application/json:
+              schema:
+                type: object
+  /{user}/{repo}/config/{config}:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetConfig
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: config
+          in: path
+          required: true
+          description: name of the config file (api, build or query)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: content of the config file.
+          content:
+            application/json:
+              schema:
+                type: object
+  /{user}/{repo}/prompt/{prompt}:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetPrompt
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: prompt
+          in: path
+          required: true
+          description: name of the prompt file (a file in `.ragit/prompts`, without an extension)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: content of the prompt file.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /{user}/{repo}/chunk-count:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetChunkCount
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+      responses:
+        '200':
+          description: number of chunks in the repository
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+  /{user}/{repo}/chunk-list/{chunk-prefix}:
+    get: todo
+  /{user}/{repo}/chunk-list/:
+    get: todo
+  /{user}/{repo}/chunk/{chunk-uid}:
+    get: todo
+  /{user}/{repo}/image-list/{image-prefix}:
+    get: todo
+  /{user}/{repo}/image/{image-uid}:
+    get: todo
+  /{user}/{repo}/image-desc/{image-uid}:
+    get: todo
+  /{user}/{repo}/file-list:
+    get: todo (WIP)
+  /{user}/{repo}/cat-file/{uid}:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetCatFile
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: uid
+          in: path
+          required: true
+          description: uid of a file or a chunk
+          schema:
+            type: string
+      responses:
+        '200':
+          description: It's exactly same as running `rag cat-file` with the uid.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /{user}/{repo}/archive-list:
+    get: todo
+  /{user}/{repo}/archive/{archive-id}:
+    get: todo
+  /{user}/{repo}/meta:
+    get: todo
+  /{user}/{repo}/version:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetRepoVersion
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+      responses:
+        '200':
+          description: version of the repository
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "0.4.0-dev"
+  /{user}/{repo}/ii-build:
+    post: todo
+  /{user}/{repo}/search:
+    get: todo (WIP)
+  /{user}/{repo}/begin-push:
+    post: todo
+  /{user}/{repo}/archive:
+    post: todo
+  /{user}/{repo}/finalize-push:
+    post: todo
+  /{user}/{repo}/chat/{chat-id}:
+    get: todo
+    post: todo
+  /{user}/{repo}/chat-list:
+    get: todo
+    post: todo
+  /health:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetHealth
+      responses:
+        '200':
+          description: todo
+  /version:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetServerVersion
+      responses:
+        '200':
+          description: version of the server
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "0.4.0-dev"
+  /user-list:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetUserList
+      parameters:
+        - name: limit
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: offset
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSimple'
+    post:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: CreateUser
+      requestBody:
+        description: todo
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int32
+                description: user id
+  /repo-list/{user}:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetRepoList
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: offset
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepoSimple'
+    post:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: CreateRepo
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+      requestBody:
+        description: todo
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepoCreate'
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int32
+                description: repo id
+components:
+  schemas:
+    UserSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: todo
+        name:
+          type: string
+          description: todo
+        normalized_name:
+          type: string
+          description: todo
+        email:
+          type: string
+          description: todo
+        created_at:
+          type: string
+          format: date-time
+          description: todo
+        last_login_at:
+          type: string
+          format: date-time
+          description: todo
+    UserCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: todo
+        email:
+          type: string
+          description: todo
+        password:
+          type: string
+          description: todo
+        readme:
+          type: string
+          nullable: true
+          description: todo
+        public:
+          type: boolean
+          description: todo
+    RepoSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          description: todo
+        name:
+          type: string
+          description: todo
+        owner_name:
+          type: string
+          description: todo
+        description:
+          type: string
+          description: todo
+          nullable: true
+        website:
+          type: string
+          description: todo
+          nullable: true
+        stars:
+          type: integer
+          format: int32
+          description: todo
+        repo_size:
+          type: integer
+          format: int64
+          description: todo
+        created_at:
+          type: string
+          format: date-time
+          description: todo
+        pushed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: todo
+        updated_at:
+          type: string
+          format: date-time
+          description: todo
+    RepoCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: todo
+        description:
+          type: string
+          description: todo
+          nullable: true
+        website:
+          type: string
+          description: todo
+          nullable: true
+        readme:
+          type: string
+          description: todo
+          nullable: true
+        public_read:
+          type: boolean
+          description: todo
+        public_write:
+          type: boolean
+          description: todo
+        public_clone:
+          type: boolean
+          description: todo
+        public_push:
+          type: boolean
+          description: todo

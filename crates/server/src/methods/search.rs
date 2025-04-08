@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use warp::reply::{Reply, json};
 
+// TODO: it has to be tfidf search on chunks/files/images, with additional search-by-feature (what it implements now)
 pub fn search(user: String, repo: String, query: HashMap<String, String>) -> Box<dyn Reply> {
     handler(search_(user, repo, query))
 }

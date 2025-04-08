@@ -1,6 +1,6 @@
 #![recursion_limit = "256"]
 
-use crate::cli::{CliArgs, parse_cli_args};
+use crate::cli::{CliCommand, RunArgs, parse_cli_args};
 use crate::config::Config;
 use crate::methods::*;
 use crate::utils::fetch_form_data;
@@ -29,10 +29,34 @@ mod utils;
 #[tokio::main]
 async fn main() {
     let args = match parse_cli_args(std::env::args().collect::<Vec<_>>()) {
-        Ok(args) => args,
+        Ok(command) => match command {
+            CliCommand::Run(args) => args,
+            CliCommand::DropAll(args)
+            | CliCommand::TruncateAll(args) => {
+                if !args.force {
+                    println!("Are you sure?");
+                    print!(">>> ");
+                    let mut s = String::new();
+                    std::io::stdout().flush().unwrap();
+                    std::io::stdin().read_line(&mut s).unwrap();
+
+                    if !s.starts_with("y") {
+                        return;
+                    }
+                }
+
+                if let CliCommand::DropAll(_) = command {
+                    drop_all().await.unwrap();
+                } else {
+                    truncate_all().await.unwrap();
+                }
+
+                return;
+            },
+        },
         Err(e) => {
             eprintln!("{e:?}");
-            return;
+            std::process::exit(1);
         },
     };
     let config = initinalize_server(&args);
@@ -129,7 +153,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("archive-list"))
         .and(warp::path::end())
-        .map(get_archive_list);
+        .then(get_archive_list);
 
     let get_archive_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -137,7 +161,7 @@ async fn main() {
         .and(warp::path("archive"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_archive);
+        .then(get_archive);
 
     let get_meta_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -164,8 +188,6 @@ async fn main() {
         .and(warp::query::<HashMap<String, String>>())
         .then(get_user_list);
 
-    // TODO: a post request with `"content-type": "application/json"` isn't caught by this handler, why?
-    //       is it because `create_user` takes `HashMap<String, String>` as an input?
     let create_user_handler = warp::post()
         .and(warp::path("user-list"))
         .and(warp::path::end())
@@ -348,7 +370,8 @@ async fn main() {
     ).run(([0, 0, 0, 0], args.port_number.unwrap_or(config.port_number))).await;
 }
 
-fn initinalize_server(args: &CliArgs) -> Config {
+fn initinalize_server(args: &RunArgs) -> Config {
+    // TODO: it seems like `sqlx::migrate!` isn't doing anything
     sqlx::migrate!("./migrations/");
     let config_file = args.config_file.clone().unwrap_or(String::from("./config.json"));
 

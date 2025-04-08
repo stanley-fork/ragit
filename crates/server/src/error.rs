@@ -13,6 +13,8 @@ pub enum Error {
     },
     SqlxError(sqlx::Error),
     RagitError(ragit::Error),
+    InsecurePath(String),
+    ArchiveBlobRemoved,
     ServerBusy,
 }
 

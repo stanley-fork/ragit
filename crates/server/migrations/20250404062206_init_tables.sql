@@ -16,6 +16,28 @@ CREATE TABLE IF NOT EXISTS user_ (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS user_by_name ON user_ ( normalized_name );
 
+CREATE TABLE IF NOT EXISTS user_ai_model (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    ai_model_id TEXT NOT NULL,
+    api_key TEXT,
+    default_model BOOLEAN NOT NULL,
+    added_at TIMESTAMPTZ
+);
+CREATE UNIQUE INDEX IF NOT EXISTS user_ai_model_by_user ON user_ai_model ( user_id );
+
+CREATE TABLE IF NOT EXISTS ai_model (
+    id TEXT PRIMARY KEY,  -- hash value of model name and metadata
+
+    -- inherits that of `models.json`. see `crates/api/src/model.rs`
+    name TEXT NOT NULL,
+    api_name TEXT NOT NULL,
+    api_provider TEXT NOT NULL,
+    api_url TEXT,
+    can_read_images BOOLEAN NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ai_model_by_name ON ai_model ( name );
+
 CREATE TABLE IF NOT EXISTS repository (
     id SERIAL PRIMARY KEY,
     owner_id INTEGER NOT NULL,
@@ -42,7 +64,7 @@ CREATE TABLE IF NOT EXISTS repository (
 );
 CREATE INDEX IF NOT EXISTS repository_by_owner ON repository ( owner_id );
 
-CREATE TABLE IF NOT EXISTS push_clone (
+CREATE TABLE IF NOT EXISTS repository_stat (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
 
@@ -51,10 +73,11 @@ CREATE TABLE IF NOT EXISTS push_clone (
     month INTEGER NOT NULL,
     day INTEGER NOT NULL,
 
+    -- TODO: view count? but how?
     push INTEGER NOT NULL,
     clone INTEGER NOT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS push_clone_by_date ON push_clone ( repo_id, date_str );
+CREATE UNIQUE INDEX IF NOT EXISTS repository_stat_by_date ON repository_stat ( repo_id, date_str );
 
 CREATE TABLE IF NOT EXISTS issue (
     id SERIAL PRIMARY KEY,
@@ -63,6 +86,7 @@ CREATE TABLE IF NOT EXISTS issue (
     author_id INTEGER NOT NULL,
 
     is_open BOOLEAN NOT NULL,
+    is_deleted BOOLEAN NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
@@ -86,12 +110,21 @@ CREATE TABLE IF NOT EXISTS issue_comment (
     issue_id INTEGER NOT NULL,
     author_id INTEGER NOT NULL,
 
+    is_deleted BOOLEAN NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     updated_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS issue_comment_by_issue ON issue_comment ( issue_id );
 CREATE INDEX IF NOT EXISTS issue_comment_by_author ON issue_comment ( author_id );
+
+CREATE TABLE IF NOT EXISTS issue_comment_content_history (
+    id SERIAL PRIMARY KEY,
+    issue_comment_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS issue_comment_content_history_by_issue_comment ON issue_comment_content_history ( issue_comment_id );
 
 CREATE TABLE IF NOT EXISTS chat (
     id SERIAL PRIMARY KEY,
@@ -151,16 +184,18 @@ CREATE TABLE IF NOT EXISTS push_session (
 CREATE INDEX IF NOT EXISTS push_session_by_repo ON push_session ( repo_id, updated_at );
 CREATE INDEX IF NOT EXISTS push_session_clean_up_index ON push_session ( session_state, updated_at );
 
-CREATE TABLE IF NOT EXISTS push_archive (
+CREATE TABLE IF NOT EXISTS archive (
     id SERIAL PRIMARY KEY,
     session_id TEXT NOT NULL,
     archive_id TEXT NOT NULL,
     blob_size INTEGER NOT NULL,  -- in bytes
     blob_id TEXT NOT NULL
 );
-CREATE INDEX IF NOT EXISTS push_archive_by_session ON push_archive ( session_id );
+CREATE UNIQUE INDEX IF NOT EXISTS push_archive_by_session ON archive ( session_id, archive_id );
 
-CREATE TABLE IF NOT EXISTS push_blob (
+CREATE TABLE IF NOT EXISTS archive_blob (
     id TEXT PRIMARY KEY,
+
+    -- (WIP) garbage collector will nullify old blobs!
     blob BYTEA
 );

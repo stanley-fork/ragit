@@ -30,6 +30,7 @@ pub struct UserDetail {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct UserSimple {
+    pub id: i32,
     pub name: String,
     pub normalized_name: String,
     pub email: Option<String>,
@@ -50,7 +51,7 @@ pub struct UserCreate {
 
 pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<UserSimple>, Error> {
     let rows = sqlx::query!(
-        "SELECT name, normalized_name, email, created_at, last_login_at FROM user_ ORDER BY id LIMIT $1 OFFSET $2",
+        "SELECT id, name, normalized_name, email, created_at, last_login_at FROM user_ ORDER BY id LIMIT $1 OFFSET $2",
         limit,
         offset,
     ).fetch_all(pool).await?;
@@ -58,6 +59,7 @@ pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<User
 
     for row in rows.iter() {
         result.push(UserSimple {
+            id: row.id,
             name: row.name.clone(),
             normalized_name: row.normalized_name.clone(),
             email: row.email.clone(),
@@ -70,6 +72,7 @@ pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<User
 }
 
 pub async fn get_id_by_name(name: &str, pool: &PgPool) -> Result<i32, Error> {
+    let name = normalize(name);
     let row = sqlx::query!(
         "SELECT id FROM user_ WHERE normalized_name = $1",
         name,
@@ -78,8 +81,9 @@ pub async fn get_id_by_name(name: &str, pool: &PgPool) -> Result<i32, Error> {
     Ok(row.id)
 }
 
+// TODO: initialize `user_ai_model` with default models
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
-    let salt = format!("{:032x}", rand::random::<u128>());
+    let salt = format!("{:x}", rand::random::<u128>());
     let (password, password_hash_type) = hash_password(&salt, &user.password);
     let user_id = sqlx::query!(
         "INSERT
@@ -125,12 +129,13 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
 fn hash_password(salt: &str, password: &str) -> (String, PasswordHashType) {
     let mut state: u128 = 0;
 
-    for (i, b) in salt.bytes().chain(password.bytes()).enumerate() {
-        let n = ((i as u128) << 12) | b as u128;
-        let n = (((state >> 24) & 0xfff) << 16) + n;
-        let n = 2 * n * n + n + 1;
+    for (i, b) in salt.bytes().chain(password.bytes()).chain(salt.bytes()).enumerate() {
+        let mut n = ((i as u128) << 12) | b as u128;
+        n += ((state >> 24) & 0x000f_ffff) << 16;
+        n = 2 * n * n + n + 1;
         state += n;
     }
 
+    state &= 0xffff_ffff_ffff_ffff_ffff;
     (format!("{state:x}"), PasswordHashType::Dummy)
 }

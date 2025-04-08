@@ -14,7 +14,8 @@ def server2(test_model: str):
 
     try:
         # step 0: run a ragit-server
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "--force-default-config"])
+        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"])
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "run", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
 
@@ -43,6 +44,7 @@ def server2(test_model: str):
         os.chdir("sample2")
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", test_model])
+        create_repo(user="test-user", repo="sample2")
         cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample2"])
         os.chdir("..")
 
@@ -52,12 +54,9 @@ def server2(test_model: str):
         responses1 = []
         responses2 = []
 
-        chat_list1 = requests.get("http://127.0.0.1:41127/test-user/sample1/chat-list?history=0").json()
-        chat_list2 = requests.get("http://127.0.0.1:41127/test-user/sample1/chat-list?history=1").json()
-        assert chat_list1 == chat_list2
-        assert len(chat_list1) == 1
-        assert chat_list1[0]["id"] == chat_id1
-        assert len(chat_list1[0]["history"]) == 0
+        chat_list = requests.get("http://127.0.0.1:41127/test-user/sample1/chat-list").json()
+        assert len(chat_list) == 1
+        assert str(chat_list[0]["id"]) == chat_id1
 
         # TODO: what's the difference between multipart/form and body/form? I'm noob to this...
         responses1.append(requests.post(f"http://127.0.0.1:41127/test-user/sample1/chat/{chat_id1}", files={"query": "How does the rust compiler implement type system?"}).json())
@@ -72,13 +71,9 @@ def server2(test_model: str):
         history1 = requests.get(f"http://127.0.0.1:41127/test-user/sample1/chat/{chat_id1}").json()["history"]
         history2 = requests.get(f"http://127.0.0.1:41127/test-user/sample2/chat/{chat_id2}").json()["history"]
 
-        chat_list1 = requests.get("http://127.0.0.1:41127/test-user/sample1/chat-list?history=0").json()
-        chat_list2 = requests.get("http://127.0.0.1:41127/test-user/sample1/chat-list?history=1").json()
-        assert chat_list1 != chat_list2
-        assert len(chat_list1) == 1
-        assert chat_list1[0]["id"] == chat_id1
-        assert len(chat_list1[0]["history"]) == 0
-        assert len(chat_list2[0]["history"]) == 3
+        chat_list = requests.get("http://127.0.0.1:41127/test-user/sample1/chat-list").json()
+        assert len(chat_list) == 1
+        assert str(chat_list[0]["id"]) == chat_id1
 
         for response in responses2:
             assert len(response["retrieved_chunks"]) == 0
@@ -86,6 +81,7 @@ def server2(test_model: str):
         assert [h["response"] for h in history1] == responses1
         assert [h["response"] for h in history2] == responses2
 
+        # ii-build is idempotent
         for _ in range(3):
             assert requests.post("http://127.0.0.1:41127/test-user/sample1/ii-build").status_code == 200
             assert requests.post("http://127.0.0.1:41127/test-user/sample2/ii-build").status_code == 200

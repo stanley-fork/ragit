@@ -1,43 +1,35 @@
-use super::{HandleError, RawResponse, handler};
-use crate::utils::get_rag_path;
-use ragit_fs::{
-    basename,
-    exists,
-    join,
-    join3,
-    read_bytes,
-    read_dir,
-};
+use super::{HandleError, RawResponse, get_pool, handler};
+use crate::models::{archive, repo};
 use warp::reply::{Reply, json, with_header};
 
-pub fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_archive_list_(user, repo))
+pub async fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {
+    handler(get_archive_list_(user, repo).await)
 }
 
-fn get_archive_list_(user: String, repo: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+async fn get_archive_list_(user: String, repo: String) -> RawResponse {
+    let pool = get_pool().await;
+    let session_id = repo::get_session_id(&user, &repo, pool).await.handle_error(404)?;
+    let Some(session_id) = session_id else {
+        // TODO: I want to provide this info to client
+        return Err((400, format!("Nothing's pushed to `{user}/{repo}` yet!")));
+    };
 
-    if !exists(&rag_path) {
-        return Err((404, format!("No such repo: `{user}/{repo}`")));
-    }
-
-    let archive_path = join(&rag_path, "archives").handle_error(404)?;
-    let archives: Vec<String> = read_dir(&archive_path, true).unwrap_or(vec![]).iter().map(
-        |f| basename(&f).unwrap_or(String::new())
-    ).filter(
-        |f| !f.is_empty()
-    ).collect();
-    Ok(Box::new(json(&archives)))
+    let archive_list = archive::get_list(&session_id, pool).await.handle_error(500)?;
+    Ok(Box::new(json(&archive_list)))
 }
 
-pub fn get_archive(user: String, repo: String, archive_key: String) -> Box<dyn Reply> {
-    handler(get_archive_(user, repo, archive_key))
+pub async fn get_archive(user: String, repo: String, archive_id: String) -> Box<dyn Reply> {
+    handler(get_archive_(user, repo, archive_id).await)
 }
 
-fn get_archive_(user: String, repo: String, archive_key: String) -> RawResponse {
-    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
-    let archive_path = join3(&rag_path, "archives", &archive_key).handle_error(400)?;
-    let bytes = read_bytes(&archive_path).handle_error(404)?;
+async fn get_archive_(user: String, repo: String, archive_id: String) -> RawResponse {
+    let pool = get_pool().await;
+    let session_id = repo::get_session_id(&user, &repo, pool).await.handle_error(404)?;
+    let Some(session_id) = session_id else {
+        return Err((400, format!("Nothing's pushed to `{user}/{repo}` yet!")));
+    };
+
+    let bytes = archive::get_archive(&session_id, &archive_id, pool).await.handle_error(404)?;
 
     Ok(Box::new(with_header(
         bytes,

@@ -1,5 +1,5 @@
 import os
-from server import health_check
+from server import create_repo, create_user, health_check
 import shutil
 import subprocess
 import time
@@ -22,7 +22,8 @@ def clone(base2_size: int = 600):
 
     try:
         # step 0: run a ragit-server
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "--force-default-config"])
+        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"])
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "run", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
         os.mkdir("base")
@@ -52,6 +53,8 @@ def clone(base2_size: int = 600):
             raise Exception("failed to compile `ragit-server`")
 
         # step 2: push the local knowledge-base to the server
+        create_user(name="test-user")
+        create_repo(user="test-user", repo="repo1")
         cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo1"])
 
         # step 3: create another local knowledge-base
@@ -70,6 +73,7 @@ def clone(base2_size: int = 600):
         cargo_run(["check"])
 
         # step 4: push the local knowledge-base to the server
+        create_repo(user="test-user", repo="repo2")
         cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo2"])
 
         # step 5: clone samples from ragit.baehyunsol.com and push it to the local server
@@ -83,6 +87,7 @@ def clone(base2_size: int = 600):
             cargo_run(["clone", url], timeout=100)
             os.rename(base, base + "-cloned")
             os.chdir(base + "-cloned")
+            create_repo(user="test-user", repo=base)
             cargo_run(["push", f"--remote=http://127.0.0.1/test-user/{base}"])
             os.chdir("..")
 
