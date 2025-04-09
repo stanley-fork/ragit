@@ -1,5 +1,5 @@
 import os
-from server import create_repo, create_user, health_check
+from server import create_repo, create_user, get_repo_stat, health_check
 import shutil
 import subprocess
 import time
@@ -22,8 +22,8 @@ def clone(base2_size: int = 600):
 
     try:
         # step 0: run a ragit-server
-        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"])
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "run", "--force-default-config"])
+        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
         os.mkdir("base")
@@ -41,7 +41,7 @@ def clone(base2_size: int = 600):
         cargo_run(["build"])
         cargo_run(["check"])
 
-        # before we push this to server, let's wait until `ragit-server` is compiled
+        # before we push this to server, let's wait until `ragit-server` becomes healthy
         for _ in range(300):
             if health_check():
                 break
@@ -50,7 +50,7 @@ def clone(base2_size: int = 600):
             time.sleep(1)
 
         else:
-            raise Exception("failed to compile `ragit-server`")
+            raise Exception("failed to run `ragit-server`")
 
         # step 2: push the local knowledge-base to the server
         create_user(name="test-user")
@@ -87,8 +87,11 @@ def clone(base2_size: int = 600):
             cargo_run(["clone", url], timeout=100)
             os.rename(base, base + "-cloned")
             os.chdir(base + "-cloned")
+            get_repo_stat(user="test-user", repo=base, assert404=True)
             create_repo(user="test-user", repo=base)
+            assert get_repo_stat(user="test-user", repo=base) == (0, 0)  # (push, clone)
             cargo_run(["push", f"--remote=http://127.0.0.1/test-user/{base}"])
+            assert get_repo_stat(user="test-user", repo=base) == (1, 0)
             os.chdir("..")
 
         # step 6: clone and check base 1
@@ -115,6 +118,7 @@ def clone(base2_size: int = 600):
             ("rustc", "http://127.0.0.1/test-user/rustc"),
         ]:
             cargo_run(["clone", url])
+            assert get_repo_stat(user="test-user", repo=base) == (1, 1)
             os.chdir(base)
             cargo_run(["check"])
             os.chdir("..")

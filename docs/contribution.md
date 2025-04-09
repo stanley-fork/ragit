@@ -39,6 +39,8 @@ Opening a github issue helps us a lot. What's even better is reproducing your bu
 
 After writing some code, please make sure to run tests. You can find the tests in `tests/tests.py`. The python file itself is an executable that runs tests. Just run `python tests/tests.py all`.
 
-`python tests/tests.py all` requires API keys: `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY` and `COHERE_API_KEY`. `COHERE_API_KEY` is not critical, tho.
+`python tests/tests.py all` requires env vars for API keys: `OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY` and `COHERE_API_KEY`. `COHERE_API_KEY` is not critical, tho.
 
 I highly recommend you run `python tests/tests.py all` in an isolated environment, like VM or an EC2 instance. It resets `docs/.ragit` multiple times, and fails if there's `~/.config/ragit`.
+
+Some tests compile and run ragit-server. There're extra prerequisites for ragit-server.

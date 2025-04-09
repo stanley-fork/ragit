@@ -49,8 +49,8 @@ impl Index {
         }
     }
 
-    // It first downloads archive files at `archive_tmp_files_at`, and extract the files.
-    // After extraction, a knowledge-base is created. It moves archive files in `archive_tmp_files_at`
+    // It first downloads archive files to `archive_tmp_files_at`, and extract the files.
+    // After the extraction, a knowledge-base is created. It moves the archive files in `archive_tmp_files_at`
     // to `{repo_name}/.ragit/archives` and removes `archive_tmp_files_at`.
     async fn clone_worker(mut url: String, repo_name: String, archive_tmp_files_at: &str, quiet: bool) -> Result<(), Error> {
         if !url.ends_with("/") {

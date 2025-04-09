@@ -5,7 +5,7 @@ use crate::{
     exists,
     write_string,
 };
-use chrono::offset::Local;
+use chrono::Local;
 
 const BUFFER_LEN: usize = 2048;
 static mut LOG_FILE_PATH: Option<[u8; BUFFER_LEN]> = None;

@@ -31,6 +31,14 @@ async fn get_archive_(user: String, repo: String, archive_id: String) -> RawResp
 
     let bytes = archive::get_archive(&session_id, &archive_id, pool).await.handle_error(404)?;
 
+    // It's easy to count pushes: there's `finalize-push` api.
+    // But clone operations use `/archive` and `/archive-list` apis, which are too general to count as a clone.
+    // So we use a naive heuristic: we count downloading the first archive as a clone operation
+    if archive::is_first_archive(&session_id, &archive_id, pool).await.handle_error(500)? {
+        let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(500)?;
+        archive::increment_clone_count(repo_id, pool).await.handle_error(500)?;
+    }
+
     Ok(Box::new(with_header(
         bytes,
         "Content-Type",

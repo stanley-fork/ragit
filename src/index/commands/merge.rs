@@ -1,5 +1,5 @@
 use super::{Index, erase_lines};
-use chrono::offset::Local;
+use chrono::Local;
 use crate::chunk;
 use crate::error::Error;
 use crate::index::{CHUNK_DIR_NAME, IIStatus, IMAGE_DIR_NAME, LoadMode};

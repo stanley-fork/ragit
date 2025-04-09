@@ -216,6 +216,42 @@ paths:
     post: todo
   /{user}/{repo}/finalize-push:
     post: todo
+  /{user}/{repo}/traffic:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetTraffic
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    push:
+                      type: integer
+                      format: int64
+                    clone:
+                      type: integer
+                      format: int64
   /{user}/{repo}/chat/{chat-id}:
     get: todo
     post: todo
@@ -302,6 +338,8 @@ paths:
                 type: integer
                 format: int32
                 description: user id
+  /user-list/{user}:
+    get: todo
   /repo-list/{user}:
     get:
       tags:
@@ -370,6 +408,8 @@ paths:
                 type: integer
                 format: int32
                 description: repo id
+  /repo-list/{user}/{repo}:
+    get: todo
 components:
   schemas:
     UserSimple:

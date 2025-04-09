@@ -17,6 +17,16 @@ async fn get_user_list_(query: HashMap<String, String>) -> RawResponse {
     Ok(Box::new(json(&users)))
 }
 
+pub async fn get_user(user: String) -> Box<dyn Reply> {
+    handler(get_user_(user).await)
+}
+
+async fn get_user_(user: String) -> RawResponse {
+    let pool = get_pool().await;
+    let user = user::get_detail_by_name(&user, pool).await.handle_error(404)?;
+    Ok(Box::new(json(&user)))
+}
+
 pub async fn create_user(body: Value) -> Box<dyn Reply> {
     handler(create_user_(body).await)
 }

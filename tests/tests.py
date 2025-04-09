@@ -35,6 +35,7 @@ from ragit_api import ragit_api
 from recover import recover
 from server import server
 from server2 import server2
+from server3 import server3
 from subdir import subdir
 from symlink import symlink
 from tfidf import tfidf
@@ -128,10 +129,13 @@ Commands
 
     server                      run `server` test
                                 It sends requests to every endpoint of ragit-server, except the
-                                ones that are tested by `clone` or `server2`, and checks them.
+                                ones that are tested by other tests.
 
     server2 [model=dummy]       run `server2` test
                                 It tests chat-related endpoints of ragit-server.
+
+    server3                     run `server3` test
+                                It tests endpoints that are related to users and repos.
 
     query_options [model]       run `query_options` test
                                 It tests various option flags of `rag query`.
@@ -309,6 +313,9 @@ if __name__ == "__main__":
             test_model = test_model or "dummy"
             server2(test_model=test_model)
 
+        elif command == "server3":
+            server3()
+
         elif command == "query_options":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -461,6 +468,7 @@ if __name__ == "__main__":
                 ("clone", clone),
                 ("clone2", clone2),
                 ("server", server),
+                ("server3", server3),
                 ("cli", cli),
                 ("archive", archive),
                 ("many_chunks", many_chunks),

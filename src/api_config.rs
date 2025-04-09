@@ -1,4 +1,4 @@
-use chrono::offset::Local;
+use chrono::Local;
 use crate::constant::{INDEX_DIR_NAME, LOG_DIR_NAME};
 use crate::error::Error;
 use ragit_api::record::{Record, RecordAt, Tracker};

@@ -22,6 +22,7 @@ use warp::reply::with_status;
 mod cli;
 mod config;
 mod error;
+mod macros;
 mod methods;
 mod models;
 mod utils;
@@ -188,6 +189,12 @@ async fn main() {
         .and(warp::query::<HashMap<String, String>>())
         .then(get_user_list);
 
+    let get_user_handler = warp::get()
+        .and(warp::path("user-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .then(get_user);
+
     let create_user_handler = warp::post()
         .and(warp::path("user-list"))
         .and(warp::path::end())
@@ -200,6 +207,13 @@ async fn main() {
         .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
         .then(get_repo_list);
+
+    let get_repo_handler = warp::get()
+        .and(warp::path("repo-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .then(get_repo);
 
     let create_repo_handler = warp::post()
         .and(warp::path("repo-list"))
@@ -295,6 +309,12 @@ async fn main() {
             }
         });
 
+    let get_traffic_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("traffic"))
+        .then(get_traffic);
+
     let post_ii_build_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -320,6 +340,8 @@ async fn main() {
         get_server_version_handler
             .or(get_user_list_handler)
             .or(get_repo_list_handler)
+            .or(get_user_handler)
+            .or(get_repo_handler)
             .or(get_index_handler)
             .or(get_config_handler)
             .or(get_prompt_handler)
@@ -346,6 +368,7 @@ async fn main() {
             .or(post_chat_handler_body_form)
             .or(post_chat_handler_multipart_form)
             .or(create_chat_handler)
+            .or(get_traffic_handler)
             .or(post_ii_build_handler)
             .or(search_handler)
             .or(get_health_handler)

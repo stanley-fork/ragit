@@ -14,12 +14,12 @@ def server2(test_model: str):
 
     try:
         # step 0: run a ragit-server
-        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"])
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--", "run", "--force-default-config"])
+        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
+        server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
         os.chdir("../..")
         mk_and_cd_tmp_dir()
 
-        # before we push this to server, let's wait until `ragit-server` is compiled
+        # let's wait until `ragit-server` becomes healthy
         for _ in range(300):
             if health_check():
                 break
@@ -28,7 +28,7 @@ def server2(test_model: str):
             time.sleep(1)
 
         else:
-            raise Exception("failed to compile `ragit-server`")
+            raise Exception("failed to run `ragit-server`")
 
         # step 1: init sample 1 (rustc)
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample1"])

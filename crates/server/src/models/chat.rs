@@ -45,7 +45,7 @@ pub struct ChatHistory {
 }
 
 pub async fn create_and_return_id(repo_id: i32, pool: &PgPool) -> Result<i32, Error> {
-    let row = sqlx::query!(
+    let row = crate::query!(
         "INSERT INTO chat (repo_id, title, created_at, updated_at) VALUES ($1, NULL, NOW(), NOW()) RETURNING id",
         repo_id,
     ).fetch_one(pool).await?;
@@ -54,7 +54,7 @@ pub async fn create_and_return_id(repo_id: i32, pool: &PgPool) -> Result<i32, Er
 }
 
 pub async fn get_chat_by_id(id: i32, pool: &PgPool) -> Result<Chat, Error> {
-    let row = sqlx::query!(
+    let row = crate::query!(
         "SELECT id, repo_id, title, created_at, updated_at FROM chat WHERE id = $1",
         id,
     ).fetch_one(pool).await?;
@@ -88,7 +88,7 @@ pub async fn get_list_by_repo_id(
     offset: i64,
     pool: &PgPool,
 ) -> Result<Vec<Chat>, Error> {
-    let rows = sqlx::query!(
+    let rows = crate::query!(
         "SELECT id, repo_id, title, created_at, updated_at FROM chat WHERE repo_id = $1 LIMIT $2 OFFSET $3",
         repo_id,
         limit,
@@ -118,8 +118,8 @@ pub async fn add_chat_history(
     model: &str,
     pool: &PgPool,
 ) -> Result<(), Error> {
-    let now = chrono::offset::Utc::now();
-    sqlx::query!(
+    let now = chrono::Utc::now();
+    crate::query!(
         "UPDATE chat SET updated_at = $1 WHERE id = $2",
         now,
         chat_id,
@@ -130,7 +130,7 @@ pub async fn add_chat_history(
         None => None,
     };
 
-    let chat_history_id = sqlx::query!(
+    let chat_history_id = crate::query!(
         "INSERT
         INTO chat_history (chat_id, turn, user_id, model, query, response, multi_turn_schema, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -146,7 +146,7 @@ pub async fn add_chat_history(
     ).fetch_one(pool).await?.id;
 
     for (index, chunk) in response.retrieved_chunks.iter().enumerate() {
-        sqlx::query!(
+        crate::query!(
             "INSERT
             INTO chat_history_chunk_uid (chat_history_id, seq, chunk_uid)
             VALUES ($1, $2, $3)",
@@ -160,7 +160,7 @@ pub async fn add_chat_history(
 }
 
 pub async fn get_history_by_id(chat_id: i32, pool: &PgPool) -> Result<Vec<ChatHistory>, Error> {
-    let rows = sqlx::query!(
+    let rows = crate::query!(
         "SELECT id, query, response, model, multi_turn_schema, created_at FROM chat_history WHERE chat_id = $1 ORDER BY turn",
         chat_id,
     ).fetch_all(pool).await?;
@@ -172,7 +172,7 @@ pub async fn get_history_by_id(chat_id: i32, pool: &PgPool) -> Result<Vec<ChatHi
         } else {
             None
         };
-        let chunk_uids = sqlx::query!(
+        let chunk_uids = crate::query!(
             "SELECT chunk_uid FROM chat_history_chunk_uid WHERE chat_history_id = $1 ORDER BY seq",
             row.id,
         ).fetch_all(pool).await?.into_iter().map(|row| row.chunk_uid).collect();

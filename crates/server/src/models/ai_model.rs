@@ -9,7 +9,7 @@ use ragit_fs::{
 use sqlx::postgres::PgPool;
 
 pub async fn get_default_model_name(user_id: i32, pool: &PgPool) -> Result<String, Error> {
-    let name = sqlx::query!(
+    let name = crate::query!(
         "SELECT ai_model.name
         FROM ai_model JOIN user_ai_model ON ai_model.id = user_ai_model.ai_model_id
         WHERE user_ai_model.default_model = TRUE AND user_ai_model.user_id = $1",
@@ -19,7 +19,7 @@ pub async fn get_default_model_name(user_id: i32, pool: &PgPool) -> Result<Strin
 }
 
 pub async fn get_model_schema(user_id: i32, model_name: &str, pool: &PgPool) -> Result<ModelRaw, Error> {
-    let row = sqlx::query!(
+    let row = crate::query!(
         "SELECT
             ai_model.name,
             ai_model.api_name,

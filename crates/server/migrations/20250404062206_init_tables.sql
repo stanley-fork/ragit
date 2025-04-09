@@ -16,10 +16,16 @@ CREATE TABLE IF NOT EXISTS user_ (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS user_by_name ON user_ ( normalized_name );
 
+-- AI model for chat.
+-- It's user's reponsibility to register a valid model and api_key.
 CREATE TABLE IF NOT EXISTS user_ai_model (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     ai_model_id TEXT NOT NULL,
+
+    -- TODO: is it okay to store api_key in plaintext?
+    --       how about keeping another table (encrypted) on disk?
+    --       how about using `PGP_SYM_ENCRYPT` and `PGP_SYM_DECRYPT`?
     api_key TEXT,
     default_model BOOLEAN NOT NULL,
     added_at TIMESTAMPTZ
@@ -189,7 +195,8 @@ CREATE TABLE IF NOT EXISTS archive (
     session_id TEXT NOT NULL,
     archive_id TEXT NOT NULL,
     blob_size INTEGER NOT NULL,  -- in bytes
-    blob_id TEXT NOT NULL
+    blob_id TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS push_archive_by_session ON archive ( session_id, archive_id );
 
@@ -199,3 +206,11 @@ CREATE TABLE IF NOT EXISTS archive_blob (
     -- (WIP) garbage collector will nullify old blobs!
     blob BYTEA
 );
+
+-- TODO: impl garbage collector
+CREATE TABLE IF NOT EXISTS api_key (
+    api_key TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    expire TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS api_key_by_user ON api_key ( user_id );

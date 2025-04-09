@@ -6,26 +6,26 @@ use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
 pub enum PasswordHashType {
-    Dummy,
+    Stupid,
 }
 
 impl PasswordHashType {
     pub fn as_str(&self) -> &'static str {
         match self {
-            PasswordHashType::Dummy => "dummy",
+            PasswordHashType::Stupid => "stupid",
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct UserDetail {
     pub id: i32,
     pub name: String,
     pub normalized_name: String,
     pub email: Option<String>,
-    pub readme: String,
+    pub readme: Option<String>,
     pub created_at: DateTime<Utc>,
-    pub last_login_at: DateTime<Utc>,
+    pub last_login_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -50,7 +50,7 @@ pub struct UserCreate {
 }
 
 pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<UserSimple>, Error> {
-    let rows = sqlx::query!(
+    let rows = crate::query!(
         "SELECT id, name, normalized_name, email, created_at, last_login_at FROM user_ ORDER BY id LIMIT $1 OFFSET $2",
         limit,
         offset,
@@ -73,7 +73,7 @@ pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<User
 
 pub async fn get_id_by_name(name: &str, pool: &PgPool) -> Result<i32, Error> {
     let name = normalize(name);
-    let row = sqlx::query!(
+    let row = crate::query!(
         "SELECT id FROM user_ WHERE normalized_name = $1",
         name,
     ).fetch_one(pool).await?;
@@ -81,11 +81,32 @@ pub async fn get_id_by_name(name: &str, pool: &PgPool) -> Result<i32, Error> {
     Ok(row.id)
 }
 
+pub async fn get_detail_by_name(name: &str, pool: &PgPool) -> Result<UserDetail, Error> {
+    let name = normalize(name);
+    let row = crate::query!(
+        "SELECT id, name, normalized_name, email, readme, created_at, last_login_at FROM user_ WHERE normalized_name = $1",
+        name,
+    ).fetch_one(pool).await?;
+
+    Ok(UserDetail {
+        id: row.id,
+        name: row.name,
+        normalized_name: row.normalized_name,
+        email: row.email,
+        readme: row.readme,
+        created_at: row.created_at,
+        last_login_at: row.last_login_at,
+    })
+}
+
 // TODO: initialize `user_ai_model` with default models
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
     let salt = format!("{:x}", rand::random::<u128>());
-    let (password, password_hash_type) = hash_password(&salt, &user.password);
-    let user_id = sqlx::query!(
+
+    // TODO: impl real hash function
+    let password = stupid_hash(&salt, &user.password);
+
+    let user_id = crate::query!(
         "INSERT
         INTO user_ (
             name,
@@ -117,7 +138,7 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
         user.email.clone(),
         salt,
         password,
-        password_hash_type.as_str(),
+        PasswordHashType::Stupid.as_str(),
         user.readme.clone(),
         user.public,
     ).fetch_one(pool).await?.id;
@@ -125,17 +146,16 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
     Ok(user_id)
 }
 
-// TODO: impl REAL hash function
-fn hash_password(salt: &str, password: &str) -> (String, PasswordHashType) {
+fn stupid_hash(salt: &str, password: &str) -> String {
     let mut state: u128 = 0;
 
     for (i, b) in salt.bytes().chain(password.bytes()).chain(salt.bytes()).enumerate() {
         let mut n = ((i as u128) << 12) | b as u128;
-        n += ((state >> 24) & 0x000f_ffff) << 16;
+        n += ((state >> 24) & 0x00ff_ffff) << 16;
         n = 2 * n * n + n + 1;
         state += n;
     }
 
     state &= 0xffff_ffff_ffff_ffff_ffff;
-    (format!("{state:x}"), PasswordHashType::Dummy)
+    format!("{state:x}")
 }

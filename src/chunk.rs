@@ -1,4 +1,4 @@
-use chrono::offset::Local;
+use chrono::Local;
 use crate::error::Error;
 use crate::index::{Index, tfidf};
 use crate::index::file::{AtomicToken, Image};

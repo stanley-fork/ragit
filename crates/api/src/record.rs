@@ -1,5 +1,5 @@
 use chrono::DateTime;
-use chrono::offset::Local;
+use chrono::Local;
 use crate::Error;
 use crate::json_type::JsonType;
 use ragit_fs::{

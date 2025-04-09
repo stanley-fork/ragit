@@ -62,11 +62,14 @@ pub use push::{
 };
 pub use repo::{
     create_repo,
+    get_repo,
     get_repo_list,
+    get_traffic,
 };
 pub use search::search;
 pub use user::{
     create_user,
+    get_user,
     get_user_list,
 };
 
