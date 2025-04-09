@@ -1,4 +1,5 @@
 use super::{HandleError, RawResponse, get_pool, handler};
+use crate::CONFIG;
 use crate::models::{ai_model, chat, repo, user};
 use ragit::{Index, LoadMode, QueryResponse, QueryTurn};
 use ragit_fs::join3;
@@ -42,6 +43,7 @@ pub async fn post_chat(user: String, repo: String, chat_id: String, form: HashMa
 
 async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> RawResponse {
     let pool = get_pool().await;
+    let config = CONFIG.get().unwrap();
     let query = match form.get("query") {
         Some(query) => String::from_utf8_lossy(query).to_string(),
         None => {
@@ -49,7 +51,7 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
         },
     };
     let index_at = join3(
-        "data",
+        &config.repo_data_dir,
         &user,
         &repo,
     ).handle_error(400)?;

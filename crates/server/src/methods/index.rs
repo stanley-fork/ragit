@@ -1,4 +1,5 @@
 use super::{HandleError, RawResponse, check_secure_path, handler};
+use crate::CONFIG;
 use crate::utils::get_rag_path;
 use ragit::{Index, LoadMode, UidQueryConfig, merge_and_convert_chunks};
 use ragit_fs::{
@@ -75,8 +76,9 @@ pub fn get_cat_file(user: String, repo: String, uid: String) -> Box<dyn Reply> {
 }
 
 fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let rag_path = join3(
-        "data",
+        &config.repo_data_dir,
         &user,
         &repo,
     ).handle_error(400)?;
@@ -158,8 +160,9 @@ pub fn get_file_list(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_file_list_(user: String, repo: String) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let rag_path = join3(
-        "data",
+        &config.repo_data_dir,
         &user,
         &repo,
     ).handle_error(400)?;
@@ -202,8 +205,9 @@ pub fn post_ii_build(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn post_ii_build_(user: String, repo: String) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let rag_path = join3(
-        "data",
+        &config.repo_data_dir,
         &user,
         &repo,
     ).handle_error(400)?;

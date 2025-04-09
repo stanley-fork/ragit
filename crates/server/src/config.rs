@@ -2,7 +2,7 @@ use crate::error::Error;
 use ragit_fs::read_string;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     // If set, it dumps log to this file.
     pub log_file: Option<String>,
@@ -14,6 +14,10 @@ pub struct Config {
     // A directory where push sessions are stored.
     pub push_session_dir: String,
     pub repo_data_dir: String,
+
+    // A path to `models.json` file. If not found, it'll try to create a file
+    // in the given path.
+    pub default_models: String,
 
     pub port_number: u16,
 }
@@ -30,6 +34,7 @@ impl Default for Config {
         Config {
             log_file: Some(String::from("./ragit-server-logs")),
             dump_log_to_stdout: false,
+            default_models: String::from("./models.json"),
             push_session_dir: String::from("./session"),
             repo_data_dir: String::from("./data"),
             port_number: 41127,

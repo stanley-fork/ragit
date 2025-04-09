@@ -1,5 +1,6 @@
 use super::{HandleError, RawResponse, auth, get_pool, handler};
 use bytes::Bytes;
+use crate::CONFIG;
 use crate::models::{archive, repo};
 use crate::models::archive::PushResult;
 use crate::utils::{decode_base64, fetch_form_data};
@@ -23,6 +24,7 @@ pub async fn post_begin_push(user: String, repo: String, auth_info: Option<Strin
 }
 
 async fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let pool = get_pool().await;
     let mut auth_parsed: Option<(String, Option<String>)> = None;
 
@@ -52,7 +54,7 @@ async fn post_begin_push_(user: String, repo: String, auth_info: Option<String>)
 
     create_dir_all(
         &join(
-            "./session",  // TODO: make it configurable
+            &config.push_session_dir,
             &session_id,
         ).handle_error(500)?,
     ).handle_error(500)?;
@@ -69,6 +71,7 @@ pub async fn post_archive(user: String, repo: String, form: FormData) -> Box<dyn
 }
 
 async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let pool = get_pool().await;
     let form = fetch_form_data(form).await.handle_error(400)?;
     let session_id = form.get("session-id").ok_or_else(|| "session-id not found").handle_error(400)?;
@@ -79,7 +82,7 @@ async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawRespo
     archive::add_archive(&session_id, &archive_id, &archive, pool).await.handle_error(500)?;
 
     let path = join3(
-        "./session",
+        &config.push_session_dir,
         &session_id,
         &archive_id,
     ).handle_error(400)?;
@@ -101,16 +104,17 @@ pub async fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<
 }
 
 async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let pool = get_pool().await;
     let session_id = String::from_utf8(body.into_iter().collect::<Vec<u8>>()).handle_error(400)?;
     let archives_at = join(
-        "./session",
+        &config.push_session_dir,
         &session_id,
     ).handle_error(400)?;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
     let archives = read_dir(&archives_at, false).handle_error(404)?;
     let root_dir = join3(
-        "./data",
+        &config.repo_data_dir,
         &user,
         &repo,
     ).handle_error(400)?;
@@ -147,7 +151,7 @@ async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResp
     ).await.handle_error(500)?;
     remove_dir_all(
         &join(
-            "./session",
+            &config.push_session_dir,
             &session_id,
         ).handle_error(500)?,
     ).handle_error(500)?;

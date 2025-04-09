@@ -1,5 +1,6 @@
 use base64::Engine;
 use bytes::BufMut;
+use crate::CONFIG;
 use crate::error::Error;
 use futures_util::TryStreamExt;
 use ragit_fs::{FileError, join4};
@@ -20,8 +21,9 @@ pub async fn fetch_form_data(form: FormData) -> Result<HashMap<String, Vec<u8>>,
 
 // ROOT/{user}/{repo}/.ragit
 pub fn get_rag_path(user: &str, repo: &str) -> Result<String, FileError> {
+    let config = CONFIG.get().unwrap();
     join4(
-        "./data",  // TODO: make it configurable
+        &config.repo_data_dir,
         user,
         repo,
         ".ragit",

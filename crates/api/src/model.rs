@@ -226,7 +226,7 @@ pub struct ModelRaw {
 }
 
 impl ModelRaw {
-    pub(crate) fn llama_70b() -> Self {
+    pub fn llama_70b() -> Self {
         ModelRaw {
             name: String::from("llama3.3-70b-groq"),
             api_name: String::from("llama-3.3-70b-versatile"),
@@ -242,7 +242,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn llama_8b() -> Self {
+    pub fn llama_8b() -> Self {
         ModelRaw {
             name: String::from("llama3.1-8b-groq"),
             api_name: String::from("llama-3.1-8b-instant"),
@@ -258,7 +258,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn gpt_4o() -> Self {
+    pub fn gpt_4o() -> Self {
         ModelRaw {
             name: String::from("gpt-4o"),
             api_name: String::from("gpt-4o"),
@@ -274,7 +274,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn gpt_4o_mini() -> Self {
+    pub fn gpt_4o_mini() -> Self {
         ModelRaw {
             name: String::from("gpt-4o-mini"),
             api_name: String::from("gpt-4o-mini"),
@@ -290,7 +290,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn sonnet() -> Self {
+    pub fn sonnet() -> Self {
         ModelRaw {
             name: String::from("claude-3.5-sonnet"),
             api_name: String::from("claude-3-5-sonnet-20240620"),
@@ -306,7 +306,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn phi_4_14b() -> Self {
+    pub fn phi_4_14b() -> Self {
         ModelRaw {
             name: String::from("phi-4-14b-ollama"),
             api_name: String::from("phi4:14b"),
@@ -322,7 +322,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn command_r() -> Self {
+    pub fn command_r() -> Self {
         ModelRaw {
             name: String::from("command-r"),
             api_name: String::from("command-r"),
@@ -338,7 +338,7 @@ impl ModelRaw {
         }
     }
 
-    pub(crate) fn command_r_plus() -> Self {
+    pub fn command_r_plus() -> Self {
         ModelRaw {
             name: String::from("command-r-plus"),
             api_name: String::from("command-r-plus"),

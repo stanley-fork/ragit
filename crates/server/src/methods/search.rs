@@ -1,4 +1,5 @@
 use super::{HandleError, RawResponse, handler};
+use crate::CONFIG;
 use ragit::{Index, LoadMode};
 use ragit_fs::{join3, write_log};
 use std::collections::HashMap;
@@ -11,8 +12,9 @@ pub fn search(user: String, repo: String, query: HashMap<String, String>) -> Box
 }
 
 pub fn search_(user: String, repo: String, query: HashMap<String, String>) -> RawResponse {
+    let config = CONFIG.get().unwrap();
     let rag_path = join3(
-        "data",
+        &config.repo_data_dir,
         &user,
         &repo,
     ).handle_error(400)?;

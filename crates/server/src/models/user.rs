@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
+use crate::MODELS;
 use crate::error::Error;
 use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
@@ -99,7 +100,6 @@ pub async fn get_detail_by_name(name: &str, pool: &PgPool) -> Result<UserDetail,
     })
 }
 
-// TODO: initialize `user_ai_model` with default models
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
     let salt = format!("{:x}", rand::random::<u128>());
 
@@ -142,6 +142,10 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
         user.readme.clone(),
         user.public,
     ).fetch_one(pool).await?.id;
+
+    for model in MODELS.get().unwrap().iter() {
+        // TODO: register ai_model and user_ai_model
+    }
 
     Ok(user_id)
 }

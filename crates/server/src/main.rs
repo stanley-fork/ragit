@@ -8,12 +8,14 @@ use ragit_fs::{
     WriteMode,
     exists,
     initialize_log,
+    read_string,
     remove_dir_all,
     write_log,
     write_string,
 };
 use std::collections::HashMap;
 use std::io::Write;
+use std::sync::OnceLock;
 use warp::Filter;
 use warp::filters::multipart::FormData;
 use warp::http::status::StatusCode;
@@ -26,6 +28,9 @@ mod macros;
 mod methods;
 mod models;
 mod utils;
+
+pub static CONFIG: OnceLock<Config> = OnceLock::new();
+pub static MODELS: OnceLock<Vec<ModelRaw>> = OnceLock::new();
 
 #[tokio::main]
 async fn main() {
@@ -60,7 +65,8 @@ async fn main() {
             std::process::exit(1);
         },
     };
-    let config = initinalize_server(&args);
+    initinalize_server(&args);
+    let config = CONFIG.get().unwrap();
 
     write_log("server", "hello from ragit-server!");
 
@@ -393,7 +399,10 @@ async fn main() {
     ).run(([0, 0, 0, 0], args.port_number.unwrap_or(config.port_number))).await;
 }
 
-fn initinalize_server(args: &RunArgs) -> Config {
+use ragit_api::ModelRaw;
+
+// It sets global value `crate::CONFIG`.
+fn initinalize_server(args: &RunArgs) {
     // TODO: it seems like `sqlx::migrate!` isn't doing anything
     sqlx::migrate!("./migrations/");
     let config_file = args.config_file.clone().unwrap_or(String::from("./config.json"));
@@ -411,7 +420,7 @@ fn initinalize_server(args: &RunArgs) -> Config {
         else {
             println!("Config file `{config_file}` does not exist. Would you like to create a new one?");
             println!("");
-            println!("1) Create a default config file at `./config.json`.");
+            println!("1) Create a default config file at `{config_file}`.");
             println!("2) Let me use a GUI to create a config file.");
             println!("3) I don't know what you're talking about. Please help me.");
 
@@ -461,5 +470,60 @@ fn initinalize_server(args: &RunArgs) -> Config {
         remove_dir_all(&config.push_session_dir).unwrap();
     }
 
-    config
+    if !exists(&config.default_models) {
+        let default_models = vec![
+            ModelRaw::llama_70b(),
+            ModelRaw::llama_8b(),
+            ModelRaw::gpt_4o(),
+            ModelRaw::gpt_4o_mini(),
+            ModelRaw::sonnet(),
+            ModelRaw::command_r(),
+            ModelRaw::command_r_plus(),
+        ];
+
+        if args.force_default_config {
+            write_string(
+                &config.default_models,
+                &serde_json::to_string_pretty(&default_models).unwrap(),
+                WriteMode::CreateOrTruncate,
+            ).unwrap();
+        }
+
+        else {
+            println!("Model file `{}` not found. Would you like to create a new one?", config.default_models);
+            println!("");
+            println!("1) Create a default model file at `{}`.", config.default_models);
+            println!("2) I don't know what you're talking about. Please help me.");
+
+            loop {
+                print!(">>> ");
+                let mut s = String::new();
+                std::io::stdout().flush().unwrap();
+                std::io::stdin().read_line(&mut s).unwrap();
+
+                match s.get(0..1) {
+                    Some("1") => {
+                        write_string(
+                            &config.default_models,
+                            &serde_json::to_string_pretty(&default_models).unwrap(),
+                            WriteMode::CreateOrTruncate,
+                        ).unwrap();
+                    },
+                    Some("2") => todo!(),
+                    _ => {
+                        println!("Just say 1 or 2.");
+                        continue;
+                    },
+                }
+
+                break;
+            }
+        }
+    }
+
+    let models = read_string(&config.default_models).unwrap();
+    let models = serde_json::from_str::<Vec<ModelRaw>>(&models).unwrap();
+
+    MODELS.set(models).unwrap();
+    CONFIG.set(config).unwrap();
 }
