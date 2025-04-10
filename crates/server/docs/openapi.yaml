@@ -340,6 +340,11 @@ paths:
                 description: user id
   /user-list/{user}:
     get: todo
+  /user-list/{user}/ai-model-list:
+    get: todo
+
+    # PUT only updates a model, and POST creates a new model (POST is WIP)
+    put: todo
   /repo-list/{user}:
     get:
       tags:

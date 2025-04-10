@@ -1,4 +1,5 @@
 use super::{HandleError, RawResponse, get_pool, handler};
+use chrono::Utc;
 use crate::CONFIG;
 use crate::models::{ai_model, chat, repo, user};
 use ragit::{Index, LoadMode, QueryResponse, QueryTurn};
@@ -43,7 +44,7 @@ pub async fn post_chat(user: String, repo: String, chat_id: String, form: HashMa
 
 async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> RawResponse {
     let pool = get_pool().await;
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let query = match form.get("query") {
         Some(query) => String::from_utf8_lossy(query).to_string(),
         None => {
@@ -97,16 +98,25 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
     }
 
     let response = index.query(&query, real_history).await.handle_error(500)?;
-
+    let now = Utc::now();
     chat::add_chat_history(
         chat_id,
         &query,
         &history,
         &response,
-        0,  // TODO: user_id
+        user_id,
         &model_name,
+        now,
         pool,
     ).await.handle_error(500)?;
+    let response = chat::ChatHistory {
+        query: query.to_string(),
+        response: response.response.to_string(),
+        model: model_name.to_string(),
+        chunk_uids: response.retrieved_chunks.iter().map(|chunk| chunk.uid.to_string()).collect(),
+        multi_turn_schema: response.multi_turn_schema.clone(),
+        created_at: now,
+    };
 
     Ok(Box::new(json(&response)))
 }

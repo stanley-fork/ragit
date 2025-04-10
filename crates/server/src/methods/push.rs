@@ -24,7 +24,7 @@ pub async fn post_begin_push(user: String, repo: String, auth_info: Option<Strin
 }
 
 async fn post_begin_push_(user: String, repo: String, auth_info: Option<String>) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let pool = get_pool().await;
     let mut auth_parsed: Option<(String, Option<String>)> = None;
 
@@ -71,7 +71,7 @@ pub async fn post_archive(user: String, repo: String, form: FormData) -> Box<dyn
 }
 
 async fn post_archive_(_user: String, _repo: String, form: FormData) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let pool = get_pool().await;
     let form = fetch_form_data(form).await.handle_error(400)?;
     let session_id = form.get("session-id").ok_or_else(|| "session-id not found").handle_error(400)?;
@@ -104,7 +104,7 @@ pub async fn post_finalize_push(user: String, repo: String, body: Bytes) -> Box<
 }
 
 async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let pool = get_pool().await;
     let session_id = String::from_utf8(body.into_iter().collect::<Vec<u8>>()).handle_error(400)?;
     let archives_at = join(

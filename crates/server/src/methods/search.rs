@@ -12,7 +12,7 @@ pub fn search(user: String, repo: String, query: HashMap<String, String>) -> Box
 }
 
 pub fn search_(user: String, repo: String, query: HashMap<String, String>) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
         &user,

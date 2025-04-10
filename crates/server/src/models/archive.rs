@@ -1,5 +1,5 @@
 use crate::error::Error;
-use chrono::Datelike;
+use chrono::{Datelike, Utc};
 use sqlx::postgres::PgPool;
 
 pub enum PushResult {
@@ -107,7 +107,7 @@ pub async fn finalize_push(
     result: PushResult,
     pool: &PgPool,
 ) -> Result<(), Error> {
-    let now = chrono::Utc::now();
+    let now = Utc::now();
     let (year, month, day) = (now.year(), now.month(), now.day());
 
     crate::query!(
@@ -144,7 +144,7 @@ pub async fn finalize_push(
 }
 
 pub async fn increment_clone_count(repo_id: i32, pool: &PgPool) -> Result<(), Error> {
-    let now = chrono::Utc::now();
+    let now = Utc::now();
     let (year, month, day) = (now.year(), now.month(), now.day());
 
     crate::query!(

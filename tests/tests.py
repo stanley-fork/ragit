@@ -34,8 +34,8 @@ from query_options import query_options
 from ragit_api import ragit_api
 from recover import recover
 from server import server
-from server2 import server2
-from server3 import server3
+from server_chat import server_chat
+from server_permission import server_permission
 from subdir import subdir
 from symlink import symlink
 from tfidf import tfidf
@@ -128,14 +128,16 @@ Commands
                                 It clones knowledge-bases from ragit.baehyunsol.com.
 
     server                      run `server` test
-                                It sends requests to every endpoint of ragit-server, except the
-                                ones that are tested by other tests.
+                                It tests endpoints related to a repository. It first pushes a
+                                repository and fetches data (chunks, images, files, ...) from
+                                the server.
 
-    server2 [model=dummy]       run `server2` test
+    server_chat [model]         run `server_chat` test
                                 It tests chat-related endpoints of ragit-server.
 
-    server3                     run `server3` test
-                                It tests endpoints that are related to users and repos.
+    server_permission           run `server_permission` test
+                                It creates users and repositories with different permissions
+                                and sends requests with/without api keys.
 
     query_options [model]       run `query_options` test
                                 It tests various option flags of `rag query`.
@@ -309,12 +311,15 @@ if __name__ == "__main__":
         elif command == "server":
             server()
 
-        elif command == "server2":
-            test_model = test_model or "dummy"
-            server2(test_model=test_model)
+        elif command == "server_chat":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
 
-        elif command == "server3":
-            server3()
+            server_chat(test_model=test_model)
+
+        elif command == "server_permission":
+            server_permission()
 
         elif command == "query_options":
             if test_model is None or test_model == "dummy":
@@ -468,7 +473,7 @@ if __name__ == "__main__":
                 ("clone", clone),
                 ("clone2", clone2),
                 ("server", server),
-                ("server3", server3),
+                ("server_permission", server_permission),
                 ("cli", cli),
                 ("archive", archive),
                 ("many_chunks", many_chunks),
@@ -494,8 +499,7 @@ if __name__ == "__main__":
                 ("prompts claude-3.5-sonnet", lambda: prompts(test_model="claude-3.5-sonnet")),
                 ("empty dummy", lambda: empty(test_model="dummy")),
                 ("empty llama3.3-70b", lambda: empty(test_model="llama3.3-70b")),
-                ("server2 dummy", lambda: server2(test_model="dummy")),
-                ("server2 llama3.3-70b", lambda: server2(test_model="llama3.3-70b")),
+                ("server_chat llama3.3-70b", lambda: server_chat(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
                 ("images3 gpt-4o-mini", lambda: images3(test_model="gpt-4o-mini")),
                 ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),

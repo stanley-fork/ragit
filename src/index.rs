@@ -987,7 +987,7 @@ impl Index {
     }
 
     /// Finds the lowest-cost model in the loaded models.
-    fn find_lowest_cost_model(&self) -> Option<&Model> {
+    pub fn find_lowest_cost_model(&self) -> Option<&Model> {
         if self.models.is_empty() {
             return None;
         }

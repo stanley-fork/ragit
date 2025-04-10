@@ -116,9 +116,9 @@ pub async fn add_chat_history(
     response: &QueryResponse,
     user_id: i32,
     model: &str,
+    now: DateTime<Utc>,
     pool: &PgPool,
 ) -> Result<(), Error> {
-    let now = chrono::Utc::now();
     crate::query!(
         "UPDATE chat SET updated_at = $1 WHERE id = $2",
         now,

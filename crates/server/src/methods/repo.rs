@@ -1,5 +1,5 @@
 use super::{HandleError, RawResponse, get_pool, handler};
-use chrono::Datelike;
+use chrono::{Datelike, Utc};
 use crate::models::{repo, user};
 use crate::models::repo::RepoCreate;
 use serde_json::Value;
@@ -32,6 +32,7 @@ async fn get_repo_(user: String, repo: String) -> RawResponse {
     Ok(Box::new(json(&repo)))
 }
 
+// I set `body: Value` not `body: RepoCreate` because it gives a better error message for invalid schemas.
 pub async fn create_repo(user: String, body: Value) -> Box<dyn Reply> {
     handler(create_repo_(user, body).await)
 }
@@ -51,7 +52,7 @@ pub async fn get_traffic(user: String, repo: String) -> Box<dyn Reply> {
 async fn get_traffic_(user: String, repo: String) -> RawResponse {
     let pool = get_pool().await;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
-    let mut now = chrono::Utc::now();
+    let mut now = Utc::now();
     let mut result = HashMap::new();
 
     for _ in 0..14 {
@@ -61,7 +62,7 @@ async fn get_traffic_(user: String, repo: String) -> RawResponse {
             key.clone(),
             repo::get_traffic_by_key(repo_id, &key, pool).await.handle_error(500)?,
         );
-        now = now.checked_sub_days(chrono::Days::new(1)).unwrap();
+        now = now.checked_sub_days(chrono::Days::new(1)).handle_error(500)?;
     }
 
     result.insert(

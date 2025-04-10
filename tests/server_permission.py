@@ -4,7 +4,7 @@ import subprocess
 import time
 from utils import goto_root, mk_and_cd_tmp_dir
 
-def server3():
+def server_permission():
     goto_root()
     os.chdir("crates/server")
 
@@ -59,6 +59,7 @@ def server3():
         assert repo_info2["readme"] == "hello, world"
 
         # TODO: many more tests
+        # TODO: create repository with different permissions, and send requests to the repository with/without api key
 
     finally:
         server_process.kill()

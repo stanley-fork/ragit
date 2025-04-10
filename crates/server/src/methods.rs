@@ -69,8 +69,10 @@ pub use repo::{
 pub use search::search;
 pub use user::{
     create_user,
+    get_ai_model_list,
     get_user,
     get_user_list,
+    put_ai_model_list,
 };
 
 static POOL: tokio::sync::OnceCell<PgPool> = tokio::sync::OnceCell::const_new();
@@ -113,33 +115,48 @@ pub fn get_server_version() -> Box<dyn Reply> {
     ))
 }
 
+/// It's a boilerplate function for api endpoints. All the functions are supposed to
+/// return `Box<dyn Reply>`, but we cannot use the great `?` operator with the type.
+///
+/// So, ragit-server uses helper functions.
+/// Let's say we want to define `get_user(name: &str) -> Box<dyn Reply>`. We first
+/// define a helper function `get_user_(name: &str) -> Result<Box<dyn Reply>, (u16, String)>`.
+/// Since the return type of the helper function is `Result<_>`, we can use the great `?` operator.
+/// Then we have to define a wrapper function `get_user(name: &str) -> Box<dyn Reply>` which
+/// uses `handler` to convert the `Result<_>` type to `Box<dyn Reply>`.
 pub fn handler(r: RawResponse) -> Box<dyn Reply> {
     match r {
         Ok(r) => r,
-        Err((code, error)) => Box::new(with_status(
-            error,
-            StatusCode::from_u16(code).unwrap(),
-        )),
+        Err((code, error)) => {
+            write_log(
+                "handler",
+                &format!("code: {code}, error: {}", trim_long_string(&error, 200, 200)),
+            );
+
+            Box::new(with_status(
+                // Let's hide error detail to the clients. I'm not sure whether it's a good idea, tho.
+                String::new(),
+                StatusCode::from_u16(code).unwrap(),
+            ))
+        },
     }
 }
 
+/// This is a helper trait. It turns a value into a type that's compatible with `handler` function,
+/// so that you can use the great `?` operator.
 pub trait HandleError<T> {
     fn handle_error(self, code: u16) -> Result<T, (u16, String)>;
 }
 
 impl<T, E: std::fmt::Debug> HandleError<T> for Result<T, E> {
     fn handle_error(self, code: u16) -> Result<T, (u16, String)> {
-        self.map_err(|e| {
-            let e = format!("{e:?}");
-            write_log(
-                "handle_error",
-                &format!("{code}, {}", trim_long_string(&e, 200, 200)),
-            );
+        self.map_err(|e| (code, format!("{e:?}")))
+    }
+}
 
-            // let's not expose the error message to the client
-            // (code, e)
-            (code, String::new())
-        })
+impl <T> HandleError<T> for Option<T> {
+    fn handle_error(self, code: u16) -> Result<T, (u16, String)> {
+        self.ok_or_else(|| (code, format!("expected type `{}`, got `None`", std::any::type_name::<T>())))
     }
 }
 

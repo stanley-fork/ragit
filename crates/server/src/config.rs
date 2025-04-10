@@ -1,4 +1,5 @@
 use crate::error::Error;
+use ragit_api::ModelRaw;
 use ragit_fs::read_string;
 use serde::{Deserialize, Serialize};
 
@@ -19,6 +20,9 @@ pub struct Config {
     // in the given path.
     pub default_models: String,
 
+    // Name of a default ai model. The model must be defined in `default_models` file.
+    pub default_ai_model: String,
+
     pub port_number: u16,
 }
 
@@ -35,9 +39,18 @@ impl Default for Config {
             log_file: Some(String::from("./ragit-server-logs")),
             dump_log_to_stdout: false,
             default_models: String::from("./models.json"),
+            default_ai_model: String::from("llama3.3"),
             push_session_dir: String::from("./session"),
             repo_data_dir: String::from("./data"),
             port_number: 41127,
         }
     }
+}
+
+// It's not saved as a file. It's constructed on the fly from the
+// config file and model file.
+#[derive(Debug)]
+pub struct AiModelConfig {
+    pub default_models: Vec<ModelRaw>,
+    pub default_model: String,
 }

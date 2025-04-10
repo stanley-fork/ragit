@@ -76,7 +76,7 @@ pub fn get_cat_file(user: String, repo: String, uid: String) -> Box<dyn Reply> {
 }
 
 fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
         &user,
@@ -160,7 +160,7 @@ pub fn get_file_list(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn get_file_list_(user: String, repo: String) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
         &user,
@@ -205,7 +205,7 @@ pub fn post_ii_build(user: String, repo: String) -> Box<dyn Reply> {
 }
 
 fn post_ii_build_(user: String, repo: String) -> RawResponse {
-    let config = CONFIG.get().unwrap();
+    let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
         &user,

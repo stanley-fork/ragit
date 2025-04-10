@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
-use crate::MODELS;
 use crate::error::Error;
 use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
@@ -143,14 +142,10 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
         user.public,
     ).fetch_one(pool).await?.id;
 
-    for model in MODELS.get().unwrap().iter() {
-        // TODO: register ai_model and user_ai_model
-    }
-
     Ok(user_id)
 }
 
-fn stupid_hash(salt: &str, password: &str) -> String {
+pub(crate) fn stupid_hash(salt: &str, password: &str) -> String {
     let mut state: u128 = 0;
 
     for (i, b) in salt.bytes().chain(password.bytes()).chain(salt.bytes()).enumerate() {

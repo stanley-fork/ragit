@@ -1,7 +1,7 @@
 #![recursion_limit = "256"]
 
 use crate::cli::{CliCommand, RunArgs, parse_cli_args};
-use crate::config::Config;
+use crate::config::{AiModelConfig, Config};
 use crate::methods::*;
 use crate::utils::fetch_form_data;
 use ragit_fs::{
@@ -30,7 +30,7 @@ mod models;
 mod utils;
 
 pub static CONFIG: OnceLock<Config> = OnceLock::new();
-pub static MODELS: OnceLock<Vec<ModelRaw>> = OnceLock::new();
+pub static AI_MODEL_CONFIG: OnceLock<AiModelConfig> = OnceLock::new();
 
 #[tokio::main]
 async fn main() {
@@ -221,6 +221,21 @@ async fn main() {
         .and(warp::path::end())
         .then(get_repo);
 
+    let get_ai_model_list_handler = warp::get()
+        .and(warp::path("user-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path("ai-model-list"))
+        .and(warp::path::end())
+        .then(get_ai_model_list);
+
+    let put_ai_model_list_handler = warp::put()
+        .and(warp::path("user-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path("ai-model-list"))
+        .and(warp::path::end())
+        .and(warp::body::json())
+        .then(put_ai_model_list);
+
     let create_repo_handler = warp::post()
         .and(warp::path("repo-list"))
         .and(warp::path::param::<String>())
@@ -346,6 +361,8 @@ async fn main() {
         get_server_version_handler
             .or(get_user_list_handler)
             .or(get_repo_list_handler)
+            .or(get_ai_model_list_handler)
+            .or(put_ai_model_list_handler)
             .or(get_user_handler)
             .or(get_repo_handler)
             .or(get_index_handler)
@@ -399,7 +416,7 @@ async fn main() {
     ).run(([0, 0, 0, 0], args.port_number.unwrap_or(config.port_number))).await;
 }
 
-use ragit_api::ModelRaw;
+use ragit_api::{Model, ModelRaw, get_model_by_name};
 
 // It sets global value `crate::CONFIG`.
 fn initinalize_server(args: &RunArgs) {
@@ -523,7 +540,26 @@ fn initinalize_server(args: &RunArgs) {
 
     let models = read_string(&config.default_models).unwrap();
     let models = serde_json::from_str::<Vec<ModelRaw>>(&models).unwrap();
+    let models_parsed = models.iter().map(|model| Model::try_from(model).unwrap()).collect::<Vec<_>>();
+    let default_model = match get_model_by_name(&models_parsed, &config.default_ai_model) {
+        Ok(model) => model.name.clone(),
+        Err(_) => {
+            eprintln!(
+                "Ai model `{}` is not found in `{}`. Choosing `{}` as a default model.",
+                config.default_ai_model,
+                config.default_models,
+                &models[0].name,
+            );
 
-    MODELS.set(models).unwrap();
+            models[0].name.clone()
+        },
+    };
+
+    let ai_model_config = AiModelConfig {
+        default_models: models,
+        default_model,
+    };
+
+    AI_MODEL_CONFIG.set(ai_model_config).unwrap();
     CONFIG.set(config).unwrap();
 }

@@ -21,6 +21,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS user_by_name ON user_ ( normalized_name );
 CREATE TABLE IF NOT EXISTS user_ai_model (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
+
+    -- TODO: we have to make sure that the models of a user
+    --       must have a unique name. How do we do that?
     ai_model_id TEXT NOT NULL,
 
     -- TODO: is it okay to store api_key in plaintext?
@@ -28,9 +31,9 @@ CREATE TABLE IF NOT EXISTS user_ai_model (
     --       how about using `PGP_SYM_ENCRYPT` and `PGP_SYM_DECRYPT`?
     api_key TEXT,
     default_model BOOLEAN NOT NULL,
-    added_at TIMESTAMPTZ
+    added_at TIMESTAMPTZ NOT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS user_ai_model_by_user ON user_ai_model ( user_id );
+CREATE UNIQUE INDEX IF NOT EXISTS user_ai_model_by_user ON user_ai_model ( user_id, ai_model_id );
 
 CREATE TABLE IF NOT EXISTS ai_model (
     id TEXT PRIMARY KEY,  -- hash value of model name and metadata
