@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS user_ (
     normalized_name TEXT NOT NULL,
     email TEXT,
     salt TEXT NOT NULL,
+    -- it only uses sha3_256. do we have to give a choice for the hash function?
     password TEXT NOT NULL,
-    password_hash_type TEXT NOT NULL,
     readme TEXT,
     public BOOLEAN NOT NULL,
 

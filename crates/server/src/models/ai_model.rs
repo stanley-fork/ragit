@@ -1,4 +1,4 @@
-use super::user::stupid_hash;
+use super::user::hash_password;
 use crate::error::Error;
 use crate::utils::{get_rag_path, trim_long_string};
 use ragit_api::ModelRaw;
@@ -196,7 +196,7 @@ fn hash_model(m: &ModelRaw) -> String {
         m.can_read_images,
     );
 
-    stupid_hash("", &s)
+    hash_password("", &s)
 }
 
 fn hide_api_key(key: &str) -> String {

@@ -3,19 +3,8 @@ use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
 use crate::error::Error;
 use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
+use sha3::{Digest, Sha3_256};
 use sqlx::postgres::PgPool;
-
-pub enum PasswordHashType {
-    Stupid,
-}
-
-impl PasswordHashType {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            PasswordHashType::Stupid => "stupid",
-        }
-    }
-}
 
 #[derive(Clone, Debug, Serialize)]
 pub struct UserDetail {
@@ -101,9 +90,7 @@ pub async fn get_detail_by_name(name: &str, pool: &PgPool) -> Result<UserDetail,
 
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
     let salt = format!("{:x}", rand::random::<u128>());
-
-    // TODO: impl real hash function
-    let password = stupid_hash(&salt, &user.password);
+    let password = hash_password(&salt, &user.password);
 
     let user_id = crate::query!(
         "INSERT
@@ -113,7 +100,6 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
             email,
             salt,
             password,
-            password_hash_type,
             readme,
             public,
             created_at,
@@ -125,9 +111,8 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
             $3,   -- email
             $4,   -- salt
             $5,   -- password
-            $6,   -- password_hash_type
-            $7,   -- readme
-            $8,   -- public
+            $6,   -- readme
+            $7,   -- public
             NOW(),  -- created_at
             NULL  -- last_login_at
         )
@@ -137,7 +122,6 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
         user.email.clone(),
         salt,
         password,
-        PasswordHashType::Stupid.as_str(),
         user.readme.clone(),
         user.public,
     ).fetch_one(pool).await?.id;
@@ -145,16 +129,9 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
     Ok(user_id)
 }
 
-pub(crate) fn stupid_hash(salt: &str, password: &str) -> String {
-    let mut state: u128 = 0;
-
-    for (i, b) in salt.bytes().chain(password.bytes()).chain(salt.bytes()).enumerate() {
-        let mut n = ((i as u128) << 12) | b as u128;
-        n += ((state >> 24) & 0x00ff_ffff) << 16;
-        n = 2 * n * n + n + 1;
-        state += n;
-    }
-
-    state &= 0xffff_ffff_ffff_ffff_ffff;
-    format!("{state:x}")
+pub(crate) fn hash_password(salt: &str, password: &str) -> String {
+    let mut hasher = Sha3_256::new();
+    hasher.update(salt.as_bytes());
+    hasher.update(password.as_bytes());
+    format!("{:064x}", hasher.finalize())
 }
