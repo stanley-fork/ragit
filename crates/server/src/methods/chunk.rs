@@ -1,6 +1,7 @@
 use super::{HandleError, RawResponse, handler};
+use crate::models::chunk;
 use crate::utils::get_rag_path;
-use ragit::chunk;
+use ragit::chunk as ragit_chunk;
 use ragit_fs::{
     exists,
     extension,
@@ -13,7 +14,7 @@ use ragit_fs::{
     set_extension,
 };
 use serde_json::Value;
-use warp::reply::{Reply, json, with_header};
+use warp::reply::{Reply, json};
 
 pub fn get_chunk_count(user: String, repo: String) -> Box<dyn Reply> {
     handler(get_chunk_count_(user, repo))
@@ -112,13 +113,8 @@ fn get_chunk_(user: String, repo: String, uid: String) -> RawResponse {
         &prefix,
         &set_extension(&suffix, "chunk").handle_error(400)?,
     ).handle_error(400)?;
-    let chunk = chunk::load_from_file(&chunk_path).handle_error(404)?;
-    let json_str = serde_json::to_string(&chunk).handle_error(500)?;
+    let chunk = ragit_chunk::load_from_file(&chunk_path).handle_error(404)?;
+    let chunk = chunk::ChunkSimple::from(chunk);
 
-    Ok(Box::new(with_header(
-        // '\n' is for backward-compatibility with older versions
-        format!("\n{json_str}"),
-        "Content-Type",
-        "application/json",
-    )))
+    Ok(Box::new(json(&chunk)))
 }

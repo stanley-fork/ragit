@@ -93,7 +93,7 @@ def server():
                 chunk_local = json.loads(cargo_run(["ls-chunks", "--json", chunk_uid], stdout=True))[0]
 
                 # due to prettifier, the json values are a bit different
-                assert chunk["data"] == chunk_local["data"]
+                assert compare_chunk_data(chunk["data"], chunk_local["data"])
 
             for image_uid in all_image_uids:
                 image = request_bytes(url=f"image/{image_uid}", repo=repo)
@@ -288,3 +288,7 @@ def health_check(port: int = 41127):
 
     except:
         return False
+
+# There are too many abstractions and fragmentations :(
+def compare_chunk_data(data_from_api, data_from_local) -> bool:
+    return data_from_local == "".join([(data["content"] if data["type"] == "Text" else ("img_" + data["uid"])) for data in data_from_api])
