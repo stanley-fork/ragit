@@ -18,7 +18,6 @@ def clone(base2_size: int = 600):
         raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
 
     os.chdir("crates/server")
-    os.makedirs("data/test-user/repo1")
 
     try:
         # step 0: run a ragit-server
@@ -87,6 +86,7 @@ def clone(base2_size: int = 600):
             cargo_run(["clone", url], timeout=100)
             os.rename(base, base + "-cloned")
             os.chdir(base + "-cloned")
+            cargo_run(["check"])
             get_repo_stat(user="test-user", repo=base, assert404=True)
             create_repo(user="test-user", repo=base)
             assert get_repo_stat(user="test-user", repo=base) == (0, 0)  # (push, clone)

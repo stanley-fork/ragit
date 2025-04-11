@@ -9,12 +9,12 @@ pub async fn get_archive_list(user: String, repo: String) -> Box<dyn Reply> {
 async fn get_archive_list_(user: String, repo: String) -> RawResponse {
     let pool = get_pool().await;
     let session_id = repo::get_session_id(&user, &repo, pool).await.handle_error(404)?;
-    let Some(session_id) = session_id else {
-        // TODO: I want to provide this info to client
-        return Err((400, format!("Nothing's pushed to `{user}/{repo}` yet!")));
-    };
+    let archive_list = match session_id {
+        Some(session_id) => archive::get_list(&session_id, pool).await.handle_error(500)?,
 
-    let archive_list = archive::get_list(&session_id, pool).await.handle_error(500)?;
+        // It's not an error to clone an empty repository (github allows that)
+        None => vec![],
+    };
     Ok(Box::new(json(&archive_list)))
 }
 

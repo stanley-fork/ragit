@@ -52,7 +52,7 @@ impl Index {
         workers: usize,
         force: bool,
         quiet: bool,
-    ) -> Result<(), Error> {
+    ) -> Result<HashMap<BlockType, usize>, Error> {
         if exists(root_dir) {
             if force {
                 if exists(&join(root_dir, INDEX_DIR_NAME)?) {
@@ -73,7 +73,7 @@ impl Index {
             &workers,
             quiet,
         ) {
-            Ok(()) => Ok(()),
+            Ok(result) => Ok(result),
             Err(e) => {
                 for worker in workers.iter() {
                     let _ = worker.send(Request::Kill);
@@ -93,7 +93,7 @@ impl Index {
         mut archives: Vec<String>,
         workers: &[Channel],
         quiet: bool,
-    ) -> Result<(), Error> {
+    ) -> Result<HashMap<BlockType, usize>, Error> {
         let mut killed_workers = vec![];
         let mut round_robin = 0;
         let mut status = Status {
@@ -115,6 +115,11 @@ impl Index {
                 let header = read_bytes_offset(&archive, cursor, cursor + 5)?;
 
                 if header[0] == BlockType::Splitted.to_byte() {
+                    match status.block_count.get_mut(&BlockType::Splitted) {
+                        Some(n) => { *n += 1; },
+                        None => { status.block_count.insert(BlockType::Splitted, 1); },
+                    }
+
                     let header = read_bytes_offset(&archive, cursor, cursor + 8)?;
                     let body = read_bytes_offset(&archive, cursor + 8, file_size(&archive)?)?;
                     let outer_index = ((header[1] as usize) << 16) +
@@ -267,7 +272,7 @@ impl Index {
             );
         }
 
-        Ok(())
+        Ok(status.block_count)
     }
 
     fn render_archive_extract_dashboard(

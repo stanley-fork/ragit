@@ -6,7 +6,7 @@ from cargo_tests import cargo_tests
 from cat_file import cat_file
 from cli import cli
 from clone import clone
-from clone2 import clone2
+from clone_empty import clone_empty
 from config import config
 from csv_reader import csv_reader
 from empty import empty
@@ -124,8 +124,10 @@ Commands
                                 It creates a knowledge-base, pushes, clones and checks it.
                                 It runs a local `ragit-server` in this repository.
 
-    clone2                      run `clone2` test
-                                It clones knowledge-bases from ragit.baehyunsol.com.
+    clone_empty                 run `clone_empty` test
+                                It creates an empty repository in ragit-server, clones the
+                                repository (which is not an error), adds some chunks to it,
+                                and pushes it back to the server.
 
     server                      run `server` test
                                 It tests endpoints related to a repository. It first pushes a
@@ -305,8 +307,8 @@ if __name__ == "__main__":
         elif command == "clone":
             clone()
 
-        elif command == "clone2":
-            clone2()
+        elif command == "clone_empty":
+            clone_empty()
 
         elif command == "server":
             server()
@@ -471,7 +473,7 @@ if __name__ == "__main__":
                 ("ignore", ignore),
                 ("recover", recover),
                 ("clone", clone),
-                ("clone2", clone2),
+                ("clone_empty", clone_empty),
                 ("server", server),
                 ("server_permission", server_permission),
                 ("cli", cli),

@@ -97,7 +97,9 @@ pub struct Index {
     /// and this field does that. If it's `Some(_)`, something's wrong and
     /// clean-up has to be done.
     pub curr_processing_file: Option<Path>,
-    repo_url: Option<String>,
+
+    /// The name of this field has to be `remote`. It's my mistake.
+    pub repo_url: Option<String>,
 
     /// `ii` stands for `inverted-index`.
     pub ii_status: IIStatus,
@@ -186,7 +188,7 @@ impl Index {
         let mut build_config = BuildConfig::default();
         let mut query_config = QueryConfig::default();
         let api_config = ApiConfig::default();
-        
+
         // Create a temporary Index to use for loading configs from home
         let temp_index = Index {
             ragit_version: crate::VERSION.to_string(),
@@ -234,7 +236,7 @@ impl Index {
 
         // Load models first so we can choose an appropriate default model
         result.load_or_init_models()?;
-        
+
         // Now update api_config with a valid model
         result.api_config = result.get_default_api_config()?;
         write_bytes(

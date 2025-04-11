@@ -1,4 +1,5 @@
 use super::{Index, erase_lines};
+use super::archive::BlockType;
 use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::LoadMode;
@@ -17,10 +18,15 @@ use ragit_fs::{
 };
 use reqwest::Url;
 use serde_json::Value;
+use std::collections::HashMap;
 use std::time::Instant;
 
 impl Index {
-    pub async fn clone(url: String, repo_name: Option<String>, quiet: bool) -> Result<(), Error> {
+    pub async fn clone(
+        url: String,
+        repo_name: Option<String>,
+        quiet: bool,
+    ) -> Result<HashMap<BlockType, usize>, Error> {
         let repo_name = repo_name.unwrap_or_else(|| infer_repo_name_from_url(&url));
         let mut archive_tmp_files_at = String::from("archives");
         let mut seq = 0;
@@ -40,7 +46,7 @@ impl Index {
         }
 
         match Index::clone_worker(url, repo_name.clone(), &archive_tmp_files_at, quiet).await {
-            Ok(()) => Ok(()),
+            Ok(result) => Ok(result),
             Err(e) => {
                 let _ = remove_dir_all(&archive_tmp_files_at);
                 let _ = remove_dir_all(&repo_name);
@@ -52,7 +58,12 @@ impl Index {
     // It first downloads archive files to `archive_tmp_files_at`, and extract the files.
     // After the extraction, a knowledge-base is created. It moves the archive files in `archive_tmp_files_at`
     // to `{repo_name}/.ragit/archives` and removes `archive_tmp_files_at`.
-    async fn clone_worker(mut url: String, repo_name: String, archive_tmp_files_at: &str, quiet: bool) -> Result<(), Error> {
+    async fn clone_worker(
+        mut url: String,
+        repo_name: String,
+        archive_tmp_files_at: &str,
+        quiet: bool,
+    ) -> Result<HashMap<BlockType, usize>, Error> {
         if !url.ends_with("/") {
             url = format!("{url}/");
         }
@@ -67,6 +78,11 @@ impl Index {
         let archive_list_url = url.join("archive-list/")?;
         let archive_list = request_json_file(archive_list_url.as_str()).await?;
         let archive_list = serde_json::from_value::<Vec<String>>(archive_list)?;
+
+        if archive_list.is_empty() && !quiet {
+            eprintln!("You appeared to have cloned an empty knowledge-base.");
+        }
+
         let mut archive_files = vec![];
         let mut downloaded_bytes = 0;
         let mut has_to_erase_lines = false;
@@ -100,7 +116,7 @@ impl Index {
             archive_files.push(archive_file);
         }
 
-        Index::extract_archive(
+        let block_types = Index::extract_archive(
             &repo_name,
             archive_files.clone(),
             4,  // workers  // TODO: make it configurable
@@ -125,7 +141,7 @@ impl Index {
         let mut index = Index::load(repo_name, LoadMode::Minimum)?;
         index.repo_url = Some(url.to_string());
         index.save_to_file()?;
-        Ok(())
+        Ok(block_types)
     }
 
     fn render_clone_dashboard(

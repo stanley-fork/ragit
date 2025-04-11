@@ -1,0 +1,23 @@
+rag-pull(1)
+==========
+
+NAME
+----
+rag-pull - Pull updates from remote
+
+SYNOPSIS
+--------
+[verse]
+'rag pull' [--[no-]configs] [--[no-]prompts] [--quiet | -q]
+
+DESCRIPTION
+-----------
+By default, it does not pull configs and prompts. You have to use `--configs` and `--prompts`
+flags to pull them. If there's no configs or prompts in the remote, `--configs` and `--prompts`
+flags do nothing.
+
+Ragit is not a version control system, it's a knowledge-base management system. Unlike `git pull`,
+you cannot redo `rag pull`. Once it's pulled, the original knowledge-base is overwritten with the
+new one and you cannot revert that.
+
+It only writes to `.ragit/`. It does not touch the raw data files.

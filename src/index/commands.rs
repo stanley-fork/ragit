@@ -14,6 +14,7 @@ mod ls;
 mod merge;
 mod meta;
 mod migrate;
+mod pull;
 mod push;
 mod recover;
 mod remove;

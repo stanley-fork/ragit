@@ -20,6 +20,7 @@ pub enum Error {
     NoSuchChunk(Uid),
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
     NoFileToRemove,
+    NoRemoteToPullFrom,
     NoSuchMeta(String),
     CorruptedFile { path: Path, message: Option<String> },
     CliError {
