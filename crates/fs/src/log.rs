@@ -6,12 +6,11 @@ use crate::{
     write_string,
 };
 use chrono::Local;
+use std::sync::OnceLock;
 
-const BUFFER_LEN: usize = 2048;
-static mut LOG_FILE_PATH: Option<[u8; BUFFER_LEN]> = None;
-static mut LOG_FILE_PATH_LEN: usize = 0;
-static mut DUMP_TO_STDOUT: bool = false;
-static mut DUMP_TO_STDERR: bool = false;
+static LOG_FILE_PATH: OnceLock<Option<String>> = OnceLock::new();
+static DUMP_TO_STDOUT: OnceLock<bool> = OnceLock::new();
+static DUMP_TO_STDERR: OnceLock<bool> = OnceLock::new();
 
 pub fn initialize_log(
     dump_to_file: Option<String>,
@@ -19,75 +18,59 @@ pub fn initialize_log(
     dump_to_stderr: bool,
     keep_previous_file: bool,
 ) -> Result<(), FileError> {
-    unsafe {
-        if let Some(path) = dump_to_file {
-            if path.len() > BUFFER_LEN {
-                panic!("log path is too long: `{path}`");
+    if let Some(path) = &dump_to_file {
+        if !keep_previous_file {
+            if exists(path) {
+                copy_file(path, &format!("{path}-backup"))?;
             }
 
-            if !keep_previous_file {
-                if exists(&path) {
-                    copy_file(&path, &format!("{path}-backup"))?;
-                }
-
-                write_string(&path, "", WriteMode::Atomic)?;
-            }
-
-            let mut bytes = [0; BUFFER_LEN];
-
-            for (i, c) in path.as_bytes().iter().enumerate() {
-                bytes[i] = *c;
-            }
-
-            LOG_FILE_PATH_LEN = path.len();
-            LOG_FILE_PATH = Some(bytes);
+            write_string(path, "", WriteMode::Atomic)?;
         }
-
-        DUMP_TO_STDOUT = dump_to_stdout;
-        DUMP_TO_STDERR = dump_to_stderr;
     }
 
+    LOG_FILE_PATH.set(dump_to_file).unwrap();
+    DUMP_TO_STDOUT.set(dump_to_stdout).unwrap();
+    DUMP_TO_STDERR.set(dump_to_stderr).unwrap();
     Ok(())
 }
 
 fn get_log_file_path() -> Option<String> {
-    unsafe {
-        LOG_FILE_PATH.map(|bytes| String::from_utf8_lossy(&bytes[..LOG_FILE_PATH_LEN]).to_string())
-    }
+    LOG_FILE_PATH.get().map(|p| p.clone()).unwrap_or(None)
 }
 
 pub fn write_log(owner: &str, msg: &str) {
-    unsafe {
-        let path = get_log_file_path();
+    let dump_to_stdout = DUMP_TO_STDOUT.get().map(|b| *b).unwrap_or(false);
+    let dump_to_stderr = DUMP_TO_STDERR.get().map(|b| *b).unwrap_or(false);
 
-        if path.is_none() && !DUMP_TO_STDOUT && !DUMP_TO_STDERR {
-            return;
-        }
+    let path = get_log_file_path();
 
-        let message = format!(
-            "{} | {} | {msg}\n",
-            Local::now().to_rfc2822(),
-            if owner.len() < 32 {
-                format!("{}{owner}", " ".repeat(32 - owner.len()))
-            } else {
-                owner.to_string()
-            },
-        );
+    if path.is_none() && !dump_to_stdout && !dump_to_stderr {
+        return;
+    }
 
-        if let Some(path) = path {
-            write_string(
-                &path,
-                &message,
-                WriteMode::AlwaysAppend,
-            ).unwrap();
-        }
+    let message = format!(
+        "{} | {} | {msg}\n",
+        Local::now().to_rfc2822(),
+        if owner.len() < 32 {
+            format!("{}{owner}", " ".repeat(32 - owner.len()))
+        } else {
+            owner.to_string()
+        },
+    );
 
-        if DUMP_TO_STDOUT {
-            print!("{message}");
-        }
+    if let Some(path) = path {
+        write_string(
+            &path,
+            &message,
+            WriteMode::AlwaysAppend,
+        ).unwrap();
+    }
 
-        if DUMP_TO_STDERR {
-            eprint!("{message}");
-        }
+    if dump_to_stdout {
+        print!("{message}");
+    }
+
+    if dump_to_stderr {
+        eprint!("{message}");
     }
 }
