@@ -5,11 +5,13 @@ CREATE TABLE IF NOT EXISTS user_ (
     name TEXT NOT NULL,
     normalized_name TEXT NOT NULL,
     email TEXT,
-    salt TEXT NOT NULL,
-    -- it only uses sha3_256. do we have to give a choice for the hash function?
-    password TEXT NOT NULL,
     readme TEXT,
     public BOOLEAN NOT NULL,
+    is_admin BOOLEAN NOT NULL,
+
+    -- it only uses sha3_256. do we have to give a choice for the hash function?
+    salt TEXT NOT NULL,
+    password TEXT NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL,
     last_login_at TIMESTAMPTZ
@@ -210,7 +212,6 @@ CREATE TABLE IF NOT EXISTS archive_blob (
     blob BYTEA
 );
 
--- TODO: impl garbage collector
 CREATE TABLE IF NOT EXISTS api_key (
     api_key TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL,

@@ -1,6 +1,6 @@
 use super::{HandleError, RawResponse, get_pool, handler};
 use crate::AI_MODEL_CONFIG;
-use crate::models::ai_model;
+use crate::models::{ai_model, auth};
 use crate::models::user::{self, UserCreate};
 use ragit_api::JsonType;
 use serde_json::Value;
@@ -8,26 +8,34 @@ use std::collections::HashMap;
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_status};
 
-pub async fn get_user_list(query: HashMap<String, String>) -> Box<dyn Reply> {
-    handler(get_user_list_(query).await)
+pub async fn get_user_list(query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_user_list_(query, api_key).await)
 }
 
-async fn get_user_list_(query: HashMap<String, String>) -> RawResponse {
+async fn get_user_list_(query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
     let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
-    let users = user::get_list(limit, offset, pool).await.handle_error(500)?;
+    let include_privates = auth::is_admin(api_key, pool).await.handle_error(500)?;
+    let users = user::get_list(include_privates, limit, offset, pool).await.handle_error(500)?;
+
+    // TODO: if a private user X requests this api with his api key, it should include X but doesn't
 
     Ok(Box::new(json(&users)))
 }
 
-pub async fn get_user(user: String) -> Box<dyn Reply> {
-    handler(get_user_(user).await)
+pub async fn get_user(user: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_user_(user, api_key).await)
 }
 
-async fn get_user_(user: String) -> RawResponse {
+async fn get_user_(user: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let user = user::get_detail_by_name(&user, pool).await.handle_error(404)?;
+
+    if !user.public && !user::check_auth(user.id, api_key, pool).await.handle_error(500)? {
+        return Err((404, format!("permission error: (user_id: {})", user.id)));
+    }
+
     Ok(Box::new(json(&user)))
 }
 

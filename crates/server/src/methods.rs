@@ -154,9 +154,15 @@ impl<T, E: std::fmt::Debug> HandleError<T> for Result<T, E> {
     }
 }
 
-impl <T> HandleError<T> for Option<T> {
+impl<T> HandleError<T> for Option<T> {
     fn handle_error(self, code: u16) -> Result<T, (u16, String)> {
         self.ok_or_else(|| (code, format!("expected type `{}`, got `None`", std::any::type_name::<T>())))
+    }
+}
+
+impl HandleError<()> for bool {
+    fn handle_error(self, code: u16) -> Result<(), (u16, String)> {
+        if self { Ok(()) } else { Err((code, String::from("expected `true`, got `false`"))) }
     }
 }
 

@@ -13,6 +13,7 @@ use ragit_fs::{
     write_log,
     write_string,
 };
+use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
 use std::sync::OnceLock;
@@ -193,12 +194,14 @@ async fn main() {
         .and(warp::path("user-list"))
         .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_user_list);
 
     let get_user_handler = warp::get()
         .and(warp::path("user-list"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_user);
 
     let create_user_handler = warp::post()
@@ -212,6 +215,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_repo_list);
 
     let get_repo_handler = warp::get()
@@ -219,6 +223,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_repo);
 
     let get_ai_model_list_handler = warp::get()
@@ -240,7 +245,8 @@ async fn main() {
         .and(warp::path("repo-list"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .and(warp::body::json())
+        .and(warp::body::json::<Value>())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(create_repo);
 
     let get_chat_handler = warp::get()
@@ -334,6 +340,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("traffic"))
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_traffic);
 
     let post_ii_build_handler = warp::post()

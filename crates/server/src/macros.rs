@@ -19,7 +19,27 @@ macro_rules! query {
 }
 
 #[macro_export]
+#[cfg(feature = "log_sql")]
+macro_rules! query_as {
+    ($out_struct: path, $query: expr, $($args:tt)*) => {{
+        let r = sqlx::query_as!($out_struct, $query, $($args)*);
+        ragit_fs::write_log(
+            "sql",
+            // TODO: how about using `trim_long_string` here?
+            &format!("out_struct: {}, query: {:?}, args: {:?}", stringify!($out_struct), $query, ($($args)*)),
+        );
+        r
+    }};
+}
+
+#[macro_export]
 #[cfg(not(feature = "log_sql"))]
 macro_rules! query {
     ($($args:tt)*) => { sqlx::query!($($args)*) };
+}
+
+#[macro_export]
+#[cfg(not(feature = "log_sql"))]
+macro_rules! query_as {
+    ($($args:tt)*) => { sqlx::query_as!($($args)*) };
 }

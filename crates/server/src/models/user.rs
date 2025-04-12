@@ -1,3 +1,4 @@
+use super::auth;
 use chrono::{DateTime, Utc};
 use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
 use crate::error::Error;
@@ -13,6 +14,7 @@ pub struct UserDetail {
     pub normalized_name: String,
     pub email: Option<String>,
     pub readme: Option<String>,
+    pub public: bool,
     pub created_at: DateTime<Utc>,
     pub last_login_at: Option<DateTime<Utc>>,
 }
@@ -23,6 +25,7 @@ pub struct UserSimple {
     pub name: String,
     pub normalized_name: String,
     pub email: Option<String>,
+    pub public: bool,
     #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
     #[serde(with = "ts_milliseconds_option")]
@@ -38,26 +41,29 @@ pub struct UserCreate {
     pub public: bool,
 }
 
-pub async fn get_list(limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<UserSimple>, Error> {
-    let rows = crate::query!(
-        "SELECT id, name, normalized_name, email, created_at, last_login_at FROM user_ ORDER BY id LIMIT $1 OFFSET $2",
-        limit,
-        offset,
-    ).fetch_all(pool).await?;
-    let mut result = Vec::with_capacity(rows.len());
+pub async fn get_list(include_privates: bool, limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<UserSimple>, Error> {
+    // TODO: how do I parameterize `query!` macro?
+    if include_privates {
+        let rows = crate::query_as!(
+            UserSimple,
+            "SELECT id, name, normalized_name, email, public, created_at, last_login_at FROM user_ ORDER BY id LIMIT $1 OFFSET $2",
+            limit,
+            offset,
+        ).fetch_all(pool).await?;
 
-    for row in rows.iter() {
-        result.push(UserSimple {
-            id: row.id,
-            name: row.name.clone(),
-            normalized_name: row.normalized_name.clone(),
-            email: row.email.clone(),
-            created_at: row.created_at,
-            last_login_at: row.last_login_at,
-        });
+        Ok(rows)
     }
 
-    Ok(result)
+    else {
+        let rows = crate::query_as!(
+            UserSimple,
+            "SELECT id, name, normalized_name, email, public, created_at, last_login_at FROM user_ WHERE public = TRUE ORDER BY id LIMIT $1 OFFSET $2",
+            limit,
+            offset,
+        ).fetch_all(pool).await?;
+
+        Ok(rows)
+    }
 }
 
 pub async fn get_id_by_name(name: &str, pool: &PgPool) -> Result<i32, Error> {
@@ -72,22 +78,16 @@ pub async fn get_id_by_name(name: &str, pool: &PgPool) -> Result<i32, Error> {
 
 pub async fn get_detail_by_name(name: &str, pool: &PgPool) -> Result<UserDetail, Error> {
     let name = normalize(name);
-    let row = crate::query!(
-        "SELECT id, name, normalized_name, email, readme, created_at, last_login_at FROM user_ WHERE normalized_name = $1",
+    let result = crate::query_as!(
+        UserDetail,
+        "SELECT id, name, normalized_name, email, public, readme, created_at, last_login_at FROM user_ WHERE normalized_name = $1",
         name,
     ).fetch_one(pool).await?;
 
-    Ok(UserDetail {
-        id: row.id,
-        name: row.name,
-        normalized_name: row.normalized_name,
-        email: row.email,
-        readme: row.readme,
-        created_at: row.created_at,
-        last_login_at: row.last_login_at,
-    })
+    Ok(result)
 }
 
+// TODO: set `is_admin = TRUE` if there's no user
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
     let salt = format!("{:x}", rand::random::<u128>());
     let password = hash_password(&salt, &user.password);
@@ -134,4 +134,13 @@ pub(crate) fn hash_password(salt: &str, password: &str) -> String {
     hasher.update(salt.as_bytes());
     hasher.update(password.as_bytes());
     format!("{:064x}", hasher.finalize())
+}
+
+pub async fn check_auth(user_id: i32, api_key: Option<String>, pool: &PgPool) -> Result<bool, Error> {
+    let permission = auth::get_user_id_from_api_key(api_key, pool).await?;
+
+    match permission {
+        Some(auth::Permission { user_id: user_id_, is_admin }) if user_id == user_id_ || is_admin => Ok(true),
+        _ => Ok(false),
+    }
 }

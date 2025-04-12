@@ -1,9 +1,17 @@
+use super::auth;
 use chrono::{DateTime, Utc};
 use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
 use crate::error::Error;
 use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
+
+pub enum RepoOperation {
+    Read,
+    Write,
+    Clone,
+    Push,
+}
 
 #[derive(Clone, Debug, Serialize)]
 pub struct RepoDetail {
@@ -68,7 +76,13 @@ pub async fn get_id_by_name(user_name: &str, repo_name: &str, pool: &PgPool) -> 
     Ok(row.id)
 }
 
-pub async fn get_list(user_id: i32, limit: i64, offset: i64, pool: &PgPool) -> Result<Vec<RepoSimple>, Error> {
+pub async fn get_list(
+    user_id: i32,
+    has_permission: bool,
+    limit: i64,
+    offset: i64,
+    pool: &PgPool,
+) -> Result<Vec<RepoSimple>, Error> {
     let rows = crate::query!(
         "
         SELECT
@@ -79,6 +93,7 @@ pub async fn get_list(user_id: i32, limit: i64, offset: i64, pool: &PgPool) -> R
             website,
             stars,
             repo_size,
+            public_read,
             repository.created_at,
             repository.pushed_at,
             repository.updated_at
@@ -92,6 +107,10 @@ pub async fn get_list(user_id: i32, limit: i64, offset: i64, pool: &PgPool) -> R
     let mut result = Vec::with_capacity(rows.len());
 
     for row in rows.iter() {
+        if !has_permission && !row.public_read {
+            continue;
+        }
+
         result.push(RepoSimple {
             id: row.id,
             name: row.repo_name.clone(),
@@ -240,4 +259,37 @@ pub async fn get_traffic_all(repo_id: i32, pool: &PgPool) -> Result<Traffic, Err
     ).fetch_one(pool).await?;
 
     Ok(Traffic { push: row.push.unwrap_or(0) as u64, clone: row.clone.unwrap_or(0) as u64 })
+}
+
+pub async fn check_auth(
+    repo_id: i32,
+    operation: RepoOperation,
+    api_key: Option<String>,
+    pool: &PgPool,
+) -> Result<bool, Error> {
+    let row = crate::query!(
+        "SELECT owner_id, public_read, public_write, public_clone, public_push FROM repository WHERE id = $1",
+        repo_id,
+    ).fetch_one(pool).await?;
+    let (public_read, public_write, public_clone, public_push) = (row.public_read, row.public_write, row.public_clone, row.public_push);
+
+    match (operation, public_read, public_write, public_clone, public_push) {
+        (RepoOperation::Read, true, _, _, _)
+        | (RepoOperation::Write, _, true, _, _)
+        | (RepoOperation::Clone, _, _, true, _)
+        | (RepoOperation::Push, _, _, _, true) => {
+            return Ok(true);
+        },
+        _ if api_key.is_none() => {
+            return Ok(false);
+        },
+        _ => {},
+    }
+
+    let permission = auth::get_user_id_from_api_key(api_key, pool).await?;
+
+    match permission {
+        Some(auth::Permission { user_id, is_admin }) if user_id == row.owner_id || is_admin => Ok(true),
+        _ => Ok(false),
+    }
 }
