@@ -1,5 +1,5 @@
 use super::{HandleError, RawResponse, get_pool, handler};
-use crate::AI_MODEL_CONFIG;
+use crate::{AI_MODEL_CONFIG, CONFIG};
 use crate::models::{ai_model, auth};
 use crate::models::user::{self, UserCreate};
 use ragit_api::JsonType;
@@ -39,12 +39,18 @@ async fn get_user_(user: String, api_key: Option<String>) -> RawResponse {
     Ok(Box::new(json(&user)))
 }
 
-pub async fn create_user(body: Value) -> Box<dyn Reply> {
-    handler(create_user_(body).await)
+pub async fn create_user(body: Value, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(create_user_(body, api_key).await)
 }
 
-async fn create_user_(body: Value) -> RawResponse {
+async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
+    let config = CONFIG.get().handle_error(500)?;
+
+    if config.only_admin_can_create_user {
+        auth::is_admin(api_key, pool).await.handle_error(500)?.handle_error(403)?;
+    }
+
     let user = serde_json::from_value::<UserCreate>(body).handle_error(400)?;
     let user_id = user::create_and_return_id(&user, pool).await.handle_error(500)?;
     let ai_model_config = AI_MODEL_CONFIG.get().handle_error(500)?;

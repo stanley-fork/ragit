@@ -87,7 +87,6 @@ pub async fn get_detail_by_name(name: &str, pool: &PgPool) -> Result<UserDetail,
     Ok(result)
 }
 
-// TODO: set `is_admin = TRUE` if there's no user
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
     let salt = format!("{:x}", rand::random::<u128>());
     let password = hash_password(&salt, &user.password);
@@ -102,6 +101,7 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
             password,
             readme,
             public,
+            is_admin,
             created_at,
             last_login_at
         )
@@ -113,6 +113,7 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
             $5,   -- password
             $6,   -- readme
             $7,   -- public
+            (SELECT COUNT(*) = 0 FROM user_),  -- is_admin
             NOW(),  -- created_at
             NULL  -- last_login_at
         )

@@ -23,6 +23,7 @@ pub struct Config {
     // Name of a default ai model. The model must be defined in `default_models` file.
     pub default_ai_model: String,
 
+    pub only_admin_can_create_user: bool,
     pub port_number: u16,
 }
 
@@ -42,6 +43,7 @@ impl Default for Config {
             default_ai_model: String::from("llama3.3"),
             push_session_dir: String::from("./session"),
             repo_data_dir: String::from("./data"),
+            only_admin_can_create_user: true,
             port_number: 41127,
         }
     }

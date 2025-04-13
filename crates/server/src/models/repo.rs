@@ -11,6 +11,9 @@ pub enum RepoOperation {
     Write,
     Clone,
     Push,
+
+    // whatever sensitive operation that requires an api key
+    Sensitive,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -53,6 +56,18 @@ pub struct RepoSimple {
 #[derive(Clone, Debug, Deserialize)]
 pub struct RepoCreate {
     pub name: String,
+    pub description: Option<String>,
+    pub website: Option<String>,
+    pub readme: Option<String>,
+    pub public_read: bool,
+    pub public_write: bool,
+    pub public_clone: bool,
+    pub public_push: bool,
+}
+
+// TODO: allow change name?
+#[derive(Clone, Debug, Deserialize)]
+pub struct RepoUpdate {
     pub description: Option<String>,
     pub website: Option<String>,
     pub readme: Option<String>,
@@ -223,8 +238,31 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
     Ok(repo_id)
 }
 
-pub async fn get_session_id(user: &str, repo: &str, pool: &PgPool) -> Result<Option<String>, Error> {
-    let repo_id = get_id_by_name(user, repo, pool).await?;
+pub async fn update_repo(repo_id: i32, repo: RepoUpdate, pool: &PgPool) -> Result<(), Error> {
+    crate::query!(
+        "UPDATE repository
+        SET
+            description = $1,
+            website = $2,
+            readme = $3,
+            public_read = $4,
+            public_write = $5,
+            public_clone = $6,
+            public_push = $7
+        WHERE id = $8",
+        repo.description.as_ref().map(|s| s.as_str()),
+        repo.website.as_ref().map(|s| s.as_str()),
+        repo.readme.as_ref().map(|s| s.as_str()),
+        repo.public_read,
+        repo.public_write,
+        repo.public_clone,
+        repo.public_push,
+        repo_id,
+    ).execute(pool).await?;
+    Ok(())
+}
+
+pub async fn get_session_id(repo_id: i32, pool: &PgPool) -> Result<Option<String>, Error> {
     let session_id = crate::query!(
         "SELECT push_session_id FROM repository WHERE id = $1",
         repo_id,

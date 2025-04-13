@@ -1,10 +1,11 @@
 use super::{HandleError, RawResponse, get_pool, handler};
 use chrono::{Datelike, Utc};
 use crate::models::{repo, user};
-use crate::models::repo::{RepoCreate, RepoOperation};
+use crate::models::repo::{RepoCreate, RepoOperation, RepoUpdate};
 use serde_json::Value;
 use std::collections::HashMap;
-use warp::reply::{Reply, json};
+use warp::http::StatusCode;
+use warp::reply::{Reply, json, with_status};
 
 pub async fn get_repo_list(user: String, query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
     handler(get_repo_list_(user, query, api_key).await)
@@ -48,6 +49,26 @@ async fn create_repo_(user: String, body: Value, api_key: Option<String>) -> Raw
     user::check_auth(user_id, api_key, pool).await.handle_error(500)?.handle_error(403)?;
     let repo_id = repo::create_and_return_id(user_id, &repo, pool).await.handle_error(500)?;
     Ok(Box::new(json(&repo_id)))
+}
+
+pub async fn put_repo(user: String, repo: String, body: Value, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(put_repo_(user, repo, body, api_key).await)
+}
+
+async fn put_repo_(user: String, repo: String, body: Value, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_data = serde_json::from_value::<RepoUpdate>(body).handle_error(400)?;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(
+        repo_id,
+
+        // It's nonsense to allow a user without api key to change the publicity of a repository
+        if repo_data.public_write { RepoOperation::Write } else { RepoOperation::Sensitive },
+        api_key,
+        pool,
+    ).await.handle_error(500)?.handle_error(404)?;
+    repo::update_repo(repo_id, repo_data, pool).await.handle_error(500)?;
+    Ok(Box::new(with_status(String::new(), StatusCode::from_u16(200).unwrap())))
 }
 
 pub async fn get_traffic(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {

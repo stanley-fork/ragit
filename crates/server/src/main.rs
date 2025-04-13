@@ -161,6 +161,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("archive-list"))
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_archive_list);
 
     let get_archive_handler = warp::get()
@@ -169,6 +170,7 @@ async fn main() {
         .and(warp::path("archive"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_archive);
 
     let get_meta_handler = warp::get()
@@ -207,7 +209,8 @@ async fn main() {
     let create_user_handler = warp::post()
         .and(warp::path("user-list"))
         .and(warp::path::end())
-        .and(warp::body::json())
+        .and(warp::body::json::<Value>())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(create_user);
 
     let get_repo_list_handler = warp::get()
@@ -249,6 +252,15 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(create_repo);
 
+    let put_repo_handler = warp::put()
+        .and(warp::path("repo-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::body::json::<Value>())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(put_repo);
+
     let get_chat_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -277,7 +289,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("begin-push"))
         .and(warp::path::end())
-        .and(warp::header::optional::<String>("authorization"))
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(post_begin_push);
 
     let post_archive_handler = warp::post()
@@ -392,6 +404,7 @@ async fn main() {
             .or(get_file_list_handler)
             .or(create_user_handler)
             .or(create_repo_handler)
+            .or(put_repo_handler)
             .or(post_begin_push_handler)
             .or(post_archive_handler)
             .or(post_finalize_push_handler)

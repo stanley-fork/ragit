@@ -65,6 +65,7 @@ pub use repo::{
     get_repo,
     get_repo_list,
     get_traffic,
+    put_repo,
 };
 pub use search::search;
 pub use user::{
@@ -164,11 +165,6 @@ impl HandleError<()> for bool {
     fn handle_error(self, code: u16) -> Result<(), (u16, String)> {
         if self { Ok(()) } else { Err((code, String::from("expected `true`, got `false`"))) }
     }
-}
-
-fn auth(_user: &str, _repo: &str, _auth_info: &Option<(String, Option<String>)>) -> bool {
-    // TODO
-    true
 }
 
 fn check_secure_path(path: &str) -> Result<(), Error> {

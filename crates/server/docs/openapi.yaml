@@ -415,6 +415,7 @@ paths:
                 description: repo id
   /repo-list/{user}/{repo}:
     get: todo
+    put: todo
 components:
   schemas:
     UserSimple:
