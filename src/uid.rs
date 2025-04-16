@@ -85,12 +85,12 @@ pub fn load_from_file(path: &str) -> Result<Vec<Uid>, Error> {
         Some(192..=224) => {
             let byte_len = (bytes[0] & 0b0011_1111) as usize;
             let mut result = vec![];
-            let mut curr_uid = Uid::decode(&bytes[1..(byte_len + 1)])?;
+            let mut curr_uid = Uid::decode_partial(&bytes[1..(byte_len + 1)])?;
             result.push(curr_uid);
             let mut cursor = byte_len + 1;
 
             loop {
-                let d = Uid::decode(&bytes[cursor..(cursor + byte_len)])?;
+                let d = Uid::decode_partial(&bytes[cursor..(cursor + byte_len)])?;
                 curr_uid = curr_uid.add(d);
                 result.push(curr_uid);
                 cursor += byte_len;
@@ -141,11 +141,11 @@ pub fn save_to_file(
             result.push(0b1100_0000 | max_byte_len as u8);
 
             // 2. encode the first uid
-            uids[0].encode(max_byte_len, &mut result);
+            uids[0].encode_partial(max_byte_len, &mut result);
 
             // 3. encode the diffs
             for d in diffs.iter() {
-                d.encode(max_byte_len, &mut result);
+                d.encode_partial(max_byte_len, &mut result);
             }
 
             Ok(write_bytes(
@@ -169,19 +169,32 @@ impl Uid {
     const FILE_TYPE: u128 = (0x3 << 32);
     const GROUP_TYPE: u128 = (0x4 << 32);
 
-    pub(crate) fn decode(bytes: &[u8]) -> Result<Self, Error> {
+    pub(crate) fn decode_partial(bytes: &[u8]) -> Result<Self, Error> {
         match bytes.len() {
             0 => Ok(Uid { high: 0, low: 0 }),
             1..=15 => Ok(Uid { high: 0, low: u128_from_bytes(bytes)? }),
             16 => Ok(Uid { high: 0, low: u128_from_bytes(bytes)? }),
             17..=31 => Ok(Uid { high: u128_from_bytes(&bytes[..(bytes.len() - 16)])?, low: u128_from_bytes(&bytes[(bytes.len() - 16)..])? }),
             32 => Ok(Uid { high: u128_from_bytes(&bytes[0..16])?, low: u128_from_bytes(&bytes[16..])? }),
-            _ => Err(Error::CannotDeserializeUid),
+            _ => Err(Error::CannotDecodeUid),
         }
     }
 
-    pub(crate) fn encode(&self, len: usize, buffer: &mut Vec<u8>) {
+    pub(crate) fn encode_partial(&self, len: usize, buffer: &mut Vec<u8>) {
         for b in self.high.to_be_bytes().into_iter().chain(self.low.to_be_bytes().into_iter()).skip(32 - len) {
+            buffer.push(b);
+        }
+    }
+
+    pub fn decode(bytes: &[u8]) -> Result<Self, Error> {
+        match bytes.len() {
+            32 => Ok(Uid { high: u128_from_bytes(&bytes[0..16])?, low: u128_from_bytes(&bytes[16..])? }),
+            _ => Err(Error::CannotDecodeUid),
+        }
+    }
+
+    pub fn encode(&self, buffer: &mut Vec<u8>) {
+        for b in self.high.to_be_bytes().into_iter().chain(self.low.to_be_bytes().into_iter()) {
             buffer.push(b);
         }
     }
@@ -311,11 +324,11 @@ impl Uid {
         }
     }
 
-    pub(crate) fn get_prefix(&self) -> String {
+    pub fn get_prefix(&self) -> String {
         format!("{:02x}", self.high >> 120)
     }
 
-    pub(crate) fn get_suffix(&self) -> String {
+    pub fn get_suffix(&self) -> String {
         format!("{:030x}{:032x}", self.high & 0xff_ffff_ffff_ffff_ffff_ffff_ffff_ffff, self.low)
     }
 
@@ -471,6 +484,6 @@ fn u128_from_bytes(bytes: &[u8]) -> Result<u128, Error> {
             Ok(u128::from_be_bytes(padded))
         },
         16 => Ok(u128::from_be_bytes(bytes.try_into().unwrap())),
-        _ => Err(Error::CannotDeserializeUid),
+        _ => Err(Error::CannotDecodeUid),
     }
 }

@@ -221,19 +221,19 @@ fn uid_endec() {
         let mut buffer = vec![];
         let byte_len = uid.byte_len();
 
-        uid.encode(byte_len, &mut buffer);
-        assert_eq!(Uid::decode(&buffer).unwrap(), uid);
+        uid.encode_partial(byte_len, &mut buffer);
+        assert_eq!(Uid::decode_partial(&buffer).unwrap(), uid);
 
         if byte_len != 32 {
             buffer = vec![];
-            uid.encode(byte_len + 1, &mut buffer);
-            assert_eq!(Uid::decode(&buffer).unwrap(), uid);
+            uid.encode_partial(byte_len + 1, &mut buffer);
+            assert_eq!(Uid::decode_partial(&buffer).unwrap(), uid);
         }
 
         if byte_len != 0 {
             buffer = vec![];
-            uid.encode(byte_len - 1, &mut buffer);
-            assert!(Uid::decode(&buffer).unwrap() != uid);
+            uid.encode_partial(byte_len - 1, &mut buffer);
+            assert!(Uid::decode_partial(&buffer).unwrap() != uid);
         }
     }
 }

@@ -55,7 +55,7 @@ pub enum Error {
     },
     MergeConflict(Uid),
     MPSCError(String),
-    CannotDeserializeUid,
+    CannotDecodeUid,
 
     /// If a user sees this error, that's a bug in ragit.
     Internal(String),
