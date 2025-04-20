@@ -1,4 +1,5 @@
-use super::{HandleError, RawResponse, handler};
+use super::{HandleError, RawResponse, get_pool, handler};
+use crate::models::repo::{self, RepoOperation};
 use crate::utils::get_rag_path;
 use ragit_fs::{
     exists,
@@ -12,11 +13,14 @@ use ragit_fs::{
 };
 use warp::reply::{Reply, json, with_header};
 
-pub fn get_image_list(user: String, repo: String, prefix: String) -> Box<dyn Reply> {
-    handler(get_image_list_(user, repo, prefix))
+pub async fn get_image_list(user: String, repo: String, prefix: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_image_list_(user, repo, prefix, api_key).await)
 }
 
-fn get_image_list_(user: String, repo: String, prefix: String) -> RawResponse {
+async fn get_image_list_(user: String, repo: String, prefix: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
     if !exists(&rag_path) {
@@ -40,11 +44,14 @@ fn get_image_list_(user: String, repo: String, prefix: String) -> RawResponse {
     )))
 }
 
-pub fn get_image(user: String, repo: String, uid: String) -> Box<dyn Reply> {
-    handler(get_image_(user, repo, uid))
+pub async fn get_image(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_image_(user, repo, uid, api_key).await)
 }
 
-fn get_image_(user: String, repo: String, uid: String) -> RawResponse {
+async fn get_image_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let prefix = uid.get(0..2).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
     let suffix = uid.get(2..).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
@@ -63,11 +70,14 @@ fn get_image_(user: String, repo: String, uid: String) -> RawResponse {
     )))
 }
 
-pub fn get_image_desc(user: String, repo: String, uid: String) -> Box<dyn Reply> {
-    handler(get_image_desc_(user, repo, uid))
+pub async fn get_image_desc(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_image_desc_(user, repo, uid, api_key).await)
 }
 
-fn get_image_desc_(user: String, repo: String, uid: String) -> RawResponse {
+async fn get_image_desc_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
     let prefix = uid.get(0..2).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
     let suffix = uid.get(2..).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();

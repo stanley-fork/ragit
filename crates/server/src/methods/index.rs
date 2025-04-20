@@ -1,5 +1,6 @@
-use super::{HandleError, RawResponse, check_secure_path, handler};
+use super::{HandleError, RawResponse, check_secure_path, get_pool, handler};
 use crate::CONFIG;
+use crate::models::repo::{self, RepoOperation};
 use crate::utils::get_rag_path;
 use ragit::{Index, LoadMode, UidQueryConfig, merge_and_convert_chunks};
 use ragit_fs::{
@@ -13,11 +14,14 @@ use serde_json::Value;
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_header, with_status};
 
-pub fn get_index(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_index_(user, repo))
+pub async fn get_index(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_index_(user, repo, api_key).await)
 }
 
-fn get_index_(user: String, repo: String) -> RawResponse {
+async fn get_index_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let index_path = join(&rag_path, "index.json").handle_error(400)?;
     let j = read_string(&index_path).handle_error(404)?;
@@ -29,11 +33,14 @@ fn get_index_(user: String, repo: String) -> RawResponse {
     )))
 }
 
-pub fn get_config(user: String, repo: String, config: String) -> Box<dyn Reply> {
-    handler(get_config_(user, repo, config))
+pub async fn get_config(user: String, repo: String, config: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_config_(user, repo, config, api_key).await)
 }
 
-fn get_config_(user: String, repo: String, config: String) -> RawResponse {
+async fn get_config_(user: String, repo: String, config: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     check_secure_path(&config).handle_error(400)?;
     let config_path = join3(
@@ -50,11 +57,14 @@ fn get_config_(user: String, repo: String, config: String) -> RawResponse {
     )))
 }
 
-pub fn get_prompt(user: String, repo: String, prompt: String) -> Box<dyn Reply> {
-    handler(get_prompt_(user, repo, prompt))
+pub async fn get_prompt(user: String, repo: String, prompt: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_prompt_(user, repo, prompt, api_key).await)
 }
 
-fn get_prompt_(user: String, repo: String, prompt: String) -> RawResponse {
+async fn get_prompt_(user: String, repo: String, prompt: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     check_secure_path(&prompt).handle_error(400)?;
     let prompt_path = join3(
@@ -71,11 +81,14 @@ fn get_prompt_(user: String, repo: String, prompt: String) -> RawResponse {
     )))
 }
 
-pub fn get_cat_file(user: String, repo: String, uid: String) -> Box<dyn Reply> {
-    handler(get_cat_file_(user, repo, uid))
+pub async fn get_cat_file(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_cat_file_(user, repo, uid, api_key).await)
 }
 
-fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
+async fn get_cat_file_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
@@ -130,11 +143,14 @@ fn get_cat_file_(user: String, repo: String, uid: String) -> RawResponse {
     }
 }
 
-pub fn get_meta(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_meta_(user, repo))
+pub async fn get_meta(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_meta_(user, repo, api_key).await)
 }
 
-fn get_meta_(user: String, repo: String) -> RawResponse {
+async fn get_meta_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
     if !exists(&rag_path) {
@@ -155,11 +171,14 @@ fn get_meta_(user: String, repo: String) -> RawResponse {
 
 // TODO: it has to be a search endpoint for files
 //       we have to implement github-like file viewer
-pub fn get_file_list(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_file_list_(user, repo))
+pub async fn get_file_list(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_file_list_(user, repo, api_key).await)
 }
 
-fn get_file_list_(user: String, repo: String) -> RawResponse {
+async fn get_file_list_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
@@ -170,11 +189,14 @@ fn get_file_list_(user: String, repo: String) -> RawResponse {
     Ok(Box::new(json(&index.processed_files.keys().collect::<Vec<_>>())))
 }
 
-pub fn get_version(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_version_(user, repo))
+pub async fn get_version(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_version_(user, repo, api_key).await)
 }
 
-fn get_version_(user: String, repo: String) -> RawResponse {
+async fn get_version_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let index_path = join(&rag_path, "index.json").handle_error(400)?;
     let index_json = read_string(&index_path).handle_error(404)?;
@@ -200,11 +222,14 @@ fn get_version_(user: String, repo: String) -> RawResponse {
     Err((code, error))
 }
 
-pub fn post_ii_build(user: String, repo: String) -> Box<dyn Reply> {
-    handler(post_ii_build_(user, repo))
+pub async fn post_ii_build(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(post_ii_build_(user, repo, api_key).await)
 }
 
-fn post_ii_build_(user: String, repo: String) -> RawResponse {
+async fn post_ii_build_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Write, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,

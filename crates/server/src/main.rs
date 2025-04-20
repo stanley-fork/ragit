@@ -76,7 +76,8 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("index"))
         .and(warp::path::end())
-        .map(get_index);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_index);
 
     let get_config_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -84,7 +85,8 @@ async fn main() {
         .and(warp::path("config"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_config);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_config);
 
     let get_prompt_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -92,14 +94,16 @@ async fn main() {
         .and(warp::path("prompt"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_prompt);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_prompt);
 
     let get_chunk_count_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chunk-count"))
         .and(warp::path::end())
-        .map(get_chunk_count);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_chunk_count);
 
     let get_chunk_list_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -107,14 +111,16 @@ async fn main() {
         .and(warp::path("chunk-list"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_chunk_list);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_chunk_list);
 
     let get_chunk_list_all_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chunk-list"))
         .and(warp::path::end())
-        .map(get_chunk_list_all);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_chunk_list_all);
 
     let get_chunk_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -122,7 +128,8 @@ async fn main() {
         .and(warp::path("chunk"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_chunk);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_chunk);
 
     let get_image_list_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -130,7 +137,8 @@ async fn main() {
         .and(warp::path("image-list"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_image_list);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_image_list);
 
     let get_image_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -138,7 +146,8 @@ async fn main() {
         .and(warp::path("image"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_image);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_image);
 
     let get_image_desc_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -146,7 +155,8 @@ async fn main() {
         .and(warp::path("image-desc"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_image_desc);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_image_desc);
 
     let get_cat_file_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -154,7 +164,8 @@ async fn main() {
         .and(warp::path("cat-file"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .map(get_cat_file);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_cat_file);
 
     let get_archive_list_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -178,14 +189,16 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("meta"))
         .and(warp::path::end())
-        .map(get_meta);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_meta);
 
     let get_version_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("version"))
         .and(warp::path::end())
-        .map(get_version);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_version);
 
     let get_server_version_handler = warp::get()
         .and(warp::path("version"))
@@ -282,7 +295,8 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("file-list"))
         .and(warp::path::end())
-        .map(get_file_list);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_file_list);
 
     let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
@@ -360,7 +374,8 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("ii-build"))
         .and(warp::path::end())
-        .map(post_ii_build);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(post_ii_build);
 
     let search_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -368,7 +383,8 @@ async fn main() {
         .and(warp::path("search"))
         .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
-        .map(search);
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(search);
 
     let get_health_handler = warp::get()
         .and(warp::path("health"))

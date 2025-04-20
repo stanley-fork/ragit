@@ -1,5 +1,6 @@
-use super::{HandleError, RawResponse, handler};
-use crate::models::chunk;
+use super::{HandleError, RawResponse, get_pool, handler};
+use crate::models::{chunk, repo};
+use crate::models::repo::RepoOperation;
 use crate::utils::get_rag_path;
 use ragit::chunk as ragit_chunk;
 use ragit_fs::{
@@ -16,11 +17,15 @@ use ragit_fs::{
 use serde_json::Value;
 use warp::reply::{Reply, json};
 
-pub fn get_chunk_count(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_chunk_count_(user, repo))
+pub async fn get_chunk_count(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_chunk_count_(user, repo, api_key).await)
 }
 
-fn get_chunk_count_(user: String, repo: String) -> RawResponse {
+async fn get_chunk_count_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let index_path = join(&rag_path, "index.json").handle_error(400)?;
     let index_json = read_string(&index_path).handle_error(404)?;
@@ -41,11 +46,14 @@ fn get_chunk_count_(user: String, repo: String) -> RawResponse {
     Err((code, error))
 }
 
-pub fn get_chunk_list(user: String, repo: String, prefix: String) -> Box<dyn Reply> {
-    handler(get_chunk_list_(user, repo, prefix))
+pub async fn get_chunk_list(user: String, repo: String, prefix: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_chunk_list_(user, repo, prefix, api_key).await)
 }
 
-fn get_chunk_list_(user: String, repo: String, prefix: String) -> RawResponse {
+async fn get_chunk_list_(user: String, repo: String, prefix: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
     if !exists(&rag_path) {
@@ -68,11 +76,14 @@ fn get_chunk_list_(user: String, repo: String, prefix: String) -> RawResponse {
     )))
 }
 
-pub fn get_chunk_list_all(user: String, repo: String) -> Box<dyn Reply> {
-    handler(get_chunk_list_all_(user, repo))
+pub async fn get_chunk_list_all(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_chunk_list_all_(user, repo, api_key).await)
 }
 
-fn get_chunk_list_all_(user: String, repo: String) -> RawResponse {
+async fn get_chunk_list_all_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let chunk_parents = join(
         &rag_path,
@@ -99,11 +110,14 @@ fn get_chunk_list_all_(user: String, repo: String) -> RawResponse {
     Ok(Box::new(json(&result)))
 }
 
-pub fn get_chunk(user: String, repo: String, uid: String) -> Box<dyn Reply> {
-    handler(get_chunk_(user, repo, uid))
+pub async fn get_chunk(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_chunk_(user, repo, uid, api_key).await)
 }
 
-fn get_chunk_(user: String, repo: String, uid: String) -> RawResponse {
+async fn get_chunk_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
     let prefix = uid.get(0..2).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
     let suffix = uid.get(2..).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();

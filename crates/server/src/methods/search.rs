@@ -1,5 +1,6 @@
-use super::{HandleError, RawResponse, handler};
+use super::{HandleError, RawResponse, get_pool, handler};
 use crate::CONFIG;
+use crate::models::repo::{self, RepoOperation};
 use ragit::{Index, LoadMode};
 use ragit_fs::{join3, write_log};
 use std::collections::HashMap;
@@ -7,11 +8,14 @@ use std::str::FromStr;
 use warp::reply::{Reply, json};
 
 // TODO: it has to be tfidf search on chunks/files/images, with additional search-by-feature (what it implements now)
-pub fn search(user: String, repo: String, query: HashMap<String, String>) -> Box<dyn Reply> {
-    handler(search_(user, repo, query))
+pub async fn search(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(search_(user, repo, query, api_key).await)
 }
 
-pub fn search_(user: String, repo: String, query: HashMap<String, String>) -> RawResponse {
+pub async fn search_(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
