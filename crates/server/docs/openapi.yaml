@@ -292,7 +292,43 @@ paths:
                 type: string
                 format: binary
   /{user}/{repo}/image-desc/{image-uid}:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetImageDescription
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: image-uid
+          in: path
+          required: true
+          description: uid of the image
+          schema:
+            type: string
+      responses:
+        '200':
+          description: description of the image
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  extracted_text:
+                    type: string
+                  explanation:
+                    type: string
   /{user}/{repo}/file-list:
     get: todo (WIP)
   /{user}/{repo}/cat-file/{uid}:
@@ -409,7 +445,39 @@ paths:
                       type: integer
                       format: int64
   /{user}/{repo}/chat/{chat-id}:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: getChat
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: chat-id
+          in: path
+          required: true
+          description: chat-id
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: a chat with history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatWithHistory'
     post: todo
   /{user}/{repo}/chat-list:
     get: todo
@@ -724,7 +792,56 @@ components:
           description: AI model that created the chunk.
         ragit_version:
           type: string
-          description: "{major}.{minor}.{patch}(-dev)"
+          example: "0.4.0-dev"
     ChunkData:
       type: object
       # TODO
+    ChatWithHistory:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        repo_id:
+          type: integer
+          format: int32
+        title:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatHistory'
+    ChatHistory:
+      type: object
+      properties:
+        query:
+          type: string
+        response:
+          type: string
+        model:
+          type: string
+        chunk_uids:
+          type: array
+          items:
+            type: string
+        multi_turn_schema:
+          type: object
+          description: Ragit re-writes queries when there are multiple turns. It's the actual query that's used for RAG.
+          nullable: true
+          properties:
+            is_query:
+              type: boolean
+            in_context:
+              type: boolean
+            query:
+              type: string
+        created_at:
+          type: string
+          format: date-time
