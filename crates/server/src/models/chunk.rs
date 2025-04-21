@@ -7,7 +7,7 @@ use std::collections::HashSet;
 // another schema for chunk apis. I know fragmentation is bad, but I don't
 // want to teach users how to get a chunk uid from 2 u128 integers.
 #[derive(Clone, Debug, Serialize)]
-pub struct ChunkSimple {
+pub struct ChunkDetail {
     pub uid: String,
     pub data: Vec<ChunkData>,
     pub image_uids: Vec<String>,
@@ -27,14 +27,14 @@ pub enum ChunkData {
     Image { uid: String },
 }
 
-impl From<Chunk> for ChunkSimple {
-    fn from(c: Chunk) -> ChunkSimple {
+impl From<Chunk> for ChunkDetail {
+    fn from(c: Chunk) -> ChunkDetail {
         let (file, file_index) = match &c.source {
             ChunkSource::File { path, index } => (Some(path.to_string()), Some(*index)),
             _ => (None, None),
         };
 
-        ChunkSimple {
+        ChunkDetail {
             uid: c.uid.to_string(),
             data: into_chunk_data(&c.data, &c.images),
             image_uids: c.images.iter().map(|uid| uid.to_string()).collect(),

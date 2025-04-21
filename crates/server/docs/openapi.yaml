@@ -126,15 +126,171 @@ paths:
                 type: integer
                 format: int64
   /{user}/{repo}/chunk-list/{chunk-prefix}:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetChunkList
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: chunk-prefix
+          in: path
+          required: true
+          description: first 2 characters of the uid of the chunk
+          schema:
+            type: string
+      responses:
+        '200':
+          description: a list of chunk uids that start with the prefix
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
   /{user}/{repo}/chunk-list/:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetChunkListAll
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+      responses:
+        '200':
+          description: a full list of chunk uids of the knowledge-base
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
   /{user}/{repo}/chunk/{chunk-uid}:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetChunk
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: chunk-uid
+          in: path
+          required: true
+          description: uid of the chunk
+          schema:
+            type: string
+      responses:
+        '200':
+          description: the chunk
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChunkDetail'
   /{user}/{repo}/image-list/{image-prefix}:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetImageList
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: image-prefix
+          in: path
+          required: true
+          description: first 2 characters of the uid of the image
+          schema:
+            type: string
+      responses:
+        '200':
+          description: a list of image uids that start with the prefix
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
   /{user}/{repo}/image/{image-uid}:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetImage
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: normalized name of the repository
+          schema:
+            type: string
+        - name: image-uid
+          in: path
+          required: true
+          description: uid of the image
+          schema:
+            type: string
+      responses:
+        '200':
+          description: the image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
   /{user}/{repo}/image-desc/{image-uid}:
     get: todo
   /{user}/{repo}/file-list:
@@ -533,3 +689,42 @@ components:
         public_push:
           type: boolean
           description: todo
+    ChunkDetail:
+      type: object
+      properties:
+        uid:
+          type: string
+          description: todo
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChunkData'
+        image_uids:
+          type: array
+          items:
+            type: string
+            description: uids of images
+        title:
+          type: string
+        summary:
+          type: string
+        file:
+          type: string
+          description: File path that the chunk belongs to. It's null if the chunk is not from a file.
+          nullable: true
+        file_index:
+          type: integer
+          description: It's null if and only if `file` is null. It's the index of the chunk in the file.
+          nullable: true
+        timestamp:
+          type: integer
+          description: todo
+        model:
+          type: string
+          description: AI model that created the chunk.
+        ragit_version:
+          type: string
+          description: "{major}.{minor}.{patch}(-dev)"
+    ChunkData:
+      type: object
+      # TODO

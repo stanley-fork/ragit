@@ -128,7 +128,7 @@ async fn get_chunk_(user: String, repo: String, uid: String, api_key: Option<Str
         &set_extension(&suffix, "chunk").handle_error(400)?,
     ).handle_error(400)?;
     let chunk = ragit_chunk::load_from_file(&chunk_path).handle_error(404)?;
-    let chunk = chunk::ChunkSimple::from(chunk);
+    let chunk = chunk::ChunkDetail::from(chunk);
 
     Ok(Box::new(json(&chunk)))
 }
