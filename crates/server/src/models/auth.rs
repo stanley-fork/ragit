@@ -1,8 +1,10 @@
 use chrono::{DateTime, Utc};
 use crate::error::Error;
 use ragit_pdl::encode_base64;
+use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Permission {
     pub user_id: i32,
     pub is_admin: bool,

@@ -1,9 +1,10 @@
 #![recursion_limit = "256"]
 
-use crate::cli::{CliCommand, RunArgs, parse_cli_args};
-use crate::config::{AiModelConfig, Config};
-use crate::methods::*;
-use crate::utils::fetch_form_data;
+use ragit_server::{AI_MODEL_CONFIG, CONFIG};
+use ragit_server::cli::{CliCommand, RunArgs, parse_cli_args};
+use ragit_server::config::{AiModelConfig, Config};
+use ragit_server::methods::*;
+use ragit_server::utils::fetch_form_data;
 use ragit_fs::{
     WriteMode,
     exists,
@@ -16,22 +17,10 @@ use ragit_fs::{
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::Write;
-use std::sync::OnceLock;
 use warp::Filter;
 use warp::filters::multipart::FormData;
 use warp::http::status::StatusCode;
 use warp::reply::with_status;
-
-mod cli;
-mod config;
-mod error;
-mod macros;
-mod methods;
-mod models;
-mod utils;
-
-pub static CONFIG: OnceLock<Config> = OnceLock::new();
-pub static AI_MODEL_CONFIG: OnceLock<AiModelConfig> = OnceLock::new();
 
 #[tokio::main]
 async fn main() {

@@ -16,7 +16,7 @@ pub enum RepoOperation {
     Sensitive,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RepoDetail {
     pub id: i32,
     pub name: String,
@@ -36,7 +36,7 @@ pub struct RepoDetail {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RepoSimple {
     pub id: i32,
     pub name: String,
@@ -53,7 +53,7 @@ pub struct RepoSimple {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RepoCreate {
     pub name: String,
     pub description: Option<String>,
@@ -66,7 +66,7 @@ pub struct RepoCreate {
 }
 
 // TODO: allow change name?
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RepoUpdate {
     pub description: Option<String>,
     pub website: Option<String>,

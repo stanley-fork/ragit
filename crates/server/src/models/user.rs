@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use sqlx::postgres::PgPool;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UserDetail {
     pub id: i32,
     pub name: String,
@@ -19,7 +19,7 @@ pub struct UserDetail {
     pub last_login_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UserSimple {
     pub id: i32,
     pub name: String,
@@ -32,7 +32,7 @@ pub struct UserSimple {
     pub last_login_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UserCreate {
     pub name: String,
     pub email: Option<String>,

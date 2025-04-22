@@ -2,11 +2,11 @@ use chrono::{DateTime, Utc};
 use chrono::serde::ts_milliseconds;
 use crate::error::Error;
 use ragit::{MultiTurnSchema, QueryResponse};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
 // `chat` table
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Chat {
     pub id: i32,
     pub repo_id: i32,
@@ -19,7 +19,7 @@ pub struct Chat {
 }
 
 // One that FrontEnd can render
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ChatWithHistory {
     pub id: i32,
     pub repo_id: i32,
@@ -32,7 +32,7 @@ pub struct ChatWithHistory {
     pub history: Vec<ChatHistory>,
 }
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ChatHistory {
     pub query: String,
     pub response: String,

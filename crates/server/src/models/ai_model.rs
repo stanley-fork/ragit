@@ -7,10 +7,10 @@ use ragit_fs::{
     join,
     write_string,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AiModel {
     pub id: String,
     pub name: String,

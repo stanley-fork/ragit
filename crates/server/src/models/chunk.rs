@@ -1,12 +1,12 @@
 use ragit::{Chunk, ChunkSource, Uid};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 // `ragit::Chunk` is becoming more and more complicated and I don't want to
 // expose too much internals of ragit to users. So I have decided to create
 // another schema for chunk apis. I know fragmentation is bad, but I don't
 // want to teach users how to get a chunk uid from 2 u128 integers.
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ChunkDetail {
     pub uid: String,
     pub data: Vec<ChunkData>,
@@ -20,7 +20,7 @@ pub struct ChunkDetail {
     pub ragit_version: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 #[serde(tag = "type")]
 pub enum ChunkData {
     Text { content: String },
