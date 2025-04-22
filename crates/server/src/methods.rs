@@ -11,9 +11,13 @@ mod chunk;
 mod clone;
 mod health;
 mod image;
-mod index;
 mod push;
+
+// If an api has to read disk storage (e.g. `index.json`), that's in `repo_fs` module.
+// If an api only reads/writes to DB, that's in `repo` module.
 mod repo;
+mod repo_fs;
+
 mod search;
 mod user;
 
@@ -45,16 +49,6 @@ pub use image::{
     get_image_desc,
     get_image_list,
 };
-pub use index::{
-    get_cat_file,
-    get_config,
-    get_file_list,
-    get_index,
-    get_meta,
-    get_prompt,
-    get_version,
-    post_ii_build,
-};
 pub use push::{
     post_archive,
     post_begin_push,
@@ -66,6 +60,16 @@ pub use repo::{
     get_repo_list,
     get_traffic,
     put_repo,
+};
+pub use repo_fs::{
+    get_cat_file,
+    get_config,
+    get_file_list,
+    get_index,
+    get_meta,
+    get_prompt,
+    get_version,
+    post_build_search_index,
 };
 pub use search::search;
 pub use user::{

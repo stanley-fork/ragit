@@ -222,11 +222,11 @@ async fn get_version_(user: String, repo: String, api_key: Option<String>) -> Ra
     Err((code, error))
 }
 
-pub async fn post_ii_build(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
-    handler(post_ii_build_(user, repo, api_key).await)
+pub async fn post_build_search_index(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(post_build_search_index_(user, repo, api_key).await)
 }
 
-async fn post_ii_build_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+async fn post_build_search_index_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Write, api_key, pool).await.handle_error(500)?.handle_error(404)?;
@@ -236,8 +236,13 @@ async fn post_ii_build_(user: String, repo: String, api_key: Option<String>) -> 
         &user,
         &repo,
     ).handle_error(400)?;
+
+    // we don't have to check whether the search index is already built.
+    // if so, `index.build_ii` will return early
     let mut index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
     index.build_ii(true /* quiet */).handle_error(500)?;
+
+    repo::update_search_index_build_time(repo_id, pool).await.handle_error(500)?;
     Ok(Box::new(with_status(
         String::new(),
         StatusCode::from_u16(200).unwrap(),

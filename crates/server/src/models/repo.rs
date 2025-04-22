@@ -27,11 +27,13 @@ pub struct RepoDetail {
     pub website: Option<String>,
     pub stars: i32,
     pub readme: Option<String>,
-    pub repo_size: i64,
+    pub repo_size: i64,  // sum of the size of its archives, in bytes
     #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
     #[serde(with = "ts_milliseconds_option")]
     pub pushed_at: Option<DateTime<Utc>>,
+    #[serde(with = "ts_milliseconds_option")]
+    pub search_index_built_at: Option<DateTime<Utc>>,
     #[serde(with = "ts_milliseconds")]
     pub updated_at: DateTime<Utc>,
 }
@@ -44,11 +46,13 @@ pub struct RepoSimple {
     pub description: Option<String>,
     pub website: Option<String>,
     pub stars: i32,
-    pub repo_size: i64,
+    pub repo_size: i64,  // sum of the size of its archives, in bytes
     #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
     #[serde(with = "ts_milliseconds_option")]
     pub pushed_at: Option<DateTime<Utc>>,
+    #[serde(with = "ts_milliseconds_option")]
+    pub search_index_built_at: Option<DateTime<Utc>>,
     #[serde(with = "ts_milliseconds")]
     pub updated_at: DateTime<Utc>,
 }
@@ -99,18 +103,18 @@ pub async fn get_list(
     pool: &PgPool,
 ) -> Result<Vec<RepoSimple>, Error> {
     let rows = crate::query!(
-        "
-        SELECT
+        "SELECT
             repository.id,
             repository.name AS repo_name,
             user_.name AS user_name,
             description,
             website,
             stars,
-            repo_size,
+            (SELECT SUM(blob_size) FROM archive WHERE session_id = repository.push_session_id) AS repo_size,
             public_read,
             repository.created_at,
             repository.pushed_at,
+            repository.search_index_built_at,
             repository.updated_at
         FROM repository
         JOIN user_ ON user_.id = repository.owner_id
@@ -133,9 +137,10 @@ pub async fn get_list(
             description: row.description.clone(),
             website: row.website.clone(),
             stars: row.stars,
-            repo_size: row.repo_size,
+            repo_size: row.repo_size.unwrap_or(0),
             created_at: row.created_at,
             pushed_at: row.pushed_at,
+            search_index_built_at: row.search_index_built_at,
             updated_at: row.updated_at,
         });
     }
@@ -155,9 +160,10 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
             website,
             stars,
             repository.readme,
-            repo_size,
+            (SELECT SUM(blob_size) FROM archive WHERE session_id = repository.push_session_id) AS repo_size,
             repository.created_at,
             pushed_at,
+            search_index_built_at,
             updated_at
         FROM repository JOIN user_ ON repository.owner_id = user_.id
         WHERE repository.id = $1",
@@ -174,9 +180,10 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
         website: row.website,
         stars: row.stars,
         readme: row.readme,
-        repo_size: row.repo_size,
+        repo_size: row.repo_size.unwrap_or(0),
         created_at: row.created_at,
         pushed_at: row.pushed_at,
+        search_index_built_at: row.search_index_built_at,
         updated_at: row.updated_at,
     })
 }
@@ -197,10 +204,10 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
             public_clone,
             public_push,
             chunk_count,
-            repo_size,
             push_session_id,
             created_at,
             pushed_at,
+            search_index_built_at,
             updated_at
         )
         VALUES (
@@ -216,10 +223,10 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
             $9,    -- public_clone
             $10,   -- public_push
             0,     -- chunk_count
-            0,     -- repo_size
             NULL,  -- push_session_id
             NOW(), -- created_at
             NULL,  -- pushed_at
+            NULL,  -- search_index_built_at
             NOW()  -- updated_at
         )
         RETURNING id",
@@ -330,4 +337,12 @@ pub async fn check_auth(
         Some(auth::Permission { user_id, is_admin }) if user_id == row.owner_id || is_admin => Ok(true),
         _ => Ok(false),
     }
+}
+
+pub async fn update_search_index_build_time(repo_id: i32, pool: &PgPool) -> Result<(), Error> {
+    crate::query!(
+        "UPDATE repository SET search_index_built_at = NOW() WHERE id = $1",
+        repo_id,
+    ).execute(pool).await?;
+    Ok(())
 }

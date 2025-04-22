@@ -118,12 +118,10 @@ pub async fn finalize_push(
     crate::query!(
         "UPDATE repository
         SET
-            repo_size = (SELECT SUM(blob_size) FROM archive WHERE session_id = $1),
-            push_session_id = $2,
+            push_session_id = $1,
             pushed_at = NOW(),
             updated_at = NOW()
-        WHERE id = $3",
-        session_id,
+        WHERE id = $2",
         session_id,
         repo_id,
     ).execute(pool).await?;

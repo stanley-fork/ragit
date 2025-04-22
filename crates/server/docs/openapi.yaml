@@ -398,7 +398,7 @@ paths:
               schema:
                 type: string
                 example: "0.4.0-dev"
-  /{user}/{repo}/ii-build:
+  /{user}/{repo}/build-search-index:
     post: todo
   /{user}/{repo}/search:
     get: todo (WIP)

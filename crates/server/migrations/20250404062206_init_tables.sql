@@ -9,9 +9,11 @@ CREATE TABLE IF NOT EXISTS user_ (
     public BOOLEAN NOT NULL,
     is_admin BOOLEAN NOT NULL,
 
-    -- it only uses sha3_256. do we have to give a choice for the hash function?
     salt TEXT NOT NULL,
     password TEXT NOT NULL,
+
+    -- For now, it only uses sha3_256. This field is for forward-compatibility.
+    password_hash_type TEXT NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL,
     last_login_at TIMESTAMPTZ
@@ -66,11 +68,11 @@ CREATE TABLE IF NOT EXISTS repository (
     public_push BOOLEAN NOT NULL,
 
     chunk_count INTEGER NOT NULL,
-    repo_size BIGINT NOT NULL,  -- in bytes (sum of the sizes of the archive files)
     push_session_id TEXT,
 
     created_at TIMESTAMPTZ NOT NULL,
     pushed_at TIMESTAMPTZ,
+    search_index_built_at TIMESTAMPTZ,  -- if it's null, there's no search index
     updated_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS repository_by_owner ON repository ( owner_id );

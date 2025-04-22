@@ -99,6 +99,7 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
             email,
             salt,
             password,
+            password_hash_type,
             readme,
             public,
             is_admin,
@@ -111,6 +112,7 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
             $3,   -- email
             $4,   -- salt
             $5,   -- password
+            'SHA3-256',  -- password_hash_type
             $6,   -- readme
             $7,   -- public
             (SELECT COUNT(*) = 0 FROM user_),  -- is_admin

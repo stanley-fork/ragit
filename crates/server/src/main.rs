@@ -358,13 +358,13 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(get_traffic);
 
-    let post_ii_build_handler = warp::post()
+    let post_build_search_index_handler = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
-        .and(warp::path("ii-build"))
+        .and(warp::path("build-search-index"))
         .and(warp::path::end())
         .and(warp::header::optional::<String>("x-api-key"))
-        .then(post_ii_build);
+        .then(post_build_search_index);
 
     let search_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -417,7 +417,7 @@ async fn main() {
             .or(post_chat_handler_multipart_form)
             .or(create_chat_handler)
             .or(get_traffic_handler)
-            .or(post_ii_build_handler)
+            .or(post_build_search_index_handler)
             .or(search_handler)
             .or(get_health_handler)
             .or(not_found_handler)
