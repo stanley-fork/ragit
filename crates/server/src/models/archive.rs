@@ -36,7 +36,7 @@ pub async fn get_archive(session_id: &str, archive_id: &str, pool: &PgPool) -> R
 
     match blob.blob {
         Some(blob) => Ok(blob),
-        None => Err(Error::ArchiveBlobRemoved),
+        None => Err(Error::NoSuchArchive(archive_id.to_string())),
     }
 }
 

@@ -4,7 +4,6 @@ use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
 use crate::error::Error;
 use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
-use sha3::{Digest, Sha3_256};
 use sqlx::postgres::PgPool;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -89,7 +88,7 @@ pub async fn get_detail_by_name(name: &str, pool: &PgPool) -> Result<UserDetail,
 
 pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i32, Error> {
     let salt = format!("{:x}", rand::random::<u128>());
-    let password = hash_password(&salt, &user.password);
+    let password = auth::hash_password(&salt, &user.password);
 
     let user_id = crate::query!(
         "INSERT
@@ -130,13 +129,6 @@ pub async fn create_and_return_id(user: &UserCreate, pool: &PgPool) -> Result<i3
     ).fetch_one(pool).await?.id;
 
     Ok(user_id)
-}
-
-pub(crate) fn hash_password(salt: &str, password: &str) -> String {
-    let mut hasher = Sha3_256::new();
-    hasher.update(salt.as_bytes());
-    hasher.update(password.as_bytes());
-    format!("{:064x}", hasher.finalize())
 }
 
 pub async fn check_auth(user_id: i32, api_key: Option<String>, pool: &PgPool) -> Result<bool, Error> {

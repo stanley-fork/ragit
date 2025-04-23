@@ -32,8 +32,8 @@ async fn get_user_(user: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let user = user::get_detail_by_name(&user, pool).await.handle_error(404)?;
 
-    if !user.public && !user::check_auth(user.id, api_key, pool).await.handle_error(500)? {
-        return Err((404, format!("permission error: (user_id: {})", user.id)));
+    if !user.public {
+        user::check_auth(user.id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     }
 
     Ok(Box::new(json(&user)))
@@ -69,25 +69,30 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
     Ok(Box::new(json(&user_id)))
 }
 
-pub async fn get_ai_model_list(user: String) -> Box<dyn Reply> {
-    handler(get_ai_model_list_(user).await)
+pub async fn get_ai_model_list(user: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_ai_model_list_(user, api_key).await)
 }
 
-async fn get_ai_model_list_(user: String) -> RawResponse {
+async fn get_ai_model_list_(user: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
-    let model_list = ai_model::get_list_by_user_id(user_id, pool).await.handle_error(500)?;
 
+    // TODO: do I have to allow everyone to see the model list of a public user?
+    user::check_auth(user_id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+
+    let model_list = ai_model::get_list_by_user_id(user_id, pool).await.handle_error(500)?;
     Ok(Box::new(json(&model_list)))
 }
 
-pub async fn put_ai_model_list(user: String, form: Value) -> Box<dyn Reply> {
-    handler(put_ai_model_list_(user, form).await)
+pub async fn put_ai_model_list(user: String, form: Value, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(put_ai_model_list_(user, form, api_key).await)
 }
 
-async fn put_ai_model_list_(user: String, form: Value) -> RawResponse {
+async fn put_ai_model_list_(user: String, form: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
+    user::check_auth(user_id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+
     let Value::Object(form) = form else {
         return Err((400, format!("Expected a json object, got `{:?}`", JsonType::from(&form))));
     };

@@ -1,7 +1,7 @@
 openapi: "3.0.4"
 info:
   title: ragit-server
-  description: todo
+  description: backend for ragithub
   version: 0.1.0
 paths:
   /{user}/{repo}/index/:
@@ -569,6 +569,57 @@ paths:
 
     # PUT only updates a model, and POST creates a new model (POST is WIP)
     put: todo
+  /user-list/{user}/api-key-list:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetApiKeyList
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiKey'
+    post:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: CreateApiKey
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: normalized name of the user
+          schema:
+            type: string
+      requestBody:
+        description: todo
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiKeyCreation'
+      responses:
+        '200':
+          description: todo
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: created api key
   /repo-list/{user}:
     get:
       tags:
@@ -757,6 +808,9 @@ components:
         public_push:
           type: boolean
           description: todo
+        public_chat:
+          type: boolean
+          description: todo
     ChunkDetail:
       type: object
       properties:
@@ -843,5 +897,16 @@ components:
             query:
               type: string
         created_at:
+          type: string
+          format: date-time
+    ApiKey:
+      type: object
+      properties:
+        api_key_preview:
+          type: string
+          description: first 9 characters of the api key
+        name:
+          type: string
+        expire:
           type: string
           format: date-time

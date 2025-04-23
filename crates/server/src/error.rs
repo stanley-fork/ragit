@@ -7,6 +7,7 @@ pub enum Error {
     JsonSerdeError(serde_json::Error),
     WarpError(warp::Error),
     NoSuchSession(String),
+    NoSuchArchive(String),
     CliError {
         message: String,
         span: (String, usize, usize),  // (args, error_from, error_to)
@@ -14,7 +15,7 @@ pub enum Error {
     SqlxError(sqlx::Error),
     RagitError(ragit::Error),
     InsecurePath(String),
-    ArchiveBlobRemoved,
+    InvalidUtf8,
     ServerBusy,
 }
 

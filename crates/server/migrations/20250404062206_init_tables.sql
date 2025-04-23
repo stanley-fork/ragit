@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS repository (
     public_write BOOLEAN NOT NULL,
     public_clone BOOLEAN NOT NULL,
     public_push BOOLEAN NOT NULL,
+    public_chat BOOLEAN NOT NULL,
 
     chunk_count INTEGER NOT NULL,
     push_session_id TEXT,
@@ -216,6 +217,7 @@ CREATE TABLE IF NOT EXISTS archive_blob (
 
 CREATE TABLE IF NOT EXISTS api_key (
     api_key TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
     user_id INTEGER NOT NULL,
     expire TIMESTAMPTZ NOT NULL
 );

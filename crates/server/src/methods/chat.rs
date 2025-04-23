@@ -2,18 +2,20 @@ use super::{HandleError, RawResponse, get_pool, handler};
 use chrono::Utc;
 use crate::CONFIG;
 use crate::models::{ai_model, chat, repo, user};
+use crate::models::repo::RepoOperation;
 use ragit::{Index, LoadMode, QueryResponse, QueryTurn};
 use ragit_fs::join3;
 use std::collections::HashMap;
 use warp::reply::{Reply, json, with_header};
 
-pub async fn get_chat(user: String, repo: String, chat_id: String) -> Box<dyn Reply> {
-    handler(get_chat_(user, repo, chat_id).await)
+pub async fn get_chat(user: String, repo: String, chat_id: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_chat_(user, repo, chat_id, api_key).await)
 }
 
-async fn get_chat_(user: String, repo: String, chat_id: String) -> RawResponse {
+async fn get_chat_(user: String, repo: String, chat_id: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let chat_id = chat_id.parse::<i32>().handle_error(400)?;
     let chat = chat::get_chat_with_history_by_id(chat_id, pool).await.handle_error(404)?;
 
@@ -24,25 +26,38 @@ async fn get_chat_(user: String, repo: String, chat_id: String) -> RawResponse {
     Ok(Box::new(json(&chat)))
 }
 
-pub async fn get_chat_list(user: String, repo: String, query: HashMap<String, String>) -> Box<dyn Reply> {
-    handler(get_chat_list_(user, repo, query).await)
+pub async fn get_chat_list(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_chat_list_(user, repo, query, api_key).await)
 }
 
-async fn get_chat_list_(user: String, repo: String, query: HashMap<String, String>) -> RawResponse {
+async fn get_chat_list_(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
+    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
     let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
     let chats = chat::get_list_by_repo_id(repo_id, limit, offset, pool).await.handle_error(500)?;
 
     Ok(Box::new(json(&chats)))
 }
 
-pub async fn post_chat(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> Box<dyn Reply> {
-    handler(post_chat_(user, repo, chat_id, form).await)
+pub async fn post_chat(
+    user: String,
+    repo: String,
+    chat_id: String,
+    form: HashMap<String, Vec<u8>>,
+    api_key: Option<String>,
+) -> Box<dyn Reply> {
+    handler(post_chat_(user, repo, chat_id, form, api_key).await)
 }
 
-async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<String, Vec<u8>>) -> RawResponse {
+async fn post_chat_(
+    user: String,
+    repo: String,
+    chat_id: String,
+    form: HashMap<String, Vec<u8>>,
+    api_key: Option<String>,
+) -> RawResponse {
     let pool = get_pool().await;
     let config = CONFIG.get().handle_error(500)?;
     let query = match form.get("query") {
@@ -59,6 +74,7 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
 
     let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let chat_id = chat_id.parse::<i32>().handle_error(400)?;
     let chat = chat::get_chat_by_id(chat_id, pool).await.handle_error(404)?;
 
@@ -121,13 +137,14 @@ async fn post_chat_(user: String, repo: String, chat_id: String, form: HashMap<S
     Ok(Box::new(json(&response)))
 }
 
-pub async fn create_chat(user: String, repo: String) -> Box<dyn Reply> {
-    handler(create_chat_(user, repo).await)
+pub async fn create_chat(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(create_chat_(user, repo, api_key).await)
 }
 
-async fn create_chat_(user: String, repo: String) -> RawResponse {
+async fn create_chat_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let chat_id = chat::create_and_return_id(repo_id, pool).await.handle_error(500)?;
 
     Ok(Box::new(with_header(

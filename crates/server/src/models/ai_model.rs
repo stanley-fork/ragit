@@ -1,4 +1,4 @@
-use super::user::hash_password;
+use super::auth::hash_password;
 use crate::error::Error;
 use crate::utils::{get_rag_path, trim_long_string};
 use ragit_api::ModelRaw;

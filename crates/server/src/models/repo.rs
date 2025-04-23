@@ -11,6 +11,7 @@ pub enum RepoOperation {
     Write,
     Clone,
     Push,
+    Chat,
 
     // whatever sensitive operation that requires an api key
     Sensitive,
@@ -67,6 +68,7 @@ pub struct RepoCreate {
     pub public_write: bool,
     pub public_clone: bool,
     pub public_push: bool,
+    pub public_chat: bool,
 }
 
 // TODO: allow change name?
@@ -79,6 +81,7 @@ pub struct RepoUpdate {
     pub public_write: bool,
     pub public_clone: bool,
     pub public_push: bool,
+    pub public_chat: bool,
 }
 
 pub async fn get_id_by_name(user_name: &str, repo_name: &str, pool: &PgPool) -> Result<i32, Error> {
@@ -203,6 +206,7 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
             public_write,
             public_clone,
             public_push,
+            public_chat,
             chunk_count,
             push_session_id,
             created_at,
@@ -222,6 +226,7 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
             $8,    -- public_write
             $9,    -- public_clone
             $10,   -- public_push
+            $11,   -- public_chat
             0,     -- chunk_count
             NULL,  -- push_session_id
             NOW(), -- created_at
@@ -240,6 +245,7 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
         repo.public_write,
         repo.public_clone,
         repo.public_push,
+        repo.public_chat,
     ).fetch_one(pool).await?.id;
 
     Ok(repo_id)
@@ -255,8 +261,9 @@ pub async fn update_repo(repo_id: i32, repo: RepoUpdate, pool: &PgPool) -> Resul
             public_read = $4,
             public_write = $5,
             public_clone = $6,
-            public_push = $7
-        WHERE id = $8",
+            public_push = $7,
+            public_chat = $8
+        WHERE id = $9",
         repo.description.as_ref().map(|s| s.as_str()),
         repo.website.as_ref().map(|s| s.as_str()),
         repo.readme.as_ref().map(|s| s.as_str()),
@@ -264,6 +271,7 @@ pub async fn update_repo(repo_id: i32, repo: RepoUpdate, pool: &PgPool) -> Resul
         repo.public_write,
         repo.public_clone,
         repo.public_push,
+        repo.public_chat,
         repo_id,
     ).execute(pool).await?;
     Ok(())
@@ -313,16 +321,29 @@ pub async fn check_auth(
     pool: &PgPool,
 ) -> Result<bool, Error> {
     let row = crate::query!(
-        "SELECT owner_id, public_read, public_write, public_clone, public_push FROM repository WHERE id = $1",
+        "SELECT owner_id, public_read, public_write, public_clone, public_push, public_chat FROM repository WHERE id = $1",
         repo_id,
     ).fetch_one(pool).await?;
-    let (public_read, public_write, public_clone, public_push) = (row.public_read, row.public_write, row.public_clone, row.public_push);
+    let (
+        public_read,
+        public_write,
+        public_clone,
+        public_push,
+        public_chat,
+    ) = (
+        row.public_read,
+        row.public_write,
+        row.public_clone,
+        row.public_push,
+        row.public_chat,
+    );
 
-    match (operation, public_read, public_write, public_clone, public_push) {
-        (RepoOperation::Read, true, _, _, _)
-        | (RepoOperation::Write, _, true, _, _)
-        | (RepoOperation::Clone, _, _, true, _)
-        | (RepoOperation::Push, _, _, _, true) => {
+    match (operation, public_read, public_write, public_clone, public_push, public_chat) {
+        (RepoOperation::Read, true, _, _, _, _)
+        | (RepoOperation::Write, _, true, _, _, _)
+        | (RepoOperation::Clone, _, _, true, _, _)
+        | (RepoOperation::Push, _, _, _, true, _)
+        | (RepoOperation::Chat, _, _, _, _, true) => {
             return Ok(true);
         },
         _ if api_key.is_none() => {

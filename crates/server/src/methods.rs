@@ -6,6 +6,7 @@ use warp::http::status::StatusCode;
 use warp::reply::{Reply, with_header, with_status};
 
 mod admin;
+mod auth;
 mod chat;
 mod chunk;
 mod clone;
@@ -24,6 +25,10 @@ mod user;
 pub use admin::{
     drop_all,
     truncate_all,
+};
+pub use auth::{
+    create_api_key,
+    get_api_key_list,
 };
 pub use chat::{
     create_chat,

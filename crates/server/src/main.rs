@@ -236,6 +236,7 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("ai-model-list"))
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_ai_model_list);
 
     let put_ai_model_list_handler = warp::put()
@@ -244,6 +245,7 @@ async fn main() {
         .and(warp::path("ai-model-list"))
         .and(warp::path::end())
         .and(warp::body::json())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(put_ai_model_list);
 
     let create_repo_handler = warp::post()
@@ -269,6 +271,7 @@ async fn main() {
         .and(warp::path("chat"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_chat);
 
     let get_chat_list_handler = warp::get()
@@ -277,6 +280,7 @@ async fn main() {
         .and(warp::path("chat-list"))
         .and(warp::path::end())
         .and(warp::query::<HashMap<String, String>>())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(get_chat_list);
 
     let get_file_list_handler = warp::get()
@@ -316,9 +320,26 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path("chat-list"))
         .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
         .then(create_chat);
 
-    // NOTE: warp::body::form::<HashMap<String, String>> can catch `application/x-www-form-urlencoded`,
+    let post_chat_handler_multipart_form = warp::post()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("chat"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::multipart::form())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(async |user: String, repo: String, chat_id: String, form: FormData, api_key: Option<String>| {
+            match fetch_form_data(form).await.handle_error(400) {
+                Ok(form) => post_chat(user, repo, chat_id, form, api_key).await,
+                Err((code, _)) => Box::new(with_status(String::new(), StatusCode::from_u16(code).unwrap())),
+            }
+        });
+
+    // TODO: I want ragit-server to accept multipart requests and urlencoded requests. The problem is that
+    //       `warp::body::form::<HashMap<String, String>>` can catch `application/x-www-form-urlencoded`,
     //       but `warp::body::form::<HashMap<String, Vec<u8>>>` cannot. Is this an upstream issue?
     let post_chat_handler_body_form = warp::post()
         .and(warp::path::param::<String>())
@@ -327,26 +348,34 @@ async fn main() {
         .and(warp::path::param::<String>())
         .and(warp::path::end())
         .and(warp::body::form::<HashMap<String, String>>())
-        .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>| {
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>, api_key: Option<String>| {
             post_chat(
                 user,
                 repo,
                 chat_id,
                 form.into_iter().map(|(key, value)| (key, value.as_bytes().to_vec())).collect(),
+                api_key,
             ).await
         });
 
-    // TODO: what's the difference between multipart::form and body::form? I'm noob to this...
-    let post_chat_handler_multipart_form = warp::post()
+    let post_chat_handler_json_form = warp::post()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
         .and(warp::path("chat"))
         .and(warp::path::param::<String>())
         .and(warp::path::end())
-        .and(warp::multipart::form())
-        .then(async |user: String, repo: String, chat_id: String, form: FormData| {
-            match fetch_form_data(form).await.handle_error(400) {
-                Ok(form) => post_chat(user, repo, chat_id, form).await,
+        .and(warp::body::json::<Value>())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(async |user: String, repo: String, chat_id: String, form: Value, api_key: Option<String>| {
+            match serde_json::from_value::<HashMap<String, String>>(form).handle_error(400) {
+                Ok(form) => post_chat(
+                    user,
+                    repo,
+                    chat_id,
+                    form.into_iter().map(|(key, value)| (key, value.as_bytes().to_vec())).collect(),
+                    api_key,
+                ).await,
                 Err((code, _)) => Box::new(with_status(String::new(), StatusCode::from_u16(code).unwrap())),
             }
         });
@@ -365,6 +394,22 @@ async fn main() {
         .and(warp::path::end())
         .and(warp::header::optional::<String>("x-api-key"))
         .then(post_build_search_index);
+
+    let get_api_key_list_handler = warp::get()
+        .and(warp::path("user-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path("api-key-list"))
+        .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_api_key_list);
+
+    let create_api_key_handler = warp::post()
+        .and(warp::path("user-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path("api-key-list"))
+        .and(warp::path::end())
+        .and(warp::body::json::<Value>())
+        .then(create_api_key);
 
     let search_handler = warp::get()
         .and(warp::path::param::<String>())
@@ -413,11 +458,14 @@ async fn main() {
             .or(post_begin_push_handler)
             .or(post_archive_handler)
             .or(post_finalize_push_handler)
-            .or(post_chat_handler_body_form)
             .or(post_chat_handler_multipart_form)
+            .or(post_chat_handler_body_form)
+            .or(post_chat_handler_json_form)
             .or(create_chat_handler)
             .or(get_traffic_handler)
             .or(post_build_search_index_handler)
+            .or(get_api_key_list_handler)
+            .or(create_api_key_handler)
             .or(search_handler)
             .or(get_health_handler)
             .or(not_found_handler)
