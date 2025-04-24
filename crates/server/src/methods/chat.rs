@@ -1,7 +1,7 @@
 use super::{HandleError, RawResponse, get_pool, handler};
 use chrono::Utc;
 use crate::CONFIG;
-use crate::models::{ai_model, chat, repo, user};
+use crate::models::{ai_model, chat, repo};
 use crate::models::repo::RepoOperation;
 use ragit::{Index, LoadMode, QueryResponse, QueryTurn};
 use ragit_fs::join3;
@@ -14,7 +14,7 @@ pub async fn get_chat(user: String, repo: String, chat_id: String, api_key: Opti
 
 async fn get_chat_(user: String, repo: String, chat_id: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let chat_id = chat_id.parse::<i32>().handle_error(400)?;
     let chat = chat::get_chat_with_history_by_id(chat_id, pool).await.handle_error(404)?;
@@ -32,7 +32,7 @@ pub async fn get_chat_list(user: String, repo: String, query: HashMap<String, St
 
 async fn get_chat_list_(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
     let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
@@ -72,8 +72,7 @@ async fn post_chat_(
         &repo,
     ).handle_error(400)?;
 
-    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let chat_id = chat_id.parse::<i32>().handle_error(400)?;
     let chat = chat::get_chat_by_id(chat_id, pool).await.handle_error(404)?;
@@ -82,14 +81,14 @@ async fn post_chat_(
         return Err((400, format!("chat {chat_id} does not belong to {repo_id}")));
     }
 
-    let mut model_name = ai_model::get_default_model_name(user_id, pool).await.handle_error(500)?;
+    let mut model_name = ai_model::get_default_model_name(&user, pool).await.handle_error(500)?;
 
     if let Some(model) = form.get("model") {
         model_name = String::from_utf8(model.to_vec()).handle_error(400)?;
     }
 
     // TODO: I want it to return more detailed error message
-    let model_schema = ai_model::get_model_schema(user_id, &model_name, pool).await.handle_error(400)?;
+    let model_schema = ai_model::get_model_schema(&user, &model_name, pool).await.handle_error(400)?;
 
     // There's a quirk. Ragit reads model info from `.ragit/models.json`, but ragit-server wants to
     // store everything on DB. And it does so. So, it first reads model info from the DB and
@@ -120,7 +119,7 @@ async fn post_chat_(
         &query,
         &history,
         &response,
-        user_id,
+        &user,
         &model_name,
         now,
         pool,
@@ -128,6 +127,7 @@ async fn post_chat_(
     let response = chat::ChatHistory {
         query: query.to_string(),
         response: response.response.to_string(),
+        user: user.to_string(),
         model: model_name.to_string(),
         chunk_uids: response.retrieved_chunks.iter().map(|chunk| chunk.uid.to_string()).collect(),
         multi_turn_schema: response.multi_turn_schema.clone(),
@@ -143,7 +143,7 @@ pub async fn create_chat(user: String, repo: String, api_key: Option<String>) ->
 
 async fn create_chat_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let chat_id = chat::create_and_return_id(repo_id, pool).await.handle_error(500)?;
 

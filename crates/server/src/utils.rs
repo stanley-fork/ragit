@@ -42,19 +42,3 @@ pub fn trim_long_string(s: &str, prefix_len: usize, suffix_len: usize) -> String
         )
     }
 }
-
-pub fn normalize(name: &str) -> String {
-    let mut chs = vec![];
-
-    for ch in name.chars() {
-        match ch {
-            '0'..='9'
-            | 'a'..='z'
-            | 'A'..='Z'
-            | '_' | '-' => { chs.push(ch); },
-            _ => {},
-        }
-    }
-
-    chs.into_iter().collect()
-}

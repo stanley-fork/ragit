@@ -20,7 +20,7 @@ pub async fn get_index(user: String, repo: String, api_key: Option<String>) -> B
 
 async fn get_index_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let index_path = join(&rag_path, "index.json").handle_error(400)?;
@@ -39,7 +39,7 @@ pub async fn get_config(user: String, repo: String, config: String, api_key: Opt
 
 async fn get_config_(user: String, repo: String, config: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     check_secure_path(&config).handle_error(400)?;
@@ -63,7 +63,7 @@ pub async fn get_prompt(user: String, repo: String, prompt: String, api_key: Opt
 
 async fn get_prompt_(user: String, repo: String, prompt: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     check_secure_path(&prompt).handle_error(400)?;
@@ -87,7 +87,7 @@ pub async fn get_cat_file(user: String, repo: String, uid: String, api_key: Opti
 
 async fn get_cat_file_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
@@ -149,7 +149,7 @@ pub async fn get_meta(user: String, repo: String, api_key: Option<String>) -> Bo
 
 async fn get_meta_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
@@ -177,7 +177,7 @@ pub async fn get_file_list(user: String, repo: String, api_key: Option<String>) 
 
 async fn get_file_list_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
@@ -195,7 +195,7 @@ pub async fn get_version(user: String, repo: String, api_key: Option<String>) ->
 
 async fn get_version_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let index_path = join(&rag_path, "index.json").handle_error(400)?;
@@ -228,7 +228,7 @@ pub async fn post_build_search_index(user: String, repo: String, api_key: Option
 
 async fn post_build_search_index_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Write, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(

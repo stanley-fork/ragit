@@ -14,7 +14,7 @@ pub async fn search(user: String, repo: String, query: HashMap<String, String>, 
 
 pub async fn search_(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(

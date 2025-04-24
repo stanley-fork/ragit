@@ -9,7 +9,7 @@ pub async fn get_archive_list(user: String, repo: String, api_key: Option<String
 
 async fn get_archive_list_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Clone, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let session_id = repo::get_session_id(repo_id, pool).await.handle_error(404)?;
     let archive_list = match session_id {
@@ -27,7 +27,7 @@ pub async fn get_archive(user: String, repo: String, archive_id: String, api_key
 
 async fn get_archive_(user: String, repo: String, archive_id: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Clone, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let session_id = repo::get_session_id(repo_id, pool).await.handle_error(404)?;
     let Some(session_id) = session_id else {
@@ -40,7 +40,6 @@ async fn get_archive_(user: String, repo: String, archive_id: String, api_key: O
     // But clone operations use `/archive` and `/archive-list` apis, which are too general to count as a clone.
     // So we use a naive heuristic: we count downloading the first archive as a clone operation
     if archive::is_first_archive(&session_id, &archive_id, pool).await.handle_error(500)? {
-        let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(500)?;
         archive::increment_clone_count(repo_id, pool).await.handle_error(500)?;
     }
 

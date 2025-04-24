@@ -2,7 +2,6 @@ use super::auth;
 use chrono::{DateTime, Utc};
 use chrono::serde::{ts_milliseconds, ts_milliseconds_option};
 use crate::error::Error;
-use crate::utils::normalize;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
@@ -21,9 +20,7 @@ pub enum RepoOperation {
 pub struct RepoDetail {
     pub id: i32,
     pub name: String,
-    pub normalized_name: String,
-    pub owner_name: String,
-    pub owner_normalized_name: String,
+    pub owner: String,
     pub description: Option<String>,
     pub website: Option<String>,
     pub stars: i32,
@@ -43,7 +40,7 @@ pub struct RepoDetail {
 pub struct RepoSimple {
     pub id: i32,
     pub name: String,
-    pub owner_name: String,
+    pub owner: String,
     pub description: Option<String>,
     pub website: Option<String>,
     pub stars: i32,
@@ -84,22 +81,18 @@ pub struct RepoUpdate {
     pub public_chat: bool,
 }
 
-pub async fn get_id_by_name(user_name: &str, repo_name: &str, pool: &PgPool) -> Result<i32, Error> {
-    // `normalize` is idempotent
-    let user_name = normalize(user_name);
-    let repo_name = normalize(repo_name);
-
+pub async fn get_id(user: &str, repo: &str, pool: &PgPool) -> Result<i32, Error> {
     let row = crate::query!(
-        "SELECT repository.id FROM repository JOIN user_ ON user_.normalized_name = $1 WHERE owner_id = user_.id AND repository.normalized_name = $2",
-        user_name,
-        repo_name,
+        "SELECT repository.id FROM repository JOIN user_ ON user_.id = $1 WHERE owner = user_.id AND repository.name = $2",
+        user,
+        repo,
     ).fetch_one(pool).await?;
 
     Ok(row.id)
 }
 
 pub async fn get_list(
-    user_id: i32,
+    user: &str,
     has_permission: bool,
     limit: i64,
     offset: i64,
@@ -109,7 +102,7 @@ pub async fn get_list(
         "SELECT
             repository.id,
             repository.name AS repo_name,
-            user_.name AS user_name,
+            repository.owner,
             description,
             website,
             stars,
@@ -120,9 +113,9 @@ pub async fn get_list(
             repository.search_index_built_at,
             repository.updated_at
         FROM repository
-        JOIN user_ ON user_.id = repository.owner_id
-        WHERE owner_id = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3",
-        user_id,
+        JOIN user_ ON user_.id = repository.owner
+        WHERE owner = $1 ORDER BY updated_at DESC LIMIT $2 OFFSET $3",
+        user,
         limit,
         offset,
     ).fetch_all(pool).await?;
@@ -136,7 +129,7 @@ pub async fn get_list(
         result.push(RepoSimple {
             id: row.id,
             name: row.repo_name.clone(),
-            owner_name: row.user_name.clone(),
+            owner: row.owner.clone(),
             description: row.description.clone(),
             website: row.website.clone(),
             stars: row.stars,
@@ -156,9 +149,7 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
         "SELECT
             repository.id,
             repository.name as name,
-            repository.normalized_name as normalized_name,
-            user_.name as owner_name,
-            user_.normalized_name as owner_normalized_name,
+            repository.owner,
             description,
             website,
             stars,
@@ -168,7 +159,7 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
             pushed_at,
             search_index_built_at,
             updated_at
-        FROM repository JOIN user_ ON repository.owner_id = user_.id
+        FROM repository JOIN user_ ON repository.owner = user_.id
         WHERE repository.id = $1",
         repo_id,
     ).fetch_one(pool).await?;
@@ -176,9 +167,7 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
     Ok(RepoDetail {
         id: row.id,
         name: row.name,
-        normalized_name: row.normalized_name,
-        owner_name: row.owner_name,
-        owner_normalized_name: row.owner_normalized_name,
+        owner: row.owner,
         description: row.description,
         website: row.website,
         stars: row.stars,
@@ -191,13 +180,12 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
     })
 }
 
-pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool) -> Result<i32, Error> {
+pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) -> Result<i32, Error> {
     let repo_id = crate::query!(
         "INSERT
         INTO repository (
-            owner_id,
+            owner,
             name,
-            normalized_name,
             description,
             website,
             stars,
@@ -215,18 +203,17 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
             updated_at
         )
         VALUES (
-            $1,    -- owner_id
+            $1,    -- owner
             $2,    -- name
-            $3,    -- normalized_name
-            $4,    -- description
-            $5,    -- website
+            $3,    -- description
+            $4,    -- website
             0,     -- stars
-            $6,    -- readme
-            $7,    -- public_read
-            $8,    -- public_write
-            $9,    -- public_clone
-            $10,   -- public_push
-            $11,   -- public_chat
+            $5,    -- readme
+            $6,    -- public_read
+            $7,    -- public_write
+            $8,    -- public_clone
+            $9,   -- public_push
+            $10,   -- public_chat
             0,     -- chunk_count
             NULL,  -- push_session_id
             NOW(), -- created_at
@@ -235,9 +222,8 @@ pub async fn create_and_return_id(user_id: i32, repo: &RepoCreate, pool: &PgPool
             NOW()  -- updated_at
         )
         RETURNING id",
-        user_id,
+        user,
         repo.name.clone(),
-        normalize(&repo.name),
         repo.description.clone(),
         repo.website.clone(),
         repo.readme.clone(),
@@ -321,7 +307,7 @@ pub async fn check_auth(
     pool: &PgPool,
 ) -> Result<bool, Error> {
     let row = crate::query!(
-        "SELECT owner_id, public_read, public_write, public_clone, public_push, public_chat FROM repository WHERE id = $1",
+        "SELECT owner, public_read, public_write, public_clone, public_push, public_chat FROM repository WHERE id = $1",
         repo_id,
     ).fetch_one(pool).await?;
     let (
@@ -355,7 +341,7 @@ pub async fn check_auth(
     let permission = auth::get_user_id_from_api_key(api_key, pool).await?;
 
     match permission {
-        Some(auth::Permission { user_id, is_admin }) if user_id == row.owner_id || is_admin => Ok(true),
+        Some(auth::Permission { user, is_admin }) if user == row.owner || is_admin => Ok(true),
         _ => Ok(false),
     }
 }

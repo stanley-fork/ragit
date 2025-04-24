@@ -30,10 +30,10 @@ pub async fn get_user(user: String, api_key: Option<String>) -> Box<dyn Reply> {
 
 async fn get_user_(user: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let user = user::get_detail_by_name(&user, pool).await.handle_error(404)?;
+    let user = user::get_detail(&user, pool).await.handle_error(404)?;
 
     if !user.public {
-        user::check_auth(user.id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+        user::check_auth(&user.id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     }
 
     Ok(Box::new(json(&user)))
@@ -52,13 +52,13 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
     }
 
     let user = serde_json::from_value::<UserCreate>(body).handle_error(400)?;
-    let user_id = user::create_and_return_id(&user, pool).await.handle_error(500)?;
+    user::create(&user, pool).await.handle_error(500)?;
     let ai_model_config = AI_MODEL_CONFIG.get().handle_error(500)?;
 
     for model in ai_model_config.default_models.iter() {
         let model_id = ai_model::create_and_return_id(model, pool).await.handle_error(500)?;
         ai_model::register(
-            user_id,
+            &user.id,
             &model_id,
             None,  // api_key
             model.name == ai_model_config.default_model,  // default model
@@ -66,7 +66,7 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
         ).await.handle_error(500)?;
     }
 
-    Ok(Box::new(json(&user_id)))
+    Ok(Box::new(with_status(String::new(), StatusCode::from_u16(200).unwrap())))
 }
 
 pub async fn get_ai_model_list(user: String, api_key: Option<String>) -> Box<dyn Reply> {
@@ -75,12 +75,11 @@ pub async fn get_ai_model_list(user: String, api_key: Option<String>) -> Box<dyn
 
 async fn get_ai_model_list_(user: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
 
     // TODO: do I have to allow everyone to see the model list of a public user?
-    user::check_auth(user_id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+    user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(404)?;
 
-    let model_list = ai_model::get_list_by_user_id(user_id, pool).await.handle_error(500)?;
+    let model_list = ai_model::get_list_by_user_id(&user, pool).await.handle_error(500)?;
     Ok(Box::new(json(&model_list)))
 }
 
@@ -90,8 +89,7 @@ pub async fn put_ai_model_list(user: String, form: Value, api_key: Option<String
 
 async fn put_ai_model_list_(user: String, form: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
-    user::check_auth(user_id, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+    user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(404)?;
 
     let Value::Object(form) = form else {
         return Err((400, format!("Expected a json object, got `{:?}`", JsonType::from(&form))));
@@ -99,7 +97,7 @@ async fn put_ai_model_list_(user: String, form: Value, api_key: Option<String>) 
 
     match form.get("default_model") {
         Some(Value::String(default_model)) => {
-            ai_model::set_default_model(user_id, default_model, pool).await.handle_error(404)?;
+            ai_model::set_default_model(&user, default_model, pool).await.handle_error(404)?;
             return Ok(Box::new(with_status(String::new(), StatusCode::from_u16(200).unwrap())));
         },
         Some(v) => {
@@ -120,11 +118,11 @@ async fn put_ai_model_list_(user: String, form: Value, api_key: Option<String>) 
 
     if let Some(Value::String(api_key)) = form.get("api_key") {
         // If it fails, that's likely because `model_name` is wrong
-        ai_model::update_api_key(user_id, model_name, Some(api_key.to_string()), pool).await.handle_error(404)?;
+        ai_model::update_api_key(&user, model_name, Some(api_key.to_string()), pool).await.handle_error(404)?;
     }
 
     else if let Some(Value::Null) = form.get("api_key") {
-        ai_model::update_api_key(user_id, model_name, None, pool).await.handle_error(404)?;
+        ai_model::update_api_key(&user, model_name, None, pool).await.handle_error(404)?;
     }
 
     else if let Some(v) = form.get("api_key") {

@@ -36,6 +36,7 @@ pub struct ChatWithHistory {
 pub struct ChatHistory {
     pub query: String,
     pub response: String,
+    pub user: String,
     pub model: String,
     pub chunk_uids: Vec<String>,
     pub multi_turn_schema: Option<MultiTurnSchema>,
@@ -114,7 +115,7 @@ pub async fn add_chat_history(
     query: &str,
     history: &[ChatHistory],
     response: &QueryResponse,
-    user_id: i32,
+    user: &str,
     model: &str,
     now: DateTime<Utc>,
     pool: &PgPool,
@@ -132,12 +133,12 @@ pub async fn add_chat_history(
 
     let chat_history_id = crate::query!(
         "INSERT
-        INTO chat_history (chat_id, turn, user_id, model, query, response, multi_turn_schema, created_at)
+        INTO chat_history (chat_id, turn, user_, model, query, response, multi_turn_schema, created_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING id",
         chat_id,
         history.len() as i32,
-        user_id,
+        user,
         model,
         query,
         &response.response,
@@ -161,7 +162,7 @@ pub async fn add_chat_history(
 
 pub async fn get_history_by_id(chat_id: i32, pool: &PgPool) -> Result<Vec<ChatHistory>, Error> {
     let rows = crate::query!(
-        "SELECT id, query, response, model, multi_turn_schema, created_at FROM chat_history WHERE chat_id = $1 ORDER BY turn",
+        "SELECT id, query, response, user_, model, multi_turn_schema, created_at FROM chat_history WHERE chat_id = $1 ORDER BY turn",
         chat_id,
     ).fetch_all(pool).await?;
     let mut history = vec![];
@@ -180,6 +181,7 @@ pub async fn get_history_by_id(chat_id: i32, pool: &PgPool) -> Result<Vec<ChatHi
         history.push(ChatHistory {
             query: row.query.to_string(),
             response: row.response.to_string(),
+            user: row.user_.to_string(),
             model: row.model.to_string(),
             multi_turn_schema,
             chunk_uids,

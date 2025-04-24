@@ -19,7 +19,7 @@ pub async fn get_image_list(user: String, repo: String, prefix: String, api_key:
 
 async fn get_image_list_(user: String, repo: String, prefix: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
 
@@ -50,7 +50,7 @@ pub async fn get_image(user: String, repo: String, uid: String, api_key: Option<
 
 async fn get_image_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
     let prefix = uid.get(0..2).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();
@@ -76,7 +76,7 @@ pub async fn get_image_desc(user: String, repo: String, uid: String, api_key: Op
 
 async fn get_image_desc_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let rag_path = get_rag_path(&user, &repo).handle_error(404)?;
     let prefix = uid.get(0..2).ok_or_else(|| format!("invalid uid: {uid}")).handle_error(400)?.to_string();

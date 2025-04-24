@@ -1,9 +1,8 @@
 -- NOTE: postgresql doesn't allow me to use `user` as a name of a table
 CREATE TABLE IF NOT EXISTS user_ (
-    id SERIAL PRIMARY KEY,
+    id TEXT PRIMARY KEY,
 
-    name TEXT NOT NULL,
-    normalized_name TEXT NOT NULL,
+    name TEXT,
     email TEXT,
     readme TEXT,
     public BOOLEAN NOT NULL,
@@ -18,13 +17,12 @@ CREATE TABLE IF NOT EXISTS user_ (
     created_at TIMESTAMPTZ NOT NULL,
     last_login_at TIMESTAMPTZ
 );
-CREATE UNIQUE INDEX IF NOT EXISTS user_by_name ON user_ ( normalized_name );
 
 -- AI model for chat.
 -- It's user's reponsibility to register a valid model and api_key.
 CREATE TABLE IF NOT EXISTS user_ai_model (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL,
+    user_ TEXT NOT NULL,
 
     -- TODO: we have to make sure that the models of a user
     --       must have a unique name. How do we do that?
@@ -37,7 +35,7 @@ CREATE TABLE IF NOT EXISTS user_ai_model (
     default_model BOOLEAN NOT NULL,
     added_at TIMESTAMPTZ NOT NULL
 );
-CREATE UNIQUE INDEX IF NOT EXISTS user_ai_model_by_user ON user_ai_model ( user_id, ai_model_id );
+CREATE UNIQUE INDEX IF NOT EXISTS user_ai_model_by_user ON user_ai_model ( user_, ai_model_id );
 
 CREATE TABLE IF NOT EXISTS ai_model (
     id TEXT PRIMARY KEY,  -- hash value of model name and metadata
@@ -53,10 +51,9 @@ CREATE INDEX IF NOT EXISTS ai_model_by_name ON ai_model ( name );
 
 CREATE TABLE IF NOT EXISTS repository (
     id SERIAL PRIMARY KEY,
-    owner_id INTEGER NOT NULL,
+    owner TEXT NOT NULL,
 
     name TEXT NOT NULL,
-    normalized_name TEXT NOT NULL,
     description TEXT,
     website TEXT,
     stars INTEGER NOT NULL,
@@ -76,7 +73,7 @@ CREATE TABLE IF NOT EXISTS repository (
     search_index_built_at TIMESTAMPTZ,  -- if it's null, there's no search index
     updated_at TIMESTAMPTZ NOT NULL
 );
-CREATE INDEX IF NOT EXISTS repository_by_owner ON repository ( owner_id );
+CREATE UNIQUE INDEX IF NOT EXISTS repository_by_owner ON repository ( owner, name );
 
 CREATE TABLE IF NOT EXISTS repository_stat (
     id SERIAL PRIMARY KEY,
@@ -97,7 +94,7 @@ CREATE TABLE IF NOT EXISTS issue (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
     ticket INTEGER NOT NULL,
-    author_id INTEGER NOT NULL,
+    author TEXT NOT NULL,
 
     is_open BOOLEAN NOT NULL,
     is_deleted BOOLEAN NOT NULL,
@@ -112,7 +109,7 @@ CREATE INDEX IF NOT EXISTS issue_by_open ON issue ( repo_id, is_open );
 CREATE TABLE IF NOT EXISTS issue_content_history (
     id SERIAL PRIMARY KEY,
     issue_id INTEGER NOT NULL,
-    author_id INTEGER NOT NULL,
+    author TEXT NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL
@@ -122,7 +119,7 @@ CREATE INDEX IF NOT EXISTS issue_content_history_by_issue ON issue_content_histo
 CREATE TABLE IF NOT EXISTS issue_comment (
     id SERIAL PRIMARY KEY,
     issue_id INTEGER NOT NULL,
-    author_id INTEGER NOT NULL,
+    author TEXT NOT NULL,
 
     is_deleted BOOLEAN NOT NULL,
     content TEXT NOT NULL,
@@ -130,7 +127,7 @@ CREATE TABLE IF NOT EXISTS issue_comment (
     updated_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS issue_comment_by_issue ON issue_comment ( issue_id );
-CREATE INDEX IF NOT EXISTS issue_comment_by_author ON issue_comment ( author_id );
+CREATE INDEX IF NOT EXISTS issue_comment_by_author ON issue_comment ( author );
 
 CREATE TABLE IF NOT EXISTS issue_comment_content_history (
     id SERIAL PRIMARY KEY,
@@ -155,7 +152,7 @@ CREATE TABLE IF NOT EXISTS chat_history (
     turn INTEGER NOT NULL,
 
     -- any user can have a chat, so we need to store the user id
-    user_id INTEGER NOT NULL,
+    user_ TEXT NOT NULL,
     model TEXT NOT NULL,
 
     query TEXT NOT NULL,
@@ -218,7 +215,7 @@ CREATE TABLE IF NOT EXISTS archive_blob (
 CREATE TABLE IF NOT EXISTS api_key (
     api_key TEXT PRIMARY KEY,
     name TEXT NOT NULL,
-    user_id INTEGER NOT NULL,
+    user_ TEXT NOT NULL,
     expire TIMESTAMPTZ NOT NULL
 );
-CREATE INDEX IF NOT EXISTS api_key_by_user ON api_key ( user_id );
+CREATE INDEX IF NOT EXISTS api_key_by_user ON api_key ( user_ );

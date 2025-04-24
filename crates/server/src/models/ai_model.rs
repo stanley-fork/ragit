@@ -40,7 +40,7 @@ pub async fn create_and_return_id(model: &ModelRaw, pool: &PgPool) -> Result<Str
     Ok(model_id)
 }
 
-pub async fn get_list_by_user_id(user_id: i32, pool: &PgPool) -> Result<Vec<AiModel>, Error> {
+pub async fn get_list_by_user_id(user: &str, pool: &PgPool) -> Result<Vec<AiModel>, Error> {
     let rows = crate::query!(
         "SELECT
             ai_model.id,
@@ -52,8 +52,8 @@ pub async fn get_list_by_user_id(user_id: i32, pool: &PgPool) -> Result<Vec<AiMo
             user_ai_model.api_key,
             user_ai_model.default_model
         FROM user_ai_model JOIN ai_model ON user_ai_model.ai_model_id = ai_model.id
-        WHERE user_ai_model.user_id = $1",
-        user_id,
+        WHERE user_ai_model.user_ = $1",
+        user,
     ).fetch_all(pool).await?;
     let mut result = Vec::with_capacity(rows.len());
 
@@ -74,7 +74,7 @@ pub async fn get_list_by_user_id(user_id: i32, pool: &PgPool) -> Result<Vec<AiMo
 }
 
 pub async fn register(
-    user_id: i32,
+    user: &str,
     model_id: &str,
     api_key: Option<String>,
     default_model: bool,
@@ -82,9 +82,9 @@ pub async fn register(
 ) -> Result<(), Error> {
     crate::query!(
         "INSERT
-        INTO user_ai_model (user_id, ai_model_id, api_key, default_model, added_at)
+        INTO user_ai_model (user_, ai_model_id, api_key, default_model, added_at)
         VALUES ($1, $2, $3, $4, NOW())",
-        user_id,
+        user,
         model_id,
         api_key.as_ref().map(|s| s.as_str()),
         default_model,
@@ -92,17 +92,17 @@ pub async fn register(
     Ok(())
 }
 
-pub async fn get_default_model_name(user_id: i32, pool: &PgPool) -> Result<String, Error> {
+pub async fn get_default_model_name(user: &str, pool: &PgPool) -> Result<String, Error> {
     let name = crate::query!(
         "SELECT ai_model.name
         FROM ai_model JOIN user_ai_model ON ai_model.id = user_ai_model.ai_model_id
-        WHERE user_ai_model.default_model = TRUE AND user_ai_model.user_id = $1",
-        user_id,
+        WHERE user_ai_model.default_model = TRUE AND user_ai_model.user_ = $1",
+        user,
     ).fetch_one(pool).await?.name;
     Ok(name)
 }
 
-pub async fn get_model_schema(user_id: i32, model_name: &str, pool: &PgPool) -> Result<ModelRaw, Error> {
+pub async fn get_model_schema(user: &str, model_name: &str, pool: &PgPool) -> Result<ModelRaw, Error> {
     let row = crate::query!(
         "SELECT
             ai_model.name,
@@ -112,8 +112,8 @@ pub async fn get_model_schema(user_id: i32, model_name: &str, pool: &PgPool) -> 
             ai_model.can_read_images,
             user_ai_model.api_key
         FROM ai_model JOIN user_ai_model ON ai_model.id = user_ai_model.ai_model_id
-        WHERE user_ai_model.user_id = $1 AND ai_model.name = $2",
-        user_id,
+        WHERE user_ai_model.user_ = $1 AND ai_model.name = $2",
+        user,
         model_name,
     ).fetch_one(pool).await?;
 
@@ -136,39 +136,39 @@ pub async fn get_model_schema(user_id: i32, model_name: &str, pool: &PgPool) -> 
     })
 }
 
-pub async fn update_api_key(user_id: i32, model: &str, api_key: Option<String>, pool: &PgPool) -> Result<(), Error> {
+pub async fn update_api_key(user: &str, model: &str, api_key: Option<String>, pool: &PgPool) -> Result<(), Error> {
     // I'm querying twice because
     //    1. I don't know how to use JOIN with an UPDATE clause.
     //    2. `fetch_one` makes sure that a row exists
     let model_id = crate::query!(
         "SELECT ai_model.id
         FROM ai_model JOIN user_ai_model ON user_ai_model.ai_model_id = ai_model.id
-        WHERE user_ai_model.user_id = $1 AND ai_model.name = $2",
-        user_id,
+        WHERE user_ai_model.user_ = $1 AND ai_model.name = $2",
+        user,
         model,
     ).fetch_one(pool).await?.id;
     crate::query!(
-        "UPDATE user_ai_model SET api_key = $1 WHERE user_id = $2 AND ai_model_id = $3",
+        "UPDATE user_ai_model SET api_key = $1 WHERE user_ = $2 AND ai_model_id = $3",
         api_key.as_ref().map(|s| s.as_str()),
-        user_id,
+        user,
         model_id,
     ).execute(pool).await?;
 
     Ok(())
 }
 
-pub async fn set_default_model(user_id: i32, model: &str, pool: &PgPool) -> Result<(), Error> {
+pub async fn set_default_model(user: &str, model: &str, pool: &PgPool) -> Result<(), Error> {
     let model_id = crate::query!(
         "SELECT ai_model.id
         FROM ai_model JOIN user_ai_model ON user_ai_model.ai_model_id = ai_model.id
-        WHERE user_ai_model.user_id = $1 AND ai_model.name = $2",
-        user_id,
+        WHERE user_ai_model.user_ = $1 AND ai_model.name = $2",
+        user,
         model,
     ).fetch_one(pool).await?.id;
     crate::query!(
-        "UPDATE user_ai_model SET default_model = (ai_model_id = $1) WHERE user_id = $2",
+        "UPDATE user_ai_model SET default_model = (ai_model_id = $1) WHERE user_ = $2",
         model_id,
-        user_id,
+        user,
     ).execute(pool).await?;
 
     Ok(())

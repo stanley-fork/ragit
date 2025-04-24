@@ -27,7 +27,7 @@ pub async fn post_begin_push(user: String, repo: String, api_key: Option<String>
 async fn post_begin_push_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let config = CONFIG.get().handle_error(500)?;
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Push, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let session_id = archive::create_new_session(repo_id, pool).await.handle_error(500)?;
 
@@ -90,7 +90,7 @@ async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResp
         &config.push_session_dir,
         &session_id,
     ).handle_error(400)?;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     let archives = read_dir(&archives_at, false).handle_error(404)?;
     let root_dir = join3(
         &config.repo_data_dir,

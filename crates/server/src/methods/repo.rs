@@ -15,9 +15,8 @@ async fn get_repo_list_(user: String, query: HashMap<String, String>, api_key: O
     let pool = get_pool().await;
     let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
     let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
-    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
-    let has_permission = user::check_auth(user_id, api_key, pool).await.handle_error(500)?;
-    let repo_list = repo::get_list(user_id, has_permission, limit, offset, pool).await.handle_error(500)?;
+    let has_permission = user::check_auth(&user, api_key, pool).await.handle_error(500)?;
+    let repo_list = repo::get_list(&user, has_permission, limit, offset, pool).await.handle_error(500)?;
 
     Ok(Box::new(json(&repo_list)))
 }
@@ -28,9 +27,7 @@ pub async fn get_repo(user: String, repo: String, api_key: Option<String>) -> Bo
 
 async fn get_repo_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
-
-    // 500: DB error, 404: no permission but returns 404 instead of 403 for security reasons
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
     let repo = repo::get_detail(repo_id, pool).await.handle_error(500)?;
 
@@ -45,9 +42,8 @@ pub async fn create_repo(user: String, body: Value, api_key: Option<String>) -> 
 async fn create_repo_(user: String, body: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let repo = serde_json::from_value::<RepoCreate>(body).handle_error(400)?;
-    let user_id = user::get_id_by_name(&user, pool).await.handle_error(404)?;
-    user::check_auth(user_id, api_key, pool).await.handle_error(500)?.handle_error(403)?;
-    let repo_id = repo::create_and_return_id(user_id, &repo, pool).await.handle_error(500)?;
+    user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(403)?;
+    let repo_id = repo::create_and_return_id(&user, &repo, pool).await.handle_error(500)?;
     Ok(Box::new(json(&repo_id)))
 }
 
@@ -58,7 +54,7 @@ pub async fn put_repo(user: String, repo: String, body: Value, api_key: Option<S
 async fn put_repo_(user: String, repo: String, body: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let repo_data = serde_json::from_value::<RepoUpdate>(body).handle_error(400)?;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(
         repo_id,
 
@@ -77,9 +73,7 @@ pub async fn get_traffic(user: String, repo: String, api_key: Option<String>) ->
 
 async fn get_traffic_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo_id = repo::get_id_by_name(&user, &repo, pool).await.handle_error(404)?;
-
-    // 500: DB error, 404: no permission but returns 404 instead of 403 for security reasons
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
 
     let mut now = Utc::now();
