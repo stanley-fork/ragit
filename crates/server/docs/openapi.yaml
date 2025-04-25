@@ -401,7 +401,65 @@ paths:
   /{user}/{repo}/build-search-index:
     post: todo
   /{user}/{repo}/search:
-    get: todo (WIP)
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: search for chunks in this repository. There's no `sort-by` or `sort-ord` option. If you provide `query` parameter, it sorts the result by tfidf-score. Otherwise, it uses `chunk.sortable_string()` methods which usually sorts the chunks by file name.
+      operationId: searchChunk
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+        - name: file
+          in: query
+          description: search for chunks that belong to this file or directory
+          schema:
+            type: string
+        - name: uid
+          in: query
+          description: search for chunks whose uid starts or equal to this parameter
+          schema:
+            type: string
+        - name: query
+          in: query
+          description: full-text search on chunks.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: offset
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChunkDetail'
   /{user}/{repo}/begin-push:
     post: todo
   /{user}/{repo}/archive:

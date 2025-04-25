@@ -283,6 +283,10 @@ impl Chunk {
         self.source.render()
     }
 
+    pub fn sortable_string(&self) -> String {
+        self.source.sortable_string()
+    }
+
     pub(crate) fn get_approx_size(&self) -> usize {  // in bytes
         self.data.len() + self.title.len() + self.summary.len()
     }

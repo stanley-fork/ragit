@@ -421,6 +421,14 @@ impl UidQueryConfig {
         self
     }
 
+    pub fn chunk_only(mut self) -> Self {
+        self.search_chunk = true;
+        self.search_image = false;
+        self.search_file_path = false;
+        self.search_file_uid = false;
+        self
+    }
+
     pub fn no_staged_file(mut self) -> Self {
         self.search_staged_file = false;
         self

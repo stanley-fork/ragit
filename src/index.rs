@@ -588,6 +588,25 @@ impl Index {
         Ok(tfidf_state.get_top(limit))
     }
 
+    pub fn run_tfidf_on(
+        &self,
+        chunks: &[Uid],
+        keywords: Keywords,
+        limit: usize,
+    ) -> Result<Vec<TfidfResult<Uid>>, Error> {
+        let mut tfidf_state = TfidfState::new(&keywords);
+
+        for chunk in chunks.iter() {
+            let processed_doc = self.get_tfidf_by_chunk_uid(*chunk)?;
+            consume_processed_doc(
+                processed_doc,
+                &mut tfidf_state,
+            )?;
+        }
+
+        Ok(tfidf_state.get_top(limit))
+    }
+
     pub fn get_chunk_by_uid(&self, uid: Uid) -> Result<Chunk, Error> {
         let chunk_at = Index::get_uid_path(
             &self.root_dir,

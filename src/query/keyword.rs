@@ -38,8 +38,11 @@ impl Keywords {
         )).collect()
     }
 
-    // keywords can be any string. it can be fed by user or ai
-    // keywords are tokenized and deduplicated before tfidf
+    /// You don't have to call this function unless you want to see the internals.
+    /// `TfidfState` will call this method at right timing. If you have keywords
+    /// to search but don't know what to do, just run `Keywords::from_raw(keywords)`
+    /// and pass it to  `TfidfState`. If you have only 1 `String`, not `Vec<String>`,
+    /// `Keywords::from_raw(vec![keyword])` is fine.
     pub fn tokenize(&self) -> HashMap<String, f32> {  // HashMap<Token, weight>
         let mut tokens = HashMap::new();
 
