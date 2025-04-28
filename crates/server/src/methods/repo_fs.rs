@@ -1,5 +1,6 @@
 use super::{HandleError, RawResponse, check_secure_path, get_pool, handler};
 use crate::CONFIG;
+use crate::models::chunk::into_chunk_data;
 use crate::models::repo::{self, RepoOperation};
 use crate::utils::get_rag_path;
 use ragit::{Index, LoadMode, UidQueryConfig, merge_and_convert_chunks};
@@ -11,6 +12,7 @@ use ragit_fs::{
     set_extension,
 };
 use serde_json::Value;
+use std::collections::HashSet;
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_header, with_status};
 
@@ -81,6 +83,71 @@ async fn get_prompt_(user: String, repo: String, prompt: String, api_key: Option
     )))
 }
 
+pub async fn get_content(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_content_(user, repo, uid, api_key).await)
+}
+
+async fn get_content_(user: String, repo: String, uid: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+    let config = CONFIG.get().handle_error(500)?;
+    let rag_path = join3(
+        &config.repo_data_dir,
+        &user,
+        &repo,
+    ).handle_error(400)?;
+    let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
+    let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
+    let mut image_uids = HashSet::new();
+
+    let cat_file = if query.has_multiple_matches() {
+        return Err((400, format!("There are multiple file/chunk that match `{uid}`.")));
+    }
+
+    else if let Some(uid) = query.get_chunk_uid() {
+        let chunk = index.get_chunk_by_uid(uid).handle_error(500)?;
+
+        for image_uid in chunk.images.iter() {
+            image_uids.insert(*image_uid);
+        }
+
+        chunk.data
+    }
+
+    else if let Some((_, uid)) = query.get_processed_file() {
+        let chunk_uids = index.get_chunks_of_file(uid).handle_error(500)?;
+        let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+        for chunk_uid in chunk_uids {
+            let chunk = index.get_chunk_by_uid(chunk_uid).handle_error(500)?;
+
+            for image_uid in chunk.images.iter() {
+                image_uids.insert(*image_uid);
+            }
+
+            chunks.push(chunk);
+        }
+
+        chunks.sort_by_key(|chunk| chunk.source.sortable_string());
+        let chunks = merge_and_convert_chunks(&index, chunks, false /* render_image */).handle_error(500)?;
+
+        match chunks.len() {
+            0 => String::new(),
+            1 => chunks[0].data.clone(),
+            _ => {
+                return Err((500, format!("`index.get_chunks_of_file({uid})` returned chunks from different files.")));
+            },
+        }
+    }
+
+    else {
+        return Err((404, format!("There's no file/chunk that matches `{uid}`")));
+    };
+
+    Ok(Box::new(json(&into_chunk_data(&cat_file, &image_uids.into_iter().collect::<Vec<_>>()))))
+}
+
 pub async fn get_cat_file(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
     handler(get_cat_file_(user, repo, uid, api_key).await)
 }
@@ -121,7 +188,7 @@ async fn get_cat_file_(user: String, repo: String, uid: String, api_key: Option<
         }
 
         chunks.sort_by_key(|chunk| chunk.source.sortable_string());
-        let chunks = merge_and_convert_chunks(&index, chunks, true /* render_image */).handle_error(500)?;
+        let chunks = merge_and_convert_chunks(&index, chunks, false /* render_image */).handle_error(500)?;
 
         let result = match chunks.len() {
             0 => String::new(),

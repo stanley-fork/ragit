@@ -69,6 +69,7 @@ pub use repo::{
 pub use repo_fs::{
     get_cat_file,
     get_config,
+    get_content,
     get_file_list,
     get_index,
     get_meta,

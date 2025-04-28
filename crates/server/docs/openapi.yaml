@@ -336,7 +336,7 @@ paths:
       tags:
         - todo
       summary: todo
-      description: todo
+      description: If you want to get a content of a file or a chunk, I recommend you use `/{user}/{repo}/content/{uid}` api instead of this. This api exists for historical reasons.
       operationId: GetCatFile
       parameters:
         - name: user
@@ -364,6 +364,41 @@ paths:
             text/plain:
               schema:
                 type: string
+  /{user}/{repo}/content/{uid}:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: It's useful when you want to render a content of a chunk or a file. It doesn't give you the content of the original file, but a version that LLMs actually see when they RAG.
+      operationId: GetContent
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+        - name: uid
+          in: path
+          required: true
+          description: uid of a file or a chunk
+          schema:
+            type: string
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChunkData'
   /{user}/{repo}/archive-list:
     get: todo
   /{user}/{repo}/archive/{archive-id}:
@@ -874,7 +909,18 @@ components:
           example: "0.4.0-dev"
     ChunkData:
       type: object
-      # TODO
+      properties:
+        type:
+          type: string
+          enum:
+            - Text
+            - Image
+        content:
+          type: string
+          description: content of `Text` variant
+        uid:
+          type: string
+          description: uid of `Image` variant
     ChatWithHistory:
       type: object
       properties:

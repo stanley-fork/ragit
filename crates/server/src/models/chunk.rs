@@ -49,8 +49,10 @@ impl From<Chunk> for ChunkDetail {
     }
 }
 
-// It replaces `"img_{uid}"` with `ChunkData::Image { uid }`
-fn into_chunk_data(data: &str, images: &[Uid]) -> Vec<ChunkData> {
+// Ragit's chunk is multi-modal: it has texts and images. But in json, a chunk's
+// `.data` field is just a string type. It converts the string to a more
+// easy-to-render format.
+pub fn into_chunk_data(data: &str, images: &[Uid]) -> Vec<ChunkData> {
     let bytes = data.as_bytes();
     let images = images.iter().map(|uid| uid.to_string().into_bytes()).collect::<HashSet<_>>();
     let mut index = 0;

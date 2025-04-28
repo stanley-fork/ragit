@@ -156,6 +156,15 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(get_cat_file);
 
+    let get_content_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("content"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_content);
+
     let get_archive_list_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -445,6 +454,7 @@ async fn main() {
             .or(get_image_handler)
             .or(get_image_desc_handler)
             .or(get_cat_file_handler)
+            .or(get_content_handler)
             .or(get_archive_list_handler)
             .or(get_archive_handler)
             .or(get_meta_handler)
