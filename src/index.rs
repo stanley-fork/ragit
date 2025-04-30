@@ -1,5 +1,11 @@
 use crate::api_config::{ApiConfig, PartialApiConfig};
-use crate::chunk::{self, Chunk, ChunkBuildInfo};
+use crate::chunk::{
+    self,
+    Chunk,
+    ChunkBuildInfo,
+    RenderableChunk,
+    merge_and_convert_chunks,
+};
 use crate::constant::{
     API_CONFIG_FILE_NAME,
     BUILD_CONFIG_FILE_NAME,
@@ -980,6 +986,25 @@ impl Index {
         }
 
         Err(Error::NoSuchFile { path: None, uid: Some(file_uid) })
+    }
+
+    pub fn get_merged_chunk_of_file(&self, file_uid: Uid) -> Result<RenderableChunk, Error> {
+        let chunk_uids = self.get_chunks_of_file(file_uid)?;
+        let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+        for chunk_uid in chunk_uids.iter() {
+            chunks.push(self.get_chunk_by_uid(*chunk_uid)?);
+        }
+
+        // FIXME: I don't think we have to sort this
+        chunks.sort_by_key(|chunk| chunk.sortable_string());
+        let chunks = merge_and_convert_chunks(self, chunks, false /* render_image */)?;
+
+        match chunks.len() {
+            0 => todo!(),  // It's an empty file. Does ragit create a chunk for an empty file? I don't remember...
+            1 => Ok(chunks[0].clone()),
+            _ => Err(Error::BrokenIndex(format!("Internal error: `get_merged_chunk_of_file({file_uid})` returned multiple chunks"))),
+        }
     }
 
     pub fn get_images_of_file(&self, file_uid: Uid) -> Result<Vec<Uid>, Error> {

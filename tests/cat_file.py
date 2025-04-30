@@ -37,9 +37,15 @@ def cat_file():
 
     for file_name, file_content in files.items():
         content = cargo_run(["cat-file", file_name], stdout=True).strip()
-        content_json = json.loads(cargo_run(["cat-file", "--json", file_name], stdout=True)).strip()
+        content_json = json.loads(cargo_run(["cat-file", "--json", file_name], stdout=True))
         assert content == file_content.strip()
-        assert content == content_json
+
+        if file_content != "":
+            assert content == content_json[0]["content"].strip()
+            assert len(content_json) == 1
+
+        else:
+            assert len(content_json) == 0
 
     # step 2: See if `cat-file` dumps the raw bytes of an image.
     shutil.copyfile("../tests/images/empty.png", "./empty.png")
@@ -52,4 +58,9 @@ def cat_file():
         assert f.read() == cargo_run(["cat-file", image_uid], stdout=True, raw_output=True)
 
     # step 3: See if `cat-file` on a text file with images dumps the uid of the image, not the raw bytes.
-    assert image_uid in cargo_run(["cat-file", "sample.md"], stdout=True)
+    content = cargo_run(["cat-file", "sample.md"], stdout=True)
+    content_json = json.loads(cargo_run(["cat-file", "--json", "sample.md"], stdout=True))
+
+    assert image_uid in content
+    assert [c["type"] for c in content_json] == ["Text", "Image"]
+    assert image_uid == content_json[1]["uid"]

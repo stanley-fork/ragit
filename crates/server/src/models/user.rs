@@ -125,3 +125,8 @@ pub async fn check_auth(user: &str, api_key: Option<String>, pool: &PgPool) -> R
         _ => Ok(false),
     }
 }
+
+pub async fn no_user_at_all(pool: &PgPool) -> Result<bool, Error> {
+    let rows = crate::query!("SELECT id FROM user_ LIMIT 1").fetch_all(pool).await?;
+    Ok(rows.len() == 0)
+}

@@ -14,6 +14,8 @@ pub use chunk::{
     Chunk,
     ChunkBuildInfo,
     ChunkSource,
+    MultiModalContent,
+    into_multi_modal_contents,
     merge_and_convert_chunks,
 };
 pub use constant::*;

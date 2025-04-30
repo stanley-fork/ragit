@@ -1,9 +1,9 @@
-use super::{HandleError, RawResponse, check_secure_path, get_pool, handler};
+use super::{HandleError, RawResponse, check_secure_path, get_or, get_pool, handler};
 use crate::CONFIG;
-use crate::models::chunk::into_chunk_data;
+use crate::models::file::{FileDetail, FileSimple, FileType};
 use crate::models::repo::{self, RepoOperation};
 use crate::utils::get_rag_path;
-use ragit::{Index, LoadMode, UidQueryConfig, merge_and_convert_chunks};
+use ragit::{Index, LoadMode, UidQueryConfig, into_multi_modal_contents};
 use ragit_fs::{
     exists,
     join,
@@ -11,8 +11,9 @@ use ragit_fs::{
     read_string,
     set_extension,
 };
+use regex::Regex;
 use serde_json::Value;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_header, with_status};
 
@@ -99,53 +100,27 @@ async fn get_content_(user: String, repo: String, uid: String, api_key: Option<S
     ).handle_error(400)?;
     let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
     let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
-    let mut image_uids = HashSet::new();
 
-    let cat_file = if query.has_multiple_matches() {
+    let (cat_file, image_uids) = if query.has_multiple_matches() {
         return Err((400, format!("There are multiple file/chunk that match `{uid}`.")));
     }
 
     else if let Some(uid) = query.get_chunk_uid() {
         let chunk = index.get_chunk_by_uid(uid).handle_error(500)?;
-
-        for image_uid in chunk.images.iter() {
-            image_uids.insert(*image_uid);
-        }
-
-        chunk.data
+        (chunk.data.clone(), chunk.images)
     }
 
     else if let Some((_, uid)) = query.get_processed_file() {
-        let chunk_uids = index.get_chunks_of_file(uid).handle_error(500)?;
-        let mut chunks = Vec::with_capacity(chunk_uids.len());
-
-        for chunk_uid in chunk_uids {
-            let chunk = index.get_chunk_by_uid(chunk_uid).handle_error(500)?;
-
-            for image_uid in chunk.images.iter() {
-                image_uids.insert(*image_uid);
-            }
-
-            chunks.push(chunk);
-        }
-
-        chunks.sort_by_key(|chunk| chunk.source.sortable_string());
-        let chunks = merge_and_convert_chunks(&index, chunks, false /* render_image */).handle_error(500)?;
-
-        match chunks.len() {
-            0 => String::new(),
-            1 => chunks[0].data.clone(),
-            _ => {
-                return Err((500, format!("`index.get_chunks_of_file({uid})` returned chunks from different files.")));
-            },
-        }
+        let chunk = index.get_merged_chunk_of_file(uid).handle_error(500)?;
+        let image_uids = index.get_images_of_file(uid).handle_error(500)?;
+        (chunk.data, image_uids)
     }
 
     else {
         return Err((404, format!("There's no file/chunk that matches `{uid}`")));
     };
 
-    Ok(Box::new(json(&into_chunk_data(&cat_file, &image_uids.into_iter().collect::<Vec<_>>()))))
+    Ok(Box::new(json(&into_multi_modal_contents(&cat_file, &image_uids))))
 }
 
 pub async fn get_cat_file(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
@@ -180,26 +155,9 @@ async fn get_cat_file_(user: String, repo: String, uid: String, api_key: Option<
     }
 
     else if let Some((_, uid)) = query.get_processed_file() {
-        let chunk_uids = index.get_chunks_of_file(uid).handle_error(500)?;
-        let mut chunks = Vec::with_capacity(chunk_uids.len());
-
-        for chunk_uid in chunk_uids {
-            chunks.push(index.get_chunk_by_uid(chunk_uid).handle_error(500)?);
-        }
-
-        chunks.sort_by_key(|chunk| chunk.source.sortable_string());
-        let chunks = merge_and_convert_chunks(&index, chunks, false /* render_image */).handle_error(500)?;
-
-        let result = match chunks.len() {
-            0 => String::new(),
-            1 => chunks[0].data.clone(),
-            _ => {
-                return Err((500, format!("`index.get_chunks_of_file({uid})` returned chunks from different files.")));
-            },
-        };
-
+        let chunk = index.get_merged_chunk_of_file(uid).handle_error(500)?;
         Ok(Box::new(with_header(
-            result,
+            chunk.data,
             "Content-Type",
             "text/plain; charset=utf-8",
         )))
@@ -236,16 +194,25 @@ async fn get_meta_(user: String, repo: String, api_key: Option<String>) -> RawRe
     )))
 }
 
-// TODO: it has to be a search endpoint for files
-//       we have to implement github-like file viewer
-pub async fn get_file_list(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
-    handler(get_file_list_(user, repo, api_key).await)
+pub async fn get_file_content(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_file_content_(user, repo, query, api_key).await)
 }
 
-async fn get_file_list_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+async fn get_file_content_(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+
+    // TODO: why 50? why not 100? -> so are other `limit` params!
+    let limit = get_or(&query, "limit", 50);
+    let mut offset = get_or(&query, "offset", 0);
+    let mut path = get_or(&query, "path", String::from("/"));
+    path = ragit_fs::normalize(&path).handle_error(400)?;
+
+    if path.starts_with("/") {
+        path = path.get(1..).unwrap().to_string();
+    }
+
     let config = CONFIG.get().handle_error(500)?;
     let rag_path = join3(
         &config.repo_data_dir,
@@ -253,7 +220,98 @@ async fn get_file_list_(user: String, repo: String, api_key: Option<String>) -> 
         &repo,
     ).handle_error(400)?;
     let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
-    Ok(Box::new(json(&index.processed_files.keys().collect::<Vec<_>>())))
+
+    // It's a file
+    let result = if let Some(uid) = index.processed_files.get(&path) {
+        let chunk = index.get_merged_chunk_of_file(*uid).handle_error(500)?;
+        let chunk_uids = index.get_chunks_of_file(*uid).handle_error(500)?;
+        let image_uids = index.get_images_of_file(*uid).handle_error(500)?;
+
+        FileDetail {
+            r#type: FileType::File,
+            content: Some(into_multi_modal_contents(&chunk.data, &image_uids)),
+            uid: Some(uid.to_string()),
+            path: path.to_string(),
+            chunks: Some(chunk_uids.iter().map(|chunk| chunk.to_string()).collect()),
+            children: None,
+        }
+    }
+
+    // otherwise, it's a directory
+    else {
+        if !path.ends_with("/") {
+            path = format!("{path}/");
+        }
+
+        if path == "/" {
+            path = String::new();
+        }
+
+        let path_re = path
+            .replace("\\", "\\\\")
+            .replace("|", "\\|")
+            .replace("(", "\\(")
+            .replace(")", "\\)")
+            .replace("{", "\\{")
+            .replace("}", "\\}")
+            .replace("[", "\\[")
+            .replace("]", "\\]")
+            .replace(".", "\\.")
+            .replace("+", "\\+")
+            .replace("*", "\\*")
+            .replace("?", "\\?")
+            .replace("^", "\\^")
+            .replace("$", "\\$");
+        let path_re = Regex::new(&format!("{path_re}([^/]+)(/.+)?")).handle_error(400)?;
+        let mut processed_files = index.processed_files.keys().collect::<Vec<_>>();
+        processed_files.sort();
+        let mut children = vec![];
+
+        for file in processed_files.iter() {
+            if let Some(cap) = path_re.captures(file) {
+                if offset > 0 {
+                    offset -= 1;
+                    continue;
+                }
+
+                let child_name = cap.get(1).unwrap().as_str();
+                let is_dir = cap.get(2).is_some();
+
+                if is_dir {
+                    children.push(
+                        FileSimple {
+                            r#type: FileType::Directory,
+                            path: format!("{path}/{child_name}/"),
+                        }
+                    );
+                }
+
+                else {
+                    children.push(
+                        FileSimple {
+                            r#type: FileType::File,
+                            path: format!("{path}/{child_name}"),
+                        }
+                    );
+                }
+
+                if children.len() >= limit {
+                    break;
+                }
+            }
+        }
+
+        FileDetail {
+            r#type: FileType::Directory,
+            content: None,
+            uid: None,
+            path: path.to_string(),
+            chunks: None,
+            children: Some(children),
+        }
+    };
+
+    Ok(Box::new(json(&result)))
 }
 
 pub async fn get_version(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {

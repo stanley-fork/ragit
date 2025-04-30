@@ -2,6 +2,8 @@ use crate::error::Error;
 use crate::utils::trim_long_string;
 use ragit_fs::write_log;
 use sqlx::postgres::{PgPool, PgPoolOptions};
+use std::collections::HashMap;
+use std::str::FromStr;
 use warp::http::status::StatusCode;
 use warp::reply::{Reply, with_header, with_status};
 
@@ -70,7 +72,7 @@ pub use repo_fs::{
     get_cat_file,
     get_config,
     get_content,
-    get_file_list,
+    get_file_content,
     get_index,
     get_meta,
     get_prompt,
@@ -184,5 +186,18 @@ fn check_secure_path(path: &str) -> Result<(), Error> {
 
     else {
         Ok(())
+    }
+}
+
+pub(crate) fn get_or<T: FromStr>(query: &HashMap<String, String>, key: &str, default_value: T) -> T {
+    match query.get(key) {
+        // many clients use an empty string to represent a null value
+        Some(v) if v.is_empty() => default_value,
+
+        Some(v) => match v.parse::<T>() {
+            Ok(v) => v,
+            Err(_) => default_value,
+        },
+        None => default_value,
     }
 }

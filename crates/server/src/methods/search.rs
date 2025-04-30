@@ -1,4 +1,4 @@
-use super::{HandleError, RawResponse, get_pool, handler};
+use super::{HandleError, RawResponse, get_or, get_pool, handler};
 use crate::CONFIG;
 use crate::models::chunk::ChunkDetail;
 use crate::models::repo::{self, RepoOperation};
@@ -12,7 +12,6 @@ use ragit::{
 };
 use ragit_fs::{join3, write_log};
 use std::collections::HashMap;
-use std::str::FromStr;
 use warp::reply::{Reply, json};
 
 pub async fn search(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
@@ -193,17 +192,4 @@ pub async fn search_(user: String, repo: String, query: HashMap<String, String>,
 
     let chunks = chunks.into_iter().map(|c| ChunkDetail::from(c)).collect::<Vec<_>>();
     Ok(Box::new(json(&chunks)))
-}
-
-fn get_or<T: FromStr>(query: &HashMap<String, String>, key: &str, default_value: T) -> T {
-    match query.get(key) {
-        // many clients use an empty string to represent a null value
-        Some(v) if v.is_empty() => default_value,
-
-        Some(v) => match v.parse::<T>() {
-            Ok(v) => v,
-            Err(_) => default_value,
-        },
-        None => default_value,
-    }
 }

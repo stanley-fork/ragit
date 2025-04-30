@@ -16,6 +16,14 @@ macro_rules! query {
         );
         r
     }};
+    ($query: expr) => {{
+        let r = sqlx::query!($query);
+        ragit_fs::write_log(
+            "sql",
+            &format!("query: {:?}, args: ()", $query),
+        );
+        r
+    }};
 }
 
 #[macro_export]
@@ -27,6 +35,15 @@ macro_rules! query_as {
             "sql",
             // TODO: how about using `trim_long_string` here?
             &format!("out_struct: {}, query: {:?}, args: {:?}", stringify!($out_struct), $query, ($($args)*)),
+        );
+        r
+    }};
+    ($out_struct: path, $query: expr) => {{
+        let r = sqlx::query_as!($out_struct, $query);
+        ragit_fs::write_log(
+            "sql",
+            // TODO: how about using `trim_long_string` here?
+            &format!("out_struct: {}, query: {:?}, args: ()", stringify!($out_struct), $query),
         );
         r
     }};

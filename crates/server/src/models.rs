@@ -3,5 +3,6 @@ pub mod archive;
 pub mod auth;
 pub mod chat;
 pub mod chunk;
+pub mod file;
 pub mod repo;
 pub mod user;

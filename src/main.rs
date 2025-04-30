@@ -16,7 +16,7 @@ use ragit::{
     RemoveResult,
     UidQueryConfig,
     get_compatibility_warning,
-    merge_and_convert_chunks,
+    into_multi_modal_contents,
 };
 use ragit::schema::{ChunkSchema, Prettify};
 use ragit_api::get_model_by_name;
@@ -412,7 +412,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 let chunk = index.get_chunk_by_uid(uid)?;
 
                 if json_mode {
-                    println!("{:?}", chunk.data);
+                    println!("{}", serde_json::to_string_pretty(&into_multi_modal_contents(&chunk.data, &chunk.images))?);
                 }
 
                 else {
@@ -421,32 +421,15 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             else if let Some((_, uid)) = query_result.get_processed_file() {
-                let chunk_uids = index.get_chunks_of_file(uid)?;
-                let mut chunks = Vec::with_capacity(chunk_uids.len());
+                let chunk = index.get_merged_chunk_of_file(uid)?;
+                let images = index.get_images_of_file(uid)?;
 
-                for chunk_uid in chunk_uids {
-                    chunks.push(index.get_chunk_by_uid(chunk_uid)?);
+                if json_mode {
+                    println!("{}", serde_json::to_string_pretty(&into_multi_modal_contents(&chunk.data, &images))?);
                 }
 
-                chunks.sort_by_key(|chunk| chunk.source.sortable_string());
-                let chunks = merge_and_convert_chunks(&index, chunks, false /* render_image */)?;
-
-                match chunks.len() {
-                    0 => {
-                        // empty file
-                    },
-                    1 => {
-                        if json_mode {
-                            println!("{:?}", chunks[0].data);
-                        }
-
-                        else {
-                            println!("{}", chunks[0].data);
-                        }
-                    },
-                    _ => {
-                        return Err(Error::BrokenIndex(String::from("Assertion error: `merge_and_convert_chunks` failed to merge chunks of a file. It's likely to be a bug, please open an issue.")));
-                    },
+                else {
+                    println!("{}", chunk.data);
                 }
             }
 

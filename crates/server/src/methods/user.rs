@@ -46,8 +46,9 @@ pub async fn create_user(body: Value, api_key: Option<String>) -> Box<dyn Reply>
 async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     let config = CONFIG.get().handle_error(500)?;
+    let no_user_at_all = user::no_user_at_all(pool).await.handle_error(500)?;
 
-    if config.only_admin_can_create_user {
+    if !no_user_at_all && config.only_admin_can_create_user {
         auth::is_admin(api_key, pool).await.handle_error(500)?.handle_error(403)?;
     }
 

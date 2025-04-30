@@ -27,6 +27,7 @@ use std::collections::{HashMap, HashSet};
 use std::io::Read;
 
 mod build_info;
+mod multi_modal;
 mod renderable;
 mod source;
 
@@ -34,6 +35,7 @@ mod source;
 mod tests;
 
 pub use build_info::ChunkBuildInfo;
+pub use multi_modal::{MultiModalContent, into_multi_modal_contents};
 pub use renderable::RenderableChunk;
 pub use source::ChunkSource;
 

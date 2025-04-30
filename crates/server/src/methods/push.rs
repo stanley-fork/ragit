@@ -103,13 +103,12 @@ async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResp
         &format!("start extracting archive at `{root_dir}`"),
     );
 
+    // TODO: If the archive file is corrupted, it has to recover to the previous state.
     let push_result = Index::extract_archive(
         &root_dir,
         archives.clone(),
         4,
-
-        // TODO: is it okay to force-extract? if there's an error, it might lose the original data
-        true,
+        true,  // --force
         true,  // quiet
     );
     let push_result = match push_result {

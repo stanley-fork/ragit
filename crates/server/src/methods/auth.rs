@@ -26,7 +26,7 @@ async fn create_api_key_(user: String, body: Value) -> RawResponse {
 
     match auth::check_password(&user, &body.password, pool).await {
         Ok(true) => {
-            let expire_after = body.expire_after;  // 14 days by default
+            let expire_after = body.expire_after;
             let now = Utc::now();
             let expire = now.checked_add_days(Days::new(expire_after)).handle_error(400)?;
             let new_api_key = auth::create_api_key(&user, &body.name, expire, pool).await.handle_error(500)?;

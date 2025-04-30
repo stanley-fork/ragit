@@ -329,8 +329,54 @@ paths:
                     type: string
                   explanation:
                     type: string
-  /{user}/{repo}/file-list:
-    get: todo (WIP)
+  /{user}/{repo}/file-content:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: get a content of a file or a directory
+      operationId: GetFileContent
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of a file or a directory
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: offset
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileDetail'
   /{user}/{repo}/cat-file/{uid}:
     get:
       tags:
@@ -398,7 +444,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ChunkData'
+                  $ref: '#/components/schemas/MultiModalContent'
   /{user}/{repo}/archive-list:
     get: todo
   /{user}/{repo}/archive/{archive-id}:
@@ -637,7 +683,7 @@ paths:
       tags:
         - todo
       summary: todo
-      description: todo
+      description: It creates a new user. If it's the first user, the user becomes an admin.
       operationId: CreateUser
       requestBody:
         description: todo
@@ -881,7 +927,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/ChunkData'
+            $ref: '#/components/schemas/MultiModalContent'
         image_uids:
           type: array
           items:
@@ -907,7 +953,7 @@ components:
         ragit_version:
           type: string
           example: "0.4.0-dev"
-    ChunkData:
+    MultiModalContent:
       type: object
       properties:
         type:
@@ -921,6 +967,48 @@ components:
         uid:
           type: string
           description: uid of `Image` variant
+    FileDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - File
+            - Directory
+        path:
+          type: string
+        content:
+          type: array
+          nullable: true
+          description: It's null if the path is a directory.
+          items:
+            $ref: '#/components/schemas/MultiModalContent'
+        uid:
+          type: string
+          nullable: true
+          description: It's null if the path is a directory.
+        chunks:
+          type: array
+          nullable: true
+          description: It's null if the path is a directory. It's uids of chunks that belong to this file.
+          items:
+            type: string
+        children:
+          type: array
+          nullable: true
+          description: It's null if the path is a file. It's files and directories that belong to this directory.
+          items:
+            $ref: '#/components/schemas/FileSimple'
+    FileSimple:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - File
+            - Directory
+        path:
+          type: string
     ChatWithHistory:
       type: object
       properties:
@@ -983,3 +1071,14 @@ components:
         expire:
           type: string
           format: date-time
+    ApiKeyCreation:
+      type: object
+      properties:
+        name:
+          type: string
+        expire_after:
+          type: integer
+          description: days
+        password:
+          type: string
+          description: user password in plain text

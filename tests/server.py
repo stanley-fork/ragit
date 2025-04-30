@@ -12,7 +12,6 @@ from utils import (
     write_string,
 )
 
-# It does not test api endpoints that are tested by `clone.py` or `server2.py`.
 def server():
     goto_root()
 

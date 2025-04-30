@@ -292,13 +292,14 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(get_chat_list);
 
-    let get_file_list_handler = warp::get()
+    let get_file_content_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
-        .and(warp::path("file-list"))
+        .and(warp::path("file-content"))
         .and(warp::path::end())
+        .and(warp::query::<HashMap<String, String>>())
         .and(warp::header::optional::<String>("x-api-key"))
-        .then(get_file_list);
+        .then(get_file_content);
 
     let post_begin_push_handler = warp::post()
         .and(warp::path::param::<String>())
@@ -461,7 +462,7 @@ async fn main() {
             .or(get_version_handler)
             .or(get_chat_handler)
             .or(get_chat_list_handler)
-            .or(get_file_list_handler)
+            .or(get_file_content_handler)
             .or(create_user_handler)
             .or(create_repo_handler)
             .or(put_repo_handler)
