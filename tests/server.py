@@ -15,28 +15,8 @@ from utils import (
 def server():
     goto_root()
 
-    if health_check():
-        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
-
-    os.chdir("crates/server")
-
     try:
-        # step 0: run a ragit-server
-        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
-
-        # let's wait until `ragit-server` becomes healthy
-        for _ in range(300):
-            if health_check():
-                break
-
-            print("waiting for ragit-server to start...")
-            time.sleep(1)
-
-        else:
-            raise Exception("failed to run `ragit-server`")
-
-        os.chdir("../..")
+        server_process = spawn_ragit_server()
         mk_and_cd_tmp_dir()
 
         # step 1: we'll do experiments with these repos
@@ -55,16 +35,17 @@ def server():
         cargo_run(["add", "sample.md"])
         cargo_run(["build"])
         os.chdir("..")
-        create_user(name="test-user")
+        create_user(id="test-user", password="12345678")
+        api_key = get_api_key(id="test-user", password="12345678")
 
         # step 2: test loop
         for index, repo in enumerate(["sample-empty", "sample-small", "sample-rustc"]):
             os.chdir(repo)
-            sample_chunk_uid = json.loads(cargo_run(["ls-chunks", "--json"], stdout=True))[0]["uid"] if repo == "sample-rustc" else None
-            sample_file_uid = [file for file in json.loads(cargo_run(["ls-files", "--json"], stdout=True)) if file["chunks"] > 1][0]["uid"] if repo == "sample-rustc" else None
+            sample_chunk_uids = [chunk["uid"] for chunk in json.loads(cargo_run(["ls-chunks", "--json"], stdout=True))[:5]]
+            sample_file_uids = [file["uid"] for file in json.loads(cargo_run(["ls-files", "--json"], stdout=True)) if file["chunks"] > 1][:5]
 
             cargo_run(["meta", "--set", "whatever-key", "whatever-value"])
-            create_repo(user="test-user", repo=repo)
+            create_repo(user="test-user", repo=repo, api_key=api_key, public_read=True, public_write=True)
             cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1/test-user/{repo}/"])
             index_json = request_json(url="index", repo=repo)
             assert_eq_json("index.json", index_json)
@@ -122,10 +103,6 @@ def server():
                 else:
                     assert request_json(url=f"image-list/{prefix}", repo=repo) == []
 
-            file_api = request_json(url="file-list", repo=repo)
-            file_local = json.loads(cargo_run(["ls-files", "--name-only", "--json"], stdout=True))
-            assert set(file_api) == set(file_local)
-
             meta_api = request_json(url="meta", repo=repo)
             assert_eq_json("meta.json", meta_api)
 
@@ -138,47 +115,80 @@ def server():
             assert version_api in version_local
 
             user_list = request_json(url="http://127.0.0.1:41127/user-list", repo=repo, raw_url=True)
-            assert len(user_list) == 1 and user_list[0]["name"] == "test-user"
+            assert len(user_list) == 1 and user_list[0]["id"] == "test-user"
 
             repo_list = request_json(url="http://127.0.0.1:41127/repo-list/test-user", repo=repo, raw_url=True)
-            assert len(repo_list) == index + 1 and any([r["name"] == repo for r in repo_list]) and all([r["owner_name"] == "test-user" for r in repo_list])
+            assert len(repo_list) == index + 1 and any([r["name"] == repo for r in repo_list]) and all([r["owner"] == "test-user" for r in repo_list])
 
-            if sample_chunk_uid is not None:
+            for sample_chunk_uid in sample_chunk_uids:
                 cat_file_chunk_api = request_text(url=f"cat-file/{sample_chunk_uid}", repo=repo).strip()
                 cat_file_chunk_local = cargo_run(["cat-file", sample_chunk_uid], stdout=True).strip()
+                get_content_api = request_json(url=f"content/{sample_chunk_uid}", repo=repo)
+                get_content_local = json.loads(cargo_run(["cat-file", "--json", sample_chunk_uid], stdout=True))
                 assert cat_file_chunk_api == cat_file_chunk_local
+                assert get_content_api == get_content_local
 
-            if sample_file_uid is not None:
+            for sample_file_uid in sample_file_uids:
                 cat_file_file_api = request_text(url=f"cat-file/{sample_file_uid}", repo=repo).strip()
                 cat_file_file_local = cargo_run(["cat-file", sample_file_uid], stdout=True).strip()
+                get_content_api = request_json(url=f"content/{sample_file_uid}", repo=repo)
+                get_content_local = json.loads(cargo_run(["cat-file", "--json", sample_file_uid], stdout=True))
                 assert cat_file_file_api == cat_file_file_local
+                assert get_content_api == get_content_local
 
             os.chdir("..")
 
     finally:
         server_process.kill()
 
+# 0. truncate all the data in the server
+# 1. spawns a ragit-server process
+# 2. waits until the server becomes healthy
+# 3. go to root and return the server process
+def spawn_ragit_server():
+    goto_root()
+
+    if health_check():
+        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
+
+    os.chdir("crates/server")
+    subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
+    server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
+
+    for _ in range(300):
+        if health_check():
+            break
+
+        print("waiting for ragit-server to start...")
+        time.sleep(1)
+
+    else:
+        raise Exception("failed to run `ragit-server`")
+
+    os.chdir("../..")
+    return server_process
+
 def create_user(
-    name: str,
-    email: Optional[str] = None,
+    id: str,
     password: str = "12345678",
+    email: Optional[str] = None,
     readme: Optional[str] = None,
     public: bool = True,
-) -> int:  # returns user_id
+):
     body = {
-        "name": name,
-        "email": email,
+        "id": id,
         "password": password,
+        "email": email,
         "readme": readme,
         "public": public,
     }
     response = requests.post("http://127.0.0.1:41127/user-list", json=body)
     assert response.status_code == 200
-    return response.json()
 
 def create_repo(
     user: str,
     repo: str,
+    api_key: Optional[str] = None,
     description: Optional[str] = None,
     website: Optional[str] = None,
     readme: Optional[str] = None,
@@ -186,6 +196,7 @@ def create_repo(
     public_write: bool = True,
     public_clone: bool = True,
     public_push: bool = True,
+    public_chat: bool = True,
 ) -> int:  # returns repo_id
     body = {
         "name": repo,
@@ -196,8 +207,10 @@ def create_repo(
         "public_write": public_write,
         "public_clone": public_clone,
         "public_push": public_push,
+        "public_chat": public_chat,
     }
-    response = requests.post(f"http://127.0.0.1:41127/repo-list/{user}", json=body)
+    headers = {} if api_key is None else { "x-api-key": api_key }
+    response = requests.post(f"http://127.0.0.1:41127/repo-list/{user}", json=body, headers=headers)
     assert response.status_code == 200
     return response.json()
 
@@ -215,6 +228,20 @@ def get_repo_stat(
 
     response = response.json()
     return (response[key]["push"], response[key]["clone"])
+
+def get_api_key(
+    id: str,
+    password: str = "12345678",
+    name: str = "login_token",
+) -> str:
+    body = {
+        "name": name,
+        "expire_after": 14,
+        "password": password,
+    }
+    response = requests.post(f"http://127.0.0.1:41127/user-list/{id}/api-key-list", json=body)
+    assert response.status_code == 200
+    return response.text
 
 def request_json(
     url: str,

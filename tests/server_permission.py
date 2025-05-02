@@ -1,36 +1,26 @@
 import os
-from server import cargo_run, create_repo, create_user, health_check, request_json
+from server import (
+    cargo_run,
+    create_repo,
+    create_user,
+    health_check,
+    request_json,
+    spawn_ragit_server,
+)
 import subprocess
 import time
 from utils import goto_root, mk_and_cd_tmp_dir
 
+# TODO
 def server_permission():
     goto_root()
-    os.chdir("crates/server")
-
-    if health_check():
-        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
 
     try:
-        # step 0: run a ragit-server
-        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
-        os.chdir("../..")
+        server_process = spawn_ragit_server()
         mk_and_cd_tmp_dir()
 
-        # let's wait until `ragit-server` becomes healthy
-        for _ in range(300):
-            if health_check():
-                break
-
-            print("waiting for ragit-server to start...")
-            time.sleep(1)
-
-        else:
-            raise Exception("failed to run `ragit-server`")
-
-        create_user(name="test-user-1", email="sample1@email.com", password="12345678")
-        create_user(name="test-user-2", email="sample2@email.com", password="abcdefgh")
+        create_user(id="test-user-1", email="sample1@email.com", password="12345678")
+        create_user(id="test-user-2", email="sample2@email.com", password="abcdefgh")
         user_info1 = request_json(url="http://127.0.0.1:41127/user-list/test-user-1", raw_url=True)
         user_info2 = request_json(url="http://127.0.0.1:41127/user-list/test-user-2", raw_url=True)
         request_json(url="http://127.0.0.1:41127/user-list/test-user-3", raw_url=True, assert404=True)

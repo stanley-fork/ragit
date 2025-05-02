@@ -1,7 +1,13 @@
 import json
 import os
 import requests
-from server import create_repo, create_user, health_check
+from server import (
+    create_repo,
+    create_user,
+    get_api_key,
+    health_check,
+    spawn_ragit_server,
+)
 import subprocess
 import time
 from typing import Optional
@@ -9,28 +15,10 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 
 def server_chat(test_model: str):
     goto_root()
-    os.chdir("crates/server")
-
-    if health_check():
-        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
 
     try:
-        # step 0: run a ragit-server
-        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
-        os.chdir("../..")
+        server_process = spawn_ragit_server()
         mk_and_cd_tmp_dir()
-
-        # let's wait until `ragit-server` becomes healthy
-        for _ in range(300):
-            if health_check():
-                break
-
-            print("waiting for ragit-server to start...")
-            time.sleep(1)
-
-        else:
-            raise Exception("failed to run `ragit-server`")
 
         # step 1: init sample 1 (rustc)
         cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample1"])
@@ -41,13 +29,16 @@ def server_chat(test_model: str):
         # The test runs on the server but `config --set model` alters the local knowledge-base.
         # It does so in order to get api key from the local knowledge-base.
         cargo_run(["config", "--set", "model", test_model])
-        api_key = get_api_key()  # from local knowledge-base
-        create_user(name="test-user")
-        create_repo(user="test-user", repo="sample1")
-        model_full_name = set_default_model(user="test-user", model_name=test_model)  # of the server
+        create_user(id="test-user", password="secure-password")
+        server_api_key = get_api_key(id="test-user", password="secure-password")
+        model_api_key = get_model_api_key()
+        create_repo(user="test-user", repo="sample1", api_key=server_api_key)
 
-        if api_key is not None:
-            set_server_api_key(user="test-user", model_name=model_full_name, api_key=api_key)
+        # set default model of server
+        model_full_name = set_default_model(user="test-user", model_name=test_model, server_api_key=server_api_key)
+
+        if model_api_key is not None:
+            put_model_api_key(user="test-user", model_name=model_full_name, model_api_key=model_api_key, server_api_key=server_api_key)
 
         cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample1"])
         os.chdir("..")
@@ -57,7 +48,7 @@ def server_chat(test_model: str):
         os.chdir("sample2")
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", test_model])
-        create_repo(user="test-user", repo="sample2")
+        create_repo(user="test-user", repo="sample2", api_key=server_api_key)
         cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample2"])
         os.chdir("..")
 
@@ -94,16 +85,16 @@ def server_chat(test_model: str):
         assert [(h["response"], h["multi_turn_schema"]) for h in history1] == [(r["response"], r["multi_turn_schema"]) for r in responses1]
         assert [(h["response"], h["multi_turn_schema"]) for h in history2] == [(r["response"], r["multi_turn_schema"]) for r in responses2]
 
-        # ii-build is idempotent
+        # build-search-index is idempotent
         for _ in range(3):
-            assert requests.post("http://127.0.0.1:41127/test-user/sample1/ii-build").status_code == 200
-            assert requests.post("http://127.0.0.1:41127/test-user/sample2/ii-build").status_code == 200
+            assert requests.post("http://127.0.0.1:41127/test-user/sample1/build-search-index").status_code == 200
+            assert requests.post("http://127.0.0.1:41127/test-user/sample2/build-search-index").status_code == 200
 
     finally:
         server_process.kill()
 
 # It assumes that `rag config --set model _` is already run.
-def get_api_key() -> Optional[str]:
+def get_model_api_key() -> Optional[str]:
     # `rag ls-models` do not dump these models
     if cargo_run(["config", "--get", "model"], stdout=True).strip() in ["dummy", "stdin", "error"]:
         return None
@@ -134,18 +125,29 @@ def get_api_key() -> Optional[str]:
 # What's even worse is that `model_name` is given by the test runner, who doesn't know about
 # `models.json` at all. So it first tries to guess what the actual name of the model is.
 # It returns the full name of the model.
-def set_default_model(user: str, model_name: str) -> str:
-    models = requests.get(f"http://127.0.0.1:41127/user-list/{user}/ai-model-list").json()
+def set_default_model(user: str, model_name: str, server_api_key: str) -> str:
+    models = requests.get(
+        f"http://127.0.0.1:41127/user-list/{user}/ai-model-list",
+        headers={ "x-api-key": server_api_key },
+    ).json()
     models = [model for model in models if model_name in model["name"] or model_name in model["api_name"]]
 
     if len(models) != 1:
         raise Exception(f"Model name {model_name} is ambiguous.")
 
     model_name = models[0]["name"]
-    response = requests.put(f"http://127.0.0.1:41127/user-list/{user}/ai-model-list", json={"default_model": model_name})
+    response = requests.put(
+        f"http://127.0.0.1:41127/user-list/{user}/ai-model-list",
+        json={ "default_model": model_name },
+        headers={ "x-api-key": server_api_key },
+    )
     assert response.status_code == 200, f"Failed to set default model: {response.text}"
     return model_name
 
-def set_server_api_key(user: str, model_name: str, api_key: str):
-    response = requests.put(f"http://127.0.0.1:41127/user-list/{user}/ai-model-list", json={"model": model_name, "api_key": api_key})
+def put_model_api_key(user: str, model_name: str, model_api_key: str, server_api_key: str):
+    response = requests.put(
+        f"http://127.0.0.1:41127/user-list/{user}/ai-model-list",
+        json={ "model": model_name, "api_key": model_api_key },
+        headers={ "x-api-key": server_api_key },
+    )
     assert response.status_code == 200, f"Failed to set API key: {response.text}"

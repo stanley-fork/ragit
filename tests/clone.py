@@ -1,5 +1,12 @@
 import os
-from server import create_repo, create_user, get_repo_stat, health_check
+from server import (
+    create_repo,
+    create_user,
+    get_api_key,
+    get_repo_stat,
+    health_check,
+    spawn_ragit_server,
+)
 import shutil
 import subprocess
 import time
@@ -14,16 +21,8 @@ from utils import (
 def clone(base2_size: int = 600):
     goto_root()
 
-    if health_check():
-        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
-
-    os.chdir("crates/server")
-
     try:
-        # step 0: run a ragit-server
-        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
-        server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
-        os.chdir("../..")
+        server_process = spawn_ragit_server()
         mk_and_cd_tmp_dir()
         os.mkdir("base")
         os.chdir("base")
@@ -40,20 +39,10 @@ def clone(base2_size: int = 600):
         cargo_run(["build"])
         cargo_run(["check"])
 
-        # before we push this to server, let's wait until `ragit-server` becomes healthy
-        for _ in range(300):
-            if health_check():
-                break
-
-            print("waiting for ragit-server to start...")
-            time.sleep(1)
-
-        else:
-            raise Exception("failed to run `ragit-server`")
-
         # step 2: push the local knowledge-base to the server
-        create_user(name="test-user")
-        create_repo(user="test-user", repo="repo1")
+        create_user(id="test-user", password="password")
+        api_key = get_api_key(id="test-user", password="password")
+        create_repo(user="test-user", repo="repo1", api_key=api_key)
         cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo1"])
 
         # step 3: create another local knowledge-base
@@ -72,7 +61,7 @@ def clone(base2_size: int = 600):
         cargo_run(["check"])
 
         # step 4: push the local knowledge-base to the server
-        create_repo(user="test-user", repo="repo2")
+        create_repo(user="test-user", repo="repo2", api_key=api_key)
         cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo2"])
 
         # step 5: clone samples from ragit.baehyunsol.com and push it to the local server
@@ -88,7 +77,7 @@ def clone(base2_size: int = 600):
             os.chdir(base + "-cloned")
             cargo_run(["check"])
             get_repo_stat(user="test-user", repo=base, assert404=True)
-            create_repo(user="test-user", repo=base)
+            create_repo(user="test-user", repo=base, api_key=api_key)
             assert get_repo_stat(user="test-user", repo=base) == (0, 0)  # (push, clone)
             cargo_run(["push", f"--remote=http://127.0.0.1/test-user/{base}"])
             assert get_repo_stat(user="test-user", repo=base) == (1, 0)
