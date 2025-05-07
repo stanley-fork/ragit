@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import time
@@ -50,14 +51,44 @@ def write_lock(test_model: str):
 
     assert cargo_run(["ii-status"], stdout=True) != "complete"
 
-    # Adding garbage chunks to the knowledge-base: I have to make sure that `rag ii-build` runs long enough
-    for i in range(50):
-        write_string(f"garbage-{i}.txt", " ".join([rand_word() for _ in range(100)]))
-        cargo_run(["add", f"garbage-{i}.txt"])
+    garbage_files = []
+    cargo_run(["config", "--set", "model", "dummy"])
 
+    for i in range(200):
+        garbage_file = f"garbage-{i}.txt"
+        garbage_files.append(garbage_file)
+        write_string(garbage_file, " ".join([rand_word() for _ in range(200)]))
+
+    cargo_run(["add", *garbage_files])
     cargo_run(["build"])
     cargo_run(["config", "--set", "model", test_model])
+
+    # ii-build the garbage files
     ii_build_process = subprocess.Popen(["cargo", "run", "--release", "--", "ii-build"])
 
     cargo_run(["query", "How do I see a history of a file in git?"])
     ii_build_process.wait()
+    assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
+
+    # test 3: call multiple `rag build` multiple times
+    #         this time, each will try to build ii
+
+    # stage the garbage files
+    cargo_run(["remove", *garbage_files])
+    cargo_run(["add", *garbage_files])
+
+    cargo_run(["config", "--set", "model", "dummy"])
+
+    for _ in range(5):
+        subprocess.Popen(["cargo", "run", "--release", "--", "build"])
+
+    # wait until the build is complete
+    while True:
+        file_stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
+
+        if file_stat["staged files"] == 0:
+            break
+
+        time.sleep(1)
+
+    cargo_run(["check"])
