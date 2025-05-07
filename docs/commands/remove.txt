@@ -26,5 +26,5 @@ If a directory name is given, it removes all the files in the directory recursiv
 `--recursive` flag.
 
 By default, it removes all the files that are known to ragit. With `--staged` flag, it only removes
-staged files and with `--processed` files, it only removes processed files. `--auto` is another filter.
+staged files and with `--processed` flag, it only removes processed files. `--auto` is another filter.
 It removes a file in knowledge-base if the file does not exist in the file system.
