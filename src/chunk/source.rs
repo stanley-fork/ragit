@@ -97,3 +97,64 @@ impl ChunkSource {
         }
     }
 }
+
+/// I added a field to `ChunkSource::File` and I'm wondering if it's backward compatible.
+#[cfg(test)]
+mod tests {
+    use crate::Uid;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+    #[serde(tag = "type")]
+    enum ChunkSourceOld {
+        File {
+            path: String,
+            index: usize,
+        },
+        Chunks { uids: Vec<Uid> },
+    }
+
+    #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+    #[serde(tag = "type")]
+    enum ChunkSourceNew {
+        File {
+            path: String,
+            index: usize,
+            page: Option<usize>,
+        },
+        Chunks { uids: Vec<Uid> },
+    }
+
+    #[test]
+    #[allow(unused_variables)]
+    fn serde_chunk_source() {
+        let old_source1 = ChunkSourceOld::File { path: String::from("a.md"), index: 0 };
+        let old_source2 = ChunkSourceOld::Chunks { uids: vec![] };
+        let new_source1 = ChunkSourceNew::File { path: String::from("a.md"), index: 0, page: Some(0) };
+        let new_source2 = ChunkSourceNew::File { path: String::from("a.md"), index: 0, page: None };
+        let new_source3 = ChunkSourceNew::Chunks { uids: vec![] };
+
+        let old_source1_s = serde_json::to_string(&old_source1).unwrap();
+        let old_source2_s = serde_json::to_string(&old_source2).unwrap();
+        let new_source1_s = serde_json::to_string(&new_source1).unwrap();
+        let new_source2_s = serde_json::to_string(&new_source2).unwrap();
+        let new_source3_s = serde_json::to_string(&new_source3).unwrap();
+
+        // old version can read new versions and vice versa
+        let old_source1_d_o = serde_json::from_str::<ChunkSourceOld>(&old_source1_s).unwrap();
+        let old_source2_d_o = serde_json::from_str::<ChunkSourceOld>(&old_source2_s).unwrap();
+        let new_source1_d_o = serde_json::from_str::<ChunkSourceOld>(&new_source1_s).unwrap();
+        let new_source2_d_o = serde_json::from_str::<ChunkSourceOld>(&new_source2_s).unwrap();
+        let new_source3_d_o = serde_json::from_str::<ChunkSourceOld>(&new_source3_s).unwrap();
+        let old_source1_d_n = serde_json::from_str::<ChunkSourceNew>(&old_source1_s).unwrap();
+        let old_source2_d_n = serde_json::from_str::<ChunkSourceNew>(&old_source2_s).unwrap();
+        let new_source1_d_n = serde_json::from_str::<ChunkSourceNew>(&new_source1_s).unwrap();
+        let new_source2_d_n = serde_json::from_str::<ChunkSourceNew>(&new_source2_s).unwrap();
+        let new_source3_d_n = serde_json::from_str::<ChunkSourceNew>(&new_source3_s).unwrap();
+
+        assert_eq!(old_source2_d_o, new_source3_d_o);
+        assert_eq!(old_source2_d_n, new_source3_d_n);
+        assert_eq!(old_source1_d_o, new_source1_d_o);
+        assert_eq!(old_source1_d_o, new_source2_d_o);
+    }
+}
