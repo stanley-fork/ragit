@@ -60,7 +60,7 @@ impl Index {
             }
 
             match &chunk.source {
-                ChunkSource::File { path, index } => {
+                ChunkSource::File { path, index, page: _ } => {
                     chunks_to_files.insert(chunk_uid, (path.to_string(), *index));
                     processed_files.insert(path.to_string());
                 },

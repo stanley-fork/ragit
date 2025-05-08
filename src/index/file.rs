@@ -1,5 +1,5 @@
 use super::BuildConfig;
-use crate::chunk::{Chunk, ChunkBuildInfo, ChunkSchema};
+use crate::chunk::{Chunk, ChunkBuildInfo, ChunkExtraInfo, ChunkSchema};
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
@@ -84,8 +84,8 @@ impl FileReader {
 
     /// It moves the cursor and generates `Vec<AtomicToken>` for the next chunk.
     /// It also collects images in the next chunk.
-    pub fn next_chunk(&mut self) -> Result<Vec<AtomicToken>, Error> {
-        self.fill_buffer_until_chunks(2)?;
+    pub fn next_chunk(&mut self) -> Result<(Vec<AtomicToken>, Option<ChunkExtraInfo>), Error> {
+        self.fill_buffer_until_n_chunks(2)?;
 
         // prevent creating too small chunk
         let next_chunk_size = if self.config.chunk_size < self.curr_buffer_size && self.curr_buffer_size < self.config.chunk_size * 2 {
@@ -96,14 +96,16 @@ impl FileReader {
 
         let mut chunk_deque = VecDeque::new();
         let mut curr_chunk_size = 0;
-        let mut has_separator = false;
+        let mut has_page_break = false;
+        let mut chunk_extra_info = None;
 
         // step 1. collect tokens for a chunk
         while curr_chunk_size < next_chunk_size && !self.buffer.is_empty() {
             let token = self.buffer.pop_front().unwrap();
 
-            if let AtomicToken::Separator = &token {
-                has_separator = true;
+            if let AtomicToken::PageBreak { extra_info } = &token {
+                chunk_extra_info = Some(extra_info.clone());
+                has_page_break = true;
                 break;
             }
 
@@ -115,7 +117,7 @@ impl FileReader {
         // step 2. create a sliding window
         // if there's no remaining token, there's no need for sliding window
         // if the chunk consists of a single token, there's no point in making a sliding window
-        if !has_separator && (!self.buffer.is_empty() || chunk_deque.len() == 1) {
+        if !has_page_break && (!self.buffer.is_empty() || chunk_deque.len() == 1) {
             let mut sliding_window_deque = VecDeque::new();
             let mut curr_sliding_window_size = 0;
 
@@ -146,7 +148,7 @@ impl FileReader {
             }
         }
 
-        Ok(tokens)
+        Ok((tokens, chunk_extra_info))
     }
 
     pub async fn generate_chunk(
@@ -156,7 +158,7 @@ impl FileReader {
         previous_turn: Option<(Chunk, ChunkSchema)>,
         index_in_file: usize,
     ) -> Result<Chunk, Error> {
-        let tokens = self.next_chunk()?;
+        let (tokens, chunk_extra_info) = self.next_chunk()?;
         let tokens = self.fetch_images_from_web(tokens).await?;
 
         let chunk = Chunk::create_chunk_from(
@@ -166,6 +168,7 @@ impl FileReader {
             index_in_file,
             build_info,
             previous_turn,
+            chunk_extra_info,
         ).await;
 
         if let Some(ms) = index.api_config.sleep_after_llm_call {
@@ -175,9 +178,9 @@ impl FileReader {
         chunk
     }
 
-    fn fill_buffer_until_chunks(&mut self, chunk_count: usize) -> Result<(), Error> {
+    fn fill_buffer_until_n_chunks(&mut self, n: usize) -> Result<(), Error> {
         loop {
-            if self.curr_buffer_size >= chunk_count * self.config.chunk_size {
+            if self.curr_buffer_size >= n * self.config.chunk_size {
                 return Ok(());
             }
 
@@ -267,7 +270,7 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
             },
 
             // not rendered
-            AtomicToken::Separator => {},
+            AtomicToken::PageBreak { .. } => {},
         }
     }
 
@@ -296,7 +299,7 @@ async fn fetch_image_from_web(url: &str) -> Result<(Vec<u8>, ImageType), Error> 
     Ok((bytes, image_type))
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum AtomicToken {
     String {
         data: String,
@@ -315,10 +318,13 @@ pub enum AtomicToken {
     WebImage { desc: String, url: String, hash: String },
 
     /// It's an invisible AtomicToken.
-    /// An AtomicToken before a separator and
-    /// after a separator will never belong to the
-    /// same chunk.
-    Separator,
+    /// An AtomicToken before a break and after the
+    /// break will never belong to the same chunk.
+    ///
+    /// If you want your `FileReader` to add extra
+    /// information to a chunk, you can do that
+    /// with its `extra_info` field.
+    PageBreak { extra_info: ChunkExtraInfo },
 }
 
 impl AtomicToken {
@@ -327,7 +333,7 @@ impl AtomicToken {
             AtomicToken::String { char_len, .. } => *char_len,
             AtomicToken::Image(_) => image_size,
             AtomicToken::WebImage { .. } => image_size,
-            AtomicToken::Separator => 0,
+            AtomicToken::PageBreak { .. } => 0,
         }
     }
 }
@@ -346,7 +352,7 @@ impl From<AtomicToken> for MessageContent {
             AtomicToken::WebImage { desc, url, hash: _ } => MessageContent::String(format!("![{desc}]({url})")),
 
             // this branch is not supposed to be reached
-            AtomicToken::Separator => MessageContent::String(String::new()),
+            AtomicToken::PageBreak { .. } => MessageContent::String(String::new()),
         }
     }
 }

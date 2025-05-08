@@ -67,6 +67,8 @@ def cargo_run(
 
     if output_schema != []:
         output = {}
+        print(result.stdout)
+        print(result.stderr)
 
         if "returncode" in output_schema:
             output["returncode"] = result.returncode
@@ -80,9 +82,13 @@ def cargo_run(
         return output
 
     elif stdout:
+        print(result.stdout)
+        print(result.stderr)
         return result.stdout
 
     elif stderr:
+        print(result.stdout)
+        print(result.stderr)
         return result.stderr
 
     else:

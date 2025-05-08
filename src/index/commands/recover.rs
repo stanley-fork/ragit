@@ -113,7 +113,7 @@ impl Index {
                 result.created_tfidfs += 1;
             }
 
-            if let ChunkSource::File { path, index } = &chunk_.source {
+            if let ChunkSource::File { path, index, page: _ } = &chunk_.source {
                 match processed_files.get_mut(path) {
                     Some(chunks) => {
                         chunks.push((chunk_.uid, *index));

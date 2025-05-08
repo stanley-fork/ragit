@@ -25,3 +25,7 @@ warp = "0.3.7"
 
 [features]
 log_sql = []
+
+# mupdf does not compile without this patch on MacOS, and ragit depends on mupdf
+[patch.crates-io]
+pathfinder_simd = { git = "https://github.com/servo/pathfinder.git" }

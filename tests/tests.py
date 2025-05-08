@@ -29,6 +29,7 @@ from migrate import migrate
 from migrate2 import migrate2
 from models_init import models_init, test_home_config_override
 from orphan_process import orphan_process
+from pdf import pdf
 from prompts import prompts
 from query_options import query_options
 from ragit_api import ragit_api
@@ -214,6 +215,10 @@ Commands
     images3 [model]             run `images3` test
                                 Other tests test images in markdown files, but they
                                 don't test image file readers. It does.
+
+    pdf [model]                 run `pdf` test
+                                It tests the pdf reader.
+                                You have to use a vision language model!
 
     web_images [model]          run `web_images` test
                                 It tests whether ragit can fetch images from web.
@@ -403,6 +408,13 @@ if __name__ == "__main__":
 
             images3(test_model=test_model)
 
+        elif command == "pdf":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            pdf(test_model=test_model)
+
         elif command == "web_images":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -504,6 +516,7 @@ if __name__ == "__main__":
                 ("server_chat llama3.3-70b", lambda: server_chat(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
                 ("images3 gpt-4o-mini", lambda: images3(test_model="gpt-4o-mini")),
+                ("pdf gpt-4o-mini", lambda: pdf(test_model="gpt-4o-mini")),
                 ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available

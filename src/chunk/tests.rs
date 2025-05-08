@@ -35,7 +35,14 @@ fn test_merge_and_convert_chunks() {
     let samples = samples.into_iter().map(
         |(sample, answer)| (
             sample.into_iter().map(
-                |(content, file, index)| Chunk::dummy(content.to_string(), ChunkSource::File { path: file.to_string(), index })
+                |(content, file, index)| Chunk::dummy(
+                    content.to_string(),
+                    ChunkSource::File {
+                        path: file.to_string(),
+                        index,
+                        page: None,
+                    },
+                )
             ).collect::<Vec<_>>(),
             answer,
         )
@@ -45,7 +52,10 @@ fn test_merge_and_convert_chunks() {
     for (sample, answer) in samples.into_iter() {
         let result = merge_and_convert_chunks(&index, sample, true).unwrap();
         let answer = answer.into_iter().map(
-            |(data, file, index)| RenderableChunk { data: data.to_string(), source: ChunkSource::File { path: file.to_string(), index }.render() }
+            |(data, file, index)| RenderableChunk {
+                data: data.to_string(),
+                source: ChunkSource::File { path: file.to_string(), index, page: None }.render(),
+            }
         ).collect::<Vec<_>>();
 
         assert_eq!(result, answer);

@@ -1,57 +1,62 @@
 use super::{AtomicToken, FileReaderImpl, Image};
+use crate::chunk::ChunkExtraInfo;
 use crate::error::Error;
 use crate::index::BuildConfig;
 use crate::uid::Uid;
-use ragit_fs::{
-    exists,
-    extension,
-    read_bytes,
-    read_dir,
-};
+use mupdf::{Colorspace, Document, ImageFormat, Matrix};
 use ragit_pdl::ImageType;
 
-// This is very very experimental pdf reader.
-// Its strategy is to 1) convert each page into images, 2) use image reader to build a knowledge-base.
-// This strategy works well, but the problem is that there's no easy-to-use rust library that converts
-// pdf page to images. For now, it uses a Python script to do that (see ./pdf.py).
-//
-// Let's say there's a pdf file: `sample.pdf`. It expects the python script to make a directory `sample.pdf-pages/`.
-// The directory must contain the image files, and the file names must be sorted by their original order.
-// It creates 1 chunk per 1 image.
+// `PdfReader` has to be `Send`, but `mupdf::Document` is `!Send`.
+// So it takes a bit inefficient route. It opens `Document`, converts
+// 64 pages, and drops the `Document`. I chose the number 64 because
+// 1. If it opens the `Document` per each page, that would be a performance
+//    bottleneck.
+// 2. If it opens the `Document` only once and loads all the pages, it'd use
+//    too much memory if the pdf file is very large.
 pub struct PdfReader {
-    images: Vec<AtomicToken>,
-    pages: Vec<String>,  // path to images
+    path: String,
+    images: Vec<(AtomicToken, usize /* page_no */)>,
+    page_count: usize,
     cursor: usize,
 }
 
 impl FileReaderImpl for PdfReader {
     fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
-        let pages_at = format!("{path}-pages/");
+        let document = Document::open(path)?;
+        let page_count = document.page_count()?.max(0) as usize;
+        let mut result = PdfReader {
+            images: vec![],
+            path: path.to_string(),
+            page_count,
+            cursor: 0,
+        };
 
-        if !exists(&pages_at) {
-            return Err(Error::FileReaderError(format!("`{pages_at}` not found! Ragit's pdf reader is still experimental and requires extra steps to run. Please run [this](https://github.com/baehyunsol/ragit/blob/main/src/index/file/pdf.py) python script and run ragit again.")));
+        if result.cursor < result.page_count {
+            for _ in 0..64 {
+                result.images.push((convert_page(&document, result.cursor as i32)?, result.cursor + 1));
+                result.cursor += 1;
+
+                if result.cursor >= result.page_count {
+                    break;
+                }
+            }
         }
 
-        let pages = read_dir(&pages_at, true)?;
-        Ok(PdfReader {
-            images: vec![],
-            pages,
-            cursor: 0,
-        })
+        Ok(result)
     }
 
     fn load_tokens(&mut self) -> Result<(), Error> {
-        if self.cursor < self.pages.len() {
-            let path = &self.pages[self.cursor];
-            let bytes = read_bytes(path)?;
-            let uid = Uid::new_image(&bytes);
-            self.images.push(AtomicToken::Image(Image {
-                bytes,
-                image_type: ImageType::from_extension(&extension(path)?.unwrap_or(String::new()))?,
-                uid,
-            }));
+        if self.cursor < self.page_count {
+            let document = Document::open(&self.path)?;
 
-            self.cursor += 1;
+            for _ in 0..64 {
+                self.images.push((convert_page(&document, self.cursor as i32)?, self.cursor + 1));
+                self.cursor += 1;
+
+                if self.cursor >= self.page_count {
+                    break;
+                }
+            }
         }
 
         Ok(())
@@ -60,9 +65,9 @@ impl FileReaderImpl for PdfReader {
     fn pop_all_tokens(&mut self) -> Result<Vec<AtomicToken>, Error> {
         let mut result = Vec::with_capacity(self.images.len());
 
-        for image in self.images.iter() {
+        for (image, page_no) in self.images.iter() {
             result.push(image.clone());
-            result.push(AtomicToken::Separator);
+            result.push(AtomicToken::PageBreak { extra_info: ChunkExtraInfo { page_no: Some(*page_no) } });
         }
 
         self.images = vec![];
@@ -70,10 +75,43 @@ impl FileReaderImpl for PdfReader {
     }
 
     fn has_more_to_read(&self) -> bool {
-        self.cursor < self.pages.len() || !self.images.is_empty()
+        self.cursor < self.page_count || !self.images.is_empty()
     }
 
     fn key(&self) -> String {
-        String::from("pdf_reader_v0")
+        String::from("pdf_reader_v1")
     }
+}
+
+fn convert_page(
+    document: &Document,
+    page: i32,
+) -> Result<AtomicToken, Error> {
+    let page = document.load_page(page)?;
+    let bounds = page.bounds()?;
+    let width = bounds.x1 - bounds.x0;
+    let height = bounds.y1 - bounds.y0;
+    let zoom = 1024.0 / width.max(height).max(0.1);
+
+    let colorspace = Colorspace::device_rgb();
+    let matrix = Matrix::new_scale(zoom, zoom);
+    let mut pixmap = page.to_pixmap(&matrix, &colorspace, false, false)?;
+
+    let (pixmap_width, pixmap_height) = pixmap.resolution();
+    pixmap.set_resolution(
+        (pixmap_width as f32 * zoom) as i32,
+        (pixmap_height as f32 * zoom) as i32,
+    );
+    let mut bytes = vec![];
+    pixmap.write_to(
+        &mut bytes,
+        ImageFormat::PNG,
+    )?;
+    let uid = Uid::new_image(&bytes);
+
+    Ok(AtomicToken::Image(Image {
+        bytes,
+        image_type: ImageType::Png,
+        uid,
+    }))
 }

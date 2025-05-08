@@ -14,6 +14,7 @@ pub struct ChunkDetail {
     pub summary: String,
     pub file: Option<String>,
     pub file_index: Option<usize>,
+    pub page_no: Option<usize>,
     pub timestamp: i64,
     pub model: String,
     pub ragit_version: String,
@@ -21,9 +22,9 @@ pub struct ChunkDetail {
 
 impl From<Chunk> for ChunkDetail {
     fn from(c: Chunk) -> ChunkDetail {
-        let (file, file_index) = match &c.source {
-            ChunkSource::File { path, index } => (Some(path.to_string()), Some(*index)),
-            _ => (None, None),
+        let (file, file_index, page_no) = match &c.source {
+            ChunkSource::File { path, index, page } => (Some(path.to_string()), Some(*index), page.clone()),
+            _ => (None, None, None),
         };
 
         ChunkDetail {
@@ -34,6 +35,7 @@ impl From<Chunk> for ChunkDetail {
             summary: c.summary.clone(),
             file,
             file_index,
+            page_no,
             timestamp: c.timestamp,
             model: c.build_info.model.clone(),
             ragit_version: c.build_info.ragit_version.clone(),

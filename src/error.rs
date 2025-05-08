@@ -86,6 +86,9 @@ pub enum Error {
     /// see <https://docs.rs/tokio/latest/tokio/task/struct.JoinError.html>
     JoinError(tokio::task::JoinError),
 
+    /// see <https://docs.rs/mupdf/latest/mupdf/error/enum.Error.html>
+    MuPdfError(mupdf::Error),
+
     FileError(FileError),
     StdIoError(std::io::Error),
     Utf8Error(FromUtf8Error),
@@ -148,6 +151,12 @@ impl From<url::ParseError> for Error {
 impl From<tokio::task::JoinError> for Error {
     fn from(e: tokio::task::JoinError) -> Error {
         Error::JoinError(e)
+    }
+}
+
+impl From<mupdf::Error> for Error {
+    fn from(e: mupdf::Error) -> Self {
+        Error::MuPdfError(e)
     }
 }
 

@@ -161,6 +161,7 @@ impl Chunk {
         file_index: usize,
         build_info: ChunkBuildInfo,
         previous_turn: Option<(Chunk, ChunkSchema)>,
+        extra_info: Option<ChunkExtraInfo>,
     ) -> Result<Self, Error> {
         let mut context = tera::Context::new();
         let mut chunk = vec![];
@@ -176,7 +177,9 @@ impl Chunk {
                     approx_data_len += 10;
                     chunk.push(format!("<|raw_media({}:{})|>", image_type.to_extension(), encode_base64(&bytes)));
                 },
-                AtomicToken::Separator => {
+
+                // Usually, this token is filtered out before passed to this function
+                AtomicToken::PageBreak { .. } => {
                     // invisible
                 },
 
@@ -229,8 +232,9 @@ impl Chunk {
                     image_count += 1;
                     data.push(format!("img_{}", i.uid));
                 },
-                AtomicToken::Separator => {
+                AtomicToken::PageBreak { .. } => {
                     // invisible
+                    // it must be filtered out before passed to this function
                 },
 
                 // If this branch is reached, that means `FileReader::generate_chunk` has
@@ -270,7 +274,11 @@ impl Chunk {
             image_count,
             title: response.title,
             summary: response.summary,
-            source: ChunkSource::File { path: normalize(&file)?, index: file_index },
+            source: ChunkSource::File {
+                path: normalize(&file)?,
+                index: file_index,
+                page: extra_info.map(|i| i.page_no).unwrap_or(None),
+            },
             searchable: true,
             uid: Uid::dummy(),
             build_info,
@@ -297,21 +305,30 @@ impl Chunk {
 /// It does some preprocessing on chunks, before fed to LLMs.
 ///
 /// 1. If there are multiple chunks from the same file, it sorts the chunks.
-/// 2. If there are consecutive chunks, it merges them. Their sliding windows are redundant.
+///    If `chunks` have `ChunkSource::Chunks` and `ChunkSource::File`,
+///    `Chunks` will come after `File` in the result. This isn't intentional
+///    but still makes sense because `chunk.sortable_string` will sort the chunks
+///    in that order.
+/// 2. If there are consecutive chunks, it merges them. It handles sliding windows.
+/// 3. It might merge 2 chunks that are from the same file but from different pages (chunks from pdfs
+///    have page numbers), if they're from consecutive pages.
 pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image: bool) -> Result<Vec<RenderableChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
+    let mut unmergeable_chunks = vec![];
 
     for chunk in chunks.into_iter() {
         match &chunk.source {
-            ChunkSource::File { path, index } if *index > 0 => {
+            ChunkSource::File { path, index, page: _ } if *index > 0 => {
                 merge_candidates.insert((path.clone(), *index - 1));
                 curr_chunks.insert((path.clone(), *index), chunk);
             },
-            ChunkSource::File { path, index } => {
+            ChunkSource::File { path, index, page: _ } => {
                 curr_chunks.insert((path.clone(), *index), chunk);
             },
-            ChunkSource::Chunks { .. } => {},  // it's unsearchable
+            ChunkSource::Chunks { .. } => {
+                unmergeable_chunks.push(chunk);
+            },
         }
     }
 
@@ -324,8 +341,12 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
             let pre = curr_chunks.remove(candidate).unwrap();
             let post = curr_chunks.remove(&(candidate.0.clone(), candidate.1 + 1)).unwrap();
             curr_chunks.insert((candidate.0.clone(), candidate.1), merge_chunks(pre, post));
+            let curr_chunks_vec = vec![
+                curr_chunks.into_values().collect(),
+                unmergeable_chunks,
+            ].concat();
 
-            return merge_and_convert_chunks(index, curr_chunks.into_values().collect(), render_image);
+            return merge_and_convert_chunks(index, curr_chunks_vec, render_image);
         }
     }
 
@@ -348,6 +369,10 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
 
     let mut result = Vec::with_capacity(curr_chunks.len());
 
+    for chunk in unmergeable_chunks.into_iter() {
+        result.push(chunk.into_renderable(index, render_image)?);
+    }
+
     for chunk in curr_chunks.into_iter() {
         result.push(chunk.into_renderable(index, render_image)?);
     }
@@ -356,10 +381,24 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
 }
 
 fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
-    let ChunkSource::File { path: pre_path, index: pre_index } = pre.source.clone() else { unreachable!() };
-    let ChunkSource::File { path: post_path, index: post_index } = post.source.clone() else { unreachable!() };
+    let ChunkSource::File {
+        path: pre_path,
+        index: pre_index,
+        page: pre_page,
+    } = pre.source.clone() else { unreachable!() };
+    let ChunkSource::File {
+        path: post_path,
+        index: post_index,
+        page: post_page,
+    } = post.source.clone() else { unreachable!() };
     assert_eq!(pre_path, post_path);
     assert_eq!(pre_index + 1, post_index);
+    let page_no = if pre_page == post_page {
+        pre_page
+    } else {
+        None
+    };
+
     let Chunk {
         data: data_pre,
         images: images_pre,
@@ -384,7 +423,7 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         timestamp: Local::now().timestamp(),
 
         // When 1st and 2nd chunks are merged, the result is 1st, not 2nd.
-        source: ChunkSource::File { path: pre_path, index: pre_index },
+        source: ChunkSource::File { path: pre_path, index: pre_index, page: page_no },
 
         // If source is `File`, it must be searchable
         searchable: true,
@@ -453,4 +492,14 @@ impl From<&Chunk> for ChunkSchema {
             summary: chunk.summary.clone(),
         }
     }
+}
+
+/// I know it's becoming overly complicated... but I cannot help it.
+/// Sometimes `FileReader`s want to add extra information to a chunk
+/// (e.g. page number) that is only available to them. In those cases,
+/// they can use `AtomicToken::PageBreak { extra_info: ChunkExtraInfo }`
+/// to pass the information.
+#[derive(Clone, Copy, Debug)]
+pub struct ChunkExtraInfo {
+    pub page_no: Option<usize>,
 }

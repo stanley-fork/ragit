@@ -945,6 +945,10 @@ components:
           type: integer
           description: It's null if and only if `file` is null. It's the index of the chunk in the file.
           nullable: true
+        page_no:
+          type: integer
+          description: Some chunks (e.g. chunks from pdfs) have page numbers.
+          nullable: true
         timestamp:
           type: integer
         model:
