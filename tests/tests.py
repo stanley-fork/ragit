@@ -33,6 +33,7 @@ from pdf import pdf
 from prompts import prompts
 from query_options import query_options
 from ragit_api import ragit_api
+from real_repos import real_repos
 from recover import recover
 from server import server
 from server_chat import server_chat
@@ -240,6 +241,10 @@ Commands
                                 add that to this test.
 
     csv_reader                  run `csv_reader` test
+
+    real_repos                  run `real_repos` test
+                                Clone real git repos from the web and build knowledge-base
+                                on the repos. It's to test file readers, not LLMs.
 
     prompts [model=dummy]       run `prompts` test
                                 It's the smallest set of commands that parses and executes
@@ -449,6 +454,9 @@ if __name__ == "__main__":
         elif command == "csv_reader":
             csv_reader()
 
+        elif command == "real_repos":
+            real_repos()
+
         elif command == "prompts":
             test_model = test_model or "dummy"
             prompts(test_model=test_model)
@@ -500,6 +508,7 @@ if __name__ == "__main__":
                 ("images", images),
                 ("markdown_reader", markdown_reader),
                 ("csv_reader", csv_reader),
+                ("real_repos", real_repos),
                 ("subdir", subdir),
                 ("tfidf", tfidf),
                 ("merge", merge),

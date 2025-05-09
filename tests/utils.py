@@ -26,10 +26,14 @@ def clean():
     if os.path.exists("data/test-user"):
         shutil.rmtree("data/test-user")
 
-def mk_and_cd_tmp_dir():
-    # let's avoid name collision
-    dir_name = f"__tmp_{randint(0, 1 << 64):x}"
-    os.mkdir(dir_name)
+def mk_and_cd_tmp_dir(dir_name: Optional[str] = None):
+    if dir_name is None:
+        # let's avoid name collision
+        dir_name = f"__tmp_{randint(0, 1 << 64):x}"
+
+    if not os.path.exists(dir_name):
+        os.mkdir(dir_name)
+
     os.chdir(dir_name)
 
 def read_string(path: str) -> str:
