@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS user_ (
     id TEXT PRIMARY KEY,
 
     name TEXT,
-    email TEXT,
+    email TEXT NOT NULL,
     readme TEXT,
     public BOOLEAN NOT NULL,
     is_admin BOOLEAN NOT NULL,

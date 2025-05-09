@@ -20,6 +20,19 @@ pub struct ChunkDetail {
     pub ragit_version: String,
 }
 
+impl ChunkDetail {
+    /// If you're building ragit-frontend in Rust, you're likely to depend on
+    /// ragit-server and you're likely to want `ragit::Chunk::sortable_string`.
+    /// This method tries to behave like `ragit::Chunk::sortable_string`. It it
+    /// doesn't, please file an issue.
+    pub fn sortable_string(&self) -> String {
+        match (&self.file, self.file_index) {
+            (Some(file), Some(file_index)) => format!("file: {file}-{file_index:09}"),
+            _ => String::new(),
+        }
+    }
+}
+
 impl From<Chunk> for ChunkDetail {
     fn from(c: Chunk) -> ChunkDetail {
         let (file, file_index, page_no) = match &c.source {

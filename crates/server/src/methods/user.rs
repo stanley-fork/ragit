@@ -1,7 +1,7 @@
 use super::{HandleError, RawResponse, get_pool, handler};
 use crate::{AI_MODEL_CONFIG, CONFIG};
 use crate::models::{ai_model, auth};
-use crate::models::user::{self, UserCreate};
+use crate::models::user::{self, UserCreation};
 use ragit_api::JsonType;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -52,7 +52,7 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
         auth::is_admin(api_key, pool).await.handle_error(500)?.handle_error(403)?;
     }
 
-    let user = serde_json::from_value::<UserCreate>(body).handle_error(400)?;
+    let user = serde_json::from_value::<UserCreation>(body).handle_error(400)?;
     user::create(&user, pool).await.handle_error(500)?;
     let ai_model_config = AI_MODEL_CONFIG.get().handle_error(500)?;
 

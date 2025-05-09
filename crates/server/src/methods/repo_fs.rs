@@ -203,8 +203,7 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
     let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
 
-    // TODO: why 50? why not 100? -> so are other `limit` params!
-    let limit = get_or(&query, "limit", 50);
+    let limit = get_or(&query, "limit", 100);
     let mut offset = get_or(&query, "offset", 0);
     let mut path = get_or(&query, "path", String::from("/"));
     path = ragit_fs::normalize(&path).handle_error(400)?;

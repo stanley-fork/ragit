@@ -35,7 +35,7 @@ pub async fn search_(user: String, repo: String, query: HashMap<String, String>,
         &format!("search({user:?}, {repo:?}, {query:?})"),
     );
 
-    let limit = get_or(&query, "limit", 50);
+    let limit = get_or(&query, "limit", 100);
     let offset = get_or(&query, "offset", 0);
 
     // It uses a simple hack to search by file/dir.

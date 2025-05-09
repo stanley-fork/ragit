@@ -29,10 +29,10 @@ pub struct UserSimple {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct UserCreate {
+pub struct UserCreation {
     pub id: String,
     pub name: Option<String>,
-    pub email: Option<String>,
+    pub email: String,
     pub password: String,
     pub readme: Option<String>,
     pub public: bool,
@@ -73,7 +73,7 @@ pub async fn get_detail(id: &str, pool: &PgPool) -> Result<UserDetail, Error> {
     Ok(result)
 }
 
-pub async fn create(user: &UserCreate, pool: &PgPool) -> Result<(), Error> {
+pub async fn create(user: &UserCreation, pool: &PgPool) -> Result<(), Error> {
     let salt = format!("{:x}", rand::random::<u128>());
     let password = auth::hash_password(&salt, &user.password);
 

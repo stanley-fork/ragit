@@ -361,7 +361,7 @@ paths:
           schema:
             type: integer
             format: int32
-            default: 50
+            default: 100
         - name: offset
           in: query
           description: todo
@@ -523,7 +523,7 @@ paths:
           schema:
             type: integer
             format: int32
-            default: 50
+            default: 100
         - name: offset
           in: query
           description: todo
@@ -691,7 +691,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserCreate'
+              $ref: '#/components/schemas/UserCreation'
       responses:
         '200':
           description: The response has no body.
@@ -843,7 +843,7 @@ components:
         last_login_at:
           type: string
           format: date-time
-    UserCreate:
+    UserCreation:
       type: object
       properties:
         id:
