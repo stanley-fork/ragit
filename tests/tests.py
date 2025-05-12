@@ -39,6 +39,7 @@ from server import server
 from server_chat import server_chat
 from server_permission import server_permission
 from subdir import subdir
+from svg import svg
 from symlink import symlink
 from tfidf import tfidf
 from web_images import web_images
@@ -219,6 +220,10 @@ Commands
 
     pdf [model]                 run `pdf` test
                                 It tests the pdf reader.
+                                You have to use a vision language model!
+
+    svg [model]                 run `svg` test
+                                It tests the svg reader.
                                 You have to use a vision language model!
 
     web_images [model]          run `web_images` test
@@ -420,6 +425,13 @@ if __name__ == "__main__":
 
             pdf(test_model=test_model)
 
+        elif command == "svg":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            svg(test_model=test_model)
+
         elif command == "web_images":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -526,6 +538,7 @@ if __name__ == "__main__":
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
                 ("images3 gpt-4o-mini", lambda: images3(test_model="gpt-4o-mini")),
                 ("pdf gpt-4o-mini", lambda: pdf(test_model="gpt-4o-mini")),
+                ("svg gpt-4o-mini", lambda: svg(test_model="gpt-4o-mini")),
                 ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),
 
                 # TODO: replace it with haiku when haiku's vision becomes available
@@ -621,6 +634,7 @@ if __name__ == "__main__":
                 sys.exit(1)
 
         else:
+            print("invalid command:", command)
             print(help_message)
 
     finally:

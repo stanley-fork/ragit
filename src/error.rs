@@ -89,6 +89,12 @@ pub enum Error {
     /// see <https://docs.rs/mupdf/latest/mupdf/error/enum.Error.html>
     MuPdfError(mupdf::Error),
 
+    /// see <https://docs.rs/usvg/0.45.1/usvg/enum.Error.html>
+    UsvgError(resvg::usvg::Error),
+
+    /// see <https://docs.rs/png/latest/png/enum.EncodingError.html>
+    PngEncodingError(png::EncodingError),
+
     FileError(FileError),
     StdIoError(std::io::Error),
     Utf8Error(FromUtf8Error),
@@ -157,6 +163,18 @@ impl From<tokio::task::JoinError> for Error {
 impl From<mupdf::Error> for Error {
     fn from(e: mupdf::Error) -> Self {
         Error::MuPdfError(e)
+    }
+}
+
+impl From<resvg::usvg::Error> for Error {
+    fn from(e: resvg::usvg::Error) -> Self {
+        Error::UsvgError(e)
+    }
+}
+
+impl From<png::EncodingError> for Error {
+    fn from(e: png::EncodingError) -> Self {
+        Error::PngEncodingError(e)
     }
 }
 

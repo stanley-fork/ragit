@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+ <!-- copied and modified https://github.com/rust-lang/rustc-dev-guide/blob/master/src/mir/mir_detailed.svg -->
+<svg width="710pt" height="655pt"
+ viewBox="0.00 0.00 710.21 655.48" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 651.4802)">
+<title>G</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-651.4802 706.2058,-651.4802 706.2058,4 -4,4"/>
+<g id="node1" class="node">
+<ellipse fill="#ff2020" stroke="none" cx="355.0" cy="-327.0" rx="125.0" ry="125.0"/>
+</g>
+</g>
+</svg>

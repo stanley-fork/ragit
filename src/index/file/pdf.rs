@@ -1,4 +1,4 @@
-use super::{AtomicToken, FileReaderImpl, Image};
+use super::{AtomicToken, FileReaderImpl, Image, normalize_image};
 use crate::chunk::ChunkExtraInfo;
 use crate::error::Error;
 use crate::index::BuildConfig;
@@ -107,6 +107,7 @@ fn convert_page(
         &mut bytes,
         ImageFormat::PNG,
     )?;
+    let bytes = normalize_image(bytes, ImageType::Png)?;
     let uid = Uid::new_image(&bytes);
 
     Ok(AtomicToken::Image(Image {

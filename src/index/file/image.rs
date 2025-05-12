@@ -4,6 +4,9 @@ use crate::index::BuildConfig;
 use crate::uid::Uid;
 use ragit_fs::{extension, read_bytes};
 use ragit_pdl::ImageType;
+use resvg::render;
+use resvg::tiny_skia::{Pixmap, Transform};
+use resvg::usvg::{self, Tree};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Cursor;
@@ -38,10 +41,19 @@ impl fmt::Debug for Image {
 }
 
 pub fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>, Error> {
-    let mut dynamic_image = image::load_from_memory_with_format(
-        &bytes,
-        image_type.into(),
-    )?;
+    let mut dynamic_image = match image_type {
+        ImageType::Svg => {
+            let bytes = render_svg_to_png(&bytes)?;
+            image::load_from_memory_with_format(
+                &bytes,
+                ImageType::Png.try_into()?,
+            )?
+        },
+        _ => image::load_from_memory_with_format(
+            &bytes,
+            image_type.try_into()?,
+        )?,
+    };
 
     if dynamic_image.width() > 1024 || dynamic_image.height() > 1024 {
         dynamic_image = dynamic_image.resize(1024, 1024, image::imageops::FilterType::Triangle);
@@ -115,4 +127,30 @@ impl FileReaderImpl for ImageReader {
 pub struct ImageDescription {
     pub extracted_text: String,
     pub explanation: String,
+}
+
+fn render_svg_to_png(svg: &[u8]) -> Result<Vec<u8>, Error> {
+    let tree_options = usvg::Options {
+        // It returns `None` if `width` or `height` is negative.
+        // So we can safely unwrap the result.
+        default_size: usvg::Size::from_wh(1024.0, 1024.0).unwrap(),
+        ..usvg::Options::default()
+    };
+    let tree = Tree::from_data(svg, &tree_options)?;
+    let svg_size = tree.size();
+
+    // As far as I know, it returns None only if size is 0
+    let mut pixmap = Pixmap::new(
+        svg_size.width() as u32,
+        svg_size.height() as u32,
+    ).unwrap_or_else(
+        || Pixmap::new(1024, 1024).unwrap()
+    );
+    render(
+        &tree,
+        Transform::identity(),
+        &mut pixmap.as_mut(),
+    );
+
+    Ok(pixmap.encode_png()?)
 }

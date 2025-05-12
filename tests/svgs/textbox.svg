@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- copied and modified https://github.com/rust-lang/rustc-dev-guide/blob/master/src/mir/mir_cfg.svg -->
+<svg width="675pt" height="1010pt"
+ viewBox="0.00 0.00 675.00 1010.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1006)">
+<g id="node1" class="node">
+<title>bb0__0_4</title>
+<polygon fill="gray" stroke="transparent" points="24,-832.5 24,-853.5 270,-853.5 270,-832.5 24,-832.5"/>
+<polygon fill="none" stroke="black" points="24,-832.5 24,-853.5 270,-853.5 270,-832.5 24,-832.5"/>
+<text text-anchor="start" x="142.5" y="-839.3" font-family="Courier, monospace" font-size="14.00">0</text>
+<polygon fill="none" stroke="black" points="24,-691.5 24,-832.5 270,-832.5 270,-691.5 24,-691.5"/>
+<text text-anchor="start" x="27" y="-713.3" font-family="Courier, monospace" font-size="14.00">What is the name</text>
+<text text-anchor="start" x="27" y="-698.3" font-family="Courier, monospace" font-size="14.00">of the project?</text>
+<polygon fill="none" stroke="black" points="24,-670.5 24,-691.5 270,-691.5 270,-670.5 24,-670.5"/>
+<text text-anchor="start" x="27" y="-677.3" font-family="Courier, monospace" font-size="14.00">It is "ragit"</text>
+</g>
+</g>
+</svg>
