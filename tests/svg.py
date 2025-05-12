@@ -96,11 +96,11 @@ def svg(test_model: str):
     # Ragit internally converts svg files to png files and
     # feed the png files to LLM.
     cargo_run(["gc", "--images"])
-    assert len(json.loads(cargo_run(["ls-images", "--json"]))) == 3
+    assert len(json.loads(cargo_run(["ls-images", "--json"], stdout=True))) == 3
 
     # find the converted png files
     for svg_file in valid_files:
-        chunks = json.loads(cargo_run(["ls-chunks", svg_file, "--json"], stdout=True))
+        chunks = json.loads(cargo_run(["ls-chunks", svg_to_md(svg_file), "--json"], stdout=True))
         image_uid = chunks[0]["images"][0]
         image_path = os.path.join(
             ".ragit",

@@ -25,6 +25,7 @@ pub use index::{
     AddResult,
     Audit,
     BuildConfig,
+    BuildResult,
     IIStatus,
     Index,
     LoadMode,

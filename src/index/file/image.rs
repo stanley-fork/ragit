@@ -76,15 +76,17 @@ pub struct ImageReader {
     path: Path,
     tokens: Vec<AtomicToken>,
     image_type: ImageType,
+    strict_mode: bool,
     is_exhausted: bool,
 }
 
 impl FileReaderImpl for ImageReader {
-    fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
+    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
         Ok(ImageReader {
             path: path.to_string(),
-            image_type: ImageType::from_extension(&extension(path)?.unwrap_or(String::new()))?,
             tokens: vec![],
+            image_type: ImageType::from_extension(&extension(path)?.unwrap_or(String::new()))?,
+            strict_mode: config.strict_file_reader,
             is_exhausted: false,
         })
     }
@@ -96,15 +98,31 @@ impl FileReaderImpl for ImageReader {
 
         else {
             let bytes = read_bytes(&self.path)?;
-            let bytes = normalize_image(bytes, self.image_type)?;
-            let uid = Uid::new_image(&bytes);
-            self.tokens.push(AtomicToken::Image(Image {
-                bytes,
-                image_type: ImageType::Png,
-                uid,
-            }));
-            self.is_exhausted = true;
-            Ok(())
+
+            match normalize_image(bytes.clone(), self.image_type) {
+                Ok(bytes) => {
+                    let uid = Uid::new_image(&bytes);
+                    self.tokens.push(AtomicToken::Image(Image {
+                        bytes,
+                        image_type: ImageType::Png,
+                        uid,
+                    }));
+                    self.is_exhausted = true;
+                    Ok(())
+                },
+                Err(e) => if self.strict_mode {
+                    Err(e)
+                } else {
+                    // TODO: split `s` if it's too long
+                    let s = String::from_utf8_lossy(&bytes).to_string();
+                    self.tokens.push(AtomicToken::String {
+                        data: s.clone(),
+                        char_len: s.chars().count(),
+                    });
+                    self.is_exhausted = true;
+                    Ok(())
+                },
+            }
         }
     }
 

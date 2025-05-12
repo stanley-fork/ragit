@@ -13,7 +13,10 @@ use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
     exists,
+    join4,
     parent,
+    remove_file,
+    set_extension,
     try_create_dir,
     write_bytes,
 };
@@ -22,63 +25,47 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
+pub struct BuildResult {
+    pub success: usize,
+
+    /// Vec<(file, error)>
+    pub errors: Vec<(String, String)>,
+}
+
 impl Index {
-    pub async fn build(&mut self, workers: usize, quiet: bool) -> Result<(), Error> {
-        let mut remaining_chunks = 0;
+    pub async fn build(&mut self, workers: usize, quiet: bool) -> Result<BuildResult, Error> {
+        let mut workers = init_workers(workers, self.root_dir.clone());
         let started_at = Instant::now();
-        let mut errors = vec![];
-        let mut prev_lines = 0;
 
-        for (index, file) in self.staged_files.iter().enumerate() {
-            let elapsed_time = Instant::now().duration_since(started_at).as_secs();
+        // TODO: API is messy. I want `rag build` to be generous. When it fails to process
+        // a file, I want it to skip the file and process the other files. So, it doesn't
+        // return on error and push the errors to `result.errors`. But still there're unrecoverable
+        // errors. They just kill all the workers and return immediately.
+        match self.build_worker(&mut workers, started_at, quiet) {
+            Ok(result) => {
+                if !quiet {
+                    let elapsed_time = Instant::now().duration_since(started_at).as_secs();
+                    println!("---");
+                    println!("completed building knowledge-base");
+                    println!("total elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+                    println!(
+                        "successfully processed {} file{}",
+                        result.success,
+                        if result.success > 1 { "s" } else { "" },
+                    );
+                    println!(
+                        "{} error{}",
+                        result.errors.len(),
+                        if result.errors.len() > 1 { "s" } else { "" },
+                    );
 
-            if !quiet {
-                erase_lines(prev_lines);
-                println!("---");
-                println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
-                println!("counting chunks... {}/{}", index + 1, self.staged_files.len());
-                prev_lines = 3;
-
-                if !errors.is_empty() {
-                    println!("{} errors", errors.len());
-                    prev_lines += 1;
-
-                    for (file, error) in errors.iter().take(5) {
-                        println!("    {file}: {error}");
-                        prev_lines += 1;
-                    }
-
-                    if errors.len() > 5 {
-                        println!("    ... {} more errors", errors.len() - 5);
-                        prev_lines += 1;
+                    for (file, error) in result.errors.iter() {
+                        println!("    `{file}`: {error}");
                     }
                 }
-            }
 
-            let real_path = Index::get_data_path(
-                &self.root_dir,
-                file,
-            )?;
-            let mut fd = FileReader::new(file.to_string(), real_path, self.build_config.clone())?;
-
-            while fd.can_generate_chunk() {
-                remaining_chunks += 1;
-
-                if let Err(e) = fd.next_chunk() {
-                    errors.push((file.to_string(), format!("{e:?}")));
-                    break;
-                };
-            }
-        }
-
-        if !errors.is_empty() {
-            return Err(Error::CannotBuild(errors));
-        }
-
-        let mut workers = init_workers(workers, self.root_dir.clone());
-
-        match self.build_worker(&mut workers, remaining_chunks, started_at, quiet) {
-            Ok(()) => Ok(()),
+                Ok(result)
+            },
             Err(e) => {
                 for worker in workers.iter_mut() {
                     let _ = worker.send(Request::Kill);
@@ -92,18 +79,22 @@ impl Index {
     fn build_worker(
         &mut self,
         workers: &mut Vec<Channel>,
-        mut remaining_chunks: usize,
         started_at: Instant,
         quiet: bool,
-    ) -> Result<(), Error> {
+    ) -> Result<BuildResult, Error> {
         let mut killed_workers = vec![];
         let mut staged_files = self.staged_files.clone();
-        let mut completed_files = vec![];
+        let mut curr_completed_files = vec![];
+        let mut success = 0;
+        let mut errors = vec![];
         let mut buffered_chunk_count = 0;
         let mut flush_count = 0;
 
         // HashMap<file, HashMap<index in file, chunk uid>>
         let mut buffer: HashMap<String, HashMap<usize, Uid>> = HashMap::new();
+
+        // HashMap<worker id, file>
+        let mut curr_processing_file: HashMap<usize, String> = HashMap::new();
 
         for (worker_index, worker) in workers.iter_mut().enumerate() {
             if let Some(file) = staged_files.pop() {
@@ -117,6 +108,7 @@ impl Index {
                 self.curr_processing_file = Some(String::new());
 
                 buffer.insert(file.clone(), HashMap::new());
+                curr_processing_file.insert(worker_index, file.clone());
                 worker.send(Request::BuildChunks { file }).map_err(|_| Error::MPSCError(String::from("Build worker hung up")))?;
             }
 
@@ -133,10 +125,9 @@ impl Index {
             if !quiet {
                 self.render_build_dashboard(
                     &buffer,
-                    &completed_files,
+                    &curr_completed_files,
                     started_at.clone(),
                     flush_count,
-                    remaining_chunks,
                     has_to_erase_lines,
                 );
                 has_to_erase_lines = true;
@@ -151,7 +142,6 @@ impl Index {
                     Ok(msg) => match msg {
                         Response::ChunkComplete { file, chunk_uid, index } => {
                             buffered_chunk_count += 1;
-                            remaining_chunks -= 1;
 
                             match buffer.get_mut(&file) {
                                 Some(chunks) => {
@@ -195,6 +185,7 @@ impl Index {
 
                             if let Some(file) = staged_files.pop() {
                                 buffer.insert(file.clone(), HashMap::new());
+                                curr_processing_file.insert(worker_index, file.clone());
                                 worker.send(Request::BuildChunks { file }).map_err(|_| Error::MPSCError(String::from("Build worker hung up.")))?;
                             }
 
@@ -203,10 +194,46 @@ impl Index {
                                 killed_workers.push(worker_index);
                             }
 
-                            completed_files.push(file);
+                            curr_completed_files.push(file);
+                            success += 1;
                         },
                         Response::Error(e) => {
-                            return Err(e);
+                            if let Some(file) = curr_processing_file.get(&worker_index) {
+                                errors.push((file.to_string(), format!("{e:?}")));
+
+                                // clean up garbages of the failed file
+                                let chunk_uids = buffer.get(file).unwrap().iter().map(
+                                    |(_, uid)| *uid
+                                ).collect::<Vec<_>>();
+
+                                for chunk_uid in chunk_uids.iter() {
+                                    let prefix = chunk_uid.get_prefix();
+                                    let suffix = chunk_uid.get_suffix();
+                                    let chunk_path = join4(
+                                        &self.root_dir,
+                                        CHUNK_DIR_NAME,
+                                        &prefix,
+                                        &set_extension(
+                                            &suffix,
+                                            "chunk",
+                                        )?,
+                                    )?;
+                                    remove_file(&chunk_path)?;
+                                }
+
+                                buffer.remove(file);
+                            }
+
+                            if let Some(file) = staged_files.pop() {
+                                buffer.insert(file.clone(), HashMap::new());
+                                curr_processing_file.insert(worker_index, file.clone());
+                                worker.send(Request::BuildChunks { file }).map_err(|_| Error::MPSCError(String::from("Build worker hung up.")))?;
+                            }
+
+                            else {
+                                worker.send(Request::Kill).map_err(|_| Error::MPSCError(String::from("Build worker hung up.")))?;
+                                killed_workers.push(worker_index);
+                            }
                         },
                     },
                     Err(mpsc::error::TryRecvError::Empty) => {},
@@ -220,15 +247,15 @@ impl Index {
 
             // It flushes and commits 9 or more files at once.
             // TODO: this number has to be configurable
-            if completed_files.len() > 8 || killed_workers.len() == workers.len() {
+            if curr_completed_files.len() > 8 || killed_workers.len() == workers.len() {
                 self.staged_files = self.staged_files.iter().filter(
-                    |staged_file| !completed_files.contains(staged_file)
+                    |staged_file| !curr_completed_files.contains(staged_file)
                 ).map(
                     |staged_file| staged_file.to_string()
                 ).collect();
                 let mut ii_buffer = HashMap::new();
 
-                for file in completed_files.iter() {
+                for file in curr_completed_files.iter() {
                     let real_path = Index::get_data_path(
                         &self.root_dir,
                         file,
@@ -278,17 +305,16 @@ impl Index {
                 self.save_to_file()?;
 
                 buffered_chunk_count = 0;
-                completed_files = vec![];
+                curr_completed_files = vec![];
                 flush_count += 1;
 
                 if killed_workers.len() == workers.len() {
                     if !quiet {
                         self.render_build_dashboard(
                             &buffer,
-                            &completed_files,
+                            &curr_completed_files,
                             started_at.clone(),
                             flush_count,
-                            remaining_chunks,
                             has_to_erase_lines,
                         );
                     }
@@ -302,27 +328,29 @@ impl Index {
 
         self.curr_processing_file = None;
         self.save_to_file()?;
-        Ok(())
+        Ok(BuildResult {
+            success,
+            errors,
+        })
     }
 
     fn render_build_dashboard(
         &self,
         buffer: &HashMap<String, HashMap<usize, Uid>>,
-        completed_files: &[String],
+        curr_completed_files: &[String],
         started_at: Instant,
         flush_count: usize,
-        remaining_chunks: usize,
         has_to_erase_lines: bool,
     ) {
         if has_to_erase_lines {
-            erase_lines(10);
+            erase_lines(9);
         }
 
         let elapsed_time = Instant::now().duration_since(started_at).as_secs();
         let mut curr_processing_files = vec![];
 
         for file in buffer.keys() {
-            if !completed_files.contains(file) {
+            if !curr_completed_files.contains(file) {
                 curr_processing_files.push(format!("`{file}`"));
             }
         }
@@ -330,7 +358,6 @@ impl Index {
         println!("---");
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
-        println!("remaining chunks (approx): {remaining_chunks}");
         println!("committed chunks: {}", self.chunk_count);
         println!(
             "currently processing files: {}",
@@ -375,108 +402,86 @@ impl Index {
     }
 }
 
-async fn event_loop(
+async fn build_chunks(
+    index: &Index,
+    file: String,
+    prompt_hash: String,
     tx_to_main: mpsc::UnboundedSender<Response>,
-    mut rx_from_main: mpsc::UnboundedReceiver<Request>,
-    root_dir: String,
 ) -> Result<(), Error> {
-    // Each process requires an instance of `Index`, but I found
-    // it too difficult to send the instance via mpsc channels.
-    // So I'm just instantiating new ones here.
-    // Be careful not to modify the index!
-    let index = Index::load(
-        root_dir,
-        LoadMode::OnlyJson,
+    let real_path = Index::get_data_path(
+        &index.root_dir,
+        &file,
     )?;
-    let prompt = index.get_prompt("summarize")?;
-    let mut hasher = Sha3_256::new();
-    hasher.update(prompt.as_bytes());
-    let prompt_hash = hasher.finalize();
-    let prompt_hash = format!("{prompt_hash:064x}");
+    let mut fd = FileReader::new(
+        file.clone(),
+        real_path.clone(),
+        index.build_config.clone(),
+    )?;
+    let build_info = ChunkBuildInfo::new(
+        fd.file_reader_key(),
+        prompt_hash.clone(),
+        index.api_config.model.clone(),
+    );
+    let mut index_in_file = 0;
+    let mut previous_summary = None;
 
-    while let Some(msg) = rx_from_main.recv().await {
-        match msg {
-            Request::BuildChunks { file } => {
-                let real_path = Index::get_data_path(
-                    &index.root_dir,
-                    &file,
-                )?;
-                let mut fd = FileReader::new(
-                    file.clone(),
-                    real_path.clone(),
-                    index.build_config.clone(),
-                )?;
-                let build_info = ChunkBuildInfo::new(
-                    fd.file_reader_key(),
-                    prompt_hash.clone(),
-                    index.api_config.model.clone(),
-                );
-                let mut index_in_file = 0;
-                let mut previous_summary = None;
+    while fd.can_generate_chunk() {
+        let new_chunk = fd.generate_chunk(
+            &index,
+            build_info.clone(),
+            previous_summary.clone(),
+            index_in_file,
+        ).await?;
+        previous_summary = Some((new_chunk.clone(), (&new_chunk).into()));
+        let new_chunk_uid = new_chunk.uid;
+        let new_chunk_path = Index::get_uid_path(
+            &index.root_dir,
+            CHUNK_DIR_NAME,
+            new_chunk_uid,
+            Some("chunk"),
+        )?;
 
-                while fd.can_generate_chunk() {
-                    let new_chunk = fd.generate_chunk(
-                        &index,
-                        build_info.clone(),
-                        previous_summary.clone(),
-                        index_in_file,
-                    ).await?;
-                    previous_summary = Some((new_chunk.clone(), (&new_chunk).into()));
-                    let new_chunk_uid = new_chunk.uid;
-                    let new_chunk_path = Index::get_uid_path(
-                        &index.root_dir,
-                        CHUNK_DIR_NAME,
-                        new_chunk_uid,
-                        Some("chunk"),
-                    )?;
+        for (uid, bytes) in fd.images.iter() {
+            let image_path = Index::get_uid_path(
+                &index.root_dir,
+                IMAGE_DIR_NAME,
+                *uid,
+                Some("png"),
+            )?;
+            let parent_path = parent(&image_path)?;
 
-                    for (uid, bytes) in fd.images.iter() {
-                        let image_path = Index::get_uid_path(
-                            &index.root_dir,
-                            IMAGE_DIR_NAME,
-                            *uid,
-                            Some("png"),
-                        )?;
-                        let parent_path = parent(&image_path)?;
-    
-                        if !exists(&parent_path) {
-                            try_create_dir(&parent_path)?;
-                        }
-    
-                        write_bytes(
-                            &image_path,
-                            &bytes,
-                            WriteMode::Atomic,
-                        )?;
-                        index.add_image_description(*uid).await?;
-                    }
+            if !exists(&parent_path) {
+                try_create_dir(&parent_path)?;
+            }
 
-                    chunk::save_to_file(
-                        &new_chunk_path,
-                        &new_chunk,
-                        index.build_config.compression_threshold,
-                        index.build_config.compression_level,
-                        &index.root_dir,
-                        true,  // create tfidf
-                    )?;
-                    tx_to_main.send(Response::ChunkComplete {
-                        file: file.clone(),
-                        index: index_in_file,
-                        chunk_uid: new_chunk_uid,
-                    }).map_err(|_| Error::MPSCError(String::from("Failed to send response to main")))?;
-                    index_in_file += 1;
-                }
-
-                tx_to_main.send(Response::FileComplete {
-                    file,
-                    chunk_count: index_in_file,
-                }).map_err(|_| Error::MPSCError(String::from("Failed to send response to main")))?;
-            },
-            Request::Kill => { break; },
+            write_bytes(
+                &image_path,
+                &bytes,
+                WriteMode::Atomic,
+            )?;
+            index.add_image_description(*uid).await?;
         }
+
+        chunk::save_to_file(
+            &new_chunk_path,
+            &new_chunk,
+            index.build_config.compression_threshold,
+            index.build_config.compression_level,
+            &index.root_dir,
+            true,  // create tfidf
+        )?;
+        tx_to_main.send(Response::ChunkComplete {
+            file: file.clone(),
+            index: index_in_file,
+            chunk_uid: new_chunk_uid,
+        }).map_err(|_| Error::MPSCError(String::from("Failed to send response to main")))?;
+        index_in_file += 1;
     }
 
-    drop(tx_to_main);
+    tx_to_main.send(Response::FileComplete {
+        file,
+        chunk_count: index_in_file,
+    }).map_err(|_| Error::MPSCError(String::from("Failed to send response to main")))?;
     Ok(())
 }
 
@@ -514,22 +519,63 @@ fn init_workers(n: usize, root_dir: String) -> Vec<Channel> {
 
 fn init_worker(root_dir: String) -> Channel {
     let (tx_to_main, rx_to_main) = mpsc::unbounded_channel();
-    let (tx_from_main, rx_from_main) = mpsc::unbounded_channel();
+    let (tx_from_main, mut rx_from_main) = mpsc::unbounded_channel();
 
     tokio::spawn(async move {
-        match event_loop(
-            tx_to_main.clone(),
-            rx_from_main,
-            root_dir.clone(),
-        ).await {
-            Ok(_) => {},
+        // Each process requires an instance of `Index`, but I found
+        // it too difficult to send the instance via mpsc channels.
+        // So I'm just instantiating new ones here.
+        // Be careful not to modify the index!
+        let index = match Index::load(
+            root_dir,
+            LoadMode::OnlyJson,
+        ) {
+            Ok(index) => index,
             Err(e) => {
-                tx_to_main.send(Response::Error(e)).unwrap();
+                let _ = tx_to_main.send(Response::Error(e));
+                drop(tx_to_main);
+                return;
             },
+        };
+        let prompt = match index.get_prompt("summarize") {
+            Ok(prompt) => prompt,
+            Err(e) => {
+                let _ = tx_to_main.send(Response::Error(e));
+                drop(tx_to_main);
+                return;
+            },
+        };
+        let mut hasher = Sha3_256::new();
+        hasher.update(prompt.as_bytes());
+        let prompt_hash = hasher.finalize();
+        let prompt_hash = format!("{prompt_hash:064x}");
+
+        while let Some(msg) = rx_from_main.recv().await {
+            match msg {
+                Request::BuildChunks { file } => match build_chunks(
+                    &index,
+                    file,
+                    prompt_hash.clone(),
+                    tx_to_main.clone(),
+                ).await {
+                    Ok(_) => {},
+                    Err(e) => {
+                        // the parent process is dead
+                        if tx_to_main.send(Response::Error(e)).is_err() {
+                            break;
+                        }
+                    },
+                },
+                Request::Kill => { break; },
+            }
         }
+
+        drop(tx_to_main);
+        return;
     });
 
     Channel {
-        rx_to_main, tx_from_main
+        rx_to_main,
+        tx_from_main,
     }
 }

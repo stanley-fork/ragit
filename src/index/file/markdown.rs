@@ -160,20 +160,19 @@ impl MarkdownReader {
                         }
                     }
 
-                    let bytes = match read_bytes(&url) {
+                    let bytes = match load_and_normalize_image(&url) {
                         Ok(bytes) => bytes,
                         Err(e) => if self.strict_mode {
                             return Err(e.into());
                         } else {
-                            let fallback = format!("![{desc}](url)");
+                            let fallback = format!("![{desc}]({url})");
                             self.tokens.push(AtomicToken::String {
+                                data: fallback.clone(),
                                 char_len: fallback.chars().count(),
-                                data: fallback,
                             });
                             continue;
                         },
                     };
-                    let bytes = normalize_image(bytes, ImageType::from_extension(&extension(&url).unwrap_or(Some(String::from("png"))).unwrap_or(String::from("png")))?)?;
                     let uid = Uid::new_image(&bytes);
                     self.tokens.push(AtomicToken::Image(Image {
                         image_type: ImageType::Png,
@@ -463,6 +462,12 @@ fn get_matching_bracket_index(chars: &[char], mut index: usize) -> Option<usize>
             },
         }
     }
+}
+
+fn load_and_normalize_image(url: &str) -> Result<Vec<u8>, Error> {
+    let bytes = read_bytes(url)?;
+    let image_type = ImageType::from_extension(&extension(&url).unwrap_or(Some(String::from("png"))).unwrap_or(String::from("png")))?;
+    Ok(normalize_image(bytes, image_type)?)
 }
 
 #[cfg(test)]

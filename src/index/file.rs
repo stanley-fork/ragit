@@ -56,7 +56,7 @@ impl FileReader {
         // TODO: use a config file, instead of hard-coding the extensions
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
             "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl + Send>,
-            "png" | "jpg" | "jpeg" | "gif" | "webp" => Box::new(ImageReader::new(&real_path, &config)?),
+            "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" => Box::new(ImageReader::new(&real_path, &config)?),
             "jsonl" => Box::new(LineReader::new(&real_path, &config)?),
             "csv" => Box::new(CsvReader::new(&real_path, &config)?),
             "pdf" => Box::new(PdfReader::new(&real_path, &config)?),

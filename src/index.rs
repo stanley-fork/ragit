@@ -71,6 +71,7 @@ pub use commands::{
     AddMode,
     AddResult,
     Audit,
+    BuildResult,
     MergeMode,
     MergeResult,
     RecoverResult,
