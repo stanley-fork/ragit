@@ -44,17 +44,19 @@ def real_repos(
             continue
 
         os.chdir("clone-here")
+
+        if os.path.exists(old_name):
+            shutil.rmtree(old_name)
+
         subprocess.run(["git", "clone", url, "--depth=1"], check=True)
         new_path = os.path.join("..", new_name)
         shutil.move(old_name, new_path)
         os.chdir(new_path)
+        shutil.rmtree(".git")
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", test_model])
-
-        # If I set this to `true`, the test fails with errors that I cannot fix.
-        # For example, some markdown files in docker's document reference images
-        # without base urls.
-        cargo_run(["config", "--set", "strict_file_reader", "false"])
+        cargo_run(["config", "--set", "strict_file_reader", "true"])
+        clean_up_repository(new_name)
 
         # TODO: implement `rag add **/*.md` instead of relying on shell's glob patterns
         cargo_run(["add", *ls_recursive(ext)])
@@ -69,6 +71,16 @@ def real_repos(
         cargo_run(["merge", "../nix"])
         cargo_run(["merge", "../nixpkgs", "prefix=nixpkgs"])
         cargo_run(["check"])
+
+def clean_up_repository(repo: str):
+    if repo == "kubernetes":
+        for lang in [
+            "bn", "de", "es", "fr",
+            "hi", "id", "it", "ja",
+            "ko", "pl", "pt-br", "ru",
+            "uk", "vi", "zh-cn",
+        ]:
+            shutil.rmtree(f"content/{lang}")
 
 if __name__ == "__main__":
     import sys
