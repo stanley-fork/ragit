@@ -8,7 +8,7 @@ from utils import (
     write_string,
 )
 
-# `broken1.svg` contains this string
+# `broken-svg.svg` contains this string
 magic_string = "ragit-svg-test"
 
 def svg(test_model: str):
@@ -22,15 +22,15 @@ def svg(test_model: str):
         ("textbox.svg", True),
         ("circle.svg", True),
         ("red-circle.svg", True),
-        ("broken1.svg", False),
+        ("broken-svg.svg", False),
     ]
 
     for svg_file, _ in svg_files:
         shutil.copyfile(f"../tests/svgs/{svg_file}", svg_file)
 
     # This svg file is so broken that it's not even a text file
-    shutil.copyfile("../tests/images/empty.webp", "broken2.svg")
-    svg_files.append(("broken2.svg", False))
+    shutil.copyfile("../tests/images/empty.webp", "broken-non-text.svg")
+    svg_files.append(("broken-non-text.svg", False))
 
     for svg_file, _ in svg_files:
         write_string(svg_to_md(svg_file), f"This is an svg file: ![]({svg_file}) That was an svg file")
@@ -45,8 +45,8 @@ def svg(test_model: str):
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # cannot process the broken svgs
-    assert stat["staged files"] == 2
-    assert stat["processed files"] == 3
+    assert stat["staged files"] == len(broken_files)
+    assert stat["processed files"] == len(valid_files)
 
     cargo_run(["remove", "--all"])
 
@@ -57,8 +57,8 @@ def svg(test_model: str):
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # the loose file reader treats broken svg files as text files
-    assert stat["processed files"] == 5
-    assert magic_string in cargo_run(["cat-file", "broken1.svg"], stdout=True)
+    assert stat["processed files"] == len(svg_files)
+    assert magic_string in cargo_run(["cat-file", "broken-svg.svg"], stdout=True)
 
     cargo_run(["remove", "--all"])
 
@@ -69,8 +69,8 @@ def svg(test_model: str):
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # cannot process the markdown files with broken svgs
-    assert stat["staged files"] == 2
-    assert stat["processed files"] == 3
+    assert stat["staged files"] == len(broken_files)
+    assert stat["processed files"] == len(valid_files)
 
     cargo_run(["remove", "--all"])
 
@@ -96,7 +96,7 @@ def svg(test_model: str):
     # Ragit internally converts svg files to png files and
     # feed the png files to LLM.
     cargo_run(["gc", "--images"])
-    assert len(json.loads(cargo_run(["ls-images", "--json"], stdout=True))) == 3
+    assert len(json.loads(cargo_run(["ls-images", "--json"], stdout=True))) == len(valid_files)
 
     # find the converted png files
     for svg_file in valid_files:
