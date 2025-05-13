@@ -323,3 +323,22 @@ def ls():
     assert file1 in ls_files_result
     assert file2 in ls_files_result
     assert file3 not in ls_files_result
+
+    print("step 17: `ls-files --staged` and `ls-files --processed`")
+
+    for i in range(2):
+        total, staged, processed = count_files()
+        staged_files = json.loads(cargo_run(["ls-files", "--staged", "--json", "--name-only"], stdout=True))
+        processed_files = json.loads(cargo_run(["ls-files", "--processed", "--json", "--name-only"], stdout=True))
+        assert staged == len(staged_files)
+        assert processed == len(processed_files)
+
+        # let's test it with/without a staged file
+        if i == 0:
+            write_string("tmp-file", "abcdefg")
+            cargo_run(["add", "tmp-file"])
+
+    assert len(json.loads(cargo_run(["ls-files", "tmp-file", "--staged", "--json", "--name-only"], stdout=True))) == 1
+    assert len(json.loads(cargo_run(["ls-files", "tmp-file", "--processed", "--json", "--name-only"], stdout=True))) == 0
+    assert len(json.loads(cargo_run(["ls-files", processed_files[0], "--staged", "--json", "--name-only"], stdout=True))) == 0
+    assert len(json.loads(cargo_run(["ls-files", processed_files[0], "--processed", "--json", "--name-only"], stdout=True))) == 1

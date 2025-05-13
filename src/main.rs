@@ -869,6 +869,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("ls-files") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--name-only", "--uid-only", "--stat-only"])
+                .optional_flag(&["--staged", "--processed"])
                 .optional_flag(&["--json"])
                 .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
 
@@ -880,19 +881,24 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
-            let json_mode = parsed_args.get_flag(1).is_some();
+            let staged = parsed_args.get_flag(1).unwrap_or(String::from("--staged")) == "--staged";
+            let processed = parsed_args.get_flag(1).unwrap_or(String::from("--processed")) == "--processed";
+            let json_mode = parsed_args.get_flag(2).is_some();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
             let files = if args.is_empty() {
                 if !uid_only && !name_only {
+                    let staged_files = if staged { index.staged_files.len() } else { 0 };
+                    let processed_files = if processed { index.processed_files.len() } else { 0 };
+
                     if json_mode && stat_only {
                         println!(
                             "{}\"total files\": {}, \"staged files\": {}, \"processed files\": {}{}",
                             "{",
-                            index.staged_files.len() + index.processed_files.len(),
-                            index.staged_files.len(),
-                            index.processed_files.len(),
+                            staged_files + processed_files,
+                            staged_files,
+                            processed_files,
                             "}",
                         );
                     }
@@ -900,9 +906,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     else if !json_mode {
                         println!(
                             "{} total files, {} staged files, {} processed files",
-                            index.staged_files.len() + index.processed_files.len(),
-                            index.staged_files.len(),
-                            index.processed_files.len(),
+                            staged_files + processed_files,
+                            staged_files,
+                            processed_files,
                         );
                     }
                 }
@@ -912,7 +918,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 index.list_files(
-                    &|_| true,  // no filter
+                    &|f| staged && !f.is_processed || processed && f.is_processed,
                     &|f| f,  // no map
                     &|f| f.path.to_string(),
                 )?
@@ -922,14 +928,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 let mut processed_files_len = 0;
                 let mut staged_files_len = 0;
 
-                for (path, uid) in query.get_processed_files() {
-                    processed_files_len += 1;
-                    files.push(index.get_file_schema(Some(path), Some(uid))?);
+                if processed {
+                    for (path, uid) in query.get_processed_files() {
+                        processed_files_len += 1;
+                        files.push(index.get_file_schema(Some(path), Some(uid))?);
+                    }
                 }
 
-                for path in query.get_staged_files() {
-                    staged_files_len += 1;
-                    files.push(index.get_file_schema(Some(path), None)?);
+                if staged {
+                    for path in query.get_staged_files() {
+                        staged_files_len += 1;
+                        files.push(index.get_file_schema(Some(path), None)?);
+                    }
                 }
 
                 if files.is_empty() {
@@ -1577,8 +1587,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let mut recursive = parsed_args.get_flag(1).is_some();
             let auto = parsed_args.get_flag(2).is_some();
             let all = parsed_args.get_flag(3).is_some();
-            let staged = parsed_args.get_flag(4).is_none() || parsed_args.get_flag(4) == Some(String::from("--staged"));
-            let processed = parsed_args.get_flag(4).is_none() || parsed_args.get_flag(4) == Some(String::from("--processed"));
+            let staged = parsed_args.get_flag(4).unwrap_or(String::from("--staged")) == "--staged";
+            let processed = parsed_args.get_flag(4).unwrap_or(String::from("--processed")) == "--processed";
             let mut files = parsed_args.get_args();
             let mut result = RemoveResult::default();
 
