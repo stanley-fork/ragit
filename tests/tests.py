@@ -13,6 +13,7 @@ from empty import empty
 from end_to_end import end_to_end
 from external_bases import external_bases
 from extract_keywords import extract_keywords
+from generous_file_reader import generous_file_reader
 from ignore import ignore
 from ii import ii
 from images import images
@@ -200,6 +201,11 @@ Commands
                                 It creates an inverted index and test it.
 
     cat_file                    run `cat_file` test
+
+    generous_file_reader        run `generous_file_reader` test
+                                If some files are broken, ragit is supposed to
+                                skip the broken files and continue processing the
+                                valid files.
 
     audit [model]               run `audit` test
 
@@ -401,6 +407,9 @@ if __name__ == "__main__":
         elif command == "cat_file":
             cat_file()
 
+        elif command == "generous_file_reader":
+            generous_file_reader()
+
         elif command == "images":
             images()
 
@@ -517,6 +526,7 @@ if __name__ == "__main__":
                 ("symlink", symlink),
                 ("ii", ii),
                 ("cat_file", cat_file),
+                ("generous_file_reader", generous_file_reader),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
                 ("csv_reader", csv_reader),
