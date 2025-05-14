@@ -13,8 +13,7 @@ pub use error::Error;
 pub use image::ImageType;
 pub use message::{Message, MessageContent};
 pub use role::{PdlRole, Role};
-pub use schema::Schema;
-use schema::parse_schema;
+pub use schema::{Schema, SchemaParseError, parse_schema};
 pub use util::{decode_base64, encode_base64};
 
 lazy_static! {
@@ -108,7 +107,7 @@ pub fn parse_pdl(
     let tera_rendered = match tera::Tera::one_off(s, context, true) {
         Ok(t) => t,
         Err(e) => if strict_mode {
-            return Err(Error::TeraError(e));
+            return Err(e.into());
         } else {
             s.to_string()
         },
@@ -133,7 +132,7 @@ pub fn parse_pdl(
                 t @ ("user" | "system" | "assistant" | "schema" | "reasoning") => {
                     if !line_buffer.is_empty() || curr_role.is_some() {
                         match curr_role {
-                            Some(PdlRole::Schema) => match parse_schema(line_buffer.join("\n").as_bytes()) {
+                            Some(PdlRole::Schema) => match parse_schema(&line_buffer.join("\n")) {
                                 Ok(s) => {
                                     if schema.is_some() && strict_mode {
                                         return Err(Error::InvalidPdl(String::from("<|schema|> appeared multiple times.")));

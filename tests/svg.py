@@ -95,6 +95,7 @@ def svg(test_model: str):
     #
     # Ragit internally converts svg files to png files and
     # feed the png files to LLM.
+    cargo_run(["config", "--set", "model", test_model])
     cargo_run(["gc", "--images"])
     assert len(json.loads(cargo_run(["ls-images", "--json"], stdout=True))) == len(valid_files)
 

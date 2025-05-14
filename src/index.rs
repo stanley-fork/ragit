@@ -846,7 +846,7 @@ impl Index {
 
         if !exists(&models_at) {
             // Initialize models from an external source or defaults
-            let models = self.get_initial_models()?;
+            let models = Index::get_initial_models()?;
             
             // Always ensure API keys are null in the local models file
             let models_without_api_keys = self.remove_api_keys_from_models(models);
@@ -873,7 +873,7 @@ impl Index {
     }
     
     // Get initial models from environment variable, config file, or defaults
-    fn get_initial_models(&self) -> Result<Vec<ModelRaw>, Error> {
+    pub fn get_initial_models() -> Result<Vec<ModelRaw>, Error> {
         // Check for environment variable RAGIT_MODEL_CONFIG
         if let Ok(env_path) = std::env::var("RAGIT_MODEL_CONFIG") {
             if exists(&env_path) {
@@ -899,7 +899,7 @@ impl Index {
         };
         
         if !home_dir.is_empty() {
-            let config_path = join4(&home_dir, ".config", "ragit", "models.json")?;
+            let config_path = join4(&home_dir, ".config", "ragit", MODEL_FILE_NAME)?;
             if exists(&config_path) {
                 // Load from ~/.config/ragit/models.json
                 let config_content = read_string(&config_path)?;
@@ -1048,7 +1048,7 @@ impl Index {
     }
     
     /// Attempts to load a config file from ~/.config/ragit/
-    fn load_config_from_home<T: serde::de::DeserializeOwned>(&self, filename: &str) -> Result<Option<T>, Error> {
+    pub fn load_config_from_home<T: serde::de::DeserializeOwned>(filename: &str) -> Result<Option<T>, Error> {
         // Check for HOME environment variable
         let home_dir = match std::env::var("HOME") {
             Ok(path) => path,
@@ -1079,17 +1079,17 @@ impl Index {
 
     /// Attempts to load PartialApiConfig from ~/.config/ragit/api.json
     fn load_api_config_from_home(&self) -> Result<Option<PartialApiConfig>, Error> {
-        self.load_config_from_home("api.json")
+        Index::load_config_from_home("api.json")
     }
 
     /// Attempts to load PartialQueryConfig from ~/.config/ragit/query.json
     fn load_query_config_from_home(&self) -> Result<Option<crate::query::config::PartialQueryConfig>, Error> {
-        self.load_config_from_home("query.json")
+        Index::load_config_from_home("query.json")
     }
 
     /// Attempts to load PartialBuildConfig from ~/.config/ragit/build.json
     fn load_build_config_from_home(&self) -> Result<Option<crate::index::config::PartialBuildConfig>, Error> {
-        self.load_config_from_home("build.json")
+        Index::load_config_from_home("build.json")
     }
 
     /// Returns a default ApiConfig with a valid model.

@@ -56,6 +56,7 @@ pub enum Error {
     MergeConflict(Uid),
     MPSCError(String),
     CannotDecodeUid,
+    ModelNotSelected,
 
     /// If a user sees this error, that's a bug in ragit.
     Internal(String),
@@ -94,6 +95,9 @@ pub enum Error {
 
     /// see <https://docs.rs/png/latest/png/enum.EncodingError.html>
     PngEncodingError(png::EncodingError),
+
+    /// https://docs.rs/tera/latest/tera/struct.Error.html
+    TeraError(tera::Error),
 
     FileError(FileError),
     StdIoError(std::io::Error),
@@ -178,6 +182,12 @@ impl From<png::EncodingError> for Error {
     }
 }
 
+impl From<tera::Error> for Error {
+    fn from(e: tera::Error) -> Error {
+        Error::TeraError(e)
+    }
+}
+
 impl From<ApiError> for Error {
     fn from(e: ApiError) -> Self {
         match e {
@@ -206,5 +216,11 @@ impl From<ragit_cli::Error> for Error {
             message: e.kind.render(),
             span: e.span.unwrap_rendered(),
         }
+    }
+}
+
+impl From<ragit_pdl::SchemaParseError> for Error {
+    fn from(e: ragit_pdl::SchemaParseError) -> Self {
+        ragit_pdl::Error::from(e).into()
     }
 }

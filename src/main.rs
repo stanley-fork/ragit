@@ -19,7 +19,7 @@ use ragit::{
     into_multi_modal_contents,
 };
 use ragit::schema::{ChunkSchema, Prettify};
-use ragit_api::get_model_by_name;
+use ragit_api::{Model, ModelRaw, get_model_by_name};
 use ragit_cli::{
     ArgCount,
     ArgParser,
@@ -28,11 +28,14 @@ use ragit_cli::{
 };
 use ragit_fs::{
     basename,
+    create_dir,
+    exists,
     join,
     join3,
     read_dir,
+    read_string,
 };
-use ragit_pdl::encode_base64;
+use ragit_pdl::{Pdl, encode_base64};
 use serde_json::{Map, Value};
 use std::env;
 use std::io::Write;
@@ -674,6 +677,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 Some("config-reference") => {
                     println!("{}", include_str!("../docs/config.md"));
+                },
+                Some("pdl-format") => {
+                    println!("{}", include_str!("../docs/pdl_format.md"));
                 },
                 Some("pipeline") => {
                     println!("{}", include_str!("../docs/config.md"));
@@ -1419,6 +1425,147 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             if !recover_result.is_empty() {
                 println!("recovered from a corrupted knowledge-base: {recover_result}");
             }
+        },
+        // TODO: maybe create a function for this? I don't want `main.rs` to be too bloated
+        Some("pdl") => {
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--strict"])
+                .optional_flag(&["--escape"])
+                .optional_arg_flag("--model", ArgType::String)
+                .optional_arg_flag("--models", ArgType::Path)
+                .optional_arg_flag("--context", ArgType::Path)
+                .optional_arg_flag("--log", ArgType::Path)
+                .optional_arg_flag("--schema", ArgType::String)
+                .args(ArgType::Path, ArgCount::Exact(1))
+                .parse(&args[2..])?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/pdl.txt"));
+                return Ok(());
+            }
+
+            // `index.json` will help us find models, but it's not necessary
+            let index = root_dir.map(|root_dir| Index::load(root_dir, LoadMode::OnlyJson));
+            let pdl_at = parsed_args.get_args_exact(1)?[0].clone();
+            let strict_mode = parsed_args.get_flag(0).unwrap_or(String::new()) == "--strict";
+            let escape = parsed_args.get_flag(1).unwrap_or(String::new()) == "--escape";
+            let models = match parsed_args.arg_flags.get("--models") {
+                Some(path) => {
+                    let m = read_string(path)?;
+                    let models_raw = serde_json::from_str::<Vec<ModelRaw>>(&m)?;
+                    let mut models = Vec::with_capacity(models_raw.len());
+
+                    for model_raw in models_raw.iter() {
+                        models.push(Model::try_from(model_raw)?);
+                    }
+
+                    models
+                },
+
+                // looks for `models.json` with best-effort
+                // TODO: use `Index::get_initial_models`, but how?
+                //       it's private. is it okay to make it public?
+                //       it takes `&self` as an input, but does not use `self` at all!
+                //       why not just remove the argument?
+                None => match &index {
+                    Ok(Ok(index)) => index.models.clone(),
+                    _ => {
+                        let models_raw = Index::get_initial_models()?;
+                        let mut models = Vec::with_capacity(models_raw.len());
+
+                        for model_raw in models_raw.iter() {
+                            models.push(Model::try_from(model_raw)?);
+                        }
+
+                        models
+                    },
+                },
+            };
+            let model = match parsed_args.arg_flags.get("--model") {
+                Some(model) => get_model_by_name(&models, model)?,
+                None => match &index {
+                    Ok(Ok(index)) => get_model_by_name(&models, &index.api_config.model)?,
+                    _ => match Index::load_config_from_home::<Value>("api.json") {
+                        Ok(Some(Value::Object(api_config))) => match api_config.get("model") {
+                            Some(Value::String(model)) => get_model_by_name(&models, model)?,
+                            _ => { return Err(Error::ModelNotSelected); },
+                        },
+                        _ => { return Err(Error::ModelNotSelected); },
+                    },
+                },
+            };
+            let context = match parsed_args.arg_flags.get("--context") {
+                Some(path) => {
+                    let s = read_string(path)?;
+                    serde_json::from_str::<Value>(&s)?
+                },
+
+                // an empty context
+                None => Value::Object(serde_json::Map::new()),
+            };
+            let (dump_pdl_at, dump_json_at) = match parsed_args.arg_flags.get("--log") {
+                Some(log_at) => {
+                    let now = Local::now();
+
+                    if !exists(log_at) {
+                        create_dir(log_at)?;
+                    }
+
+                    (
+                        Some(join(
+                            log_at,
+                            &format!("{}.pdl", now.to_rfc3339()),
+                        )?),
+                        Some(log_at.to_string()),
+                    )
+                },
+                None => (None, None),
+            };
+            let arg_schema = match parsed_args.arg_flags.get("--schema") {
+                Some(schema) => Some(ragit_pdl::parse_schema(schema)?),
+                None => None,
+            };
+            let Pdl { messages, schema: pdl_schema } = ragit_pdl::parse_pdl_from_file(
+                &pdl_at,
+                &tera::Context::from_value(context)?,
+                strict_mode,
+                escape,
+            )?;
+            let schema = match (pdl_schema, arg_schema) {
+                (_, Some(schema)) => Some(schema),
+                (Some(schema), _) => Some(schema),
+                _ => None,
+            };
+
+            let request = ragit_api::Request {
+                messages,
+                schema: schema.clone(),
+                model: model.clone(),
+                dump_pdl_at,
+                dump_json_at,
+
+                // TODO: do we have to record this when `--log` is set?
+                //       `dump_pdl_at` dumps token count but not the actual cost
+                record_api_usage_at: None,
+
+                // TODO: do these have to be configurable?
+                temperature: None,
+                timeout: Some(model.api_timeout * 1_000),
+                max_retry: 3,
+                max_tokens: None,
+                sleep_between_retries: 10_000,
+                frequency_penalty: None,
+                schema_max_try: 3,
+            };
+
+            let response = if schema.is_none() {
+                request.send().await?.get_message(0).unwrap().to_string()
+            } else {
+                let result = request.send_and_validate::<serde_json::Value>(serde_json::Value::Null).await?;
+                serde_json::to_string_pretty(&result)?
+            };
+
+            println!("{response}");
         },
         Some("pull") => {
             let parsed_args = ArgParser::new()

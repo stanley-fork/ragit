@@ -4,7 +4,6 @@ use std::string::FromUtf8Error;
 
 #[derive(Debug)]
 pub enum Error {
-    TeraError(tera::Error),
     RoleMissing,
     InvalidPdl(String),
     InvalidTurnSeparator(String),
@@ -17,6 +16,9 @@ pub enum Error {
 
     /// see <https://docs.rs/base64/latest/base64/enum.DecodeError.html>
     Base64DecodeError(base64::DecodeError),
+
+    /// https://docs.rs/tera/latest/tera/struct.Error.html
+    TeraError(tera::Error),
 }
 
 impl From<SchemaParseError> for Error {
@@ -37,6 +39,12 @@ impl From<FromUtf8Error> for Error {
 impl From<FileError> for Error {
     fn from(e: FileError) -> Error {
         Error::FileError(e)
+    }
+}
+
+impl From<tera::Error> for Error {
+    fn from(e: tera::Error) -> Error {
+        Error::TeraError(e)
     }
 }
 

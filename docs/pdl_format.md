@@ -6,6 +6,11 @@ Pdl is a special file format used by ragit project to represent prompts. It allo
 2. embed image files.
 3. force LLMs to output a json with a designated schema.
 
+There are 2 ways to use pdl.
+
+1. Use `rag pdl` command. Run `rag help pdl` to read its document.
+2. Ragit's pipeline is made of pdl files. See `.ragit/prompts/` to check how pdl files are used and test new pdl files.
+
 ## Language
 
 Pdl is basically a readable format of LLM messages. For example,

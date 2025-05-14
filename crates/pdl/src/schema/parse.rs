@@ -62,8 +62,9 @@ enum TokenizeState {
     Literal(u8),
 }
 
-pub fn parse_schema(s: &[u8]) -> Result<Schema, SchemaParseError> {
+pub fn parse_schema(s: &str) -> Result<Schema, SchemaParseError> {
     let mut index = 0;
+    let s = s.as_bytes();
     let tokens = tokenize(s, &mut index)?;
 
     if let Some(b) = s.get(index) {

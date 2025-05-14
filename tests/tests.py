@@ -31,6 +31,7 @@ from migrate2 import migrate2
 from models_init import models_init, test_home_config_override
 from orphan_process import orphan_process
 from pdf import pdf
+from pdl import pdl
 from prompts import prompts
 from query_options import query_options
 from ragit_api import ragit_api
@@ -227,6 +228,9 @@ Commands
     pdf [model]                 run `pdf` test
                                 It tests the pdf reader.
                                 You have to use a vision language model!
+
+    pdl [model]                 run `pdl` test
+                                It tests `rag pdl` command.
 
     svg [model]                 run `svg` test
                                 It tests the svg reader.
@@ -434,6 +438,13 @@ if __name__ == "__main__":
 
             pdf(test_model=test_model)
 
+        elif command == "pdl":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            pdl(test_model=test_model)
+
         elif command == "svg":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -547,6 +558,7 @@ if __name__ == "__main__":
                 ("server_chat llama3.3-70b", lambda: server_chat(test_model="llama3.3-70b")),
                 ("images2 gpt-4o-mini", lambda: images2(test_model="gpt-4o-mini")),
                 ("images3 gpt-4o-mini", lambda: images3(test_model="gpt-4o-mini")),
+                ("pdl gpt-4o-mini", lambda: pdl(test_model="gpt-4o-mini")),
                 ("pdf gpt-4o-mini", lambda: pdf(test_model="gpt-4o-mini")),
                 ("svg gpt-4o-mini", lambda: svg(test_model="gpt-4o-mini")),
                 ("web_images gpt-4o-mini", lambda: web_images(test_model="gpt-4o-mini")),
