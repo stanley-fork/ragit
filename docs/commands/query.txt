@@ -8,7 +8,7 @@ rag-query - Query on knowledge-bases
 SYNOPSIS
 --------
 [verse]
-'rag query' <query> [--json | -j] [--model <model>] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
+'rag query' <query> [--json | -j] [--model <model>] [--schema <schema>] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
 'rag query' --interactive | -i | --multi-turn [--model <model>] [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
 
 DESCRIPTION
@@ -20,3 +20,15 @@ if you run `rag query --max-retrieval=5 <QUERY>`, it will retrieve at most 5 chu
 of the configuration. It's temporary, it doesn't write to the config file.
 
 If `--json` is set, it dumps the result as a json. The json contains AI's response and retrieved chunks.
+`--json` option and `--schema` option are very different. In most cases, you don't need `--json` when
+`--schema` is enabled.
+
+`--schema` allows you to use pdl schemas with this command. Run `rag help pdl-format` to learn more
+about pdl schemas. It forces LLM's output schema. For example, `rag query <query> --schema="[int]"` will
+dump an array of integers to stdout. You can pipe that array to another program. If `--schema` is enabled
+and the schema is json, like `[int]` or `{ name: str, age: int }`, you can always pipe stdout to a json
+processor.
+
+If the LLM is not smart enough or request is not clear, it may fail to generate a response with valid schema.
+In that case, it'll dump `null` to stdout, which is still a valid json. You always have to check the output
+because LLMs can always fail.

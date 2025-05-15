@@ -36,7 +36,12 @@ use ragit_fs::{
     read_dir,
     read_string,
 };
-use ragit_pdl::{Pdl, encode_base64};
+use ragit_pdl::{
+    Pdl,
+    encode_base64,
+    parse_schema,
+    render_pdl_schema,
+};
 use serde_json::{Map, Value};
 use std::env;
 use std::io::Write;
@@ -1663,11 +1668,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 schema_max_try: 3,
             };
 
-            let response = if schema.is_none() {
-                request.send().await?.get_message(0).unwrap().to_string()
-            } else {
-                let result = request.send_and_validate::<serde_json::Value>(serde_json::Value::Null).await?;
-                serde_json::to_string_pretty(&result)?
+            let response = match schema {
+                Some(schema) => {
+                    let result = request.send_and_validate::<serde_json::Value>(serde_json::Value::Null).await?;
+                    render_pdl_schema(&schema, &result)?
+                },
+                None => request.send().await?.get_message(0).unwrap().to_string(),
             };
 
             println!("{response}");
@@ -1733,6 +1739,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
+                .optional_arg_flag("--schema", ArgType::String)
                 .short_flag(&["--interactive", "--json"])
                 .args(ArgType::String, ArgCount::Any)
                 .parse(&args, 2)?;
@@ -1743,6 +1750,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let schema = match parsed_args.arg_flags.get("--schema") {
+                Some(schema) => {
+                    Some(parse_schema(schema)?)
+                },
+                None => None,
+            };
 
             if let Some(enable_ii) = parsed_args.get_flag(2) {
                 index.query_config.enable_ii = enable_ii == "--enable-ii";
@@ -1771,14 +1784,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let interactive_mode = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
 
-            match (interactive_mode, json_mode) {
-                (true, true) => {
+            match (interactive_mode, json_mode, &schema) {
+                (true, _, Some(_)) => {
+                    return Err(Error::CliError {
+                        message: String::from("You cannot set schema in an interactive mode."),
+                        span: (String::new(), 0, 0),  // TODO
+                    });
+                },
+                (true, true, _) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot query interactively in a json mode."),
                         span: (String::new(), 0, 0),  // TODO
                     });
                 },
-                (true, _) => {
+                (true, _, _) => {
                     let mut history = vec![];
 
                     loop {
@@ -1789,6 +1808,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         let response = index.query(
                             &curr_input,
                             history.clone(),
+                            None,  // schema
                         ).await?;
                         println!("{}", response.response);
                         history.push(QueryTurn::new(curr_input, response));
@@ -1798,10 +1818,15 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let response = index.query(
                         &parsed_args.get_args_exact(1)?[0],
                         vec![],  // no history
+                        schema.clone(),
                     ).await?;
 
                     if json_mode {
                         println!("{}", serde_json::to_string_pretty(&response.prettify()?)?);
+                    }
+
+                    else if schema.is_some() {
+                        println!("{}", response.response);
                     }
 
                     else {

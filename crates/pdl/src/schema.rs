@@ -1,5 +1,6 @@
 // First and foremost goal of schema validation is to give nice error messages to LLMs.
 
+use crate::error::Error;
 use serde_json::Value;
 use std::collections::HashSet;
 use std::fmt::{Debug, Display};
@@ -16,6 +17,11 @@ use parse_value::{JsonMatch, extract_jsonish_literal};
 #[cfg(test)]
 mod tests;
 
+// After adding a non-json schema_type,
+//
+// 1. Make sure that the code compiles.
+// 2. Add a test case in `tests/`.
+// 3. Update `render_pdl_schema`.
 #[derive(Clone, Debug, PartialEq)]
 pub enum SchemaType {
     Integer,
@@ -482,6 +488,32 @@ impl Schema {
     pub fn unwrap_keys(&self) -> Vec<String> {
         self.r#type.unwrap_keys()
     }
+}
+
+/// pdl schema is a bit unintuitive when you're using non-json schema.
+/// For example, schema `yesno` will become `Value::Bool`. If you naively
+/// convert this to a string, you'll get "true" or "false", not "yes" or "no".
+///
+/// Likewise, schema `code` will become `Value::String` whose content is the code.
+/// If you naively convert this to a string (using serde_json::to_string), you'll
+/// get something like "\"fn main() ...\"".
+pub fn render_pdl_schema(
+    schema: &Schema,
+
+    // Result of `Schema::validate`
+    value: &Value,
+) -> Result<String, Error> {
+    let s = match (&schema.r#type, value) {
+        (SchemaType::Code, Value::String(s)) => s.to_string(),
+        (SchemaType::Yesno, Value::Bool(b)) => if *b {
+            String::from("yes")
+        } else {
+            String::from("no")
+        },
+        _ => serde_json::to_string_pretty(value)?,
+    };
+
+    Ok(s)
 }
 
 // union of all constraints

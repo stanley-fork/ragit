@@ -13,7 +13,7 @@ pub use error::Error;
 pub use image::ImageType;
 pub use message::{Message, MessageContent};
 pub use role::{PdlRole, Role};
-pub use schema::{Schema, SchemaParseError, parse_schema};
+pub use schema::{Schema, SchemaParseError, parse_schema, render_pdl_schema};
 pub use util::{decode_base64, encode_base64};
 
 lazy_static! {

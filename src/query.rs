@@ -5,8 +5,10 @@ use crate::tree::generate_tree;
 use ragit_api::Request;
 use ragit_pdl::{
     Pdl,
+    Schema,
     escape_pdl_tokens,
     parse_pdl,
+    render_pdl_schema,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -95,7 +97,7 @@ impl Index {
         &self,
         q: &str,
     ) -> Result<String, Error> {
-        let result = self.query(q, vec![]).await?;
+        let result = self.query(q, vec![], None).await?;
         Ok(result.response)
     }
 
@@ -103,6 +105,7 @@ impl Index {
         &self,
         q: &str,
         history: Vec<QueryTurn>,
+        schema: Option<Schema>,
     ) -> Result<QueryResponse, Error> {
         // There's no need to rephrase the query if the rag pipeline is disabled.
         let (multi_turn_schema, rephrased_query) = if history.is_empty() || !self.query_config.enable_rag || self.chunk_count == 0 {
@@ -132,11 +135,13 @@ impl Index {
             self.raw_request(
                 q,
                 history_turns,
+                schema,
             ).await?
         } else {
             self.answer_query_with_chunks(
                 &rephrased_query,
                 merge_and_convert_chunks(self, chunks.clone(), true /* render image */)?,
+                schema,
             ).await?
         };
 
@@ -214,6 +219,7 @@ impl Index {
         &self,
         query: &str,
         chunks: Vec<RenderableChunk>,
+        schema: Option<Schema>,
     ) -> Result<String, Error> {
         let mut tera_context = tera::Context::new();
         tera_context.insert(
@@ -235,6 +241,7 @@ impl Index {
 
         let request = Request {
             messages,
+            schema: schema.clone(),
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
@@ -242,13 +249,19 @@ impl Index {
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
             record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "answer_query_with_chunks"),
-            schema: None,
+            schema_max_try: 3,
             ..Request::default()
         };
 
-        let response = request.send().await?;
+        let response = match schema {
+            Some(schema) => {
+                let result = request.send_and_validate::<Value>(Value::Null).await?;
+                render_pdl_schema(&schema, &result)?
+            },
+            None => request.send().await?.get_message(0).unwrap().to_string(),
+        };
 
-        Ok(response.get_message(0).unwrap().to_string())
+        Ok(response)
     }
 
     pub async fn rephrase_multi_turn(
@@ -291,6 +304,7 @@ impl Index {
         &self,
         query: &str,
         history: Vec<String>,
+        schema: Option<Schema>,
     ) -> Result<String, Error> {
         let mut tera_context = tera::Context::new();
         tera_context.insert("query", &escape_pdl_tokens(&query));
@@ -305,6 +319,7 @@ impl Index {
         )?;
         let request = Request {
             messages,
+            schema: schema.clone(),
             timeout: self.api_config.timeout,
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
@@ -312,12 +327,19 @@ impl Index {
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
             record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "raw_request"),
-            schema: None,
+            schema_max_try: 3,
             ..Request::default()
         };
 
-        let response = request.send().await?;
-        Ok(response.get_message(0).unwrap().to_string())
+        let response = match schema {
+            Some(schema) => {
+                let result = request.send_and_validate::<Value>(Value::Null).await?;
+                render_pdl_schema(&schema, &result)?
+            },
+            None => request.send().await?.get_message(0).unwrap().to_string(),
+        };
+
+        Ok(response)
     }
 }
 

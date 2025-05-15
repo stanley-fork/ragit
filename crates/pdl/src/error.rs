@@ -14,6 +14,9 @@ pub enum Error {
     Utf8Error(FromUtf8Error),
     SchemaParseError(SchemaParseError),
 
+    /// see <https://docs.rs/serde_json/latest/serde_json/struct.Error.html>
+    JsonSerdeError(serde_json::Error),
+
     /// see <https://docs.rs/base64/latest/base64/enum.DecodeError.html>
     Base64DecodeError(base64::DecodeError),
 
@@ -27,6 +30,12 @@ impl From<SchemaParseError> for Error {
             SchemaParseError::Utf8Error(e) => Error::Utf8Error(e),
             e => Error::SchemaParseError(e),
         }
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Error {
+        Error::JsonSerdeError(e)
     }
 }
 

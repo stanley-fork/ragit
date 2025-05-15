@@ -34,6 +34,7 @@ from pdf import pdf
 from pdl import pdl
 from prompts import prompts
 from query_options import query_options
+from query_with_schema import query_with_schema
 from ragit_api import ragit_api
 from real_repos import real_repos
 from recover import recover
@@ -148,6 +149,9 @@ Commands
 
     query_options [model]       run `query_options` test
                                 It tests various option flags of `rag query`.
+
+    query_with_schema [model]   run `query_with_schema` test
+                                It tests `--schema` flag of `rag query`.
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
@@ -354,6 +358,13 @@ if __name__ == "__main__":
                 sys.exit(1)
 
             query_options(test_model=test_model)
+
+        elif command == "query_with_schema":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            query_with_schema(test_model=test_model)
 
         elif command == "cli":
             cli()
@@ -572,6 +583,7 @@ if __name__ == "__main__":
                 ("write_lock llama3.3-70b", lambda: write_lock(test_model="llama3.3-70b")),
                 ("ragit_api command-r", lambda: ragit_api(test_model="command-r")),
                 ("query_options llama3.3-70b", lambda: query_options(test_model="llama3.3-70b")),
+                ("query_with_schema llama3.3-70b", lambda: query_with_schema(test_model="llama3.3-70b")),
                 ("models_init", models_init),
                 ("test_home_config_override", test_home_config_override),
                 ("migrate", migrate),
