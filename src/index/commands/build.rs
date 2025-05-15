@@ -46,7 +46,7 @@ impl Index {
                 if !quiet {
                     let elapsed_time = Instant::now().duration_since(started_at).as_secs();
                     println!("---");
-                    println!("completed building knowledge-base");
+                    println!("completed building a knowledge-base");
                     println!("total elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
                     println!(
                         "successfully processed {} file{}",
@@ -69,6 +69,11 @@ impl Index {
             Err(e) => {
                 for worker in workers.iter_mut() {
                     let _ = worker.send(Request::Kill);
+                }
+
+                if !quiet {
+                    eprintln!("---");
+                    eprintln!("Failed to build a knowledge-base");
                 }
 
                 Err(e)
@@ -222,6 +227,12 @@ impl Index {
                                 }
 
                                 buffer.remove(file);
+                            }
+
+                            // very small QoL hack: if there's no api key, every file will
+                            // fail with the same error. We escape before that happens
+                            if matches!(e, Error::ApiKeyNotFound { .. }) && success == 0 {
+                                return Err(e);
                             }
 
                             if let Some(file) = staged_files.pop() {

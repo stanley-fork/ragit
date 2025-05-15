@@ -2171,6 +2171,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     "merge",
                     "meta",
                     "migrate",
+                    "pdl",
+                    "pull",
                     "push",
                     "query",
                     "remove", "rm",

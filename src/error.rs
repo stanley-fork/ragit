@@ -57,6 +57,7 @@ pub enum Error {
     MPSCError(String),
     CannotDecodeUid,
     ModelNotSelected,
+    ApiKeyNotFound { env_var: Option<String> },
 
     /// If a user sees this error, that's a bug in ragit.
     Internal(String),
@@ -196,6 +197,7 @@ impl From<ApiError> for Error {
             ApiError::ReqwestError(e) => Error::ReqwestError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),
+            ApiError::ApiKeyNotFound { env_var } => Error::ApiKeyNotFound { env_var },
             e => Error::ApiError(e),
         }
     }
