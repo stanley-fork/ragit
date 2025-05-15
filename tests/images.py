@@ -1,6 +1,7 @@
 import shutil
 from utils import (
     cargo_run,
+    count_files,
     count_images,
     goto_root,
     mk_and_cd_tmp_dir,
@@ -46,8 +47,9 @@ def images():
     cargo_run(["add", "sample.md"])
     cargo_run(["check"])
 
-    stderr = cargo_run(["build"], stderr=True, check=False)
-    assert "sample2.png" in stderr   # "sample2.png not found" is expected
+    # it cannot process `sample.md` because there's no `sample2.png`.
+    cargo_run(["build"])
+    assert count_files() == (1, 1, 0)  # (total, staged, processed)
     cargo_run(["check", "--recover"])
 
     shutil.copyfile("../tests/images/empty.png", "sample2.png")

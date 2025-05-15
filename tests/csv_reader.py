@@ -52,4 +52,8 @@ def csv_reader():
     cargo_run(["check"])
 
     cargo_run(["add", "malformed.csv"])
-    assert cargo_run(["build"], check=False) != 0
+    cargo_run(["build"])
+
+    # failed to process malformed.csv
+    assert "malformed.csv" not in json.loads(cargo_run(["ls-files", "--processed", "--name-only", "--json"], stdout=True))
+    assert "malformed.csv" in json.loads(cargo_run(["ls-files", "--staged", "--name-only", "--json"], stdout=True))

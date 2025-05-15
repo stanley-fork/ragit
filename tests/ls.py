@@ -338,7 +338,13 @@ def ls():
             write_string("tmp-file", "abcdefg")
             cargo_run(["add", "tmp-file"])
 
+    # It returns an error if `ls-files` has no files to list.
+    #
+    # TODO: I'm not sure whether it should return an empty list or an error. Both make perfect sense.
+    #       For example, `git checkout`, `git log` and many other commands that takes a commit hash
+    #       as an input fails if there's no commit with the hash. But `git ls-files` doesn't raise error
+    #       but dumps an empty string when there's no files to list.
     assert len(json.loads(cargo_run(["ls-files", "tmp-file", "--staged", "--json", "--name-only"], stdout=True))) == 1
-    assert len(json.loads(cargo_run(["ls-files", "tmp-file", "--processed", "--json", "--name-only"], stdout=True))) == 0
-    assert len(json.loads(cargo_run(["ls-files", processed_files[0], "--staged", "--json", "--name-only"], stdout=True))) == 0
+    assert cargo_run(["ls-files", "tmp-file", "--processed", "--json", "--name-only"], check=False) != 0
+    assert cargo_run(["ls-files", processed_files[0], "--staged", "--json", "--name-only"], check=False) != 0
     assert len(json.loads(cargo_run(["ls-files", processed_files[0], "--processed", "--json", "--name-only"], stdout=True))) == 1

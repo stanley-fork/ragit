@@ -26,6 +26,8 @@ def pdf(test_model: str):
                 "keywords": ["inline", "assembly"],
                 "query": ("How do I embed inline assembly to my Rust program?", "asm!"),
             }, {
+                # TODO: "끝말잇기" is not a good topic for ragit. It's so bad that
+                #       I set `"query": None`. I have to find more technical topic.
                 "name": "portrait.pdf",
                 "pages": 1,
                 "keywords": ["끝말잇기"],

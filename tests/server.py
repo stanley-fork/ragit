@@ -171,7 +171,7 @@ def spawn_ragit_server():
 def create_user(
     id: str,
     password: str = "12345678",
-    email: Optional[str] = None,
+    email: str = "sample@email.com",
     readme: Optional[str] = None,
     public: bool = True,
 ):
