@@ -8,7 +8,7 @@ rag-retrieve-chunks - Retrive chunks that are relevant to a query
 SYNOPSIS
 --------
 [verse]
-'rag retrive-chunks' [--uid-only] [--max-retrieval <n>] [--max-summaries <n>] [--[no-]rerank] [--json] <query>
+'rag retrive-chunks' [--uid-only] [--max-retrieval <n>] [--max-summaries <n>] [--[no-]rerank] [--json | -j] <query>
 
 DESCRIPTION
 -----------

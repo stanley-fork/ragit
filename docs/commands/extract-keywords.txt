@@ -8,7 +8,7 @@ rag-extract-keywords - Show content of a file or a chunk
 SYNOPSIS
 --------
 [verse]
-'rag extract-keywords' [--full-schema] [--json] <query>
+'rag extract-keywords' [--full-schema] [--json | -j] <query>
 
 DESCRIPTION
 -----------

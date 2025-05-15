@@ -49,6 +49,10 @@ def generous_file_reader():
     assert set(invalid_files) == set(staged_files)
     assert set(valid_files) == set(processed_files)
 
+    # `--cached` is an alias for `--staged`
+    cached_files = json.loads(cargo_run(["ls-files", "--cached", "--json", "--name-only"], stdout=True))
+    assert set(staged_files) == set(cached_files)
+
     cargo_run(["config", "--set", "strict_file_reader", "false"])
     cargo_run(["rm", "--all"])
     cargo_run(["add", *files])

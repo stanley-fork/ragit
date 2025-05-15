@@ -37,7 +37,7 @@ impl Index {
         Ok(meta)
     }
 
-    pub fn set_meta_by_key(&self, key: String, value: String) -> Result<(), Error> {
+    pub fn set_meta_by_key(&mut self, key: String, value: String) -> Result<(), Error> {
         let meta_path = get_meta_path(&self.root_dir)?;
 
         if !exists(&meta_path) {
@@ -49,7 +49,7 @@ impl Index {
         save_meta(&meta_path, meta)
     }
 
-    pub fn remove_meta_by_key(&self, key: String) -> Result<String, Error> {
+    pub fn remove_meta_by_key(&mut self, key: String) -> Result<String, Error> {
         let meta_path = get_meta_path(&self.root_dir)?;
 
         if !exists(&meta_path) {
@@ -68,7 +68,7 @@ impl Index {
         }
     }
 
-    pub fn remove_all_meta(&self) -> Result<(), Error> {
+    pub fn remove_all_meta(&mut self) -> Result<(), Error> {
         let meta_path = get_meta_path(&self.root_dir)?;
 
         if exists(&meta_path) {

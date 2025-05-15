@@ -38,7 +38,7 @@ pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
                 .optional_arg_flag("--port", ArgType::IntegerBetween { min: Some(0), max: Some(65535) })
                 .optional_arg_flag("--config", ArgType::Path)
                 .short_flag(&["--verbose", "--port"])
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             Ok(CliCommand::Run(RunArgs {
                 port_number: parsed_args.arg_flags.get("--port").map(|n| n.parse::<u16>().unwrap()),
@@ -52,7 +52,7 @@ pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--force"])
                 .short_flag(&["--force"])
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             let args = DropArgs {
                 force: parsed_args.get_flag(0).is_some(),

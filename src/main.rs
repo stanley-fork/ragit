@@ -24,6 +24,7 @@ use ragit_cli::{
     ArgCount,
     ArgParser,
     ArgType,
+    Span,
     get_closest_string,
 };
 use ragit_fs::{
@@ -47,7 +48,6 @@ async fn main() {
     match run(args.clone()).await {
         Ok(()) => {},
         Err(e) => {
-            // TODO: suggest similar names for some errors
             match e {
                 Error::IndexNotFound => {
                     eprintln!("`.ragit/` not found. Make sure that it's a valid ragit repo.");
@@ -72,13 +72,6 @@ async fn main() {
                             String::new()
                         },
                     );
-                },
-                Error::CannotBuild(errors) => {
-                    eprintln!("Cannot build knowledge-base due to {} errors", errors.len());
-
-                    for (file, error) in errors.iter() {
-                        eprintln!("    {file}: {error}");
-                    }
                 },
                 Error::ApiError(e) => match e {
                     ragit_api::Error::InvalidModelName { name, candidates } => {
@@ -112,7 +105,6 @@ async fn main() {
                 },
                 Error::CliError { message, span } => {
                     eprintln!("cli error: {message}\n\n{}", ragit_cli::underline_span(
-                        &args[..args.len().min(2)].iter().map(|arg| format!("{arg} ")).collect::<Vec<_>>().concat(),
                         &span.0,
                         span.1,
                         span.2,
@@ -139,7 +131,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--all"])
                 .optional_flag(&["--dry-run"])
                 .short_flag(&["--force"])
-                .args(ArgType::Path, ArgCount::Any).parse(&args[2..])?;
+                .args(ArgType::Path, ArgCount::Any)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/add.txt"));
@@ -169,7 +162,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             else if files.is_empty() {
                 return Err(Error::CliError {
                     message: String::from("Please specify which files to add."),
-                    span: (String::new(), 0, 0),  // TODO
+                    span: Span::End.render(&args, 2).unwrap_rendered(),
                 });
             }
 
@@ -198,7 +191,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--force"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--force", "--output", "--quiet"])
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/archive-create.txt"));
@@ -231,7 +224,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--force", "--output", "--quiet"])
                 .args(ArgType::Path, ArgCount::Geq(1))
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/archive-extract.txt"));
@@ -256,7 +249,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/build.txt"));
@@ -274,8 +267,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--only-tokens", "--only-costs"])
                 .optional_arg_flag("--category", ArgType::String)
                 .optional_flag(&["--json"])
-                .short_flag(&["--category"])
-                .parse(&args[2..])?;
+                .short_flag(&["--category", "--json"])
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/audit.txt"));
@@ -394,8 +387,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("cat-file") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--json"])
+                .short_flag(&["--json"])
                 .args(ArgType::Query, ArgCount::Exact(1))
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/cat-file.txt"));
@@ -457,7 +451,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("check") => {
-            let parsed_args = ArgParser::new().optional_flag(&["--recover"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--recover"])
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/check.txt"));
@@ -512,7 +508,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .args(ArgType::String, ArgCount::Geq(1))
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/clone.txt"));
@@ -533,17 +529,44 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             return Ok(());
         },
         Some("config") => {
-            let parsed_args = ArgParser::new().flag(&["--set", "--get", "--get-all"]).args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2);
 
-            if parsed_args.show_help() {
-                println!("{}", include_str!("../docs/commands/config.txt"));
-                return Ok(());
+            // `ArgParser.parse()` fails unless it's `rag config --help`
+            match parsed_args {
+                Ok(parsed_args) if parsed_args.show_help() => {
+                    println!("{}", include_str!("../docs/commands/config.txt"));
+                    return Ok(());
+                },
+                _ => {},
             }
 
             let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
-            match parsed_args.get_flag(0).unwrap().as_str() {
-                "--set" => {
+            match args.get(2).map(|s| s.as_str()) {
+                Some("--get") => {
+                    let parsed_args = ArgParser::new()
+                        .optional_flag(&["--json"])
+                        .short_flag(&["--json"])
+                        .args(ArgType::String, ArgCount::Exact(1))
+                        .parse(&args, 3)?;
+
+                    let args = parsed_args.get_args_exact(1)?;
+                    let json_mode = parsed_args.get_flag(0).is_some();
+
+                    let s = match index.get_config_by_key(args[0].clone())? {
+                        Value::String(s) => if json_mode {
+                            format!("{s:?}")
+                        } else {
+                            s.to_string()
+                        },
+                        v => v.to_string(),
+                    };
+                    println!("{s}");
+                },
+                Some("--set") => {
+                    let parsed_args = ArgParser::new()
+                        .args(ArgType::String, ArgCount::Exact(2))
+                        .parse(&args, 3)?;
                     let args = parsed_args.get_args_exact(2)?;
                     let previous_value = index.set_config_by_key(args[0].clone(), args[1].clone())?;
 
@@ -556,35 +579,57 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         },
                     }
                 },
-                "--get" => {
-                    let args = parsed_args.get_args_exact(1)?;
-                    println!("{}", index.get_config_by_key(args[0].clone())?.to_string());
-                },
-                "--get-all" => {
-                    parsed_args.get_args_exact(0)?;  // make sure that there's no dangling args
+                Some("--get-all") => {
+                    let parsed_args = ArgParser::new()
+                        .optional_flag(&["--json"])
+                        .short_flag(&["--json"])
+                        .args(ArgType::String, ArgCount::None)
+                        .parse(&args, 3)?;
+
+                    let json_mode = parsed_args.get_flag(0).is_some();
                     let mut kv = index.get_all_configs()?;
                     kv.sort_by_key(|(k, _)| k.to_string());
 
-                    println!("{}", '{');
+                    if json_mode {
+                        println!("{}", '{');
 
-                    for (i, (k, v)) in kv.iter().enumerate() {
-                        println!(
-                            "    {k:?}: {v}{}",
-                            if i != kv.len() - 1 { "," } else { "" },
-                        );
+                        for (i, (k, v)) in kv.iter().enumerate() {
+                            println!(
+                                "    {k:?}: {v}{}",
+                                if i != kv.len() - 1 { "," } else { "" },
+                            );
+                        }
+
+                        println!("{}", '}');
                     }
 
-                    println!("{}", '}');
+                    else {
+                        for (k, v) in kv.iter() {
+                            println!("{k}: {v}");
+                        }
+                    }
                 },
-                _ => unreachable!(),
+                Some(flag) => {
+                    return Err(Error::CliError {
+                        message: format!("Unknown flag: `{flag}`. Valid flags are --get | --get-all | --set."),
+                        span: Span::Exact(2).render(&args, 2).unwrap_rendered(),
+                    });
+                },
+                None => {
+                    return Err(Error::CliError {
+                        message: String::from("Flag `--get | --get-all | --set` is missing."),
+                        span: Span::End.render(&args, 2).unwrap_rendered(),
+                    });
+                },
             }
         },
         Some("extract-keywords") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--full-schema"])
                 .optional_flag(&["--json"])
+                .short_flag(&["--json"])
                 .args(ArgType::Query, ArgCount::Exact(1))
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/extract-keywords.txt"));
@@ -637,7 +682,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("gc") => {
-            let parsed_args = ArgParser::new().flag(&["--logs", "--images", "--audit"]).parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .flag(&["--logs", "--images", "--audit"])
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/gc.txt"));
@@ -664,7 +711,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("help") => {
-            let parsed_args = ArgParser::new().args(ArgType::Command, ArgCount::Leq(1)).parse(&args[2..])?;
+            let parsed_args = ArgParser::new()
+                .args(ArgType::Command, ArgCount::Leq(1))
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/help.txt"));
@@ -705,7 +754,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ii-build.txt"));
@@ -717,7 +766,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.build_ii(quiet)?;
         },
         Some("ii-reset") | Some("reset-ii") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ii-reset.txt"));
@@ -728,7 +777,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             index.reset_ii()?;
         },
         Some("ii-status") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ii-status.txt"));
@@ -745,7 +794,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             println!("{status}");
         },
         Some("init") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/init.txt"));
@@ -762,7 +811,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::Any)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-chunks.txt"));
@@ -877,7 +928,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--name-only", "--uid-only", "--stat-only"])
                 .optional_flag(&["--staged", "--processed"])
                 .optional_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .alias("--cached", "--staged")
+                .args(ArgType::Query, ArgCount::Any)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-files.txt"));
@@ -1039,7 +1093,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::Any)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-images.txt"));
@@ -1150,7 +1206,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--name-only", "--stat-only"])
                 .optional_flag(&["--selected"])
                 .optional_flag(&["--json"])
-                .parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-models.txt"));
@@ -1239,7 +1296,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--term-only", "--stat-only"])
                 .optional_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::Any)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/ls-terms.txt"));
@@ -1293,7 +1352,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--prefix", ArgType::Path)
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--force", "--quiet"])
-                .args(ArgType::Path, ArgCount::Geq(1)).parse(&args[2..])?;
+                .args(ArgType::Path, ArgCount::Geq(1))
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/merge.txt"));
@@ -1333,25 +1393,32 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("meta") => {
-            let parsed_args = ArgParser::new()
-                .flag(&["--get", "--get-all", "--set", "--remove", "--unset", "--remove-all", "--unset-all"])
-                .optional_flag(&["--json"])
-                .args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2);
 
-            if parsed_args.show_help() {
-                println!("{}", include_str!("../docs/commands/meta.txt"));
-                return Ok(());
+            // `ArgParser.parse()` fails unless it's `rag meta --help`
+            match parsed_args {
+                Ok(parsed_args) if parsed_args.show_help() => {
+                    println!("{}", include_str!("../docs/commands/meta.txt"));
+                    return Ok(());
+                },
+                _ => {},
             }
 
-            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
-            let flag = parsed_args.get_flag(0).unwrap();
-            let json_mode = parsed_args.get_flag(1).is_some();
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
-            match flag.as_str() {
-                "--get" => {
-                    let key = &parsed_args.get_args_exact(1)?[0];
+            match args.get(2).map(|s| s.as_str()) {
+                Some("--get") => {
+                    let parsed_args = ArgParser::new()
+                        .optional_flag(&["--json"])
+                        .short_flag(&["--json"])
+                        .args(ArgType::String, ArgCount::Exact(1))
+                        .parse(&args, 3)?;
 
-                    if let Some(value) = index.get_meta_by_key(key.to_string())? {
+                    let args = parsed_args.get_args_exact(1)?;
+                    let key = args[0].to_string();
+                    let json_mode = parsed_args.get_flag(0).is_some();
+
+                    if let Some(value) = index.get_meta_by_key(key.clone())? {
                         if json_mode {
                             println!("{value:?}");
                         }
@@ -1362,15 +1429,34 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
 
                     else {
-                        return Err(Error::NoSuchMeta(key.to_string()));
+                        return Err(Error::NoSuchMeta(key));
                     }
                 },
-                "--get-all" => {
-                    parsed_args.get_args_exact(0)?;
+                Some("--get-all") => {
+                    let parsed_args = ArgParser::new()
+                        .optional_flag(&["--json"])
+                        .short_flag(&["--json"])
+                        .args(ArgType::String, ArgCount::None)
+                        .parse(&args, 3)?;
+
+                    let json_mode = parsed_args.get_flag(0).is_some();
                     let all = index.get_all_meta()?;
-                    println!("{}", serde_json::to_string_pretty(&all)?);
+
+                    if json_mode {
+                        println!("{}", serde_json::to_string_pretty(&all)?);
+                    }
+
+                    else {
+                        for (k, v) in all.iter() {
+                            println!("{k}: {v}");
+                        }
+                    }
                 },
-                "--set" => {
+                // git uses the term "add"
+                Some("set" | "add") => {
+                    let parsed_args = ArgParser::new()
+                        .args(ArgType::String, ArgCount::Exact(2))
+                        .parse(&args, 3)?;
                     let key_value = parsed_args.get_args_exact(2)?;
                     let (key, value) = (
                         key_value[0].to_string(),
@@ -1391,22 +1477,41 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         println!("metadata set `{key}`: `{new_value}`");
                     }
                 },
-                "--remove" | "--unset" => {
+                // git uses the term "unset"
+                Some("--remove" | "--unset") => {
+                    let parsed_args = ArgParser::new()
+                        .args(ArgType::String, ArgCount::Exact(1))
+                        .parse(&args, 3)?;
                     let key = &parsed_args.get_args_exact(1)?[0];
                     let prev_value = index.remove_meta_by_key(key.to_string())?;
 
                     println!("metadata unset `{key}`: `{prev_value}`");
                 },
-                "--remove-all" | "--unset-all" => {
-                    parsed_args.get_args_exact(0)?;
+                // git uses the term "--unset-all"
+                Some("--remove-all" | "--unset-all") => {
+                    ArgParser::new()
+                        .args(ArgType::String, ArgCount::None)
+                        .parse(&args, 3)?;
+
                     index.remove_all_meta()?;
                     println!("metadata removed");
                 },
-                _ => unreachable!(),
+                Some(flag) => {
+                    return Err(Error::CliError {
+                        message: format!("Unknown flag: `{flag}`. Valid flags are --get | --get-all | --set | --remove | --remove-all."),
+                        span: Span::Exact(2).render(&args, 2).unwrap_rendered(),
+                    });
+                },
+                None => {
+                    return Err(Error::CliError {
+                        message: String::from("Flag `--get | --get-all | --set | --remove | --remove-all` is missing."),
+                        span: Span::End.render(&args, 2).unwrap_rendered(),
+                    });
+                },
             }
         },
         Some("migrate") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/migrate.txt"));
@@ -1437,7 +1542,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--log", ArgType::Path)
                 .optional_arg_flag("--schema", ArgType::String)
                 .args(ArgType::Path, ArgCount::Exact(1))
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/pdl.txt"));
@@ -1574,7 +1679,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .args(ArgType::String, ArgCount::None)
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/pull.txt"));
@@ -1599,7 +1704,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .args(ArgType::String, ArgCount::None)
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/push.txt"));
@@ -1628,8 +1733,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
-                .short_flag(&["--interactive"])
-                .args(ArgType::String, ArgCount::Any).parse(&args[2..])?;
+                .short_flag(&["--interactive", "--json"])
+                .args(ArgType::String, ArgCount::Any)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/query.txt"));
@@ -1720,8 +1826,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--all"])
                 .optional_flag(&["--staged", "--processed"])
                 .short_flag(&["--recursive"])
+                .alias("--cached", "--staged")
                 .args(ArgType::Path, ArgCount::Any)
-                .parse(&args[2..])?;
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/remove.txt"));
@@ -1759,7 +1866,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             else if files.is_empty() {
                 return Err(Error::CliError {
                     message: String::from("Please specify which files to remove."),
-                    span: (String::new(), 0, 0),  // TODO
+                    span: Span::End.render(&args, 2).unwrap_rendered(),
                 });
             }
 
@@ -1800,7 +1907,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--rerank", "--no-rerank"])
                 .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
-                .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::Exact(1))
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/retrieve-chunks.txt"));
@@ -1899,7 +2008,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("status") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::None).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::None)
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/status.txt"));
@@ -2005,7 +2116,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--keyword", "--query"])
                 .arg_flag_with_default("--limit", "10", ArgType::IntegerBetween { min: Some(0), max: None })
-                .args(ArgType::Query, ArgCount::Exact(1)).parse(&args[2..])?;
+                .short_flag(&["--json"])
+                .args(ArgType::Query, ArgCount::Exact(1))
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/tfidf.txt"));
@@ -2133,7 +2246,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("version") => {
-            let parsed_args = ArgParser::new().parse(&args[2..])?;
+            let parsed_args = ArgParser::new().parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/version.txt"));
@@ -2193,13 +2306,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         String::from("Run `rag help` to get help.")
                     },
                 ),
-                span: (String::new(), 0, 0),  // TODO
+                span: Span::NthArg(0).render(&args, 1).unwrap_rendered(),
             });
         },
         None => {
             return Err(Error::CliError {
                 message: String::from("Run `rag help` to get help."),
-                span: (String::new(), 0, 0),  // TODO
+                span: Span::End.render(&args, 2).unwrap_rendered(),
             });
         },
     }

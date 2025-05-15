@@ -6,12 +6,13 @@ mod span;
 
 pub use dist::{get_closest_string, substr_edit_distance};
 pub use error::{Error, ErrorKind};
-pub use span::Span;
+pub use span::{Span, underline_span};
 
 pub struct ArgParser {
     arg_count: ArgCount,
     arg_type: ArgType,
     flags: Vec<Flag>,
+    aliases: HashMap<String, String>,
 
     // `--N=20`, `--prefix=rust`
     arg_flags: HashMap<String, ArgFlag>,
@@ -26,6 +27,7 @@ impl ArgParser {
             arg_count: ArgCount::None,
             arg_type: ArgType::String,
             flags: vec![],
+            aliases: HashMap::new(),
             arg_flags: HashMap::new(),
             short_flags: HashMap::new(),
         }
@@ -70,6 +72,23 @@ impl ArgParser {
         self
     }
 
+    // the first flag is the default value
+    pub fn flag_with_default(&mut self, flags: &[&str]) -> &mut Self {
+        self.flags.push(Flag {
+            values: flags.iter().map(|flag| flag.to_string()).collect(),
+            optional: true,
+            default: Some(0),
+        });
+        self
+    }
+
+    fn map_short_flag(&self, flag: &str) -> String {
+        match self.short_flags.get(flag) {
+            Some(f) => f.to_string(),
+            None => flag.to_string(),
+        }
+    }
+
     pub fn short_flag(&mut self, flags: &[&str]) -> &mut Self {
         for flag in flags.iter() {
             let short_flag = flag.get(1..3).unwrap().to_string();
@@ -84,41 +103,33 @@ impl ArgParser {
         self
     }
 
-    // the first flag is the default value
-    pub fn flag_with_default(&mut self, flags: &[&str]) -> &mut Self {
-        self.flags.push(Flag {
-            values: flags.iter().map(|flag| flag.to_string()).collect(),
-            optional: true,
-            default: Some(0),
-        });
+    pub fn alias(&mut self, from: &str, to: &str) -> &mut Self {
+        self.aliases.insert(from.to_string(), to.to_string());
         self
     }
 
-    pub fn map_short_flag(&self, flag: &str) -> String {
-        match self.short_flags.get(flag) {
-            Some(f) => f.to_string(),
-            None => flag.to_string(),
-        }
-    }
-
-    pub fn parse(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
-        self.parse_worker(raw_args).map_err(
+    /// Let's say `raw_args` is `["rag", "ls-files", "--json", "--staged", "--name-only"]` and
+    /// you don't care about the first 2 args (path and command name). You only want to parse
+    /// the flags (the last 3 args). In this case, you set `skip_first_n` to 2.
+    pub fn parse(&self, raw_args: &[String], skip_first_n: usize) -> Result<ParsedArgs, Error> {
+        self.parse_worker(raw_args, skip_first_n).map_err(
             |mut e| {
-                e.span = e.span.render(raw_args);
+                e.span = e.span.render(raw_args, skip_first_n);
                 e
             }
         )
     }
 
-    pub fn parse_worker(&self, raw_args: &[String]) -> Result<ParsedArgs, Error> {
+    fn parse_worker(&self, raw_args: &[String], skip_first_n: usize) -> Result<ParsedArgs, Error> {
         let mut args = vec![];
         let mut flags = vec![None; self.flags.len()];
         let mut arg_flags = HashMap::new();
         let mut expecting_flag_arg: Option<ArgFlag> = None;
         let mut no_more_flags = false;
 
-        if raw_args.get(0).map(|arg| arg.as_str()) == Some("--help") {
+        if raw_args.get(skip_first_n).map(|arg| arg.as_str()) == Some("--help") {
             return Ok(ParsedArgs {
+                skip_first_n,
                 raw_args: raw_args.to_vec(),
                 args,
                 flags: vec![],
@@ -127,7 +138,12 @@ impl ArgParser {
             });
         }
 
-        'raw_arg_loop: for (arg_index, raw_arg) in raw_args.iter().enumerate() {
+        'raw_arg_loop: for (arg_index, raw_arg) in raw_args[skip_first_n..].iter().enumerate() {
+            let raw_arg = match self.aliases.get(raw_arg) {
+                Some(alias) => alias.to_string(),
+                None => raw_arg.to_string(),
+            };
+
             if raw_arg == "--" {
                 if let Some(arg_flag) = expecting_flag_arg {
                     return Err(Error {
@@ -142,11 +158,11 @@ impl ArgParser {
 
             if let Some(arg_flag) = expecting_flag_arg {
                 expecting_flag_arg = None;
-                arg_flag.arg_type.parse(raw_arg, Span::Exact(arg_index))?;
+                arg_flag.arg_type.parse(&raw_arg, Span::Exact(arg_index + skip_first_n))?;
 
                 if let Some(_) = arg_flags.insert(arg_flag.flag.clone(), raw_arg.to_string()) {
                     return Err(Error {
-                        span: Span::Exact(arg_index),
+                        span: Span::Exact(arg_index + skip_first_n),
                         kind: ErrorKind::SameFlagMultipleTimes(
                             arg_flag.flag.clone(),
                             arg_flag.flag.clone(),
@@ -158,7 +174,7 @@ impl ArgParser {
             }
 
             if raw_arg.starts_with("-") && !no_more_flags {
-                let mapped_flag = self.map_short_flag(raw_arg);
+                let mapped_flag = self.map_short_flag(&raw_arg);
 
                 for (flag_index, flag) in self.flags.iter().enumerate() {
                     if flag.values.contains(&mapped_flag) {
@@ -169,7 +185,7 @@ impl ArgParser {
 
                         else {
                             return Err(Error {
-                                span: Span::Exact(arg_index),
+                                span: Span::Exact(arg_index + skip_first_n),
                                 kind: ErrorKind::SameFlagMultipleTimes(
                                     flags[flag_index].as_ref().unwrap().to_string(),
                                     raw_arg.to_string(),
@@ -190,11 +206,11 @@ impl ArgParser {
                     let flag_arg = splitted[1];
 
                     if let Some(arg_flag) = self.arg_flags.get(&flag) {
-                        arg_flag.arg_type.parse(flag_arg, Span::Exact(arg_index))?;
+                        arg_flag.arg_type.parse(flag_arg, Span::Exact(arg_index + skip_first_n))?;
 
                         if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {
                             return Err(Error {
-                                span: Span::Exact(arg_index),
+                                span: Span::Exact(arg_index + skip_first_n),
                                 kind: ErrorKind::SameFlagMultipleTimes(
                                     flag.to_string(),
                                     flag.to_string(),
@@ -207,7 +223,7 @@ impl ArgParser {
 
                     else {
                         return Err(Error {
-                            span: Span::Exact(arg_index),
+                            span: Span::Exact(arg_index + skip_first_n),
                             kind: ErrorKind::UnknownFlag {
                                 flag: flag.to_string(),
                                 similar_flag: self.get_similar_flag(&flag),
@@ -217,16 +233,16 @@ impl ArgParser {
                 }
 
                 return Err(Error {
-                    span: Span::Exact(arg_index),
+                    span: Span::Exact(arg_index + skip_first_n),
                     kind: ErrorKind::UnknownFlag {
                         flag: raw_arg.to_string(),
-                        similar_flag: self.get_similar_flag(raw_arg),
+                        similar_flag: self.get_similar_flag(&raw_arg),
                     },
                 });
             }
 
             else {
-                args.push(self.arg_type.parse(raw_arg, Span::Exact(arg_index))?);
+                args.push(self.arg_type.parse(&raw_arg, Span::Exact(arg_index + skip_first_n))?);
             }
         }
 
@@ -256,7 +272,8 @@ impl ArgParser {
             let span = match self.arg_count {
                 ArgCount::Geq(n) if args.len() < n => { Span::End },
                 ArgCount::Leq(n) if args.len() > n => { Span::NthArg(n + 1) },
-                ArgCount::Exact(n) if args.len() != n => { Span::NthArg(n + 1) },
+                ArgCount::Exact(n) if args.len() > n => { Span::NthArg(n + 1) },
+                ArgCount::Exact(n) if args.len() < n => { Span::NthArg(args.len().max(1) - 1) },
                 ArgCount::None if args.len() > 0 => { Span::FirstArg },
                 _ => { break; },
             };
@@ -288,6 +305,7 @@ impl ArgParser {
         }
 
         Ok(ParsedArgs {
+            skip_first_n,
             raw_args: raw_args.to_vec(),
             args,
             flags,
@@ -398,6 +416,7 @@ pub struct ArgFlag {
 }
 
 pub struct ParsedArgs {
+    skip_first_n: usize,
     raw_args: Vec<String>,
     args: Vec<String>,
     flags: Vec<Option<String>>,
@@ -417,7 +436,7 @@ impl ParsedArgs {
 
         else {
             Err(Error {
-                span: Span::FirstArg.render(&self.raw_args),
+                span: Span::FirstArg.render(&self.raw_args, self.skip_first_n),
                 kind: ErrorKind::WrongArgCount {
                     expected: ArgCount::Exact(count),
                     got: self.args.len(),
@@ -435,14 +454,4 @@ impl ParsedArgs {
     pub fn show_help(&self) -> bool {
         self.show_help
     }
-}
-
-pub fn underline_span(prefix: &str, args: &str, start: usize, end: usize) -> String {
-    format!(
-        "{prefix}{args}\n{}{}{}{}",
-        " ".repeat(prefix.len()),
-        " ".repeat(start),
-        "^".repeat(end - start),
-        " ".repeat(args.len() - end),
-    )
 }

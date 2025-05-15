@@ -8,7 +8,7 @@ rag-audit - Show how much you spent using LLMs
 SYNOPSIS
 --------
 [verse]
-'rag audit' [--this-week] [--only-tokens | --only-costs] [--category | -c <category>] [--json]
+'rag audit' [--this-week] [--only-tokens | --only-costs] [--category | -c <category>] [--json | -j]
 
 DESCRIPTION
 -----------

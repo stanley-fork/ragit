@@ -48,7 +48,6 @@ pub enum Error {
     CannotExtractArchive(String),
     CannotClone(String),
     CannotPush(String),
-    CannotBuild(Vec<(String, String)>),  // Vec<(file_name, error_message)>
     CannotAddFile {
         file: String,  // rel_path
         message: String,

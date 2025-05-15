@@ -8,7 +8,7 @@ rag-status - Show the knowledge-base status
 SYNOPSIS
 --------
 [verse]
-'rag status' [--json]
+'rag status' [--json | -j]
 
 DESCRIPTION
 -----------

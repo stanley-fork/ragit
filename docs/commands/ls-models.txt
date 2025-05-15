@@ -8,7 +8,7 @@ rag-ls-models - Show information about models
 SYNOPSIS
 --------
 [verse]
-'rag ls-models' [--name-only | --stat-only] [--json] [--selected]
+'rag ls-models' [--name-only | --stat-only] [--json | -j] [--selected]
 
 DESCRIPTION
 -----------

@@ -9,7 +9,7 @@ rag-create-archive - Alias
 SYNOPSIS
 --------
 [verse]
-'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output <file> [--[no-]configs] [--[no-]prompts] [--force | -f] [--quiet | -q]
+'rag archive-create' [--jobs <n=4>] [--size-limit <n=0>] --output | -o <file> [--[no-]configs] [--[no-]prompts] [--force | -f] [--quiet | -q]
 
 DESCRIPTION
 -----------

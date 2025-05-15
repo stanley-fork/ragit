@@ -8,7 +8,7 @@ rag-cat-file - Show content of a file or a chunk
 SYNOPSIS
 --------
 [verse]
-'rag cat-file' [--json] <uid>
+'rag cat-file' [--json | -j] <uid>
 
 DESCRIPTION
 -----------

@@ -17,7 +17,7 @@ flags to pull them. If there's no configs or prompts in the remote, `--configs` 
 flags do nothing.
 
 Ragit is not a version control system, it's a knowledge-base management system. Unlike `git pull`,
-you cannot redo `rag pull`. Once it's pulled, the original knowledge-base is overwritten with the
+you cannot undo `rag pull`. Once it's pulled, the original knowledge-base is overwritten with the
 new one and you cannot revert that.
 
 It only writes to `.ragit/`. It does not touch the raw data files.

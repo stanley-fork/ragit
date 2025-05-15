@@ -8,7 +8,7 @@ rag-ls-files - Show information about files
 SYNOPSIS
 --------
 [verse]
-'rag ls-files' [--name-only | --stat-only | --uid-only] [--staged | --processed] [--json] [<uid>..]
+'rag ls-files' [--name-only | --stat-only | --uid-only] [--staged | --processed] [--json | -j] [<uid>..]
 
 DESCRIPTION
 -----------

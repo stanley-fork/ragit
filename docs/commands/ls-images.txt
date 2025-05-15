@@ -8,7 +8,7 @@ rag-ls-images - Show information about images
 SYNOPSIS
 --------
 [verse]
-'rag ls-images' [--stat-only | --uid-only] [--json] [<uid>..]
+'rag ls-images' [--stat-only | --uid-only] [--json | -j] [<uid>..]
 
 DESCRIPTION
 -----------

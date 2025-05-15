@@ -9,7 +9,7 @@ rag-extract-archive - Alias
 SYNOPSIS
 --------
 [verse]
-'rag archive-extract' --output <dir> [--jobs <n=4>] [--force | -f] [--quiet | -q] <archives..>
+'rag archive-extract' --output | -o <dir> [--jobs <n=4>] [--force | -f] [--quiet | -q] <archives..>
 
 DESCRIPTION
 -----------

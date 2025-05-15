@@ -112,7 +112,7 @@ async fn post_chat_(
         });
     }
 
-    let response = index.query(&query, real_history).await.handle_error(500)?;
+    let response = index.query(&query, real_history, None).await.handle_error(500)?;
     let now = Utc::now();
     chat::add_chat_history(
         chat_id,
