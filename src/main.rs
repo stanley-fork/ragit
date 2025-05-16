@@ -715,7 +715,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 _ => unreachable!(),
             }
         },
-        Some("help") => {
+        // It matches `rag help` and `rag --help`.
+        Some("help" | "--help") => {
             let parsed_args = ArgParser::new()
                 .args(ArgType::Command, ArgCount::Leq(1))
                 .parse(&args, 2)?;
@@ -751,7 +752,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     return run(new_args).await;
                 },
                 None => {
-                    println!("{}", include_str!("../docs/commands/help.txt"));
+                    println!("{}", include_str!("../docs/intro.txt"));
                 },
             }
         },

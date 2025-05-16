@@ -1,48 +1,14 @@
-ragit is an all-in-one RAG framework that helps you create, query and share knowledge-bases in a git-like workflow.
+rag-help(1)
+==============
 
-Run `rag help <COMMAND>` to read more documents.
+NAME
+----
+rag-help - Display help information about ragit
 
-Create a new knowledge-base
-    archive-extract
-    clone
-    init
+SYNOPSIS
+--------
+[verse]
+'rag help [<command>]'
 
-Share a knowledge-base
-    archive-create
-    push
-
-Work with an existing knowledge-base
-    add
-    build
-    gc
-    ii-build
-    ii-reset
-    rm
-
-Get information about a knowledge-base
-    audit
-    cat-file
-    config
-    ii-status
-    ls-chunks
-    ls-files
-    ls-images
-    ls-models
-    ls-terms
-    meta
-    status
-
-Query a knowledge-base
-    query
-
-Simulate each pipeline
-    extract-keywords
-    tfidf
-    retrieve-chunks
-
-ragit also has extra tutorial commands
-    rag help chunks
-    rag help config-reference
-    rag help pipeline
-    rag help quick-guide
-    rag help uid-query
+DESCRIPTION
+-----------
