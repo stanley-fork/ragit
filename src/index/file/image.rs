@@ -11,17 +11,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Cursor;
 
-/*
-TODO: There's a subtle problem with ragit's image reader.
-
-1. All the images have to go through `normalize_image` before `generate_chunk`.
-  - In order to create an AtomicToken, an image needs a uid.
-  - A uid is generated from a hash value of the bytes of the image, and `normalize_image` alters the bytes.
-2. Each file reader implements `load_tokens`, which creates AtomicTokens.
-3. That means each file reader is responsible for calling `normalize_image`. If it forgets to do so, it will break the knowledge-base.
-4. If you're adding a new file reader, you're very likely to forget this fact.
-*/
-
 pub type Path = String;
 
 #[derive(Clone, PartialEq)]
@@ -29,6 +18,19 @@ pub struct Image {
     pub uid: Uid,
     pub image_type: ImageType,
     pub bytes: Vec<u8>,
+}
+
+impl Image {
+    /// Always use this function. DO NOT instantiate `Image` directly.
+    pub fn new(bytes: Vec<u8>, image_type: ImageType) -> Result<Self, Error> {
+        let normalized_bytes = normalize_image(bytes, image_type)?;
+        let uid = Uid::new_image(&normalized_bytes);
+        Ok(Image {
+            uid,
+            bytes: normalized_bytes,
+            image_type: ImageType::Png,  // `normalize_image` always returns this type
+        })
+    }
 }
 
 impl fmt::Debug for Image {
@@ -40,7 +42,7 @@ impl fmt::Debug for Image {
     }
 }
 
-pub fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>, Error> {
+fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>, Error> {
     let mut dynamic_image = match image_type {
         ImageType::Svg => {
             let bytes = render_svg_to_png(&bytes)?;
@@ -113,14 +115,19 @@ impl FileReaderImpl for ImageReader {
                 Err(e) => if self.strict_mode {
                     Err(e)
                 } else {
-                    // TODO: split `s` if it's too long
-                    let s = String::from_utf8_lossy(&bytes).to_string();
-                    self.tokens.push(AtomicToken::String {
-                        data: s.clone(),
-                        char_len: s.chars().count(),
-                    });
-                    self.is_exhausted = true;
-                    Ok(())
+                    if let ImageType::Svg = self.image_type {
+                        let s = String::from_utf8_lossy(&bytes).to_string();
+                        self.tokens.push(AtomicToken::String {
+                            data: s.clone(),
+                            char_len: s.chars().count(),
+                        });
+                        self.is_exhausted = true;
+                        Ok(())
+                    }
+
+                    else {
+                        Err(e)
+                    }
                 },
             }
         }

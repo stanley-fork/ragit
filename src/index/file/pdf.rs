@@ -1,8 +1,7 @@
-use super::{AtomicToken, FileReaderImpl, Image, normalize_image};
+use super::{AtomicToken, FileReaderImpl, Image};
 use crate::chunk::ChunkExtraInfo;
 use crate::error::Error;
 use crate::index::BuildConfig;
-use crate::uid::Uid;
 use mupdf::{Colorspace, Document, ImageFormat, Matrix};
 use ragit_pdl::ImageType;
 
@@ -67,7 +66,8 @@ impl FileReaderImpl for PdfReader {
 
         for (image, page_no) in self.images.iter() {
             result.push(image.clone());
-            result.push(AtomicToken::PageBreak { extra_info: ChunkExtraInfo { page_no: Some(*page_no) } });
+            result.push(AtomicToken::ChunkExtraInfo(ChunkExtraInfo { page_no: Some(*page_no) }));
+            result.push(AtomicToken::PageBreak);
         }
 
         self.images = vec![];
@@ -107,12 +107,6 @@ fn convert_page(
         &mut bytes,
         ImageFormat::PNG,
     )?;
-    let bytes = normalize_image(bytes, ImageType::Png)?;
-    let uid = Uid::new_image(&bytes);
 
-    Ok(AtomicToken::Image(Image {
-        bytes,
-        image_type: ImageType::Png,
-        uid,
-    }))
+    Ok(AtomicToken::Image(Image::new(bytes, ImageType::Png)?))
 }

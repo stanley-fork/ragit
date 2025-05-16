@@ -15,7 +15,7 @@ mod plain_text;
 mod pdf;
 
 pub use csv::CsvReader;
-pub use image::{Image, ImageDescription, ImageReader, normalize_image};
+pub use image::{Image, ImageDescription, ImageReader};
 pub use line::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
@@ -23,8 +23,20 @@ pub use pdf::PdfReader;
 
 pub type Path = String;
 
+/// Generic file reader.
+/// A file reader reads a file and creates a sequence of `AtomicToken`.
+///
+/// Ragit will call `load_tokens` and `pop_all_tokens` until `has_more_to_read`
+/// is false. It's designed like this because some files are too big to load to
+/// memory at once.
 pub trait FileReaderImpl {
     fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;
+
+    /// `load_tokens` loads tokens to buffer. This method *empties* and returns the buffer.
+    /// You don't have to care about the length of its returned vector. If it contains
+    /// too many tokens, ragit will split them into multiple chunks. If it returns a
+    /// too small vector, ragit will call `load_tokens` again, unless `self.has_more_to_read`
+    /// is false.
     fn pop_all_tokens(&mut self) -> Result<Vec<AtomicToken>, Error>;
 
     /// It reads `path` and load more tokens to memory. If the file is small enough,
@@ -97,14 +109,26 @@ impl FileReader {
         let mut chunk_deque = VecDeque::new();
         let mut curr_chunk_size = 0;
         let mut has_page_break = false;
-        let mut chunk_extra_info = None;
+        let mut chunk_extra_info: Option<ChunkExtraInfo> = None;
 
         // step 1. collect tokens for a chunk
         while curr_chunk_size < next_chunk_size && !self.buffer.is_empty() {
             let token = self.buffer.pop_front().unwrap();
 
-            if let AtomicToken::PageBreak { extra_info } = &token {
-                chunk_extra_info = Some(extra_info.clone());
+            if let AtomicToken::ChunkExtraInfo(extra_info) = &token {
+                match &mut chunk_extra_info {
+                    Some(old) => {
+                        *old = old.merge(extra_info);
+                    },
+                    None => {
+                        chunk_extra_info = Some(extra_info.clone());
+                    },
+                }
+
+                continue;
+            }
+
+            if let AtomicToken::PageBreak = &token {
                 has_page_break = true;
                 break;
             }
@@ -221,17 +245,11 @@ impl FileReader {
                     else {
                         match fetch_image_from_web(url).await {
                             Ok((bytes, image_type)) => {
-                                // `normalize_image` always returns a png
-                                let bytes = normalize_image(bytes, image_type)?;
-                                let uid = Uid::new_image(&bytes);
-                                self.images.insert(uid, bytes.clone());
-                                self.fetched_images.insert(hash.to_string(), uid);
+                                let image = Image::new(bytes, image_type)?;
+                                self.images.insert(image.uid, image.bytes.clone());
+                                self.fetched_images.insert(hash.to_string(), image.uid);
 
-                                new_tokens.push(AtomicToken::Image(Image {
-                                    bytes,
-                                    image_type: ImageType::Png,
-                                    uid,
-                                }));
+                                new_tokens.push(AtomicToken::Image(image));
                             },
                             Err(e) => if self.config.strict_file_reader {
                                 return Err(e);
@@ -270,7 +288,8 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
             },
 
             // not rendered
-            AtomicToken::PageBreak { .. } => {},
+            AtomicToken::PageBreak
+           | AtomicToken::ChunkExtraInfo(_) => {},
         }
     }
 
@@ -311,20 +330,26 @@ pub enum AtomicToken {
     ///
     /// If your file reader generates this token, ragit will
     /// handle it. If it fails to fetch the image, 1) if it's
-    /// strict mode, it will crash. 2) Otherwise, it would create
-    /// a markdown image symbol with `desc` and `url`.
+    /// strict mode, it will crash. 2) Otherwise, it would
+    /// create a string token with `subst`.
     ///
     /// `hash` is of `url`, not the bytes.
-    WebImage { desc: String, url: String, hash: String },
+    WebImage { url: String, hash: String, subst: String },
 
     /// It's an invisible AtomicToken.
     /// An AtomicToken before a break and after the
     /// break will never belong to the same chunk.
+    PageBreak,
+
+    /// You can add extra information to the chunk.
     ///
-    /// If you want your `FileReader` to add extra
-    /// information to a chunk, you can do that
-    /// with its `extra_info` field.
-    PageBreak { extra_info: ChunkExtraInfo },
+    /// I recommend you use `ChunkExtraInfo` right before
+    /// `PageBreak`, so that each chunk has at most
+    /// 1 extra information.
+    ///
+    /// If there are multiple `ChunkExtraInfo`s in a chunk,
+    /// ragit will do *its best* to interpret them.
+    ChunkExtraInfo(ChunkExtraInfo),
 }
 
 impl AtomicToken {
@@ -333,7 +358,8 @@ impl AtomicToken {
             AtomicToken::String { char_len, .. } => *char_len,
             AtomicToken::Image(_) => image_size,
             AtomicToken::WebImage { .. } => image_size,
-            AtomicToken::PageBreak { .. } => 0,
+            AtomicToken::PageBreak
+           | AtomicToken::ChunkExtraInfo(_) => 0,
         }
     }
 }
@@ -349,10 +375,11 @@ impl From<AtomicToken> for MessageContent {
 
             // This variant is supposed to be removed by `FileReader::generate_chunk`.
             // If this branch is reached, that means it's failed to fetch the image.
-            AtomicToken::WebImage { desc, url, hash: _ } => MessageContent::String(format!("![{desc}]({url})")),
+            AtomicToken::WebImage { subst, url: _, hash: _ } => MessageContent::String(subst.clone()),
 
             // this branch is not supposed to be reached
-            AtomicToken::PageBreak { .. } => MessageContent::String(String::new()),
+            AtomicToken::PageBreak
+           | AtomicToken::ChunkExtraInfo(_) => MessageContent::String(String::new()),
         }
     }
 }

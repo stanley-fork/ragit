@@ -1,7 +1,6 @@
-use super::{AtomicToken, FileReaderImpl, Image, normalize_image};
+use super::{AtomicToken, FileReaderImpl, Image};
 use crate::error::Error;
 use crate::index::BuildConfig;
-use crate::uid::Uid;
 use lazy_static::lazy_static;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use ragit_pdl::ImageType;
@@ -150,7 +149,7 @@ impl MarkdownReader {
                         let mut hasher = Sha3_256::new();
                         hasher.update(url.as_bytes());
                         let hash = format!("{:064x}", hasher.finalize());
-                        self.tokens.push(AtomicToken::WebImage { desc: desc.to_string(), url: url.to_string(), hash });
+                        self.tokens.push(AtomicToken::WebImage { subst: format!("![{desc}]({url})"), url: url.to_string(), hash });
                         continue;
                     }
 
@@ -160,8 +159,8 @@ impl MarkdownReader {
                         }
                     }
 
-                    let bytes = match load_and_normalize_image(&url) {
-                        Ok(bytes) => bytes,
+                    let image = match load_image_token(&url) {
+                        Ok(image) => image,
                         Err(e) => if self.strict_mode {
                             return Err(e.into());
                         } else {
@@ -173,12 +172,7 @@ impl MarkdownReader {
                             continue;
                         },
                     };
-                    let uid = Uid::new_image(&bytes);
-                    self.tokens.push(AtomicToken::Image(Image {
-                        image_type: ImageType::Png,
-                        bytes,
-                        uid,
-                    }));
+                    self.tokens.push(image);
                 },
             }
         }
@@ -464,10 +458,10 @@ fn get_matching_bracket_index(chars: &[char], mut index: usize) -> Option<usize>
     }
 }
 
-fn load_and_normalize_image(url: &str) -> Result<Vec<u8>, Error> {
+fn load_image_token(url: &str) -> Result<AtomicToken, Error> {
     let bytes = read_bytes(url)?;
     let image_type = ImageType::from_extension(&extension(&url).unwrap_or(Some(String::from("png"))).unwrap_or(String::from("png")))?;
-    Ok(normalize_image(bytes, image_type)?)
+    Ok(AtomicToken::Image(Image::new(bytes, image_type)?))
 }
 
 #[cfg(test)]

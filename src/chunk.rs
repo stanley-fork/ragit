@@ -178,18 +178,17 @@ impl Chunk {
                     chunk.push(format!("<|raw_media({}:{})|>", image_type.to_extension(), encode_base64(&bytes)));
                 },
 
-                // Usually, this token is filtered out before passed to this function
-                AtomicToken::PageBreak { .. } => {
-                    // invisible
+                // If this branch is reached, that means `FileReader::generate_chunk` has
+                // failed to fetch the image from web.
+                AtomicToken::WebImage { subst, url: _, hash: _ } => {
+                    approx_data_len += subst.chars().count();
+                    chunk.push(subst.clone());
                 },
 
-                // If this branch is reached, that means `FileReader::generate_chunk` has
-                // failed to fetch the image from web. As a fallback, it creates a
-                // markdown-syntaxed image.
-                AtomicToken::WebImage { desc, url, hash: _ } => {
-                    let dummy_image = format!("![{desc}]({url})");
-                    approx_data_len += dummy_image.chars().count();
-                    chunk.push(dummy_image);
+                // These tokens are supposed to be filtered out before passed to this function
+                AtomicToken::PageBreak
+               | AtomicToken::ChunkExtraInfo(_) => {
+                    // invisible
                 },
             }
         }
@@ -232,16 +231,17 @@ impl Chunk {
                     image_count += 1;
                     data.push(format!("img_{}", i.uid));
                 },
-                AtomicToken::PageBreak { .. } => {
-                    // invisible
-                    // it must be filtered out before passed to this function
-                },
 
                 // If this branch is reached, that means `FileReader::generate_chunk` has
                 // failed to fetch the image from web.
                 AtomicToken::WebImage { hash, .. } => {
                     data.push(format!("web_img_{hash}"));
                 },
+
+                // invisible
+                // it must be filtered out before passed to this function
+                AtomicToken::PageBreak
+               | AtomicToken::ChunkExtraInfo(_) => {},
             }
         }
 
@@ -502,4 +502,18 @@ impl From<&Chunk> for ChunkSchema {
 #[derive(Clone, Copy, Debug)]
 pub struct ChunkExtraInfo {
     pub page_no: Option<usize>,
+}
+
+impl ChunkExtraInfo {
+    /// Sometimes a file reader might generate multiple `ChunkExtraInfo`s
+    /// for a single chunk. In such cases, those extra infos have to be merged.
+    pub fn merge(&self, other: &ChunkExtraInfo) -> ChunkExtraInfo {
+        let page_no = match (self.page_no, other.page_no) {
+            (Some(p), Some(_)) => Some(p),  // there's nothing we can do
+            (Some(p), None) | (None, Some(p)) => Some(p),
+            (None, None) => None,
+        };
+
+        ChunkExtraInfo { page_no }
+    }
 }
