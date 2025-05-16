@@ -49,4 +49,4 @@ def meta():
             else:
                 assert cargo_run(["meta", "--remove", key], check=False) != 0
 
-        assert json.loads(cargo_run(["meta", "--get-all"], stdout=True)) == metadata
+        assert json.loads(cargo_run(["meta", "--get-all", "--json"], stdout=True)) == metadata

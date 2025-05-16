@@ -1458,7 +1458,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
                 },
                 // git uses the term "add"
-                Some("set" | "add") => {
+                Some("--set" | "--add") => {
                     let parsed_args = ArgParser::new()
                         .args(ArgType::String, ArgCount::Exact(2))
                         .parse(&args, 3)?;
