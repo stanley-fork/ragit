@@ -68,7 +68,7 @@ def add(a, b):
     let mut failure_count = 0;
 
     for (index, (schema_str, json, error)) in samples.iter().enumerate() {
-        let schema = parse_schema(schema_str.as_bytes()).unwrap();
+        let schema = parse_schema(schema_str).unwrap();
 
         match schema.validate(json) {
             Ok(_) => {
@@ -209,7 +209,7 @@ fn schema_parse_test() {
     let mut failure_count = 0;
 
     for (index, (schema, has_to_be_okay)) in samples.iter().enumerate() {
-        let is_okay = parse_schema(schema.as_bytes()).is_ok();
+        let is_okay = parse_schema(schema).is_ok();
 
         if is_okay != *has_to_be_okay {
             failure_count += 1;
@@ -289,7 +289,7 @@ def add(a, b):
 
     for (index, (schema_str, value, answer)) in samples.clone().into_iter().enumerate() {
         // If these `unwrap`s fail, go checkout `schema_validate_test` or `schema_parse_test`.
-        let schema = parse_schema(schema_str.as_bytes()).unwrap();
+        let schema = parse_schema(schema_str).unwrap();
         let value = schema.validate(&value).unwrap();
 
         if value != answer {
