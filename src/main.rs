@@ -186,7 +186,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             println!("{result}");
         },
-        Some("archive-create") | Some("create-archive") => {
+        Some("archive-create") | Some("create-archive") | Some("archive") => {
             let parsed_args = ArgParser::new()
                 .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--size-limit", ArgType::IntegerBetween { min: Some(0), max: None })
@@ -2287,7 +2287,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let similar_command = get_closest_string(
                 &[
                     "add",
-                    "archive-create", "create-archive",
+                    "archive-create", "create-archive", "archive",
                     "archive-extract", "extract-archive",
                     "build",
                     "audit",
