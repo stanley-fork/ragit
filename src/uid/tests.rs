@@ -164,7 +164,7 @@ fn uid_add_sub() {
             }
 
             let d = a.checked_sub(b).unwrap();
-            assert_eq!(d.add(b), a);
+            assert_eq!(d + b, a);
         }
     }
 }
