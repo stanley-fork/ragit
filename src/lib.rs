@@ -32,6 +32,8 @@ pub use index::{
     MergeMode,
     MergeResult,
     ProcessedDoc,
+    PullResult,
+    PushResult,
     RecoverResult,
     RemoveResult,
     TfidfResult,

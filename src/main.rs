@@ -12,6 +12,8 @@ use ragit::{
     MODEL_FILE_NAME,
     MergeMode,
     ProcessedDoc,
+    PullResult,
+    PushResult,
     QueryTurn,
     RemoveResult,
     UidQueryConfig,
@@ -1700,11 +1702,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
             let quiet = parsed_args.get_flag(2).is_some();
-            index.pull(
+            let result = index.pull(
                 include_configs,
                 include_prompts,
                 quiet,
             ).await?;
+
+            match result {
+                PullResult::AlreadyUpToDate => {
+                    println!("Already up to date.");
+                },
+                _ => {},
+            }
         },
         Some("push") => {
             let parsed_args = ArgParser::new()
@@ -1726,12 +1735,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
             let quiet = parsed_args.get_flag(2).is_some();
-            index.push(
+            let result = index.push(
                 remote,
                 include_configs,
                 include_prompts,
                 quiet,
             ).await?;
+
+            match result {
+                PushResult::AlreadyUpToDate => {
+                    println!("Everything up-to-date");
+                },
+                _ => {},
+            }
         },
         Some("query") => {
             let parsed_args = ArgParser::new()

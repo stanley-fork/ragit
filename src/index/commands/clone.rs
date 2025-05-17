@@ -69,7 +69,8 @@ impl Index {
         }
 
         let mut url = Url::parse(&url)?;
-        url.set_port(Some(41127)).map_err(|_| Error::CloneRequestError {
+        url.set_port(Some(41127)).map_err(|_| Error::RequestFailure {
+            context: Some(String::from("clone")),
             code: None,
             url: url.as_str().into(),
         })?;
@@ -208,7 +209,8 @@ async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
     let response = client.get(url).send().await?;
 
     if response.status().as_u16() != 200 {
-        return Err(Error::CloneRequestError {
+        return Err(Error::RequestFailure {
+            context: Some(String::from("clone")),
             code: Some(response.status().as_u16()),
             url: url.to_string(),
         });
@@ -222,7 +224,8 @@ async fn request_json_file(url: &str) -> Result<Value, Error> {
     let response = client.get(url).send().await?;
 
     if response.status().as_u16() != 200 {
-        return Err(Error::CloneRequestError {
+        return Err(Error::RequestFailure {
+            context: Some(String::from("clone")),
             code: Some(response.status().as_u16()),
             url: url.to_string(),
         });

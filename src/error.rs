@@ -31,11 +31,8 @@ pub enum Error {
     BrokenHash(String),
     BrokenPrompt(String),
     BrokenArchive(String),
-    CloneRequestError {
-        code: Option<u16>,
-        url: String,
-    },
-    PushRequestError {
+    RequestFailure {
+        context: Option<String>,  // clone | push | pull ...
         code: Option<u16>,
         url: String,
     },

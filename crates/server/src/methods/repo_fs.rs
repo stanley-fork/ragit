@@ -3,7 +3,13 @@ use crate::CONFIG;
 use crate::models::file::{FileDetail, FileSimple, FileType};
 use crate::models::repo::{self, RepoOperation};
 use crate::utils::get_rag_path;
-use ragit::{Index, LoadMode, UidQueryConfig, into_multi_modal_contents};
+use ragit::{
+    Index,
+    LoadMode,
+    Uid,
+    UidQueryConfig,
+    into_multi_modal_contents,
+};
 use ragit_fs::{
     exists,
     join,
@@ -33,6 +39,39 @@ async fn get_index_(user: String, repo: String, api_key: Option<String>) -> RawR
         j,
         "Content-Type",
         "application/json",
+    )))
+}
+
+pub async fn get_uid(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_uid_(user, repo, api_key).await)
+}
+
+async fn get_uid_(user: String, repo: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+    let config = CONFIG.get().handle_error(500)?;
+    let rag_path = join3(
+        &config.repo_data_dir,
+        &user,
+        &repo,
+    ).handle_error(400)?;
+
+    let uid = if exists(&rag_path) {
+        let mut index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
+        index.calculate_and_save_uid().handle_error(500)?
+    }
+
+    // when a repository is created via api, but nothing's pushed
+    else {
+        // uid of an empty knowledge-base
+        Uid::new_knowledge_base(&[])
+    };
+
+    Ok(Box::new(with_header(
+        uid.to_string(),
+        "Content-Type",
+        "text/plain; charset=utf-8",
     )))
 }
 

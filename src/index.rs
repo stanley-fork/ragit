@@ -74,6 +74,8 @@ pub use commands::{
     BuildResult,
     MergeMode,
     MergeResult,
+    PullResult,
+    PushResult,
     RecoverResult,
     RemoveResult,
     VersionInfo,

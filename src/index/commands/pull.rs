@@ -17,6 +17,12 @@ use ragit_fs::{
     remove_dir_all,
     rename,
 };
+use reqwest::Url;
+
+pub enum PullResult {
+    PulledArchives,
+    AlreadyUpToDate,
+}
 
 impl Index {
     // TODO: `include_configs` and `include_prompts` are not thoroughly tested yet
@@ -25,12 +31,25 @@ impl Index {
         include_configs: bool,
         include_prompts: bool,
         quiet: bool,
-    ) -> Result<(), Error> {
+    ) -> Result<PullResult, Error> {
         let Some(repo_url) = self.repo_url.clone() else {
             return Err(Error::NoRemoteToPullFrom);
         };
 
-        // TODO: compare remote uid and local uid. if they're same do nothing
+        // compare remote uid and local uid. if they're the same do nothing
+        let mut url = Url::parse(&repo_url)?;
+        url.set_port(Some(41127)).map_err(|_| Error::RequestFailure {
+            context: Some(String::from("pull")),
+            code: None,
+            url: url.as_str().to_string(),
+        })?;
+        let get_uid_url = url.join("uid")?;
+        let remote_uid = self.get_uid("pull", get_uid_url.as_str()).await?;
+        let self_uid = self.calculate_uid()?;
+
+        if remote_uid == self_uid {
+            return Ok(PullResult::AlreadyUpToDate);
+        }
 
         let mut tmp_no = 0;
         let mut tmp_clone_dir = format!("tmp-clone-dir-{tmp_no}");
@@ -96,6 +115,6 @@ impl Index {
             )?;
         }
 
-        Ok(())
+        Ok(PullResult::PulledArchives)
     }
 }

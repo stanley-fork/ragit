@@ -97,6 +97,34 @@ paths:
             text/plain:
               schema:
                 type: string
+  /{user}/{repo}/uid:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetRepoUid
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+      response:
+        '200':
+          description: uid of the repository
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: uid of the repository
   /{user}/{repo}/chunk-count:
     get:
       tags:

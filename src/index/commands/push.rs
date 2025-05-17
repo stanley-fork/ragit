@@ -2,6 +2,7 @@ use super::erase_lines;
 use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::Index;
+use crate::uid::Uid;
 use ragit_fs::{
     create_dir,
     exists,
@@ -15,6 +16,11 @@ use ragit_fs::{
 use reqwest::Url;
 use std::time::Instant;
 
+pub enum PushResult {
+    PushedArchives,
+    AlreadyUpToDate,
+}
+
 impl Index {
     pub async fn push(
         &self,
@@ -22,7 +28,7 @@ impl Index {
         include_configs: bool,
         include_prompts: bool,
         quiet: bool,
-    ) -> Result<(), Error> {
+    ) -> Result<PushResult, Error> {
         if remote.is_none() {
             remote = self.repo_url.clone();
 
@@ -50,11 +56,21 @@ impl Index {
         let started_at = Instant::now();
         let mut uploaded_bytes = 0;
         let mut url = Url::parse(&remote)?;
-        url.set_port(Some(41127)).map_err(|_| Error::PushRequestError {
+        url.set_port(Some(41127)).map_err(|_| Error::RequestFailure {
+            context: Some(String::from("push")),
             code: None,
             url: url.as_str().to_string(),
         })?;
         let mut has_to_erase_lines = false;
+
+        // compare remote uid and local uid. if they're the same do nothing
+        let get_uid_url = url.join("uid")?;
+        let remote_uid = self.get_uid("push", get_uid_url.as_str()).await?;
+        let self_uid = self.calculate_uid()?;
+
+        if remote_uid == self_uid {
+            return Ok(PushResult::AlreadyUpToDate);
+        }
 
         // TODO: I want it to reuse archives from
         // previous runs -> but how do I know whether
@@ -98,7 +114,7 @@ impl Index {
 
         let finalize_push_url = url.join("finalize-push")?;
         self.finalize_push(finalize_push_url.as_str(), &session_id).await?;
-        Ok(())
+        Ok(PushResult::PushedArchives)
     }
 
     async fn get_session_id(&self, url: &str) -> Result<String, Error> {
@@ -112,7 +128,8 @@ impl Index {
         let response = client.send().await?;
 
         if response.status().as_u16() != 200 {
-            return Err(Error::PushRequestError {
+            return Err(Error::RequestFailure {
+                context: Some(String::from("push")),
                 code: Some(response.status().as_u16()),
                 url: url.to_string(),
             });
@@ -137,7 +154,8 @@ impl Index {
         ).send().await?;
 
         if response.status().as_u16() != 200 {
-            return Err(Error::PushRequestError {
+            return Err(Error::RequestFailure {
+                context: Some(String::from("push")),
                 code: Some(response.status().as_u16()),
                 url: url.to_string(),
             });
@@ -151,13 +169,30 @@ impl Index {
         let response = client.post(url).body(session_id.to_string()).send().await?;
 
         if response.status().as_u16() != 200 {
-            return Err(Error::PushRequestError {
+            return Err(Error::RequestFailure {
+                context: Some(String::from("push")),
                 code: Some(response.status().as_u16()),
                 url: url.to_string(),
             });
         }
 
         Ok(())
+    }
+
+    pub(crate) async fn get_uid(&self, context: &str, url: &str) -> Result<Uid, Error> {
+        let client = reqwest::Client::new();
+        let response = client.get(url).send().await?;
+
+        if response.status().as_u16() != 200 {
+            return Err(Error::RequestFailure {
+                context: Some(context.to_string()),
+                code: Some(response.status().as_u16()),
+                url: url.to_string(),
+            });
+        }
+
+        let uid = String::from_utf8(response.bytes().await?.to_vec())?.parse::<Uid>()?;
+        Ok(uid)
     }
 
     fn render_push_dashboard(

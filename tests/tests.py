@@ -33,6 +33,7 @@ from orphan_process import orphan_process
 from pdf import pdf
 from pdl import pdl
 from prompts import prompts
+from pull import pull
 from query_options import query_options
 from query_with_schema import query_with_schema
 from ragit_api import ragit_api
@@ -134,6 +135,10 @@ Commands
                                 It creates an empty repository in ragit-server, clones the
                                 repository (which is not an error), adds some chunks to it,
                                 and pushes it back to the server.
+
+    pull                        run `pull` test
+                                It creates a repository, pushes and pulls the repository and see
+                                if it works.
 
     server                      run `server` test
                                 It tests endpoints related to a repository. It first pushes a
@@ -339,6 +344,9 @@ if __name__ == "__main__":
         elif command == "clone_empty":
             clone_empty()
 
+        elif command == "pull":
+            pull()
+
         elif command == "server":
             server()
 
@@ -537,6 +545,7 @@ if __name__ == "__main__":
                 ("recover", recover),
                 ("clone", clone),
                 ("clone_empty", clone_empty),
+                ("pull", pull),
                 ("server", server),
                 ("server_permission", server_permission),
                 ("cli", cli),

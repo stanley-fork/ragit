@@ -8,6 +8,7 @@ use crate::uid::Uid;
 use sha3::{Digest, Sha3_256};
 
 impl Index {
+    /// It uses a cached value if exists.
     pub fn calculate_and_save_uid(&mut self) -> Result<Uid, Error> {
         if self.curr_processing_file.is_some() {
             return Err(Error::DirtyKnowledgeBase);
@@ -24,6 +25,7 @@ impl Index {
         }
     }
 
+    /// It uses a cached value if exists.
     pub fn calculate_uid(&self) -> Result<Uid, Error> {
         match self.uid {
             Some(uid) => Ok(uid),

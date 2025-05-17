@@ -25,6 +25,8 @@ pub use audit::Audit;
 pub use build::BuildResult;
 pub use merge::{MergeMode, MergeResult};
 pub use migrate::{VersionInfo, get_compatibility_warning};
+pub use pull::PullResult;
+pub use push::PushResult;
 pub use recover::RecoverResult;
 pub use remove::RemoveResult;
 

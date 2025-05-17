@@ -86,6 +86,14 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(get_prompt);
 
+    let get_uid_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("uid"))
+        .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_uid);
+
     let get_chunk_count_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -447,6 +455,7 @@ async fn main() {
             .or(get_index_handler)
             .or(get_config_handler)
             .or(get_prompt_handler)
+            .or(get_uid_handler)
             .or(get_chunk_count_handler)
             .or(get_chunk_list_handler)
             .or(get_chunk_list_all_handler)
