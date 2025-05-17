@@ -69,7 +69,7 @@ impl Index {
         if let Some(file) = &self.curr_processing_file {
             return Err(Error::CannotAddFile {
                 file: get_relative_path(&self.root_dir, &files[0])?,
-                message: format!("A build process has been interrupted while processing `{file}`. Run `rag check --cover` to clean up garbages."),
+                message: format!("A build process has been interrupted while processing `{file}`. Run `rag check --recover` to clean up garbages."),
             });
         }
 
