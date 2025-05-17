@@ -164,7 +164,7 @@ impl Chunk {
         extra_info: Option<ChunkExtraInfo>,
     ) -> Result<Self, Error> {
         let mut context = tera::Context::new();
-        let mut chunk = vec![];
+        let mut chunk = vec![];  // what LLM actually sees when building a chunk
         let mut approx_data_len = 0;
 
         for token in tokens.iter() {
@@ -180,7 +180,7 @@ impl Chunk {
 
                 // If this branch is reached, that means `FileReader::generate_chunk` has
                 // failed to fetch the image from web.
-                AtomicToken::WebImage { subst, url: _, hash: _ } => {
+                AtomicToken::WebImage { subst, url: _ } => {
                     approx_data_len += subst.chars().count();
                     chunk.push(subst.clone());
                 },
@@ -215,7 +215,7 @@ impl Chunk {
             true,
             true,
         )?;
-        let mut data = vec![];
+        let mut data = vec![];  // data that's actually saved to the chunk file
         let mut images = vec![];
         let mut char_len = 0;
         let mut image_count = 0;
@@ -234,8 +234,8 @@ impl Chunk {
 
                 // If this branch is reached, that means `FileReader::generate_chunk` has
                 // failed to fetch the image from web.
-                AtomicToken::WebImage { hash, .. } => {
-                    data.push(format!("web_img_{hash}"));
+                AtomicToken::WebImage { subst, .. } => {
+                    data.push(subst.clone());
                 },
 
                 // invisible

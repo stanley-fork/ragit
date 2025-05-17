@@ -5,7 +5,6 @@ use lazy_static::lazy_static;
 use ragit_fs::{FileError, exists, extension, join, parent, read_bytes};
 use ragit_pdl::ImageType;
 use regex::Regex;
-use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -146,10 +145,7 @@ impl MarkdownReader {
                     };
 
                     if WEB_URL_RE.is_match(&url) {
-                        let mut hasher = Sha3_256::new();
-                        hasher.update(url.as_bytes());
-                        let hash = format!("{:064x}", hasher.finalize());
-                        self.tokens.push(AtomicToken::WebImage { subst: format!("![{desc}]({url})"), url: url.to_string(), hash });
+                        self.tokens.push(AtomicToken::WebImage { subst: format!("![{desc}]({url})"), url: url.to_string() });
                         continue;
                     }
 

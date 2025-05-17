@@ -60,7 +60,7 @@ pub struct FileReader {  // of a single file
     config: BuildConfig,
 
     // this is a cache, purely for optimizing `fetch_images_from_web()`
-    fetched_images: HashMap<String, Uid>,  // HashMap<hash, image_uid>
+    fetched_images: HashMap<String, Uid>,  // HashMap<url, image_uid>
 }
 
 impl FileReader {
@@ -231,8 +231,8 @@ impl FileReader {
 
         for token in tokens.into_iter() {
             match &token {
-                AtomicToken::WebImage { url, hash, .. } => {
-                    if let Some(uid) = self.fetched_images.get(hash) {
+                AtomicToken::WebImage { url, .. } => {
+                    if let Some(uid) = self.fetched_images.get(url) {
                         let bytes = self.images.get(uid).unwrap();
 
                         new_tokens.push(AtomicToken::Image(Image {
@@ -247,7 +247,7 @@ impl FileReader {
                             Ok((bytes, image_type)) => {
                                 let image = Image::new(bytes, image_type)?;
                                 self.images.insert(image.uid, image.bytes.clone());
-                                self.fetched_images.insert(hash.to_string(), image.uid);
+                                self.fetched_images.insert(url.to_string(), image.uid);
 
                                 new_tokens.push(AtomicToken::Image(image));
                             },
@@ -332,9 +332,7 @@ pub enum AtomicToken {
     /// handle it. If it fails to fetch the image, 1) if it's
     /// strict mode, it will crash. 2) Otherwise, it would
     /// create a string token with `subst`.
-    ///
-    /// `hash` is of `url`, not the bytes.
-    WebImage { url: String, hash: String, subst: String },
+    WebImage { url: String, subst: String },
 
     /// It's an invisible AtomicToken.
     /// An AtomicToken before a break and after the
@@ -375,7 +373,7 @@ impl From<AtomicToken> for MessageContent {
 
             // This variant is supposed to be removed by `FileReader::generate_chunk`.
             // If this branch is reached, that means it's failed to fetch the image.
-            AtomicToken::WebImage { subst, url: _, hash: _ } => MessageContent::String(subst.clone()),
+            AtomicToken::WebImage { subst, url: _ } => MessageContent::String(subst.clone()),
 
             // this branch is not supposed to be reached
             AtomicToken::PageBreak
