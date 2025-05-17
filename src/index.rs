@@ -111,6 +111,8 @@ pub struct Index {
     /// `ii` stands for `inverted-index`.
     pub ii_status: IIStatus,
 
+    pub uid: Option<Uid>,
+
     #[serde(skip)]
     pub root_dir: Path,
     #[serde(skip)]
@@ -155,6 +157,7 @@ impl Index {
             curr_processing_file: None,
             repo_url: None,
             ii_status: IIStatus::None,
+            uid: None,
             root_dir: String::from("."),
             build_config: BuildConfig::default(),
             query_config: QueryConfig::default(),
@@ -209,6 +212,7 @@ impl Index {
             root_dir: root_dir.clone(),
             repo_url: None,
             ii_status: IIStatus::None,
+            uid: None,
             prompts: PROMPTS.clone(),
             models: vec![],
         };
@@ -237,6 +241,7 @@ impl Index {
             root_dir,
             repo_url: None,
             ii_status: IIStatus::None,
+            uid: None,
             prompts: PROMPTS.clone(),
             models: vec![],
         };

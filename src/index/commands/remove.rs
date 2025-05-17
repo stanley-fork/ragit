@@ -136,6 +136,7 @@ impl Index {
                 }
             }
 
+            self.reset_uid(true /* save_to_file */)?;
             self.save_to_file()?;
         }
 

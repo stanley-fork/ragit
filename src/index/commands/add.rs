@@ -189,6 +189,8 @@ impl Index {
             });
         }
 
+        self.reset_uid(false /* save to file */)?;
+
         if !dry_run {
             self.staged_files.extend(newly_staged_files);
             self.save_to_file()?;

@@ -313,6 +313,7 @@ impl Index {
                 }
 
                 self.chunk_count += buffered_chunk_count;
+                self.reset_uid(false /* save to file */)?;
                 self.save_to_file()?;
 
                 buffered_chunk_count = 0;

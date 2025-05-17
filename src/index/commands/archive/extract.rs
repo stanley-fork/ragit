@@ -264,6 +264,10 @@ impl Index {
         let mut index = Index::load(root_dir.to_string(), LoadMode::Minimum)?;
         index.recover()?;
 
+        // archives created by older versions do not have a uid
+        // so it has to create one
+        index.calculate_and_save_uid()?;
+
         if !quiet {
             Index::render_archive_extract_dashboard(
                 &status,

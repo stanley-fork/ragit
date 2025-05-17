@@ -18,6 +18,7 @@ mod pull;
 mod push;
 mod recover;
 mod remove;
+mod uid;
 
 pub use add::{AddMode, AddResult};
 pub use audit::Audit;

@@ -49,6 +49,7 @@ pub enum UidType {
     Image,
     File,
     Group,
+    KnowledgeBase,
 }
 
 /// There are 2 ways to store `Vec<Uid>` to a file.
@@ -91,7 +92,7 @@ pub fn load_from_file(path: &str) -> Result<Vec<Uid>, Error> {
 
             loop {
                 let d = Uid::decode_partial(&bytes[cursor..(cursor + byte_len)])?;
-                curr_uid = curr_uid.add(d);
+                curr_uid = curr_uid + d;
                 result.push(curr_uid);
                 cursor += byte_len;
 
@@ -168,6 +169,7 @@ impl Uid {
     const IMAGE_TYPE: u128 = (0x2 << 32);
     const FILE_TYPE: u128 = (0x3 << 32);
     const GROUP_TYPE: u128 = (0x4 << 32);
+    const KNOWLEDGE_BASE_TYPE: u128 = (0x5 << 32);
 
     pub(crate) fn decode_partial(bytes: &[u8]) -> Result<Self, Error> {
         match bytes.len() {
@@ -275,7 +277,7 @@ impl Uid {
         let mut child_count = 0;
 
         for uid in uids.iter() {
-            result ^= *uid;
+            result += *uid;
 
             match uid.get_uid_type() {
                 Ok(UidType::Group) => { child_count += uid.get_data_size(); },
@@ -286,6 +288,19 @@ impl Uid {
         result.low &= Uid::METADATA_MASK;
         result.low |= Uid::GROUP_TYPE;
         result.low |= (child_count as u128) & 0xffff_ffff;
+        result
+    }
+
+    pub fn new_knowledge_base(uids: &[Uid]) -> Self {
+        let mut result = Uid::dummy();
+
+        for uid in uids.iter() {
+            result += *uid;
+        }
+
+        result.low &= Uid::METADATA_MASK;
+        result.low |= Uid::KNOWLEDGE_BASE_TYPE;
+        result.low |= (uids.len() as u128) & 0xffff_ffff;
         result
     }
 
@@ -344,6 +359,7 @@ impl Uid {
             Uid::IMAGE_TYPE => Ok(UidType::Image),
             Uid::FILE_TYPE => Ok(UidType::File),
             Uid::GROUP_TYPE => Ok(UidType::Group),
+            Uid::KNOWLEDGE_BASE_TYPE => Ok(UidType::KnowledgeBase),
             _ => Err(Error::InvalidUid(self.to_string())),
         }
     }
@@ -367,15 +383,6 @@ impl Uid {
                 Some(high) => Some(Uid { high, low }),
                 None => None,
             }
-        }
-    }
-
-    fn add(&self, other: Uid) -> Uid {
-        let (low, carry) = self.low.overflowing_add(other.low);
-
-        Uid {
-            high: self.high + other.high + carry as u128,
-            low,
         }
     }
 }
@@ -424,6 +431,29 @@ impl std::ops::BitXorAssign for Uid {
     fn bitxor_assign(&mut self, rhs: Self) {
         self.low ^= rhs.low;
         self.high ^= rhs.high;
+    }
+}
+
+impl std::ops::Add for Uid {
+    type Output = Self;
+
+    /// It wraps result when there's an overflow.
+    fn add(self, rhs: Self) -> Self {
+        let (low, carry) = self.low.overflowing_add(rhs.low);
+        let mut high = self.high.wrapping_add(rhs.high);
+
+        if carry {
+            high = high.wrapping_add(1);
+        }
+
+        Uid { low, high }
+    }
+}
+
+impl std::ops::AddAssign for Uid {
+    fn add_assign(&mut self, rhs: Self) {
+        let result = *self + rhs;
+        *self = result;
     }
 }
 

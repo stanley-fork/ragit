@@ -46,6 +46,7 @@ impl Index {
 
         let mut meta = load_meta(&meta_path)?;
         meta.insert(key, value);
+        self.reset_uid(true /* save_to_file */)?;
         save_meta(&meta_path, meta)
     }
 
@@ -61,6 +62,7 @@ impl Index {
         match meta.remove(&key) {
             Some(v) => {
                 let v = v.to_string();
+                self.reset_uid(true /* save_to_file */)?;
                 save_meta(&meta_path, meta)?;
                 Ok(v)
             },
@@ -75,6 +77,7 @@ impl Index {
             remove_file(&meta_path)?;
         }
 
+        self.reset_uid(true /* save_to_file */)?;
         Ok(())
     }
 }

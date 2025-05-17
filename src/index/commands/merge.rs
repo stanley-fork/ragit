@@ -284,6 +284,7 @@ impl Index {
         }
 
         if !dry_run {
+            self.reset_uid(true /* save_to_file */)?;
             self.save_to_file()?;
         }
 

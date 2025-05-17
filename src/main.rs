@@ -115,6 +115,9 @@ async fn main() {
                         span.2,
                     ));
                 },
+                Error::DirtyKnowledgeBase => {
+                    eprintln!("The knowledge-base is dirty. Run `rag check --recover`.");
+                },
                 e => {
                     eprintln!("{e:?}");
                 },
@@ -698,17 +701,17 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             match parsed_args.get_flag(0).unwrap().as_str() {
                 "--logs" => {
-                    let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+                    let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_logs()?;
                     println!("removed {removed} log files");
                 },
                 "--images" => {
-                    let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+                    let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_images()?;
                     println!("removed {removed} files");
                 },
                 "--audit" => {
-                    let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+                    let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     index.gc_audit()?;
                     println!("removed audit logs");
                 },
@@ -2270,6 +2273,17 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!("took {ms_took} ms");
                 }
             }
+        },
+        Some("uid") => {
+            let parsed_args = ArgParser::new().parse(&args, 2)?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/uid.txt"));
+                return Ok(());
+            }
+
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            println!("{}", index.calculate_and_save_uid()?);
         },
         Some("version") => {
             let parsed_args = ArgParser::new().parse(&args, 2)?;

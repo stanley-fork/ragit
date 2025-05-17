@@ -30,6 +30,8 @@ impl Index {
             return Err(Error::NoRemoteToPullFrom);
         };
 
+        // TODO: compare remote uid and local uid. if they're same do nothing
+
         let mut tmp_no = 0;
         let mut tmp_clone_dir = format!("tmp-clone-dir-{tmp_no}");
 

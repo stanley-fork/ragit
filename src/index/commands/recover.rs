@@ -264,6 +264,7 @@ impl Index {
             self.ii_status = IIStatus::Outdated;
         }
 
+        self.calculate_and_save_uid()?;
         self.save_to_file()?;
         Ok(result)
     }

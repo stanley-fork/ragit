@@ -1,0 +1,26 @@
+rag-uid(1)
+==========
+
+NAME
+----
+rag-uid - Display uid of the knowledge-base.
+
+SYNOPSIS
+--------
+[verse]
+'rag uid'
+
+DESCRIPTION
+-----------
+A knowledge-base has a uid. It's a unique identifier of the knowledge-base.
+When you edit the knowledge-base (e.g. add chunks), the uid will be changed.
+
+The uid only cares about chunks, images and meta. That means changing configs
+or prompts will not change the uid. If you want to push a knowledge-base after
+changing configs, I recommend you change its meta so that it has different uid.
+
+Unlike git, it takes long time to calculate a uid of a knowledge-base. So it's
+calculated lazily. If uid has never been calculated, this command will
+calculate and cache the result. Then it'll use the cached data. When you edit
+the knowledge-base, the cache will be invalidated and not calculated until you
+need uid.

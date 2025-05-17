@@ -52,6 +52,7 @@ pub enum Error {
         file: String,  // rel_path
         message: String,
     },
+    DirtyKnowledgeBase,
     MergeConflict(Uid),
     MPSCError(String),
     CannotDecodeUid,

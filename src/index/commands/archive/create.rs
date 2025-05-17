@@ -54,6 +54,10 @@ impl Index {
         force: bool,
         quiet: bool,
     ) -> Result<(), Error> {
+        if self.curr_processing_file.is_some() {
+            return Err(Error::DirtyKnowledgeBase);
+        }
+
         let workers = init_workers(
             workers,
             &self.root_dir,
@@ -461,6 +465,9 @@ fn event_loop(
 
                         // archive does not include ii
                         index.ii_status = IIStatus::None;
+
+                        // archive always has uid because `rag pull` needs uid
+                        index.uid = Some(index.calculate_uid()?);
 
                         let index_json = serde_json::to_vec(&index)?;
                         compress(&index_json, compression_level)?

@@ -19,7 +19,7 @@ impl Index {
     /// `rag gc --logs`
     ///
     /// It returns how many files it removed.
-    pub fn gc_logs(&self) -> Result<usize, Error> {
+    pub fn gc_logs(&mut self) -> Result<usize, Error> {
         let logs_at = Index::get_rag_path(
             &self.root_dir,
             &LOG_DIR_NAME.to_string(),
@@ -42,7 +42,7 @@ impl Index {
     /// `rag gc --images`
     ///
     /// It returns how many files it removed.
-    pub fn gc_images(&self) -> Result<usize, Error> {
+    pub fn gc_images(&mut self) -> Result<usize, Error> {
         let mut all_images = HashSet::new();
         let mut count = 0;
 
@@ -65,11 +65,15 @@ impl Index {
             }
         }
 
+        if count > 0 {
+            self.reset_uid(true /* save_to_file */)?;
+        }
+
         Ok(count)
     }
 
     /// `rag gc --audit`
-    pub fn gc_audit(&self) -> Result<(), Error> {
+    pub fn gc_audit(&mut self) -> Result<(), Error> {
         let usages_at = Index::get_rag_path(
             &self.root_dir,
             &"usages.json".to_string(),
