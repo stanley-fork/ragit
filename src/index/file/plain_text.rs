@@ -43,12 +43,16 @@ impl FileReaderImpl for PlainTextReader {
                 if tmp_buffer.len() > 200 && (byte < 128 || byte >= 192)  // avoid utf-8 error
                     || tmp_buffer.len() >= 256  // in case there's no whitespace at all
                     || byte.is_ascii_whitespace() {
-                    let s = if self.strict_mode {
-                        String::from_utf8(tmp_buffer)?
-                    } else {
-                        String::from_utf8_lossy(&tmp_buffer).to_string()
-                    };
 
+                    // I have decided to reject non utf-8 strings instead of using `String::from_utf8_lossy` because
+                    //
+                    // 1. Now that ragit continues processing files even if there's an erroneous file, it's okay to
+                    //    throw more errors. It'll not bother the users.
+                    // 2. Plain text reader is the default file reader. If a user mistakenly adds a random file, which
+                    //    is likely to be a binary file, ragit will use the plain text reader. If it's using
+                    //    `String::from_utf8_lossy`, it'll generate a chunk with tons of REPLACEMENT_CHARACTERs, which
+                    //    is total waste of time and energy.
+                    let s = String::from_utf8(tmp_buffer)?;
                     self.tokens.push(AtomicToken::String {
                         char_len: s.chars().count(),
                         data: s,

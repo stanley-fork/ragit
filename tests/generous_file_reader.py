@@ -58,7 +58,15 @@ def generous_file_reader():
     cargo_run(["add", *files])
     cargo_run(["build"])
     cargo_run(["check"])
-    assert count_files() == (len(files), 0, len(files))  # (total, staged, processed)
+
     assert "invalid/url.png" in cargo_run(["cat-file", "invalid-image-url.md"], stdout=True)
     assert "wrong-extension.png" in cargo_run(["cat-file", "wrong-extension-1.md"], stdout=True)
     assert "wrong-extension.svg" in cargo_run(["cat-file", "wrong-extension-2.md"], stdout=True)
+
+    # It still cannot process wrong-extension.png and wrong-extension.txt even with `strict_file_reader=false`.
+    # It cannot process broken images and text files that are not utf-8.
+    assert count_files() == (len(files), 2, len(files) - 2)  # (total, staged, processed)
+
+    staged_files = json.loads(cargo_run(["ls-files", "--staged", "--json", "--name-only"], stdout=True))
+    assert "wrong-extension.png" in staged_files
+    assert "wrong-extension.txt" in staged_files
