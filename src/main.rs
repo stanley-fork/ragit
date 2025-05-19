@@ -256,7 +256,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("build") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
+                .arg_flag_with_default("--jobs", "8", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .parse(&args, 2)?;
@@ -2381,17 +2381,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 fn find_root() -> Result<String, Error> {
     let mut curr = String::from(".");
 
-    // FIXME: why is it allocating Vec twice?
     loop {
-        let curr_files_ = read_dir(&curr, false)?;
-        let mut curr_files = Vec::with_capacity(curr_files_.len());
+        let curr_files = read_dir(&curr, false)?;
 
-        for f in curr_files_.iter() {
-            curr_files.push(basename(f)?);
-        }
-
-        if curr_files.contains(&INDEX_DIR_NAME.to_string()) {
-            return Ok(curr);
+        for f in curr_files.iter() {
+            if basename(f)? == INDEX_DIR_NAME {
+                return Ok(curr);
+            }
         }
 
         curr = join(&curr, "..")?;

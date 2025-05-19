@@ -82,3 +82,17 @@ impl TryFrom<ImageType> for image::ImageFormat {
         }
     }
 }
+
+impl TryFrom<image::ImageFormat> for ImageType {
+    type Error = Error;
+
+    fn try_from(image_format: image::ImageFormat) -> Result<Self, Error> {
+        match image_format {
+            image::ImageFormat::Jpeg => Ok(ImageType::Jpeg),
+            image::ImageFormat::Png => Ok(ImageType::Png),
+            image::ImageFormat::Gif => Ok(ImageType::Gif),
+            image::ImageFormat::WebP => Ok(ImageType::Webp),
+            f => Err(Error::InvalidImageType(format!("{f:?}"))),
+        }
+    }
+}

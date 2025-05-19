@@ -11,7 +11,7 @@ pub struct LineReader {
 }
 
 impl FileReaderImpl for LineReader {
-    fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
+    fn new(path: &str, _root_dir: &str, _config: &BuildConfig) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => Ok(LineReader {
                 lines: BufReader::new(f),

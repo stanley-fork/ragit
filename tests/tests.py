@@ -4,6 +4,7 @@ from archive import archive
 from audit import audit
 from cargo_tests import cargo_tests
 from cat_file import cat_file
+from clean_up_erroneous_chunk import clean_up_erroneous_chunk
 from cli import cli
 from clone import clone
 from clone_empty import clone_empty
@@ -38,6 +39,7 @@ from query_options import query_options
 from query_with_schema import query_with_schema
 from ragit_api import ragit_api
 from real_repos import real_repos
+from real_repos_regression import real_repos_regression
 from recover import recover
 from server import server
 from server_chat import server_chat
@@ -217,6 +219,9 @@ Commands
                                 skip the broken files and continue processing the
                                 valid files.
 
+    clean_up_erroneous_chunk    run `clean_up_erroneous_chunk` test
+                                It's an edge case in `generous_file_reader`.
+
     audit [model]               run `audit` test
 
     images                      run `images` test
@@ -266,9 +271,15 @@ Commands
 
     csv_reader                  run `csv_reader` test
 
-    real_repos                  run `real_repos` test
+    real_repos [repo=all]       run `real_repos` test
                                 Clone real git repos from the web and build knowledge-base
                                 on the repos. It's to test file readers, not LLMs.
+
+    real_repos_regression       run `real_repos_regression` test
+                                I ran `python3 tests.py real_repos` and was surprised to see
+                                it throwing so many errors. Many of them were ragit's fault. So
+                                I created this test, which tries to reproduce all the errors found
+                                in the `real_repos` test.
 
     prompts [model=dummy]       run `prompts` test
                                 It's the smallest set of commands that parses and executes
@@ -433,6 +444,9 @@ if __name__ == "__main__":
         elif command == "generous_file_reader":
             generous_file_reader()
 
+        elif command == "clean_up_erroneous_chunk":
+            clean_up_erroneous_chunk()
+
         elif command == "images":
             images()
 
@@ -506,7 +520,11 @@ if __name__ == "__main__":
             csv_reader()
 
         elif command == "real_repos":
-            real_repos()
+            repo = "all" if len(args) < 3 else args[2]
+            real_repos(repo=repo)
+
+        elif command == "real_repos_regression":
+            real_repos_regression()
 
         elif command == "prompts":
             test_model = test_model or "dummy"
@@ -558,10 +576,12 @@ if __name__ == "__main__":
                 ("ii", ii),
                 ("cat_file", cat_file),
                 ("generous_file_reader", generous_file_reader),
+                ("clean_up_erroneous_chunk", clean_up_erroneous_chunk),
                 ("images", images),
                 ("markdown_reader", markdown_reader),
                 ("csv_reader", csv_reader),
                 ("real_repos", real_repos),
+                ("real_repos_regression", real_repos_regression),
                 ("subdir", subdir),
                 ("tfidf", tfidf),
                 ("merge", merge),

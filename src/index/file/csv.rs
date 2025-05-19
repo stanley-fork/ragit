@@ -15,7 +15,7 @@ pub struct CsvReader {
 }
 
 impl FileReaderImpl for CsvReader {
-    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
+    fn new(path: &str, _root_dir: &str, config: &BuildConfig) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => {
                 let mut reader = csv::ReaderBuilder::new()

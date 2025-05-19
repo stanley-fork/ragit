@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 from utils import cargo_run, goto_root, ls_recursive, mk_and_cd_tmp_dir
@@ -24,6 +25,7 @@ def real_repos(
     mk_and_cd_tmp_dir(
         dir_name=None if tmp_dir else "sample",
     )
+    file_errors = {}
 
     if not os.path.exists("clone-here"):
         os.mkdir("clone-here")
@@ -53,6 +55,11 @@ def real_repos(
         shutil.move(old_name, new_path)
         os.chdir(new_path)
         shutil.rmtree(".git")
+
+        # `cargo_run` will get confused
+        if os.path.exists("Cargo.toml"):
+            os.remove("Cargo.toml")
+
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", test_model])
         cargo_run(["config", "--set", "strict_file_reader", "true"])
@@ -62,6 +69,20 @@ def real_repos(
         cargo_run(["add", *ls_recursive(ext)])
         cargo_run(["build"])
         cargo_run(["check"])
+
+        # I want to collect error messages from real world use cases, and see if it's
+        # ragit's fault or their fault.
+        # This process cannot be automated. It automatically collects and dumps the error
+        # messages but it will not affect the result of this test.
+        file_errors[new_name] = extract_error_messages(cargo_run(["build"], stdout=True))
+
+        # For testing purposes, `strict_file_reader=true` makes more sense. But I also
+        # want to use this script to create real-world knowledge-bases, and for that,
+        # I have to turn off the option.
+        cargo_run(["config", "--set", "strict_file_reader", "false"])
+        cargo_run(["build"])
+        cargo_run(["check"])
+
         os.chdir("..")
 
     if "nix" in os.listdir() and "nixpkgs" in os.listdir():
@@ -69,8 +90,14 @@ def real_repos(
         os.chdir("nix-real")
         cargo_run(["init"])
         cargo_run(["merge", "../nix"])
-        cargo_run(["merge", "../nixpkgs", "prefix=nixpkgs"])
+        cargo_run(["merge", "../nixpkgs", "--prefix=nixpkgs"])
         cargo_run(["check"])
+
+    for repo, errors in file_errors.items():
+        print(f"----- {repo} ({len(errors)} errors) -----")
+
+        for error in errors:
+            print(f"    {error}")
 
 def clean_up_repository(repo: str):
     if repo == "kubernetes":
@@ -81,6 +108,27 @@ def clean_up_repository(repo: str):
             "uk", "vi", "zh-cn",
         ]:
             shutil.rmtree(f"content/{lang}")
+
+    if repo == "neovim":
+        # contains large and meaningless text files for tests
+        shutil.rmtree("test")
+
+def extract_error_messages(stdout: str) -> list[str]:
+    state = "i"
+    errors = []
+
+    for line in stdout.split("\n"):
+        if state == "i":
+            if re.match(r"\d+\serror(s)?", line):
+                state = "e"
+
+        elif state == "e":
+            e = line.strip()
+
+            if e != "":
+                errors.append(e)
+
+    return errors
 
 if __name__ == "__main__":
     import sys

@@ -6,6 +6,7 @@ use crate::uid::Uid;
 use ragit_fs::extension;
 use ragit_pdl::{MessageContent, ImageType};
 use std::collections::{HashMap, VecDeque};
+use url::Url;
 
 mod csv;
 mod image;
@@ -30,7 +31,7 @@ pub type Path = String;
 /// is false. It's designed like this because some files are too big to load to
 /// memory at once.
 pub trait FileReaderImpl {
-    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;
+    fn new(path: &str, root_dir: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;
 
     /// `load_tokens` loads tokens to buffer. This method *empties* and returns the buffer.
     /// You don't have to care about the length of its returned vector. If it contains
@@ -64,19 +65,19 @@ pub struct FileReader {  // of a single file
 }
 
 impl FileReader {
-    pub fn new(rel_path: Path, real_path: Path, config: BuildConfig) -> Result<Self, Error> {
+    pub fn new(rel_path: Path, real_path: Path, root_dir: &str, config: BuildConfig) -> Result<Self, Error> {
         // TODO: use a config file, instead of hard-coding the extensions
         let inner = match extension(&rel_path)?.unwrap_or(String::new()).to_ascii_lowercase().as_str() {
-            "md" => Box::new(MarkdownReader::new(&real_path, &config)?) as Box<dyn FileReaderImpl + Send>,
-            "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" => Box::new(ImageReader::new(&real_path, &config)?),
-            "jsonl" => Box::new(LineReader::new(&real_path, &config)?),
-            "csv" => Box::new(CsvReader::new(&real_path, &config)?),
-            "pdf" => Box::new(PdfReader::new(&real_path, &config)?),
+            "md" => Box::new(MarkdownReader::new(&real_path, root_dir, &config)?) as Box<dyn FileReaderImpl + Send>,
+            "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" => Box::new(ImageReader::new(&real_path, root_dir, &config)?),
+            "jsonl" => Box::new(LineReader::new(&real_path, root_dir, &config)?),
+            "csv" => Box::new(CsvReader::new(&real_path, root_dir, &config)?),
+            "pdf" => Box::new(PdfReader::new(&real_path, root_dir, &config)?),
 
             // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),
 
             // all the unknown extensions are treated as plain texts
-            _ => Box::new(PlainTextReader::new(&real_path, &config)?),
+            _ => Box::new(PlainTextReader::new(&real_path, root_dir, &config)?),
         };
 
         Ok(FileReader {
@@ -244,8 +245,7 @@ impl FileReader {
 
                     else {
                         match fetch_image_from_web(url).await {
-                            Ok((bytes, image_type)) => {
-                                let image = Image::new(bytes, image_type)?;
+                            Ok(image) => {
                                 self.images.insert(image.uid, image.bytes.clone());
                                 self.fetched_images.insert(url.to_string(), image.uid);
 
@@ -304,10 +304,13 @@ fn merge_tokens(tokens: VecDeque<AtomicToken>) -> Vec<AtomicToken> {
     result
 }
 
-async fn fetch_image_from_web(url: &str) -> Result<(Vec<u8>, ImageType), Error> {
-    let image_type = ImageType::from_extension(&extension(url)?.unwrap_or(String::new()))?;
+async fn fetch_image_from_web(url: &str) -> Result<Image, Error> {
     let client = reqwest::Client::new();
-    let response = client.get(url).send().await?;
+    let response = client
+        .get(url)
+        .timeout(std::time::Duration::from_millis(5_000))  // TODO: make it configurable
+        .send()
+        .await?;
     let status_code = response.status().as_u16();
 
     if status_code != 200 {
@@ -315,7 +318,21 @@ async fn fetch_image_from_web(url: &str) -> Result<(Vec<u8>, ImageType), Error> 
     }
 
     let bytes = response.bytes().await?.to_vec();
-    Ok((bytes, image_type))
+    let image_type_from_ext = match Url::parse(url) {
+        Ok(url) => ImageType::from_extension(&extension(url.path())?.unwrap_or(String::new())).ok(),
+        _ => None,
+    };
+    let image_type_from_bytes = ::image::guess_format(&bytes);
+
+    // It first tries to guess image type from bytes,
+    // then from extension, then gives up.
+    let image_type = match (image_type_from_ext, image_type_from_bytes) {
+        (_, Ok(ty)) => ty.try_into()?,
+        (Some(ty), _) => ty,
+        (None, Err(e)) => { return Err(e.into()); },
+    };
+
+    Ok(Image::new(bytes, image_type)?)
 }
 
 #[derive(Clone, Debug)]

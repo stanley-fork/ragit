@@ -20,7 +20,7 @@ pub struct PdfReader {
 }
 
 impl FileReaderImpl for PdfReader {
-    fn new(path: &str, _config: &BuildConfig) -> Result<Self, Error> {
+    fn new(path: &str, _root_dir: &str, _config: &BuildConfig) -> Result<Self, Error> {
         let document = Document::open(path)?;
         let page_count = document.page_count()?.max(0) as usize;
         let mut result = PdfReader {

@@ -8,7 +8,7 @@ rag-build - Build knowledge-base from staged files
 SYNOPSIS
 --------
 [verse]
-'rag build' [--jobs <n=4>] [--quiet | -q]
+'rag build' [--jobs <n=8>] [--quiet | -q]
 
 DESCRIPTION
 -----------

@@ -37,8 +37,9 @@ impl Index {
 
         // TODO: API is messy. I want `rag build` to be generous. When it fails to process
         // a file, I want it to skip the file and process the other files. So, it doesn't
-        // return on error and push the errors to `result.errors`. But still there're unrecoverable
-        // errors. They just kill all the workers and return immediately.
+        // return on error but pushes the errors to `result.errors`.
+        // Still, there're unrecoverable errors. They just kill all the workers and return immediately.
+        // That's why the code is messy with `?` and `match _ { Err(_) => {} }`
         match self.build_worker(&mut workers, started_at, quiet) {
             Ok(result) => {
                 if !quiet {
@@ -129,6 +130,7 @@ impl Index {
                 self.render_build_dashboard(
                     &buffer,
                     &curr_completed_files,
+                    &errors,
                     started_at.clone(),
                     flush_count,
                     has_to_erase_lines,
@@ -219,6 +221,7 @@ impl Index {
                                     remove_file(&chunk_path)?;
                                 }
 
+                                buffered_chunk_count -= chunk_uids.len();
                                 buffer.remove(file);
                             }
 
@@ -249,9 +252,9 @@ impl Index {
                 }
             }
 
-            // It flushes and commits 9 or more files at once.
+            // It flushes and commits 20 or more files at once.
             // TODO: this number has to be configurable
-            if curr_completed_files.len() > 8 || killed_workers.len() == workers.len() {
+            if curr_completed_files.len() >= 20 || killed_workers.len() == workers.len() {
                 self.staged_files = self.staged_files.iter().filter(
                     |staged_file| !curr_completed_files.contains(staged_file)
                 ).map(
@@ -318,6 +321,7 @@ impl Index {
                         self.render_build_dashboard(
                             &buffer,
                             &curr_completed_files,
+                            &errors,
                             started_at.clone(),
                             flush_count,
                             has_to_erase_lines,
@@ -343,12 +347,13 @@ impl Index {
         &self,
         buffer: &HashMap<String, HashMap<usize, Uid>>,
         curr_completed_files: &[String],
+        errors: &[(String, String)],
         started_at: Instant,
         flush_count: usize,
         has_to_erase_lines: bool,
     ) {
         if has_to_erase_lines {
-            erase_lines(9);
+            erase_lines(10);
         }
 
         let elapsed_time = Instant::now().duration_since(started_at).as_secs();
@@ -363,6 +368,7 @@ impl Index {
         println!("---");
         println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
+        println!("errors: {}", errors.len());
         println!("committed chunks: {}", self.chunk_count);
         println!(
             "currently processing files: {}",
@@ -420,6 +426,7 @@ async fn build_chunks(
     let mut fd = FileReader::new(
         file.clone(),
         real_path.clone(),
+        &index.root_dir,
         index.build_config.clone(),
     )?;
     let build_info = ChunkBuildInfo::new(
@@ -565,8 +572,8 @@ fn init_worker(root_dir: String) -> Channel {
                 ).await {
                     Ok(_) => {},
                     Err(e) => {
-                        // the parent process is dead
                         if tx_to_main.send(Response::Error(e)).is_err() {
+                            // the parent process is dead
                             break;
                         }
                     },

@@ -17,6 +17,7 @@ lazy_static! {
 
 pub struct MarkdownReader {
     path: String,
+    root_dir: String,
     lines: BufReader<File>,
     tokens: Vec<AtomicToken>,
     is_exhausted: bool,
@@ -26,10 +27,15 @@ pub struct MarkdownReader {
 }
 
 impl FileReaderImpl for MarkdownReader {
-    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
+    fn new(
+        path: &str,
+        root_dir: &str,
+        config: &BuildConfig,
+    ) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => Ok(MarkdownReader {
                 path: path.to_string(),
+                root_dir: root_dir.to_string(),
                 lines: BufReader::new(f),
                 tokens: vec![],
                 is_exhausted: false,
@@ -54,12 +60,6 @@ impl FileReaderImpl for MarkdownReader {
 
             if self.lines.read_line(&mut line)? == 0 {
                 self.is_exhausted = true;
-                self.consume_buffer(buffer)?;
-                break;
-            }
-
-            if buffer.len() > 16 && !has_unknown_link_reference(&self.link_reference_definitions, &buffer) {
-                buffer.push(StringOrImage::String(line));
                 self.consume_buffer(buffer)?;
                 break;
             }
@@ -93,6 +93,11 @@ impl FileReaderImpl for MarkdownReader {
             }
 
             buffer.push(StringOrImage::String(line));
+
+            if buffer.len() > 16 && !has_unknown_link_reference(&self.link_reference_definitions, &buffer) {
+                self.consume_buffer(buffer)?;
+                break;
+            }
         }
 
         Ok(())
@@ -150,8 +155,14 @@ impl MarkdownReader {
                     }
 
                     else if !exists(&url) {
-                        if let Ok(joined_url) = join(&parent(&self.path)?, &url) {
-                            url = joined_url;
+                        // Absolute path: root dir of the repository, not the root of the file system
+                        if self.path.starts_with("/") {
+                            url = join(&self.root_dir, &format!(".{}", &url))?;
+                        }
+
+                        // Relative path: relative to the markdown file
+                        else {
+                            url = join(&parent(&self.path)?, &url)?;
                         }
                     }
 

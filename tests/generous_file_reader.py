@@ -21,6 +21,7 @@ def generous_file_reader():
     write_string("invalid-image-url.md", "Do you see this? ![](https://invalid/url.png) I guess not...")
     write_string("wrong-extension-1.md", "This seems like a png, but is a text: ![](wrong-extension.png)")
     write_string("wrong-extension-2.md", "This seems like a png, but is a text: ![](wrong-extension.svg)")
+    write_string("long-and-wrong.md", " ".join([rand_word() for _ in range(500)]) + "![](https://invalid/url.png)")
     invalid_files = [
         "wrong-extension.png",
         "wrong-extension.svg",
@@ -28,11 +29,17 @@ def generous_file_reader():
         "wrong-extension-1.md",
         "wrong-extension-2.md",
         "invalid-image-url.md",
+        "long-and-wrong.md",
     ]
     valid_files = []
 
     for i in range(200):
-        write_string(f"{i}.txt", " ".join([rand_word() for _ in range(20)]))
+        if random.randint(0, 1) == 0:
+            write_string(f"{i}.txt", " ".join([rand_word() for _ in range(20)]))
+
+        else:
+            write_string(f"{i}.txt", " ".join([rand_word() for _ in range(500)]))
+
         valid_files.append(f"{i}.txt")
 
     files = invalid_files + valid_files
@@ -41,6 +48,8 @@ def generous_file_reader():
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
+    cargo_run(["config", "--set", "chunk_size", "500"])
+    cargo_run(["config", "--set", "slide_len", "100"])
     cargo_run(["add", *files])
     cargo_run(["build"])
     cargo_run(["check"])

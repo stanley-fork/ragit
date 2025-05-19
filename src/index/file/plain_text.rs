@@ -13,7 +13,7 @@ pub struct PlainTextReader {
 }
 
 impl FileReaderImpl for PlainTextReader {
-    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
+    fn new(path: &str, _root_dir: &str, config: &BuildConfig) -> Result<Self, Error> {
         match File::open(path) {
             Ok(f) => Ok(PlainTextReader {
                 bytes: f.bytes(),

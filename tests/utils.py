@@ -7,8 +7,15 @@ import subprocess
 from typing import Optional, Tuple
 
 def goto_root():
-    while "Cargo.toml" not in os.listdir() or ".gitignore" not in os.listdir():
-        os.chdir("..")
+    while True:
+        while "Cargo.toml" not in os.listdir():
+            os.chdir("..")
+
+        with open("Cargo.toml", "r") as f:
+            if "name = \"ragit\"" in f.read():
+                break
+
+            os.chdir("..")
 
 def clean():
     for d in os.listdir():
@@ -145,7 +152,7 @@ def ls_recursive(ext: str, path: Optional[list[str]] = None) -> list[str]:
         path = []
 
     for f in os.listdir():
-        if os.path.isdir(f):
+        if not os.path.islink(f) and os.path.isdir(f):
             os.chdir(f)
             result += ls_recursive(ext, path + [f])
             os.chdir("..")

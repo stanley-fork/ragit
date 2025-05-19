@@ -83,7 +83,7 @@ pub struct ImageReader {
 }
 
 impl FileReaderImpl for ImageReader {
-    fn new(path: &str, config: &BuildConfig) -> Result<Self, Error> {
+    fn new(path: &str, _root_dir: &str, config: &BuildConfig) -> Result<Self, Error> {
         Ok(ImageReader {
             path: path.to_string(),
             tokens: vec![],
