@@ -156,7 +156,7 @@ impl MarkdownReader {
 
                     else if !exists(&url) {
                         // Absolute path: root dir of the repository, not the root of the file system
-                        if self.path.starts_with("/") {
+                        if url.starts_with("/") {
                             url = join(&self.root_dir, &format!(".{}", &url))?;
                         }
 
