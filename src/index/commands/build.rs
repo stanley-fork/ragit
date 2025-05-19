@@ -13,10 +13,8 @@ use ragit_api::record::Record;
 use ragit_fs::{
     WriteMode,
     exists,
-    join4,
     parent,
     remove_file,
-    set_extension,
     try_create_dir,
     write_bytes,
 };
@@ -212,16 +210,11 @@ impl Index {
                                 ).collect::<Vec<_>>();
 
                                 for chunk_uid in chunk_uids.iter() {
-                                    let prefix = chunk_uid.get_prefix();
-                                    let suffix = chunk_uid.get_suffix();
-                                    let chunk_path = join4(
+                                    let chunk_path = Index::get_uid_path(
                                         &self.root_dir,
                                         CHUNK_DIR_NAME,
-                                        &prefix,
-                                        &set_extension(
-                                            &suffix,
-                                            "chunk",
-                                        )?,
+                                        *chunk_uid,
+                                        Some("chunk"),
                                     )?;
                                     remove_file(&chunk_path)?;
                                 }
