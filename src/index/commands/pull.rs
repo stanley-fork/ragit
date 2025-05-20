@@ -44,11 +44,20 @@ impl Index {
             url: url.as_str().to_string(),
         })?;
         let get_uid_url = url.join("uid")?;
-        let remote_uid = self.get_uid("pull", get_uid_url.as_str()).await?;
-        let self_uid = self.calculate_uid()?;
 
-        if remote_uid == self_uid {
-            return Ok(PullResult::AlreadyUpToDate);
+        match self.get_uid("pull", get_uid_url.as_str()).await {
+            Ok(remote_uid) => {
+                let self_uid = self.calculate_uid()?;
+
+                if remote_uid == self_uid {
+                    return Ok(PullResult::AlreadyUpToDate);
+                }
+            },
+            Err(e) => {
+                if !quiet {
+                    eprintln!("Failed to get {get_uid_url}: {e:?}");
+                }
+            },
         }
 
         let mut tmp_no = 0;

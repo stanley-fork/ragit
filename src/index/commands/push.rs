@@ -65,11 +65,20 @@ impl Index {
 
         // compare remote uid and local uid. if they're the same do nothing
         let get_uid_url = url.join("uid")?;
-        let remote_uid = self.get_uid("push", get_uid_url.as_str()).await?;
-        let self_uid = self.calculate_uid()?;
 
-        if remote_uid == self_uid {
-            return Ok(PushResult::AlreadyUpToDate);
+        match self.get_uid("push", get_uid_url.as_str()).await {
+            Ok(remote_uid) => {
+                let self_uid = self.calculate_uid()?;
+
+                if remote_uid == self_uid {
+                    return Ok(PushResult::AlreadyUpToDate);
+                }
+            },
+            Err(e) => {
+                if !quiet {
+                    eprintln!("Failed to get {get_uid_url}: {e:?}");
+                }
+            },
         }
 
         // TODO: I want it to reuse archives from
