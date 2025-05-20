@@ -1,3 +1,4 @@
+use super::blob;
 use crate::error::Error;
 use chrono::{Datelike, Utc};
 use sqlx::postgres::PgPool;
@@ -26,18 +27,15 @@ pub async fn get_list(session_id: &str, pool: &PgPool) -> Result<Vec<String>, Er
 }
 
 pub async fn get_archive(session_id: &str, archive_id: &str, pool: &PgPool) -> Result<Vec<u8>, Error> {
-    let blob = crate::query!(
-        "SELECT blob
-        FROM archive JOIN archive_blob ON archive_blob.id = archive.blob_id
+    let row = crate::query!(
+        "SELECT blob_id
+        FROM archive
         WHERE session_id = $1 AND archive_id = $2",
         session_id,
         archive_id,
     ).fetch_one(pool).await?;
 
-    match blob.blob {
-        Some(blob) => Ok(blob),
-        None => Err(Error::NoSuchArchive(archive_id.to_string())),
-    }
+    blob::get(&row.blob_id)
 }
 
 pub async fn create_new_session(repo_id: i32, pool: &PgPool) -> Result<String, Error> {
@@ -83,11 +81,7 @@ pub async fn add_archive(session_id: &str, archive_id: &str, archive: &[u8], poo
         rand::random::<u128>(),
         rand::random::<u128>(),
     );
-    crate::query!(
-        "INSERT INTO archive_blob (id, blob) VALUES ($1, $2)",
-        &blob_id,
-        archive,
-    ).execute(pool).await?;
+    blob::save(&blob_id, archive)?;
 
     crate::query!(
         "INSERT

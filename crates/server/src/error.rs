@@ -17,6 +17,7 @@ pub enum Error {
     InsecurePath(String),
     InvalidUtf8,
     ServerBusy,
+    ConfigNotInitialized,
 }
 
 impl From<FileError> for Error {

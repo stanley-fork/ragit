@@ -7,3 +7,4 @@ ragit-server-logs*
 tests/result.json
 crates/server/*.json
 *.diff
+crates/server/**/blobs/

@@ -15,6 +15,7 @@ pub struct Config {
     // A directory where push sessions are stored.
     pub push_session_dir: String,
     pub repo_data_dir: String,
+    pub blob_dir: String,
 
     // A path to `models.json` file. If not found, it'll try to create a file
     // in the given path.
@@ -43,6 +44,7 @@ impl Default for Config {
             default_ai_model: String::from("llama3.3"),
             push_session_dir: String::from("./session"),
             repo_data_dir: String::from("./data"),
+            blob_dir: String::from("./blobs"),
             only_admin_can_create_user: true,
             port_number: 41127,
         }

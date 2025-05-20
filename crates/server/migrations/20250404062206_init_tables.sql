@@ -205,13 +205,6 @@ CREATE TABLE IF NOT EXISTS archive (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS push_archive_by_session ON archive ( session_id, archive_id );
 
-CREATE TABLE IF NOT EXISTS archive_blob (
-    id TEXT PRIMARY KEY,
-
-    -- (WIP) garbage collector will nullify old blobs!
-    blob BYTEA
-);
-
 CREATE TABLE IF NOT EXISTS api_key (
     api_key TEXT PRIMARY KEY,
     name TEXT NOT NULL,
