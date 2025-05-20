@@ -491,7 +491,7 @@ This is a markdown file that has no image.
 ![This is a broken image
 ";
         write_string("__tmp_test.md", md1, WriteMode::AlwaysCreate).unwrap();
-        let mut md_reader = MarkdownReader::new("__tmp_test.md", &config_strict).unwrap();
+        let mut md_reader = MarkdownReader::new("__tmp_test.md", ".", &config_strict).unwrap();
 
         while md_reader.has_more_to_read() {
             md_reader.load_tokens().unwrap();
