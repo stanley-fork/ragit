@@ -286,7 +286,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--this-week"])
                 .optional_flag(&["--only-tokens", "--only-costs"])
-                .optional_arg_flag("--category", ArgType::String)
+                .optional_arg_flag("--category", ArgType::String)  // NOTE: there's no `ArgType` for audit categories
                 .optional_flag(&["--json"])
                 .short_flag(&["--category", "--json"])
                 .parse(&args, 2)?;
@@ -409,7 +409,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Exact(1))
+                .args(ArgType::UidOrPath, ArgCount::Exact(1))
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -528,7 +528,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
-                .args(ArgType::String, ArgCount::Geq(1))
+                .args(ArgType::Url, ArgCount::Geq(1))
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -604,7 +604,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let parsed_args = ArgParser::new()
                         .optional_flag(&["--json"])
                         .short_flag(&["--json"])
-                        .args(ArgType::String, ArgCount::None)
                         .parse(&args, 3)?;
 
                     let json_mode = parsed_args.get_flag(0).is_some();
@@ -834,7 +833,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any)
+                .args(ArgType::UidOrPath, ArgCount::Any)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -952,7 +951,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
                 .alias("--cached", "--staged")
-                .args(ArgType::Query, ArgCount::Any)
+                .args(ArgType::UidOrPath, ArgCount::Any)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1116,7 +1115,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any)
+                .args(ArgType::UidOrPath, ArgCount::Any)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1319,7 +1318,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--term-only", "--stat-only"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Any)
+                .args(ArgType::UidOrPath, ArgCount::Any)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1458,7 +1457,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     let parsed_args = ArgParser::new()
                         .optional_flag(&["--json"])
                         .short_flag(&["--json"])
-                        .args(ArgType::String, ArgCount::None)
                         .parse(&args, 3)?;
 
                     let json_mode = parsed_args.get_flag(0).is_some();
@@ -1512,7 +1510,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 // git uses the term "--unset-all"
                 Some("--remove-all" | "--unset-all") => {
                     ArgParser::new()
-                        .args(ArgType::String, ArgCount::None)
                         .parse(&args, 3)?;
 
                     index.remove_all_meta()?;
@@ -1701,7 +1698,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
-                .args(ArgType::String, ArgCount::None)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1733,7 +1729,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
-                .args(ArgType::String, ArgCount::None)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1772,7 +1767,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--schema", ArgType::String)
                 .short_flag(&["--interactive", "--json"])
-                .args(ArgType::String, ArgCount::Any)
+                .args(ArgType::Query, ArgCount::Any)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -2065,7 +2060,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::None)
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -2173,7 +2167,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--keyword", "--query"])
                 .arg_flag_with_default("--limit", "10", ArgType::IntegerBetween { min: Some(0), max: None })
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Exact(1))
+                .args(ArgType::String, ArgCount::Exact(1))
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {

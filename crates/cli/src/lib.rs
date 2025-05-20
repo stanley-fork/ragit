@@ -340,13 +340,19 @@ pub enum ArgCount {
     None,
 }
 
+/// `ArgType` doesn't do much. Only `Integer` and
+/// `IntegerBetween` variants do extra checks. The
+/// other variants are more like type signatures
+/// which clarifies the intent of the code.
 #[derive(Clone, Copy, Debug)]
 pub enum ArgType {
     String,
     Path,
     Command,
-    Query,  // uid or path
+    Query,
+    UidOrPath,
     Integer,
+    Url,
 
     /// Both inclusive
     IntegerBetween {
@@ -394,7 +400,9 @@ impl ArgType {
             },
             ArgType::String
             | ArgType::Path
-            | ArgType::Command  // TODO: validator for ArgType::Command
+            | ArgType::Url
+            | ArgType::UidOrPath
+            | ArgType::Command
             | ArgType::Query => Ok(arg.to_string()),
         }
     }
