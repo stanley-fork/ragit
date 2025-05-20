@@ -195,6 +195,7 @@ fn token_to_schema(tokens: &[Token], index: &mut usize) -> Result<Schema, Schema
             "bool" | "boolean" => Schema::default_boolean(),
             "yesno" => Schema::default_yesno(),
             "code" => Schema::default_code(),
+            "tasklist" => Schema::default_task_list(),
             _ => {
                 return Err(SchemaParseError::UnexpectedToken(t.clone()));
             },

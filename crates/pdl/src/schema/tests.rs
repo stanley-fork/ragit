@@ -62,6 +62,29 @@ def add(a, b):
         ("[float { max: 0.0 }]", "[1.5, 2.5]", Some("too big")),
         ("[float { max: 0.0 }]", "[-1.5, -2.5]", None),
         ("int", "Answer: -3", None),
+        ("tasklist", "- This is not a task list", Some("I cannot find a task list")),
+        (
+            "tasklist", "
+- [ ] TODO: do whatever
+- [X] Complete: do something",
+            None,
+        ),
+        (
+            "tasklist",
+            "
+This is just a paragraph.
+
+This is another paragraph.
+
+The task list begins here.
+
+* [ ] TODO: do whatever
+* [O] Complete: do something
+
+HaHaHa
+",
+            None,
+        ),
     ];
     let mut dump = String::new();
     let mut failures = String::new();
@@ -283,6 +306,45 @@ def add(a, b):
         ("float", "정답은 1.5입니다.", Value::from(1.5)),
         ("[float { max: 0.0 }]", "[-1.5, -2.5]", vec![-1.5, -2.5].into()),
         ("int", "Answer: -3", Value::from(-3)),
+        (
+            "tasklist", "
+- [ ] TODO: do whatever
+- [X] Complete: do something",
+            "- [ ] TODO: do whatever\n- [X] Complete: do something".into(),
+        ),
+        (
+            "tasklist",
+            "
+This is just a paragraph.
+
+This is another paragraph.
+
+The task list begins here.
+
+* [ ] TODO: do whatever
+* [O] Complete: do something
+
+HaHaHa
+",
+            "* [ ] TODO: do whatever\n* [O] Complete: do something".into(),
+        ),
+        (
+            "tasklist",
+            "
+This is just a paragraph.
+
+This is another paragraph.
+
+The task list begins here.
+
+* [ ] TODO: do whatever
+  ... do what?
+* [O] Complete: do something
+
+HaHaHa
+",
+            "* [ ] TODO: do whatever\n  ... do what?\n* [O] Complete: do something".into(),
+        ),
     ];
     let mut failures = String::new();
     let mut failure_count = 0;

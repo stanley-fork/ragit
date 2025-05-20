@@ -9,10 +9,12 @@ use std::str::FromStr;
 mod code_fence;
 mod parse;
 mod parse_value;
+mod task_list;
 
 pub use code_fence::try_extract_code_fence;
 pub use parse::{SchemaParseError, parse_schema};
 use parse_value::{JsonMatch, extract_jsonish_literal};
+pub use task_list::{count_task_list_elements, try_extract_task_list};
 
 #[cfg(test)]
 mod tests;
@@ -33,9 +35,14 @@ pub enum SchemaType {
     Null,
     Yesno,
     Code,
+
+    // https://github.github.com/gfm/#task-list-items-extension-
+    // https://github.com/baehyunsol/ragit/issues/17
+    TaskList,
 }
 
 impl SchemaType {
+    // LLMs will see this name (e.g. "I cannot find `array` in your output.")
     pub fn type_name(&self) -> &'static str {
         match self {
             SchemaType::Integer => "integer",
@@ -47,6 +54,7 @@ impl SchemaType {
             SchemaType::Null => "null",
             SchemaType::Yesno => "yes or no",
             SchemaType::Code => "code",
+            SchemaType::TaskList => "markdown task list",
         }
     }
 
@@ -95,8 +103,8 @@ pub enum SchemaError {
 }
 
 impl SchemaError {
-    // This is an error message for LLMs, not for ordinary programmers.
-    // It has to be short and readable english sentences, not typical
+    // This is an error message for LLMs, not for (human) programmers.
+    // It has to be short and readable english sentences, unlike
     // compiler error messages.
     pub fn prettify(&self, schema: &Schema) -> String {
         match self {
@@ -276,6 +284,10 @@ impl Schema {
                     Ok(())
                 }
             },
+            (SchemaType::TaskList, Value::String(s)) => {
+                check_range(SchemaType::TaskList, &self.constraint, count_task_list_elements(s))?;
+                Ok(())
+            },
             (SchemaType::Boolean | SchemaType::Yesno, Value::Bool(_)) => Ok(()),
             (t1, t2) => Err(SchemaError::TypeError {
                 expected: t1.clone(),
@@ -323,6 +335,7 @@ impl Schema {
             },
             SchemaType::String => Ok(format!("{s:?}")),
             SchemaType::Code => Ok(format!("{:?}", try_extract_code_fence(s)?)),
+            SchemaType::TaskList => Ok(format!("{:?}", try_extract_task_list(s)?)),
             SchemaType::Integer | SchemaType::Float
             | SchemaType::Array(_) | SchemaType::Object(_) => {
                 let mut jsonish_literals = extract_jsonish_literal(s);
@@ -385,6 +398,13 @@ impl Schema {
         }
     }
 
+    pub fn default_task_list() -> Self {
+        Schema {
+            r#type: SchemaType::TaskList,
+            constraint: None,
+        }
+    }
+
     pub fn add_constraint(&mut self, constraint: Constraint) {
         debug_assert!(self.constraint.is_none());
         self.constraint = Some(constraint);
@@ -392,7 +412,7 @@ impl Schema {
 
     pub fn validate_constraint(&self) -> Result<(), SchemaParseError> {
         match (&self.r#type, &self.constraint) {
-            (ty @ (SchemaType::Integer | SchemaType::Array(_) | SchemaType::String | SchemaType::Code), Some(constraint)) => {
+            (ty @ (SchemaType::Integer | SchemaType::Array(_) | SchemaType::String | SchemaType::TaskList | SchemaType::Code), Some(constraint)) => {
                 let mut min_ = i64::MIN;
                 let mut max_ = i64::MAX;
 
@@ -505,6 +525,7 @@ pub fn render_pdl_schema(
 ) -> Result<String, Error> {
     let s = match (&schema.r#type, value) {
         (SchemaType::Code, Value::String(s)) => s.to_string(),
+        (SchemaType::TaskList, Value::String(s)) => s.to_string(),
         (SchemaType::Yesno, Value::Bool(b)) => if *b {
             String::from("yes")
         } else {

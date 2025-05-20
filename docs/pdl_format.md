@@ -85,11 +85,12 @@ You can add constraints to schema. For example, `{ name: str, age: int { min: 0,
 
 Basically, pdl engine first extracts json-looking string from LLM output, then parses it. For example, if the schema is a json object, the engine tries to match a curly brace using regular expression. If it fails to parse json, that's an error.
 
-There are 3 cases where it doesn't parse json.
+There are 4 cases where it doesn't parse json.
 
 1. If the schema is `str`, it just treats the entire output as the string. It doesn't look for quotation marks, and it doesn't run the parser. You can also add constraints to `str`. For example, if the schema is `str { min: 100 }`, it makes sure that the length of the entire output is at least 100 characters.
 2. If the schema is `yesno`, it makes sure that the LLM's output is either `yes` or `no`. You cannot mix it with other json schema because `yes` and `no` are not valid json values. If yes/no is all you need, `yesno` is better than `bool` because LLMs are usually better at English than json. This type is later converted to a boolean value, `serde_json::Value::Bool` in Rust.
 3. If the schema is `code`, it looks for a [markdown code block](https://github.github.com/gfm/#fenced-code-blocks). This type is later converted to a string value, `serde_json::Value::String` in Rust. The string is the content of the fenced code block, without the fences.
+4. If the schema is `tasklist`, it looks for a [markdown task list](https://github.github.com/gfm/#task-list-items-extension-). It extracts the task list from LLM output and converts the list to a string value, `serde_json::Value::String` in Rust.
 
 ## Examples
 
