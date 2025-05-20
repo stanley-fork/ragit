@@ -28,6 +28,7 @@ use ragit_cli::{
     ArgType,
     Span,
     get_closest_string,
+    parse_pre_args,
 };
 use ragit_fs::{
     basename,
@@ -37,6 +38,7 @@ use ragit_fs::{
     join3,
     read_dir,
     read_string,
+    set_current_dir,
 };
 use ragit_pdl::{
     Pdl,
@@ -132,6 +134,15 @@ async fn main() {
 
 #[async_recursion(?Send)]
 async fn run(args: Vec<String>) -> Result<(), Error> {
+    // TODO: `-C` option is not documented
+    // it parses `rag [-C <path>] <command> <args>`.
+    // `-C <path>` is in `pre_args` and the remainings are in `args`.
+    let (args, pre_args) = parse_pre_args(&args)?;
+
+    if let Some(path) = pre_args.arg_flags.get("-C") {
+        set_current_dir(path)?;
+    }
+
     let root_dir = find_root().map_err(|_| Error::IndexNotFound);
 
     match args.get(1).map(|arg| arg.as_str()) {
@@ -2367,7 +2378,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         None => {
             return Err(Error::CliError {
-                message: String::from("Run `rag help` to get help."),
+                message: String::from("Command is missing. Run `rag help` to get help."),
                 span: Span::End.render(&args, 2).unwrap_rendered(),
             });
         },

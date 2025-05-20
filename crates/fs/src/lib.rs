@@ -396,6 +396,10 @@ pub fn current_dir() -> Result<String, FileError> {
     }
 }
 
+pub fn set_current_dir(path: &str) -> Result<(), FileError> {
+    std::env::set_current_dir(path).map_err(|e| FileError::from_std(e, path))
+}
+
 pub fn diff(path: &str, base: &str) -> Result<String, FileError> {
     match pathdiff::diff_paths(path, base) {
         Some(path) => match path.to_str() {

@@ -15,6 +15,7 @@ from end_to_end import end_to_end
 from external_bases import external_bases
 from extract_keywords import extract_keywords
 from generous_file_reader import generous_file_reader
+from gh_issue_20 import gh_issue_20
 from ignore import ignore
 from ii import ii
 from images import images
@@ -178,6 +179,10 @@ Commands
     config                      run `config` test
                                 I have added new configs to ragit 0.3.5. And I want to see
                                 if it's compatible with older versions.
+
+    gh_issue_20                 run `gh_issue_20` test
+                                https://github.com/baehyunsol/ragit/issues/20
+                                It tests `-C` option.
 
     many_chunks                 run `many_chunks` test
                                 It creates a lot of small files and see if ragit can
@@ -404,6 +409,9 @@ if __name__ == "__main__":
         elif command == "config":
             config()
 
+        elif command == "gh_issue_20":
+            gh_issue_20()
+
         elif command == "archive":
             archive()
 
@@ -573,6 +581,7 @@ if __name__ == "__main__":
                 ("ls", ls),
                 ("meta", meta),
                 ("symlink", symlink),
+                ("gh_issue_20", gh_issue_20),
                 ("ii", ii),
                 ("cat_file", cat_file),
                 ("generous_file_reader", generous_file_reader),

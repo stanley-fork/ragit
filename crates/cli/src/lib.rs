@@ -425,6 +425,17 @@ pub struct ParsedArgs {
 }
 
 impl ParsedArgs {
+    pub fn new() -> Self {
+        ParsedArgs {
+            skip_first_n: 0,
+            raw_args: vec![],
+            args: vec![],
+            flags: vec![],
+            arg_flags: HashMap::new(),
+            show_help: false,
+        }
+    }
+
     pub fn get_args(&self) -> Vec<String> {
         self.args.clone()
     }
@@ -453,5 +464,38 @@ impl ParsedArgs {
 
     pub fn show_help(&self) -> bool {
         self.show_help
+    }
+}
+
+/// It parses `rag [-C <path>] <command> <args>` and returns
+/// `Ok((args, pre_args))` where `args` is `rag <command> <args>` and
+/// `pre_args` is `-C <path>`.
+///
+/// NOTE: Do not use this function. I have implemented this because I'm not sure
+/// how to implement `-C` option. I'll remove this function as soon as I come up
+/// with a nice way to implement `-C`.
+///
+/// It only supports `-C <path>` and not `-C=<path>` and that's intentional. Git
+/// neither supports `-C=<path>` (I don't know why), and I decided to blindly follow that.
+pub fn parse_pre_args(args: &[String]) -> Result<(Vec<String>, ParsedArgs), Error> {
+    match args.get(1).map(|s| s.as_str()) {
+        Some("-C") => match args.get(2).map(|s| s.as_str()) {
+            Some(path) => {
+                let mut result = ParsedArgs::new();
+                result.arg_flags.insert(String::from("-C"), path.to_string());
+                Ok((
+                    vec![
+                        vec![args[0].clone()],
+                        if args.len() < 4 { vec![] } else { args[3..].to_vec() },
+                    ].concat(),
+                    result,
+                ))
+            },
+            None => Err(Error {
+                span: Span::Exact(2),
+                kind: ErrorKind::MissingArgument(String::from("-C"), ArgType::Path),
+            }),
+        },
+        _ => Ok((args.to_vec(), ParsedArgs::new())),
     }
 }
