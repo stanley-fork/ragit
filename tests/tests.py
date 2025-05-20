@@ -32,6 +32,7 @@ from migrate import migrate
 from migrate2 import migrate2
 from models_init import models_init, test_home_config_override
 from orphan_process import orphan_process
+from outside import outside
 from pdf import pdf
 from pdl import pdl
 from prompts import prompts
@@ -163,6 +164,10 @@ Commands
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
+
+    outside                     run `outside`
+                                It tests whether ragit can successfully reject files outside
+                                a knowledge-base.
 
     migrate                     run `migrate` test
                                 It checks out git to v 0.1.1, creates a knowledge-base,
@@ -393,6 +398,9 @@ if __name__ == "__main__":
         elif command == "cli":
             cli()
 
+        elif command == "outside":
+            outside()
+
         elif command == "audit":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -575,6 +583,7 @@ if __name__ == "__main__":
                 ("server", server),
                 ("server_permission", server_permission),
                 ("cli", cli),
+                ("outside", outside),
                 ("archive", archive),
                 ("many_chunks", many_chunks),
                 ("many_jobs", many_jobs),

@@ -62,23 +62,31 @@ impl Index {
         let mut result = AddResult::default();
         let force = mode == Some(AddMode::Force);
 
-        if files.is_empty() {
-            return Ok(result);
+        if self.curr_processing_file.is_some() {
+            return Err(Error::DirtyKnowledgeBase);
         }
 
-        if let Some(file) = &self.curr_processing_file {
-            return Err(Error::CannotAddFile {
-                file: get_relative_path(&self.root_dir, &files[0])?,
-                message: format!("A build process has been interrupted while processing `{file}`. Run `rag check --recover` to clean up garbages."),
-            });
+        if files.is_empty() {
+            return Ok(result);
         }
 
         let mut unfolded_files = vec![];
 
         for file in files.iter() {
+            let relative_path = get_relative_path(&self.root_dir, file)?;
+
+            // `.starts_with` would work because `relative_path` is normalized.
+            // But still, it's too ugly.
+            if relative_path.starts_with("../") {
+                return Err(Error::CannotAddFile {
+                    file: relative_path,
+                    message: format!("`{file}` is outside of knowledge-base."),
+                });
+            }
+
             if !exists(file) {
                 return Err(Error::CannotAddFile {
-                    file: get_relative_path(&self.root_dir, file)?,
+                    file: relative_path,
                     message: format!("`{file}` does not exist."),
                 });
             }
@@ -121,12 +129,12 @@ impl Index {
                     },
                     Some(AddMode::Reject) => {
                         return Err(Error::CannotAddFile {
-                            file: get_relative_path(&self.root_dir, file)?,
+                            file: relative_path,
                             message: format!("`{file}` is ignored."),
                         });
                     },
                     Some(AddMode::Force) => {
-                        unfolded_files.push(get_relative_path(&self.root_dir, file)?);
+                        unfolded_files.push(relative_path);
                     },
                 }
             }
