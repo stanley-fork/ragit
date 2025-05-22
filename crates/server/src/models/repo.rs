@@ -5,6 +5,7 @@ use crate::error::Error;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPool;
 
+#[derive(Clone, Copy, Debug)]
 pub enum RepoOperation {
     Read,
     Write,

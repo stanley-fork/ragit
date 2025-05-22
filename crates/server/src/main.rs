@@ -27,8 +27,8 @@ async fn main() {
     let args = match parse_cli_args(std::env::args().collect::<Vec<_>>()) {
         Ok(command) => match command {
             CliCommand::Run(args) => args,
-            CliCommand::DropAll(args)
-            | CliCommand::TruncateAll(args) => {
+            CliCommand::DropAll(ref args)
+            | CliCommand::TruncateAll(ref args) => {
                 if !args.force {
                     println!("Are you sure?");
                     print!(">>> ");
@@ -40,6 +40,15 @@ async fn main() {
                         return;
                     }
                 }
+
+                let repo_data_dir = match &args.repo_data_dir {
+                    Some(dir) => dir.to_string(),
+                    None => {
+                        let config = Config::default();
+                        config.repo_data_dir
+                    },
+                };
+                remove_dir_all(&repo_data_dir).unwrap();
 
                 if let CliCommand::DropAll(_) = command {
                     drop_all().await.unwrap();

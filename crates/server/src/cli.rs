@@ -24,9 +24,15 @@ pub struct RunArgs {
     pub force_default_config: bool,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct DropArgs {
     pub force: bool,
+
+    // `drop-all` and `truncate-all` remove repo data on disk.
+    // Repo data directory is configurable, but only `run` command
+    // can parse the config file. So it takes `--repo-data` as a cli input.
+    // If it's not set, it'll use the default directory.
+    pub repo_data_dir: Option<String>,
 }
 
 pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
@@ -51,11 +57,13 @@ pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
         Some(c @ ("drop-all" | "truncate-all")) => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--force"])
+                .optional_arg_flag(&"--repo-data", ArgType::Path)
                 .short_flag(&["--force"])
                 .parse(&args, 2)?;
 
             let args = DropArgs {
                 force: parsed_args.get_flag(0).is_some(),
+                repo_data_dir: parsed_args.arg_flags.get("--repo-data").map(|d| d.to_string()),
             };
 
             Ok(if c == "drop-all" { CliCommand::DropAll(args) } else { CliCommand::TruncateAll(args) })
