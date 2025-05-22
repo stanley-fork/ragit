@@ -21,11 +21,10 @@ def clone_empty():
         api_key = get_api_key(id="test-user", password="87654321")
         create_repo(user="test-user", repo="empty-repo", api_key=api_key)
 
-        # TODO: test it with different permissions
-        #       e.g. cloning an empty repository without a permission
         result = cargo_run(["clone", "http://127.0.0.1:41127/test-user/empty-repo"], stderr=True)
         assert "empty" in result  # warning message: "you have cloned an empty knowledge-base"
         os.chdir("empty-repo")
+        empty_repo_uid = cargo_run(["uid"], stdout=True).strip()
         cargo_run(["check"])
         cargo_run(["config", "--set", "model", "dummy"])
         write_string("sample.txt", "Hello, World!")
@@ -44,6 +43,16 @@ def clone_empty():
         cargo_run(["check"])
         chunk_list3 = set(json.loads(cargo_run(["ls-chunks", "--uid-only", "--json"], stdout=True)))
         assert chunk_list2 == chunk_list3
+
+        # extra test: All empty repositories must have the same uid.
+        #             It compares 2 empty repositories where one is
+        #             created by the server and the other is created
+        #             locally by ragit.
+        os.chdir("..")
+        os.mkdir("new-empty-repo")
+        os.chdir("new-empty-repo")
+        cargo_run(["init"])
+        assert empty_repo_uid == cargo_run(["uid"], stdout=True).strip()
 
     finally:
         server_process.kill()

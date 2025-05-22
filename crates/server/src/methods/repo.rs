@@ -1,7 +1,7 @@
 use super::{HandleError, RawResponse, get_pool, handler};
 use chrono::{Datelike, Utc};
 use crate::models::{repo, user};
-use crate::models::repo::{RepoCreate, RepoOperation, RepoUpdate};
+use crate::models::repo::{RepoOperation, RepoUpdate};
 use serde_json::Value;
 use std::collections::HashMap;
 use warp::http::StatusCode;
@@ -32,19 +32,6 @@ async fn get_repo_(user: String, repo: String, api_key: Option<String>) -> RawRe
     let repo = repo::get_detail(repo_id, pool).await.handle_error(500)?;
 
     Ok(Box::new(json(&repo)))
-}
-
-// I set `body: Value` not `body: RepoCreate` because it gives a better error message for invalid schemas.
-pub async fn create_repo(user: String, body: Value, api_key: Option<String>) -> Box<dyn Reply> {
-    handler(create_repo_(user, body, api_key).await)
-}
-
-async fn create_repo_(user: String, body: Value, api_key: Option<String>) -> RawResponse {
-    let pool = get_pool().await;
-    let repo = serde_json::from_value::<RepoCreate>(body).handle_error(400)?;
-    user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(403)?;
-    let repo_id = repo::create_and_return_id(&user, &repo, pool).await.handle_error(500)?;
-    Ok(Box::new(json(&repo_id)))
 }
 
 pub async fn put_repo(user: String, repo: String, body: Value, api_key: Option<String>) -> Box<dyn Reply> {

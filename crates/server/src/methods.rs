@@ -16,7 +16,7 @@ mod health;
 mod image;
 mod push;
 
-// If an api has to read disk storage (e.g. `index.json`), that's in `repo_fs` module.
+// If an api has to read/write to disk storage (e.g. `index.json`), that's in `repo_fs` module.
 // If an api only reads/writes to DB, that's in `repo` module.
 mod repo;
 mod repo_fs;
@@ -62,13 +62,13 @@ pub use push::{
     post_finalize_push,
 };
 pub use repo::{
-    create_repo,
     get_repo,
     get_repo_list,
     get_traffic,
     put_repo,
 };
 pub use repo_fs::{
+    create_repo,
     get_cat_file,
     get_config,
     get_content,

@@ -1,7 +1,8 @@
 use super::{HandleError, RawResponse, check_secure_path, get_or, get_pool, handler};
 use crate::CONFIG;
 use crate::models::file::{FileDetail, FileSimple, FileType};
-use crate::models::repo::{self, RepoOperation};
+use crate::models::repo::{self, RepoCreate, RepoOperation};
+use crate::models::user;
 use crate::utils::get_rag_path;
 use ragit::{
     Index,
@@ -22,6 +23,28 @@ use serde_json::Value;
 use std::collections::HashMap;
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_header, with_status};
+
+// I set `body: Value` not `body: RepoCreate` because it gives a better error message for invalid schemas.
+// It runs `rag init` on disk.
+pub async fn create_repo(user: String, body: Value, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(create_repo_(user, body, api_key).await)
+}
+
+async fn create_repo_(user: String, body: Value, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo = serde_json::from_value::<RepoCreate>(body).handle_error(400)?;
+    user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(403)?;
+    let repo_id = repo::create_and_return_id(&user, &repo, pool).await.handle_error(500)?;
+    let config = CONFIG.get().handle_error(500)?;
+    let index_path = join3(
+        &config.repo_data_dir,
+        &user,
+        &repo.name,
+    ).handle_error(400)?;
+    Index::new(index_path).handle_error(500)?;
+
+    Ok(Box::new(json(&repo_id)))
+}
 
 pub async fn get_index(user: String, repo: String, api_key: Option<String>) -> Box<dyn Reply> {
     handler(get_index_(user, repo, api_key).await)

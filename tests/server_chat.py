@@ -132,8 +132,11 @@ def set_default_model(user: str, model_name: str, server_api_key: str) -> str:
     ).json()
     models = [model for model in models if model_name in model["name"] or model_name in model["api_name"]]
 
-    if len(models) != 1:
-        raise Exception(f"Model name {model_name} is ambiguous.")
+    if len(models) == 0:
+        raise Exception(f"No model named {model_name} in the server.")
+
+    if len(models) > 1:
+        raise Exception(f"Model name {model_name} is ambiguous: {models}")
 
     model_name = models[0]["name"]
     response = requests.put(
