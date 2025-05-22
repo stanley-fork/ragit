@@ -34,6 +34,8 @@ async fn create_repo_(user: String, body: Value, api_key: Option<String>) -> Raw
     let pool = get_pool().await;
     let repo = serde_json::from_value::<RepoCreate>(body).handle_error(400)?;
     user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(403)?;
+    repo.validate().handle_error(400)?;
+    (!repo::check_existence(&user, &repo.name, pool).await.handle_error(500)?).handle_error(400)?;
     let repo_id = repo::create_and_return_id(&user, &repo, pool).await.handle_error(500)?;
     let config = CONFIG.get().handle_error(500)?;
     let index_path = join3(

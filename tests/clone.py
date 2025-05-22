@@ -76,7 +76,7 @@ def clone(base2_size: int = 600):
             os.rename(base, base + "-cloned")
             os.chdir(base + "-cloned")
             cargo_run(["check"])
-            get_repo_stat(user="test-user", repo=base, assert404=True)
+            get_repo_stat(user="test-user", repo=base, expected_status_code=404)
             create_repo(user="test-user", repo=base, api_key=api_key)
             assert get_repo_stat(user="test-user", repo=base) == (0, 0)  # (push, clone)
             cargo_run(["push", f"--remote=http://127.0.0.1/test-user/{base}"])

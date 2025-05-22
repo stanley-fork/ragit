@@ -175,6 +175,8 @@ def create_user(
     email: str = "sample@email.com",
     readme: Optional[str] = None,
     public: bool = True,
+    api_key: Optional[str] = None,
+    expected_status_code: Optional[int] = 200,
 ):
     body = {
         "id": id,
@@ -183,8 +185,11 @@ def create_user(
         "readme": readme,
         "public": public,
     }
-    response = requests.post("http://127.0.0.1:41127/user-list", json=body)
-    assert response.status_code == 200
+    headers = {} if api_key is None else { "x-api-key": api_key }
+    response = requests.post("http://127.0.0.1:41127/user-list", json=body, headers=headers)
+
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
 
 def create_repo(
     user: str,
@@ -198,7 +203,8 @@ def create_repo(
     public_clone: bool = True,
     public_push: bool = True,
     public_chat: bool = True,
-) -> int:  # returns repo_id
+    expected_status_code: Optional[int] = 200,
+) -> Optional[int]:  # returns repo_id, if successful
     body = {
         "name": repo,
         "description": description,
@@ -212,23 +218,30 @@ def create_repo(
     }
     headers = {} if api_key is None else { "x-api-key": api_key }
     response = requests.post(f"http://127.0.0.1:41127/repo-list/{user}", json=body, headers=headers)
-    assert response.status_code == 200
-    return response.json()
+
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
+
+    if expected_status_code == 200:
+        return response.json()
 
 def get_repo_stat(
     user: str,
     repo: str,
     key: str = "all",
-    assert404: bool = False,
+    expected_status_code: Optional[int] = 200,
 ) -> Tuple[int, int]:  # returns (push, clone)
     response = requests.get(f"http://127.0.0.1:41127/{user}/{repo}/traffic")
 
-    if assert404:
-        assert response.status_code == 404
-        return (0, 0)
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
 
-    response = response.json()
-    return (response[key]["push"], response[key]["clone"])
+    if expected_status_code == 200:
+        response = response.json()
+        return (response[key]["push"], response[key]["clone"])
+
+    else:
+        return (0, 0)
 
 def get_api_key(
     id: str,
@@ -249,16 +262,20 @@ def request_json(
     user: Optional[str] = "test-user",
     repo: Optional[str] = None,
     raw_url: bool = False,
-    assert404: bool = False,
+    api_key: Optional[str] = None,
+    expected_status_code: Optional[int] = 200,
 ):
-    response = requests.get(os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url)
+    headers = {} if api_key is None else { "x-api-key": api_key }
+    response = requests.get(
+        os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url,
+        headers=headers,
+    )
 
-    if assert404:
-        assert response.status_code == 404
-        return None
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
 
-    assert response.status_code == 200
-    return json.loads(response.text)
+    if expected_status_code == 200:
+        return json.loads(response.text)
 
 def assert_eq_json(path: str, value):
     file = json.loads(read_string(os.path.join(".ragit", path)))
@@ -271,16 +288,18 @@ def request_text(
     user: Optional[str] = "test-user",
     repo: Optional[str] = None,
     raw_url: bool = False,
-    assert404: bool = False,
+    expected_status_code: Optional[int] = 200,
 ) -> str:
     response = requests.get(os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url)
 
-    if assert404:
-        assert response.status_code == 404
-        return ""
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
 
-    assert response.status_code == 200
-    return response.text
+    if expected_status_code == 200:
+        return response.text
+
+    else:
+        return ""
 
 def assert_eq_text(path: str, value: str):
     file = read_string(os.path.join(".ragit", path))
@@ -293,16 +312,18 @@ def request_bytes(
     user: Optional[str] = "test-user",
     repo: Optional[str] = None,
     raw_url: bool = False,
-    assert404: bool = False,
+    expected_status_code: Optional[int] = 200,
 ) -> bytes:
     response = requests.get(os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url)
 
-    if assert404:
-        assert response.status_code == 404
-        return b""
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
 
-    assert response.status_code == 200
-    return response.content
+    if expected_status_code == 200:
+        return response.content
+
+    else:
+        return b""
 
 def assert_eq_bytes(path: str, value: bytes):
     with open(os.path.join(".ragit", path), "rb") as f:

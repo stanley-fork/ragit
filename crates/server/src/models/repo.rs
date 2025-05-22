@@ -69,6 +69,14 @@ pub struct RepoCreate {
     pub public_chat: bool,
 }
 
+impl RepoCreate {
+    pub fn validate(&self) -> bool {
+        // e.g. name is r"[a-zA-Z0-9_-]+"
+        // TODO
+        true
+    }
+}
+
 // TODO: allow change name?
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RepoUpdate {
@@ -179,6 +187,15 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
         search_index_built_at: row.search_index_built_at,
         updated_at: row.updated_at,
     })
+}
+
+pub async fn check_existence(user: &str, repo: &str, pool: &PgPool) -> Result<bool, Error> {
+    let rows = crate::query!(
+        "SELECT id FROM repository WHERE owner = $1 AND name = $2",
+        user,
+        repo,
+    ).fetch_all(pool).await?;
+    Ok(!rows.is_empty())
 }
 
 pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) -> Result<i32, Error> {

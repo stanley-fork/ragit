@@ -162,8 +162,8 @@ def ls_recursive(ext: str, path: Optional[list[str]] = None) -> list[str]:
 
     return result
 
-def rand_word() -> str:
-    if random() < 0.5:
+def rand_word(english_only: bool = False) -> str:
+    if english_only or random() < 0.5:
         return "".join([chr(randint(65, 90)) for _ in range(randint(8, 16))])
 
     else:
