@@ -3,6 +3,7 @@ use crate::model::TestModel;
 use crate::response::{
     AnthropicResponse,
     CohereResponse,
+    GoogleResponse,
     IntoChatResponse,
     OpenAiResponse,
 };
@@ -13,6 +14,7 @@ pub enum ApiProvider {
     OpenAi { url: String },
     Cohere,
     Anthropic,
+    Google,
 
     /// for test
     /// 1. doesn't require api key
@@ -28,6 +30,7 @@ impl ApiProvider {
             ApiProvider::Anthropic => Ok(Box::new(serde_json::from_str::<AnthropicResponse>(s)?)),
             ApiProvider::Cohere => Ok(Box::new(serde_json::from_str::<CohereResponse>(s)?)),
             ApiProvider::OpenAi { .. } => Ok(Box::new(serde_json::from_str::<OpenAiResponse>(s)?)),
+            ApiProvider::Google => Ok(Box::new(serde_json::from_str::<GoogleResponse>(s)?)),
             ApiProvider::Test(_) => unreachable!(),
         }
     }
@@ -40,16 +43,8 @@ impl ApiProvider {
             },
             "cohere" => Ok(ApiProvider::Cohere),
             "anthropic" => Ok(ApiProvider::Anthropic),
+            "google" => Ok(ApiProvider::Google),
             _ => Err(Error::InvalidApiProvider(s.to_string())),
-        }
-    }
-
-    pub fn get_api_url(&self) -> &str {
-        match self {
-            ApiProvider::Anthropic => "https://api.anthropic.com/v1/messages",
-            ApiProvider::Cohere => "https://api.cohere.com/v2/chat",
-            ApiProvider::OpenAi { url } => url,
-            ApiProvider::Test(_) => "",
         }
     }
 }
@@ -63,6 +58,7 @@ impl fmt::Display for ApiProvider {
                 ApiProvider::OpenAi { .. } => "openai",
                 ApiProvider::Cohere => "cohere",
                 ApiProvider::Anthropic => "anthropic",
+                ApiProvider::Google => "google",
                 ApiProvider::Test(_) => "test",
             },
         )

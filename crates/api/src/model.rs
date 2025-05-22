@@ -68,8 +68,20 @@ impl Model {
         }
     }
 
-    pub fn get_api_url(&self) -> &str {
-        self.api_provider.get_api_url()
+    pub fn get_api_url(&self) -> Result<String, Error> {
+        let url = match &self.api_provider {
+            ApiProvider::Anthropic => String::from("https://api.anthropic.com/v1/messages"),
+            ApiProvider::Cohere => String::from("https://api.cohere.com/v2/chat"),
+            ApiProvider::OpenAi { url } => url.to_string(),
+            ApiProvider::Google => format!(
+                "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent?key={}",
+                self.api_name,
+                self.get_api_key()?,
+            ),
+            ApiProvider::Test(_) => String::new(),
+        };
+
+        Ok(url)
     }
 
     pub fn get_api_key(&self) -> Result<String, Error> {
@@ -290,6 +302,22 @@ impl ModelRaw {
         }
     }
 
+    pub fn gemini_2_flash() -> Self {
+        ModelRaw {
+            name: String::from("gemini-2.0-flash"),
+            api_name: String::from("gemini-2.0-flash"),
+            can_read_images: true,
+            api_provider: String::from("google"),
+            api_url: None,
+            input_price: 0.1,
+            output_price: 0.4,
+            api_timeout: None,
+            explanation: None,
+            api_key: None,
+            api_env_var: Some(String::from("GOOGLE_API_KEY")),
+        }
+    }
+
     pub fn sonnet() -> Self {
         ModelRaw {
             name: String::from("claude-3.5-sonnet"),
@@ -360,6 +388,7 @@ impl ModelRaw {
             ModelRaw::llama_8b(),
             ModelRaw::gpt_4o(),
             ModelRaw::gpt_4o_mini(),
+            ModelRaw::gemini_2_flash(),
             ModelRaw::sonnet(),
             ModelRaw::command_r(),
             ModelRaw::command_r_plus(),
@@ -436,7 +465,13 @@ impl From<&Model> for ModelRaw {
             api_name: m.api_name.clone(),
             can_read_images: m.can_read_images,
             api_provider: m.api_provider.to_string(),
-            api_url: Some(m.get_api_url().to_string()),
+
+            // This field is for openai-compatible apis. The other api
+            // providers do not need this field. The problem is that
+            // `m.get_api_url()` may fail if api provider is google.
+            // So it just ignores errors.
+            api_url: m.get_api_url().ok(),
+
             input_price: m.dollars_per_1b_input_tokens as f64 / 1000.0,
             output_price: m.dollars_per_1b_output_tokens as f64 / 1000.0,
             api_timeout: Some(m.api_timeout),

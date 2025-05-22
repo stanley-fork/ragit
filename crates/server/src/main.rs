@@ -589,6 +589,7 @@ fn initinalize_server(args: &RunArgs) {
             ModelRaw::sonnet(),
             ModelRaw::command_r(),
             ModelRaw::command_r_plus(),
+            ModelRaw::gemini_2_flash(),
         ];
 
         if args.force_default_config {

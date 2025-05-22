@@ -1,7 +1,7 @@
 use async_std::task;
 use chrono::Local;
 use crate::{ApiProvider, Error};
-use crate::message::message_to_json;
+use crate::message::{message_contents_to_json_array, message_to_json};
 use crate::model::{Model, ModelRaw};
 use crate::record::{
     RecordAt,
@@ -83,6 +83,38 @@ impl Request {
     /// It panics if its fields are not complete. If you're not sure, run `self.is_valid()` before sending a request.
     pub fn build_json_body(&self) -> Value {
         match &self.model.api_provider {
+            ApiProvider::Google => {
+                let mut result = Map::new();
+                let mut contents = vec![];
+                let mut system_prompt = vec![];
+
+                for message in self.messages.iter() {
+                    if message.role == Role::System {
+                        match message_contents_to_json_array(&message.content, &ApiProvider::Google) {
+                            Value::Array(parts) => {
+                                system_prompt.push(parts);
+                            },
+                            _ => unreachable!(),
+                        }
+                    }
+
+                    else {
+                        contents.push(message_to_json(message, &self.model.api_provider));
+                    }
+                }
+
+                if !system_prompt.is_empty() {
+                    let parts = system_prompt.concat();
+                    let mut system_prompt = Map::new();
+                    system_prompt.insert(String::from("parts"), parts.into());
+                    result.insert(String::from("system_instruction"), system_prompt.into());
+                }
+
+                // TODO: temperature
+
+                result.insert(String::from("contents"), contents.into());
+                result.into()
+            },
             ApiProvider::OpenAi { .. } | ApiProvider::Cohere => {
                 let mut result = Map::new();
                 result.insert(String::from("model"), self.model.api_name.clone().into());
@@ -187,7 +219,7 @@ impl Request {
         let client = reqwest::Client::new();
         let mut curr_error = Error::NoTry;
 
-        let post_url = self.model.get_api_url();
+        let post_url = self.model.get_api_url()?;
         let body = self.build_json_body();
 
         if let Err(e) = self.dump_json(&body, "request") {
@@ -245,17 +277,20 @@ impl Request {
         );
 
         for _ in 0..(self.max_retry + 1) {
-            let mut request = client.post(post_url)
+            let mut request = client.post(&post_url)
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(body.clone());
 
-            if let ApiProvider::Anthropic = &self.model.api_provider {
-                request = request.header("x-api-key", api_key.clone())
-                    .header("anthropic-version", "2023-06-01");
-            }
-
-            else if !api_key.is_empty() {
-                request = request.bearer_auth(api_key.clone());
+            match &self.model.api_provider {
+                ApiProvider::Anthropic => {
+                    request = request.header("x-api-key", api_key.clone())
+                        .header("anthropic-version", "2023-06-01");
+                },
+                ApiProvider::Google => {},
+                _ if !api_key.is_empty() => {
+                    request = request.bearer_auth(api_key.clone());
+                },
+                _ => {},
             }
 
             if let Some(t) = self.timeout {

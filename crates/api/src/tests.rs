@@ -55,45 +55,24 @@ What do you see in this picture?
     ).unwrap();
 
     for messages in [messages1, messages2] {
-        let request = Request {
-            model: (&ModelRaw::gpt_4o_mini()).try_into().unwrap(),
-            messages,
-            ..Request::default()
-        };
-        let response = request.send().await.unwrap().get_message(0).unwrap().to_ascii_lowercase();
+        for model in [
+            ModelRaw::gpt_4o_mini(),
+            ModelRaw::gemini_2_flash(),
+        ] {
+            let request = Request {
+                model: (&model).try_into().unwrap(),
+                messages: messages.clone(),
+                ..Request::default()
+            };
+            let response = request.send().await.unwrap().get_message(0).unwrap().to_ascii_lowercase();
 
-        // TODO: it's pratically correct, but not formally correct
-        assert!(response.contains("hello"));
-        assert!(response.contains("world"));
+            // TODO: it's pratically correct, but not formally correct
+            assert!(response.contains("hello"));
+            assert!(response.contains("world"));
+        }
     }
 
     remove_dir_all("__tmp_pdl_test").unwrap();
-}
-
-async fn run<T: Serialize, U: Default + DeserializeOwned>(pdl: &str, context: T) -> U {
-    let Value::Object(context_hash_map) = serde_json::to_value(context).unwrap() else { panic!("expected an object") };
-    let mut context = tera::Context::new();
-
-    for (k, v) in context_hash_map.iter() {
-        context.insert(k, v);
-    }
-
-    let Pdl { messages, schema } = parse_pdl(
-        pdl,
-        &context,
-        ".",  // no media files
-        true,
-        true,
-    ).unwrap();
-    let request = Request {
-        model: (&ModelRaw::gpt_4o_mini()).try_into().unwrap(),
-        messages,
-        schema,
-        ..Request::default()
-    };
-    let response = request.send_and_validate::<U>(U::default()).await.unwrap();
-
-    response
 }
 
 #[tokio::test]
@@ -107,7 +86,7 @@ bool
 
 Is Rust a strictly typed programming language? Just say \"true\" or \"false\".
 ";
-    assert_eq!(true, run::<_, bool>(pdl, Map::new()).await);
+    assert_eq!(true, run_pdl::<_, bool>(pdl, Map::new()).await);
 
     let pdl = "
 <|schema|>
@@ -118,7 +97,7 @@ yesno
 
 Is Rust a strictly typed programming language? Just say yes or no.
 ";
-    assert_eq!(true, run::<_, bool>(pdl, Map::new()).await);
+    assert_eq!(true, run_pdl::<_, bool>(pdl, Map::new()).await);
 
     let pdl = "
 <|schema|>
@@ -129,7 +108,7 @@ code
 
 Write me a Python code that calculates an inverse of a matrix. Please wrap your code with 3 backticks, using markdown's fenced-code-block syntax.
 ";
-    let code = run::<_, String>(pdl, Map::new()).await;
+    let code = run_pdl::<_, String>(pdl, Map::new()).await;
 
     // TODO: any better way to test this case?
     assert!(code.contains("def"));
@@ -148,7 +127,7 @@ Below is a list of documents. Choose documents that are related to {{topic}}. Yo
 {{loop.index}}. {{document}}
 {% endfor %}
 ";
-    let result = run::<_, Vec<usize>>(pdl, json!({
+    let result = run_pdl::<_, Vec<usize>>(pdl, json!({
         "documents": vec![
             "Rust programming manual: How to define a new function",
             "Introduction to CPU: How computers work",
@@ -178,7 +157,7 @@ Tom,12,soccer
 Mark,13,computer
 Sam,12,baseball
 ";
-    let result = run::<_, Vec<Student>>(pdl, json!({
+    let result = run_pdl::<_, Vec<Student>>(pdl, json!({
         "num_students": 3,
         "csv_data": csv_data,
     })).await;
@@ -192,4 +171,30 @@ Sam,12,baseball
 struct Student {
     name: String,
     age: usize,
+}
+
+async fn run_pdl<T: Serialize, U: Default + DeserializeOwned>(pdl: &str, context: T) -> U {
+    let Value::Object(context_hash_map) = serde_json::to_value(context).unwrap() else { panic!("expected an object") };
+    let mut context = tera::Context::new();
+
+    for (k, v) in context_hash_map.iter() {
+        context.insert(k, v);
+    }
+
+    let Pdl { messages, schema } = parse_pdl(
+        pdl,
+        &context,
+        ".",  // no media files
+        true,
+        true,
+    ).unwrap();
+    let request = Request {
+        model: (&ModelRaw::gpt_4o_mini()).try_into().unwrap(),
+        messages,
+        schema,
+        ..Request::default()
+    };
+    let response = request.send_and_validate::<U>(U::default()).await.unwrap();
+
+    response
 }

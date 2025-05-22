@@ -32,11 +32,14 @@ pub enum Role {
 }
 
 impl Role {
-    pub fn to_api_string(&self) -> &'static str {
+    // google api uses different terms. I'd really want it to
+    // take `ApiProvider` as an input, but it cannot. It's my
+    // mistake to separate ragit-api crate and ragit-pdl crate.
+    pub fn to_api_string(&self, google: bool) -> &'static str {
         match self {
             Role::User => "user",
             Role::System => "system",
-            Role::Assistant => "assistant",
+            Role::Assistant => if !google { "model" } else { "assistant" },
             Role::Reasoning => "reasoning",
         }
     }
@@ -46,13 +49,14 @@ impl FromStr for Role {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Role, Error> {
-        match s.to_ascii_lowercase() {
-            s if s == "user" => Ok(Role::User),
-            s if s == "system" => Ok(Role::System),
-            s if s == "reasoning" => Ok(Role::Reasoning),
+        match s.to_ascii_lowercase().as_str() {
+            "user" => Ok(Role::User),
+            "system" => Ok(Role::System),
+            "reasoning" => Ok(Role::Reasoning),
 
-            // for legacy cohere api
-            s if s == "assistant" || s == "chatbot" => Ok(Role::Assistant),
+            "model"  // google ai
+            | "chatbot"  // legacy cohere api
+            | "assistant" => Ok(Role::Assistant),
             _ => Err(Error::InvalidRole(s.to_string())),
         }
     }

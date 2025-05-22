@@ -3,10 +3,12 @@ use crate::error::Error;
 
 mod anthropic;
 mod cohere;
+mod google;
 mod openai;
 
 pub use anthropic::AnthropicResponse;
 pub use cohere::CohereResponse;
+pub use google::GoogleResponse;
 pub use openai::OpenAiResponse;
 
 pub trait IntoChatResponse {
