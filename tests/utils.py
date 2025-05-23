@@ -30,9 +30,6 @@ def clean():
 
     os.chdir("crates/server")
 
-    if os.path.exists("data/test-user"):
-        shutil.rmtree("data/test-user")
-
 def mk_and_cd_tmp_dir(dir_name: Optional[str] = None):
     if dir_name is None:
         # let's avoid name collision

@@ -664,6 +664,8 @@ if __name__ == "__main__":
                 f.write(json.dumps(result, indent=4))
 
             for seq, (name, test) in enumerate(tests):
+                print(f"running `{name}`...")
+
                 try:
                     start = time.time()
                     rand_seed(seed)
