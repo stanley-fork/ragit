@@ -41,6 +41,7 @@ def real_repos(
         ("https://github.com/nushell/nushell.github.io", ("nushell.github.io", "nushell"), "md"),
         ("https://github.com/NixOS/nix", ("nix", "nix"), "md"),
         ("https://github.com/NixOS/nixpkgs", ("nixpkgs", "nixpkgs"), "md"),
+        ("https://github.com/zed-industries/zed", ("zed", "zed"), "md"),
     ]:
         if repo != "all" and repo != new_name:
             continue
