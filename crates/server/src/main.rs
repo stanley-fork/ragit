@@ -48,7 +48,10 @@ async fn main() {
                         config.repo_data_dir
                     },
                 };
-                remove_dir_all(&repo_data_dir).unwrap();
+
+                if exists(&repo_data_dir) {
+                    remove_dir_all(&repo_data_dir).unwrap();
+                }
 
                 if let CliCommand::DropAll(_) = command {
                     drop_all().await.unwrap();
