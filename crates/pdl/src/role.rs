@@ -39,7 +39,7 @@ impl Role {
         match self {
             Role::User => "user",
             Role::System => "system",
-            Role::Assistant => if !google { "model" } else { "assistant" },
+            Role::Assistant => if google { "model" } else { "assistant" },
             Role::Reasoning => "reasoning",
         }
     }
