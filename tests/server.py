@@ -48,11 +48,11 @@ def server():
             create_repo(user="test-user", repo=repo, api_key=api_key, public_read=True, public_write=True)
             cargo_run(["uid"])  # `index.json` has `uid` field. in order to `assert_eq_json`, we have to init uid of the local index
             cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1/test-user/{repo}/"])
-            index_json = request_json(url="index", repo=repo)
+            index_json = get_json(url="index", repo=repo)
             assert_eq_json("index.json", index_json)
 
             for config in ["build", "api", "query"]:
-                config_json = request_json(url=f"config/{config}", repo=repo)
+                config_json = get_json(url=f"config/{config}", repo=repo)
                 assert_eq_json(os.path.join("configs", f"{config}.json"), config_json)
 
             for prompt in os.listdir(os.path.join(".ragit", "prompts")):
@@ -60,17 +60,17 @@ def server():
                 prompt_pdl = request_text(url=f"prompt/{prompt_name[:-4]}", repo=repo)
                 assert_eq_text(os.path.join("prompts", prompt_name), prompt_pdl)
 
-            chunk_count = request_json(url="chunk-count", repo=repo)
+            chunk_count = get_json(url="chunk-count", repo=repo)
             assert chunk_count == len(json.loads(cargo_run(["ls-chunks", "--json"], stdout=True)))
 
-            all_chunk_uids = request_json(url="chunk-list", repo=repo)
+            all_chunk_uids = get_json(url="chunk-list", repo=repo)
             all_chunk_uids_local = json.loads(cargo_run(["ls-chunks", "--json", "--uid-only"], stdout=True))
             assert set(all_chunk_uids) == set(all_chunk_uids_local)
 
             all_image_uids = json.loads(cargo_run(["ls-images", "--json", "--uid-only"], stdout=True))
 
             for chunk_uid in all_chunk_uids:
-                chunk = request_json(url = f"chunk/{chunk_uid}", repo = repo)
+                chunk = get_json(url = f"chunk/{chunk_uid}", repo = repo)
                 chunk_local = json.loads(cargo_run(["ls-chunks", "--json", chunk_uid], stdout=True))[0]
 
                 # due to prettifier, the json values are a bit different
@@ -79,7 +79,7 @@ def server():
             for image_uid in all_image_uids:
                 image = request_bytes(url=f"image/{image_uid}", repo=repo)
                 assert_eq_bytes(os.path.join("images", image_uid[:2], f"{image_uid[2:]}.png"), image)
-                image_desc = request_json(url=f"image-desc/{image_uid}", repo=repo)
+                image_desc = get_json(url=f"image-desc/{image_uid}", repo=repo)
                 image_desc_local = json.loads(cargo_run(["ls-images", "--json", image_uid], stdout=True))[0]
 
                 assert image_desc["explanation"] == image_desc_local["explanation"]
@@ -89,22 +89,22 @@ def server():
                 prefix = f"{prefix:02x}"
 
                 if any([uid.startswith(prefix) for uid in all_chunk_uids]):
-                    uids_from_api = request_json(url=f"chunk-list/{prefix}", repo=repo)
+                    uids_from_api = get_json(url=f"chunk-list/{prefix}", repo=repo)
                     uids_local = json.loads(cargo_run(["ls-chunks", "--json", "--uid-only", prefix], stdout=True))
                     assert set(uids_from_api) == set(uids_local)
 
                 else:
-                    assert request_json(url=f"chunk-list/{prefix}", repo=repo) == []
+                    assert get_json(url=f"chunk-list/{prefix}", repo=repo) == []
 
                 if any([uid.startswith(prefix) for uid in all_image_uids]):
-                    uids_from_api = request_json(url=f"image-list/{prefix}", repo=repo)
+                    uids_from_api = get_json(url=f"image-list/{prefix}", repo=repo)
                     uids_local = json.loads(cargo_run(["ls-images", "--json", "--uid-only", prefix], stdout=True))
                     assert set(uids_from_api) == set(uids_local)
 
                 else:
-                    assert request_json(url=f"image-list/{prefix}", repo=repo) == []
+                    assert get_json(url=f"image-list/{prefix}", repo=repo) == []
 
-            meta_api = request_json(url="meta", repo=repo)
+            meta_api = get_json(url="meta", repo=repo)
             assert_eq_json("meta.json", meta_api)
 
             version_api = request_text(url="version", repo=repo).strip()
@@ -115,16 +115,16 @@ def server():
             version_local = cargo_run(["version"], stdout=True).strip()
             assert version_api in version_local
 
-            user_list = request_json(url="http://127.0.0.1:41127/user-list", repo=repo, raw_url=True)
+            user_list = get_json(url="http://127.0.0.1:41127/user-list", repo=repo, raw_url=True)
             assert len(user_list) == 1 and user_list[0]["id"] == "test-user"
 
-            repo_list = request_json(url="http://127.0.0.1:41127/repo-list/test-user", repo=repo, raw_url=True)
+            repo_list = get_json(url="http://127.0.0.1:41127/repo-list/test-user", repo=repo, raw_url=True)
             assert len(repo_list) == index + 1 and any([r["name"] == repo for r in repo_list]) and all([r["owner"] == "test-user" for r in repo_list])
 
             for sample_chunk_uid in sample_chunk_uids:
                 cat_file_chunk_api = request_text(url=f"cat-file/{sample_chunk_uid}", repo=repo).strip()
                 cat_file_chunk_local = cargo_run(["cat-file", sample_chunk_uid], stdout=True).strip()
-                get_content_api = request_json(url=f"content/{sample_chunk_uid}", repo=repo)
+                get_content_api = get_json(url=f"content/{sample_chunk_uid}", repo=repo)
                 get_content_local = json.loads(cargo_run(["cat-file", "--json", sample_chunk_uid], stdout=True))
                 assert cat_file_chunk_api == cat_file_chunk_local
                 assert get_content_api == get_content_local
@@ -132,7 +132,7 @@ def server():
             for sample_file_uid in sample_file_uids:
                 cat_file_file_api = request_text(url=f"cat-file/{sample_file_uid}", repo=repo).strip()
                 cat_file_file_local = cargo_run(["cat-file", sample_file_uid], stdout=True).strip()
-                get_content_api = request_json(url=f"content/{sample_file_uid}", repo=repo)
+                get_content_api = get_json(url=f"content/{sample_file_uid}", repo=repo)
                 get_content_local = json.loads(cargo_run(["cat-file", "--json", sample_file_uid], stdout=True))
                 assert cat_file_file_api == cat_file_file_local
                 assert get_content_api == get_content_local
@@ -185,11 +185,13 @@ def create_user(
         "readme": readme,
         "public": public,
     }
-    headers = {} if api_key is None else { "x-api-key": api_key }
-    response = requests.post("http://127.0.0.1:41127/user-list", json=body, headers=headers)
-
-    if expected_status_code is not None:
-        assert response.status_code == expected_status_code
+    post_json(
+        url="http://127.0.0.1:41127/user-list",
+        body=body,
+        raw_url=True,
+        api_key=api_key,
+        expected_status_code=expected_status_code,
+    )
 
 def create_repo(
     user: str,
@@ -257,7 +259,26 @@ def get_api_key(
     assert response.status_code == 200
     return response.text
 
-def request_json(
+def post_json(
+    url: str,
+    body,
+    user: Optional[str] = "test-user",
+    repo: Optional[str] = None,
+    raw_url: bool = False,
+    api_key: Optional[str] = None,
+    expected_status_code: Optional[int] = 200,
+):
+    headers = {} if api_key is None else { "x-api-key": api_key }
+    response = requests.post(
+        os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url,
+        json=body,
+        headers=headers,
+    )
+
+    if expected_status_code is not None:
+        assert response.status_code == expected_status_code
+
+def get_json(
     url: str,
     user: Optional[str] = "test-user",
     repo: Optional[str] = None,

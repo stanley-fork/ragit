@@ -21,3 +21,6 @@ you cannot undo `rag pull`. Once it's pulled, the original knowledge-base is ove
 new one and you cannot revert that.
 
 It only writes to `.ragit/`. It does not touch the raw data files.
+
+If the knowledge-base is private, you need an api key to pull. You have to set `RAGIT_API_KEY`
+environment variable.

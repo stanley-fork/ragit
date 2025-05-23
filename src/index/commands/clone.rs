@@ -206,7 +206,16 @@ fn infer_repo_name_from_url(url: &str) -> String {
 
 async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
     let client = reqwest::Client::new();
-    let response = client.get(url).send().await?;
+    let mut request = client.get(url);
+
+    if let Some(api_key) = get_ragit_api_key() {
+        request = request.header(
+            "x-api-key",
+            &api_key,
+        );
+    }
+
+    let response = request.send().await?;
 
     if response.status().as_u16() != 200 {
         return Err(Error::RequestFailure {
@@ -221,7 +230,16 @@ async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
 
 async fn request_json_file(url: &str) -> Result<Value, Error> {
     let client = reqwest::Client::new();
-    let response = client.get(url).send().await?;
+    let mut request = client.get(url);
+
+    if let Some(api_key) = get_ragit_api_key() {
+        request = request.header(
+            "x-api-key",
+            &api_key,
+        );
+    }
+
+    let response = request.send().await?;
 
     if response.status().as_u16() != 200 {
         return Err(Error::RequestFailure {
@@ -232,4 +250,8 @@ async fn request_json_file(url: &str) -> Result<Value, Error> {
     }
 
     Ok(serde_json::from_str(&response.text().await?)?)
+}
+
+pub(crate) fn get_ragit_api_key() -> Option<String> {
+    std::env::var("RAGIT_API_KEY").ok()
 }

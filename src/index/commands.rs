@@ -30,6 +30,8 @@ pub use push::PushResult;
 pub use recover::RecoverResult;
 pub use remove::RemoveResult;
 
+pub(crate) use clone::get_ragit_api_key;
+
 pub fn erase_lines(n: usize) {
     if n != 0 {
         print!("\x1B[{n}A");

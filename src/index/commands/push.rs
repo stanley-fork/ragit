@@ -1,4 +1,4 @@
-use super::erase_lines;
+use super::{erase_lines, get_ragit_api_key};
 use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::Index;
@@ -128,13 +128,16 @@ impl Index {
 
     async fn get_session_id(&self, url: &str) -> Result<String, Error> {
         let client = reqwest::Client::new();
-        let mut client = client.post(url);
+        let mut request = client.post(url);
 
-        if let Some((username, password)) = self.auth() {
-            client = client.basic_auth(username, password);
+        if let Some(api_key) = get_ragit_api_key() {
+            request = request.header(
+                "x-api-key",
+                &api_key,
+            );
         }
 
-        let response = client.send().await?;
+        let response = request.send().await?;
 
         if response.status().as_u16() != 200 {
             return Err(Error::RequestFailure {
@@ -190,7 +193,16 @@ impl Index {
 
     pub(crate) async fn get_uid(&self, context: &str, url: &str) -> Result<Uid, Error> {
         let client = reqwest::Client::new();
-        let response = client.get(url).send().await?;
+        let mut request = client.get(url);
+
+        if let Some(api_key) = get_ragit_api_key() {
+            request = request.header(
+                "x-api-key",
+                &api_key,
+            );
+        }
+
+        let response = request.send().await?;
 
         if response.status().as_u16() != 200 {
             return Err(Error::RequestFailure {

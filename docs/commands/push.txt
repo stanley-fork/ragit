@@ -12,4 +12,13 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-If the knowledge-base was created by `rag clone`, you don't have to specify `--remote`.
+If the knowledge-base was created by `rag clone`, you don't have to specify `--remote`. Otherwise,
+you have to use `--remote` option to tell ragit where to push.
+
+If you have created a new knowledge-base and want to push it, you first have to create a
+knowledge-base in the server, then push the local knowledge-base to the server. It's like creating
+a repository in github and push your local repository to github. How to create a knowledge-base
+depends on what frontend of ragit-server you're using.
+
+If the knowledge-base in the server is private, you need an api key. You have to set
+`RAGIT_API_KEY` environment variable.

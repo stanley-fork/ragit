@@ -21,3 +21,6 @@ You can think of 2 use cases of `rag clone`
 
 Ragit will support both use cases, but the second one is not stable yet. Cloning a half-built base is not tested yet, and
 `rag merge` is still heavily under construction.
+
+If you're cloning a private knowledge-base, you need an api key. Ragit looks for api key in environment variables. You have
+to set `RAGIT_API_KEY` environment variable.
