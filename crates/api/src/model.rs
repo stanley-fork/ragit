@@ -24,7 +24,7 @@ impl Model {
     pub fn dummy() -> Self {
         Model {
             name: String::from("dummy"),
-            api_name: String::new(),
+            api_name: String::from("test-model-dummy-v0"),
             can_read_images: false,
             api_provider: ApiProvider::Test(TestModel::Dummy),
             dollars_per_1b_input_tokens: 0,
@@ -40,7 +40,7 @@ impl Model {
     pub fn stdin() -> Self {
         Model {
             name: String::from("stdin"),
-            api_name: String::new(),
+            api_name: String::from("test-model-stdin-v0"),
             can_read_images: false,
             api_provider: ApiProvider::Test(TestModel::Stdin),
             dollars_per_1b_input_tokens: 0,
@@ -56,7 +56,7 @@ impl Model {
     pub fn error() -> Self {
         Model {
             name: String::from("error"),
-            api_name: String::new(),
+            api_name: String::from("test-model-error-v0"),
             can_read_images: false,
             api_provider: ApiProvider::Test(TestModel::Error),
             dollars_per_1b_input_tokens: 0,
