@@ -695,7 +695,14 @@ if __name__ == "__main__":
                     result["result"]["remaining"] -= 1
 
                     if not no_clean:
-                        clean()
+                        try:
+                            clean()
+
+                        # `clean()` may die. For example, some tests may spawn a process and dies while
+                        # its children are alive. The children are still writing something to the tmp dir
+                        # and it would mess up `shutil.rmtree()`.
+                        except Exception as e:
+                            result["tests"][name]["cleanup_error"] = str(e) + "\n" + traceback.format_exc()
 
                     goto_root()
                     os.chdir("tests")
