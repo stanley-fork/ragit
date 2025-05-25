@@ -20,7 +20,7 @@ use ragit_fs::{
 };
 use regex::Regex;
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_header, with_status};
 
@@ -302,6 +302,8 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
 
     // otherwise, it's a directory
     else {
+        // Ragit only tracks files, there's no concept of "directories" in ragit. So it tries
+        // to infer the directory structures from the file paths.
         if !path.ends_with("/") {
             path = format!("{path}/");
         }
@@ -329,6 +331,7 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
         let mut processed_files = index.processed_files.keys().collect::<Vec<_>>();
         processed_files.sort();
         let mut children = vec![];
+        let mut dir_set = HashSet::new();
 
         for file in processed_files.iter() {
             if let Some(cap) = path_re.captures(file) {
@@ -341,10 +344,15 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
                 let is_dir = cap.get(2).is_some();
 
                 if is_dir {
+                    if dir_set.contains(child_name) {
+                        continue;
+                    }
+
+                    dir_set.insert(child_name.to_string());
                     children.push(
                         FileSimple {
                             r#type: FileType::Directory,
-                            path: format!("{path}/{child_name}/"),
+                            path: format!("{path}{child_name}/"),
                         }
                     );
                 }
@@ -353,7 +361,7 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
                     children.push(
                         FileSimple {
                             r#type: FileType::File,
-                            path: format!("{path}/{child_name}"),
+                            path: format!("{path}{child_name}"),
                         }
                     );
                 }
