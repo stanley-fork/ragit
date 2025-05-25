@@ -27,6 +27,7 @@ pub use index::{
     BuildConfig,
     BuildResult,
     IIStatus,
+    ImageDescription,
     Index,
     LoadMode,
     MergeMode,
