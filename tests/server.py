@@ -107,6 +107,12 @@ def server():
             meta_api = get_json(url="meta", repo=repo)
             assert_eq_json("meta.json", meta_api)
 
+            meta_by_key_api = get_json(url="meta/whatever-key", repo=repo)
+            assert meta_by_key_api == "whatever-value"
+
+            meta_by_key_api = get_json(url="meta/invalid-key", repo=repo)
+            assert meta_by_key_api is None
+
             version_api = request_text(url="version", repo=repo).strip()
             version_local = json.loads(read_string(os.path.join(".ragit", "index.json")))["ragit_version"]
             assert version_api == version_local

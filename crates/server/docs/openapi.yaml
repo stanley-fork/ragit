@@ -478,7 +478,68 @@ paths:
   /{user}/{repo}/archive/{archive-id}:
     get: todo
   /{user}/{repo}/meta:
-    get: todo
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetMeta
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: meta.json
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+  /{user}/{repo}/meta/{key}:
+    get:
+      tags:
+        - todo
+      summary: todo
+      description: todo
+      operationId: GetMetaByKey
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+        - name: key
+          in: path
+          required: true
+          description: metadata key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: metadata value
+          content:
+            application/json:
+              schema:
+                type: string
+                nullable: true
   /{user}/{repo}/version:
     get:
       tags:
@@ -884,9 +945,6 @@ components:
           nullable: true
         password:
           type: string
-        readme:
-          type: string
-          nullable: true
         public:
           type: boolean
     RepoSimple:
@@ -931,9 +989,6 @@ components:
           type: string
           nullable: true
         website:
-          type: string
-          nullable: true
-        readme:
           type: string
           nullable: true
         public_read:

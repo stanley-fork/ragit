@@ -18,27 +18,7 @@ pub enum RepoOperation {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RepoDetail {
-    pub id: i32,
-    pub name: String,
-    pub owner: String,
-    pub description: Option<String>,
-    pub website: Option<String>,
-    pub stars: i32,
-    pub readme: Option<String>,
-    pub repo_size: i64,  // sum of the size of its archives, in bytes
-    #[serde(with = "ts_milliseconds")]
-    pub created_at: DateTime<Utc>,
-    #[serde(with = "ts_milliseconds_option")]
-    pub pushed_at: Option<DateTime<Utc>>,
-    #[serde(with = "ts_milliseconds_option")]
-    pub search_index_built_at: Option<DateTime<Utc>>,
-    #[serde(with = "ts_milliseconds")]
-    pub updated_at: DateTime<Utc>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RepoSimple {
+pub struct Repository {
     pub id: i32,
     pub name: String,
     pub owner: String,
@@ -61,7 +41,6 @@ pub struct RepoCreate {
     pub name: String,
     pub description: Option<String>,
     pub website: Option<String>,
-    pub readme: Option<String>,
     pub public_read: bool,
     pub public_write: bool,
     pub public_clone: bool,
@@ -82,7 +61,6 @@ impl RepoCreate {
 pub struct RepoUpdate {
     pub description: Option<String>,
     pub website: Option<String>,
-    pub readme: Option<String>,
     pub public_read: bool,
     pub public_write: bool,
     pub public_clone: bool,
@@ -106,7 +84,7 @@ pub async fn get_list(
     limit: i64,
     offset: i64,
     pool: &PgPool,
-) -> Result<Vec<RepoSimple>, Error> {
+) -> Result<Vec<Repository>, Error> {
     let rows = crate::query!(
         "SELECT
             repository.id,
@@ -135,7 +113,7 @@ pub async fn get_list(
             continue;
         }
 
-        result.push(RepoSimple {
+        result.push(Repository {
             id: row.id,
             name: row.repo_name.clone(),
             owner: row.owner.clone(),
@@ -153,7 +131,7 @@ pub async fn get_list(
     Ok(result)
 }
 
-pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error> {
+pub async fn get_repository(repo_id: i32, pool: &PgPool) -> Result<Repository, Error> {
     let row = crate::query!(
         "SELECT
             repository.id,
@@ -162,7 +140,6 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
             description,
             website,
             stars,
-            repository.readme,
             (SELECT SUM(blob_size) FROM archive WHERE session_id = repository.push_session_id) AS repo_size,
             repository.created_at,
             pushed_at,
@@ -173,14 +150,13 @@ pub async fn get_detail(repo_id: i32, pool: &PgPool) -> Result<RepoDetail, Error
         repo_id,
     ).fetch_one(pool).await?;
 
-    Ok(RepoDetail {
+    Ok(Repository {
         id: row.id,
         name: row.name,
         owner: row.owner,
         description: row.description,
         website: row.website,
         stars: row.stars,
-        readme: row.readme,
         repo_size: row.repo_size.unwrap_or(0),
         created_at: row.created_at,
         pushed_at: row.pushed_at,
@@ -207,7 +183,6 @@ pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) 
             description,
             website,
             stars,
-            readme,
             public_read,
             public_write,
             public_clone,
@@ -226,12 +201,11 @@ pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) 
             $3,    -- description
             $4,    -- website
             0,     -- stars
-            $5,    -- readme
-            $6,    -- public_read
-            $7,    -- public_write
-            $8,    -- public_clone
-            $9,   -- public_push
-            $10,   -- public_chat
+            $5,    -- public_read
+            $6,    -- public_write
+            $7,    -- public_clone
+            $8,   -- public_push
+            $9,   -- public_chat
             0,     -- chunk_count
             NULL,  -- push_session_id
             NOW(), -- created_at
@@ -244,7 +218,6 @@ pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) 
         repo.name.clone(),
         repo.description.clone(),
         repo.website.clone(),
-        repo.readme.clone(),
         repo.public_read,
         repo.public_write,
         repo.public_clone,
@@ -261,16 +234,14 @@ pub async fn update_repo(repo_id: i32, repo: RepoUpdate, pool: &PgPool) -> Resul
         SET
             description = $1,
             website = $2,
-            readme = $3,
-            public_read = $4,
-            public_write = $5,
-            public_clone = $6,
-            public_push = $7,
-            public_chat = $8
-        WHERE id = $9",
+            public_read = $3,
+            public_write = $4,
+            public_clone = $5,
+            public_push = $6,
+            public_chat = $7
+        WHERE id = $8",
         repo.description.as_ref().map(|s| s.as_str()),
         repo.website.as_ref().map(|s| s.as_str()),
-        repo.readme.as_ref().map(|s| s.as_str()),
         repo.public_read,
         repo.public_write,
         repo.public_clone,

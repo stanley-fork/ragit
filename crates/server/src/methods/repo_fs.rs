@@ -258,6 +258,33 @@ async fn get_meta_(user: String, repo: String, api_key: Option<String>) -> RawRe
     )))
 }
 
+pub async fn get_meta_by_key(user: String, repo: String, key: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_meta_by_key_(user, repo, key, api_key).await)
+}
+
+async fn get_meta_by_key_(user: String, repo: String, key: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+    let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
+    repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
+    let rag_path = get_rag_path(&user, &repo).handle_error(400)?;
+
+    if !exists(&rag_path) {
+        return Err((404, format!("No such repo: `{user}/{repo}`")));
+    }
+
+    let meta_path = join(&rag_path, "meta.json").handle_error(400)?;
+
+    // NOTE: a `.ragit/` may or may not have `meta.json`
+    let meta_json = read_string(&meta_path).unwrap_or(String::from("{}"));
+    let meta_json = serde_json::from_str::<HashMap<String, String>>(&meta_json).handle_error(500)?;
+
+    Ok(Box::new(with_header(
+        serde_json::to_string(&meta_json.get(&key)).handle_error(500)?,
+        "Content-Type",
+        "application/json",
+    )))
+}
+
 pub async fn get_file_content(user: String, repo: String, query: HashMap<String, String>, api_key: Option<String>) -> Box<dyn Reply> {
     handler(get_file_content_(user, repo, query, api_key).await)
 }

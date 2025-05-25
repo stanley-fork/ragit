@@ -29,7 +29,7 @@ async fn get_repo_(user: String, repo: String, api_key: Option<String>) -> RawRe
     let pool = get_pool().await;
     let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Read, api_key, pool).await.handle_error(500)?.handle_error(404)?;
-    let repo = repo::get_detail(repo_id, pool).await.handle_error(500)?;
+    let repo = repo::get_repository(repo_id, pool).await.handle_error(500)?;
 
     Ok(Box::new(json(&repo)))
 }

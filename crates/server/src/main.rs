@@ -210,6 +210,15 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(get_meta);
 
+    let get_meta_by_key_handler = warp::get()
+        .and(warp::path::param::<String>())
+        .and(warp::path::param::<String>())
+        .and(warp::path("meta"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(get_meta_by_key);
+
     let get_version_handler = warp::get()
         .and(warp::path::param::<String>())
         .and(warp::path::param::<String>())
@@ -480,6 +489,7 @@ async fn main() {
             .or(get_archive_list_handler)
             .or(get_archive_handler)
             .or(get_meta_handler)
+            .or(get_meta_by_key_handler)
             .or(get_version_handler)
             .or(get_chat_handler)
             .or(get_chat_list_handler)

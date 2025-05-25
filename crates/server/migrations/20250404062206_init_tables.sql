@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS ai_model (
 );
 CREATE INDEX IF NOT EXISTS ai_model_by_name ON ai_model ( name );
 
+-- `name`, `description` and `website` are managed by ragit-server, but `readme` is managed by `rag meta`.
+-- That's how git and github works!
 CREATE TABLE IF NOT EXISTS repository (
     id SERIAL PRIMARY KEY,
     owner TEXT NOT NULL,
@@ -57,7 +59,6 @@ CREATE TABLE IF NOT EXISTS repository (
     description TEXT,
     website TEXT,
     stars INTEGER NOT NULL,
-    readme TEXT,
 
     public_read BOOLEAN NOT NULL,
     public_write BOOLEAN NOT NULL,

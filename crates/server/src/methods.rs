@@ -75,6 +75,7 @@ pub use repo_fs::{
     get_file_content,
     get_index,
     get_meta,
+    get_meta_by_key,
     get_prompt,
     get_uid,
     get_version,
