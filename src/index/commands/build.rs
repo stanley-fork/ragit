@@ -353,7 +353,7 @@ impl Index {
         has_to_erase_lines: bool,
     ) {
         if has_to_erase_lines {
-            erase_lines(10);
+            erase_lines(9);
         }
 
         let elapsed_time = Instant::now().duration_since(started_at).as_secs();
@@ -370,14 +370,17 @@ impl Index {
         println!("staged files: {}, processed files: {}", self.staged_files.len(), self.processed_files.len());
         println!("errors: {}", errors.len());
         println!("committed chunks: {}", self.chunk_count);
-        println!(
-            "currently processing files: {}",
-            if curr_processing_files.is_empty() {
-                String::from("null")
-            } else {
-                curr_processing_files.join(", ")
-            },
-        );
+
+        // It messes up with `erase_lines`
+        // println!(
+        //     "currently processing files: {}",
+        //     if curr_processing_files.is_empty() {
+        //         String::from("null")
+        //     } else {
+        //         curr_processing_files.join(", ")
+        //     },
+        // );
+
         println!(
             "buffered files: {}, buffered chunks: {}",
             buffer.len(),
