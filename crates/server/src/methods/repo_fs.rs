@@ -354,7 +354,7 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
             .replace("?", "\\?")
             .replace("^", "\\^")
             .replace("$", "\\$");
-        let path_re = Regex::new(&format!("{path_re}([^/]+)(/.+)?")).handle_error(400)?;
+        let path_re = Regex::new(&format!("^{path_re}([^/]+)(/.+)?$")).handle_error(400)?;
         let mut processed_files = index.processed_files.keys().collect::<Vec<_>>();
         processed_files.sort();
         let mut children = vec![];
