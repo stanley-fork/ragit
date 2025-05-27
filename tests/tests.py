@@ -647,7 +647,7 @@ if __name__ == "__main__":
                     "started_at": str(started_at),
                     "commit": get_commit_hash(),
                     "platform": get_platform_info(),
-                    "ragit-version": get_ragit_version(),
+                    "ragit_version": get_ragit_version(),
                     "rand_seed": seed,
                 },
                 "tests": {},
