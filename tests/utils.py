@@ -48,6 +48,14 @@ def write_string(path: str, content: str):
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
 
+# If `stdout` and `raw_output` is set, it returns `stdout: bytes`.
+# If `stdout` is set, it returns `stdout: str`.
+# If `stderr` and `raw_output` is set, it returns `stderr: bytes`.
+# If `stderr` is set, it returns `stderr: str`.
+# If `output_schema` is set, it returns a dictionary.
+# If none of above are set, it returns `return_code: int`.
+#
+# If `check` is set, it checks whether the return code is 0 or not. If it's not 0, it raises an error.
 def cargo_run(
     args: list[str],
     timeout: Optional[float] = None,
