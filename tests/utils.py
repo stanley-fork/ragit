@@ -56,8 +56,11 @@ def write_string(path: str, content: str):
 # If none of above are set, it returns `return_code: int`.
 #
 # If `check` is set, it checks whether the return code is 0 or not. If it's not 0, it raises an error.
+#
+# By default, all the cargo features are disabled. It doesn't respect ragit's default features (["csv"] as of now).
 def cargo_run(
     args: list[str],
+    features: Optional[list[str]] = None,
     timeout: Optional[float] = None,
     check: bool = True,
     stdout: bool = False,
@@ -66,7 +69,9 @@ def cargo_run(
     raw_output: bool = False,
 ):
     output_schema = output_schema or []
-    args = ["cargo", "run", "--release", "--"] + args
+    features = features or None  # has to ignore an empty list
+    features = ["--no-default-features"] if features is None else ["--no-default-features", "--features", ",".join(features)]
+    args = ["cargo", "run", "--release", *features, "--"] + args
     kwargs = {}
 
     kwargs["timeout"] = timeout

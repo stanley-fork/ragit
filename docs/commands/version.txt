@@ -8,7 +8,14 @@ rag-version - Display version information about ragit
 SYNOPSIS
 --------
 [verse]
-'rag version'
+'rag version' [--build-options] [--json | -j]
 
 DESCRIPTION
 -----------
+It dumps the version of ragit to the stdout.
+
+If `--json` is set, it dumps a valid json to the stdout. Its schema is,
+
+- no flags: `version: string`
+- `--build-options`: { "version": string, "profile": string, "features": { profile: bool } }
+  - `profile` is either "debug", "release", or "production".

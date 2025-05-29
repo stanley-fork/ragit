@@ -4,12 +4,16 @@ use crate::index::BuildConfig;
 use crate::uid::Uid;
 use ragit_fs::{extension, read_bytes};
 use ragit_pdl::ImageType;
-use resvg::render;
-use resvg::tiny_skia::{Pixmap, Transform};
-use resvg::usvg::{self, Tree};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::io::Cursor;
+
+#[cfg(feature = "svg")]
+use resvg::{
+    render,
+    tiny_skia::{Pixmap, Transform},
+    usvg::{self, Tree},
+};
 
 pub type Path = String;
 
@@ -45,11 +49,17 @@ impl fmt::Debug for Image {
 fn normalize_image(bytes: Vec<u8>, image_type: ImageType) -> Result<Vec<u8>, Error> {
     let mut dynamic_image = match image_type {
         ImageType::Svg => {
-            let bytes = render_svg_to_png(&bytes)?;
-            image::load_from_memory_with_format(
-                &bytes,
-                ImageType::Png.try_into()?,
-            )?
+            #[cfg(feature = "svg")] {
+                let bytes = render_svg_to_png(&bytes)?;
+                image::load_from_memory_with_format(
+                    &bytes,
+                    ImageType::Png.try_into()?,
+                )?
+            }
+
+            #[cfg(not(feature = "svg"))] {
+                return Err(Error::FeatureNotEnabled { feature: String::from("svg"), action: String::from("read an svg file") });
+            }
         },
         _ => image::load_from_memory_with_format(
             &bytes,
@@ -154,6 +164,7 @@ pub struct ImageDescription {
     pub explanation: String,
 }
 
+#[cfg(feature = "svg")]
 fn render_svg_to_png(svg: &[u8]) -> Result<Vec<u8>, Error> {
     let tree_options = usvg::Options {
         // It returns `None` if `width` or `height` is negative.

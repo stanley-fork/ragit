@@ -17,6 +17,7 @@ use ragit::{
     QueryTurn,
     RemoveResult,
     UidQueryConfig,
+    get_build_options,
     get_compatibility_warning,
     into_multi_modal_contents,
 };
@@ -81,6 +82,9 @@ async fn main() {
                             String::new()
                         },
                     );
+                },
+                Error::FeatureNotEnabled { action, feature } => {
+                    eprintln!("In order to {action}, you have to enable feature {feature}.");
                 },
                 Error::ApiError(e) => match e {
                     ragit_api::Error::InvalidModelName { name, candidates } => {
@@ -2307,14 +2311,49 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             println!("{}", index.calculate_and_save_uid()?);
         },
         Some("version") => {
-            let parsed_args = ArgParser::new().parse(&args, 2)?;
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--build-options"])
+                .optional_flag(&["--json"])
+                .short_flag(&["--json"])
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/version.txt"));
                 return Ok(());
             }
 
-            println!("ragit {}", ragit::VERSION);
+            let build_options = parsed_args.get_flag(0).is_some();
+            let json_mode = parsed_args.get_flag(1).is_some();
+
+            if build_options {
+                let build_options = get_build_options();
+
+                if json_mode {
+                    println!("{}", serde_json::to_string_pretty(&build_options)?);
+                }
+
+                else {
+                    println!("version: {}", build_options.version);
+                    println!("profile: {}", build_options.profile);
+                    println!("features:");
+
+                    for (feature, enabled) in build_options.features.iter() {
+                        println!("    {feature}: {}", if *enabled { "enabled" } else { "disabled" });
+                    }
+                }
+            }
+
+            else {
+                let s = format!("ragit {}", ragit::VERSION);
+
+                if json_mode {
+                    println!("{s:?}");
+                }
+
+                else {
+                    println!("{s}");
+                }
+            }
         },
         Some(invalid_command) => {
             // TODO: this is a very bad idea. I need a way to programatically load the list

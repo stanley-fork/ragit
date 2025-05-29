@@ -8,19 +8,27 @@ use ragit_pdl::{MessageContent, ImageType};
 use std::collections::{HashMap, VecDeque};
 use url::Url;
 
-mod csv;
 mod image;
 mod line;
 mod markdown;
 mod plain_text;
+
+#[cfg(feature = "csv")]
+mod csv;
+
+#[cfg(feature = "csv")]
+pub use csv::CsvReader;
+
+#[cfg(feature = "pdf")]
 mod pdf;
 
-pub use csv::CsvReader;
+#[cfg(feature = "pdf")]
+pub use pdf::PdfReader;
+
 pub use image::{Image, ImageDescription, ImageReader};
 pub use line::LineReader;
 pub use markdown::MarkdownReader;
 pub use plain_text::PlainTextReader;
-pub use pdf::PdfReader;
 
 pub type Path = String;
 
@@ -71,8 +79,20 @@ impl FileReader {
             "md" => Box::new(MarkdownReader::new(&real_path, root_dir, &config)?) as Box<dyn FileReaderImpl + Send>,
             "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" => Box::new(ImageReader::new(&real_path, root_dir, &config)?),
             "jsonl" => Box::new(LineReader::new(&real_path, root_dir, &config)?),
-            "csv" => Box::new(CsvReader::new(&real_path, root_dir, &config)?),
-            "pdf" => Box::new(PdfReader::new(&real_path, root_dir, &config)?),
+            "csv" => {
+                #[cfg(feature = "csv")]
+                { Box::new(CsvReader::new(&real_path, root_dir, &config)?) }
+
+                #[cfg(not(feature = "csv"))]
+                { Box::new(PlainTextReader::new(&real_path, root_dir, &config)?) }
+            },
+            "pdf" => {
+                #[cfg(feature = "pdf")]
+                { Box::new(PdfReader::new(&real_path, root_dir, &config)?) }
+
+                #[cfg(not(feature = "pdf"))]
+                { return Err(Error::FeatureNotEnabled { feature: String::from("pdf"), action: format!("read `{rel_path}`") }); }
+            },
 
             // "py" | "rs" => Box::new(CodeReader::new(&real_path, &config)?),
 

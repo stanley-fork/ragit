@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+
 mod api_config;
 pub mod chunk;
 mod constant;
@@ -62,3 +65,31 @@ pub use uid::{Uid, UidQueryConfig, UidQueryResult};
 // Feel free to use whatever rules for your branches. But please keep version numbers
 // distinguishable, so that chunks generated from your branches can easily be identified.
 pub const VERSION: &str = "0.4.0-dev";
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct BuildOptions {
+    pub version: String,
+    pub profile: String,  // debug | release | production
+    pub features: HashMap<String, bool>,
+}
+
+pub fn get_build_options() -> BuildOptions {
+    let profile = if cfg!(feature = "production") {
+        "production"
+    } else if cfg!(debug_assertions) {
+        "debug"
+    } else {
+        "release"
+    };
+
+    BuildOptions {
+        version: VERSION.to_string(),
+        profile: profile.to_string(),
+        features: vec![
+            (String::from("csv"), cfg!(feature = "csv")),
+            (String::from("korean"), cfg!(feature = "korean")),
+            (String::from("pdf"), cfg!(feature = "pdf")),
+            (String::from("svg"), cfg!(feature = "svg")),
+        ].into_iter().collect(),
+    }
+}

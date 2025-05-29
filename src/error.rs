@@ -54,6 +54,10 @@ pub enum Error {
     MPSCError(String),
     CannotDecodeUid,
     ModelNotSelected,
+
+    /// The error message looks like
+    /// "in order to do {action}, you have to enable feature {feature}."
+    FeatureNotEnabled { action: String, feature: String },
     ApiKeyNotFound { env_var: Option<String> },
 
     /// If a user sees this error, that's a bug in ragit.
@@ -76,6 +80,7 @@ pub enum Error {
     /// see <https://docs.rs/image/latest/image/error/enum.ImageError.html>
     ImageError(image::ImageError),
 
+    #[cfg(feature = "csv")]
     /// see <https://docs.rs/csv/latest/csv/struct.Error.html>
     CsvError(csv::Error),
 
@@ -85,12 +90,15 @@ pub enum Error {
     /// see <https://docs.rs/tokio/latest/tokio/task/struct.JoinError.html>
     JoinError(tokio::task::JoinError),
 
+    #[cfg(feature = "pdf")]
     /// see <https://docs.rs/mupdf/latest/mupdf/error/enum.Error.html>
     MuPdfError(mupdf::Error),
 
+    #[cfg(feature = "svg")]
     /// see <https://docs.rs/usvg/0.45.1/usvg/enum.Error.html>
     UsvgError(resvg::usvg::Error),
 
+    #[cfg(feature = "svg")]
     /// see <https://docs.rs/png/latest/png/enum.EncodingError.html>
     PngEncodingError(png::EncodingError),
 
@@ -126,6 +134,7 @@ impl From<image::ImageError> for Error {
     }
 }
 
+#[cfg(feature = "csv")]
 impl From<csv::Error> for Error {
     fn from(e: csv::Error) -> Error {
         Error::CsvError(e)
@@ -162,18 +171,23 @@ impl From<tokio::task::JoinError> for Error {
     }
 }
 
+#[cfg(feature = "pdf")]
 impl From<mupdf::Error> for Error {
     fn from(e: mupdf::Error) -> Self {
         Error::MuPdfError(e)
     }
 }
 
+#[cfg(feature = "svg")]
 impl From<resvg::usvg::Error> for Error {
     fn from(e: resvg::usvg::Error) -> Self {
         Error::UsvgError(e)
     }
 }
 
+// `png` crate is not for handling pngs. It's only because some functions in
+// `resvg` returns `png::EncodingError`.
+#[cfg(feature = "svg")]
 impl From<png::EncodingError> for Error {
     fn from(e: png::EncodingError) -> Self {
         Error::PngEncodingError(e)

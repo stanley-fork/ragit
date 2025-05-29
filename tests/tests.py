@@ -3,6 +3,7 @@ from add_and_rm2 import add_and_rm2
 from archive import archive
 from audit import audit
 from cargo_tests import cargo_tests
+from cargo_features import cargo_features
 from cat_file import cat_file
 from clean_up_erroneous_chunk import clean_up_erroneous_chunk
 from cli import cli
@@ -311,6 +312,11 @@ Commands
 
     cargo_tests                 run `cargo test` on all the crates
 
+    cargo_features              run `cargo_features` test
+                                Ragit has many cargo features. This test compiles
+                                ragit with all the possible combinations of features
+                                and makes sure that they all compile.
+
     models_init                 run `models_init` test
                                 It tests the initialization of models.json and
                                 model selection in api.json.
@@ -561,6 +567,9 @@ if __name__ == "__main__":
 
         elif command == "cargo_tests":
             cargo_tests()
+
+        elif command == "cargo_features":
+            cargo_features()
             
         elif command == "models_init":
             models_init()
@@ -573,6 +582,7 @@ if __name__ == "__main__":
 
             tests = [
                 ("cargo_tests", cargo_tests),
+                ("cargo_features", cargo_features),
                 ("add_and_rm", add_and_rm),
                 ("add_and_rm2", add_and_rm2),
                 ("ignore", ignore),

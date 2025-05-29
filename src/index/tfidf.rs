@@ -297,7 +297,13 @@ pub fn tokenize(s: &str) -> Vec<String> {
             false
         }
     ).map(
-        move |s| ragit_korean::tokenize(&stemmer.stem(s))
+        move |s| {
+            #[cfg(feature = "korean")]
+            { ragit_korean::tokenize(&stemmer.stem(s)) }
+
+            #[cfg(not(feature = "korean"))]
+            { [stemmer.stem(s).to_string()] }
+        }
     ) {
         for t in token {
             if t.len() > 0 {
