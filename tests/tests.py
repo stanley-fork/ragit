@@ -31,6 +31,7 @@ from merge import merge
 from meta import meta
 from migrate import migrate
 from migrate2 import migrate2
+from migrate3 import migrate3
 from models_init import models_init, test_home_config_override
 from orphan_process import orphan_process
 from outside import outside
@@ -181,6 +182,11 @@ Commands
     migrate2                    run `migrate2` test
                                 Like `migrate`, but clones knowledge-bases from web instead
                                 of creating a mock knowledge-base.
+
+    migrate3                    run `migrate3` test
+                                It creates knowledge-bases with different versions of ragit.
+                                Then it makes sure that the versions can clone/push to the
+                                latest version of ragit-server.
 
     config                      run `config` test
                                 I have added new configs to ragit 0.3.5. And I want to see
@@ -420,6 +426,9 @@ if __name__ == "__main__":
         elif command == "migrate2":
             migrate2()
 
+        elif command == "migrate3":
+            migrate3()
+
         elif command == "config":
             config()
 
@@ -648,6 +657,7 @@ if __name__ == "__main__":
                 ("config", config),
                 ("migrate", migrate),
                 ("migrate2", migrate2),
+                ("migrate3", migrate3),
             ]
             started_at = datetime.now()
             has_error = False
