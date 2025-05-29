@@ -1,5 +1,10 @@
 import json
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 def parse_audit_output(category: str) -> int:  # tokens
     result1 = cargo_run(["audit", "--json", "--only-tokens"] + (["-c=" + category] if category is not None else []), stdout=True)

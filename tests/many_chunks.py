@@ -1,6 +1,12 @@
 from random import randint, shuffle
 from subprocess import TimeoutExpired
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, rand_word, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    rand_word,
+    write_string,
+)
 
 def many_chunks():
     goto_root()

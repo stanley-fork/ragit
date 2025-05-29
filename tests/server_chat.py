@@ -5,11 +5,8 @@ from server import (
     create_repo,
     create_user,
     get_api_key,
-    health_check,
     spawn_ragit_server,
 )
-import subprocess
-import time
 from typing import Optional
 from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 

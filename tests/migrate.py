@@ -2,7 +2,12 @@ from markdown_reader import sample1, sample2, sample3
 import shutil
 import subprocess
 from subprocess import CalledProcessError
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 # TODO: any better way?
 def checkout(version: str):

@@ -10,7 +10,13 @@ import os
 import shutil
 import subprocess
 import time
-from utils import cargo_run, clean, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+  cargo_run,
+  clean,
+  goto_root,
+  mk_and_cd_tmp_dir,
+  write_string,
+)
 
 def timeit(name: str, f, result: dict):
     start = time.time()

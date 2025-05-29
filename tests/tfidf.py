@@ -1,6 +1,11 @@
 import json
 import re
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 def parse_tfidf_output(args: list[str], extra_check: bool = True) -> int:
     output = cargo_run(["tfidf"] + args, stdout=True)

@@ -1,6 +1,11 @@
 from subprocess import TimeoutExpired
 import time
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 # Found a bug in ragit!
 # 1. Main process spawns child processes and ask them to create chunks.

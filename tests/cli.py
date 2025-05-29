@@ -1,5 +1,10 @@
 import os
-from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 # NOTE: raising a cli error must be idempotent
 def assert_cli_error(args: list[str], error_message: str = "cli error"):

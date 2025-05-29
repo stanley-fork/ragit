@@ -1,5 +1,3 @@
-import os
-import subprocess
 from utils import (
     cargo_run,
     goto_root,

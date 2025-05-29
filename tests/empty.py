@@ -1,4 +1,11 @@
-from utils import cargo_run, count_chunks, count_files, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    count_chunks,
+    count_files,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 def empty(test_model: str):
     goto_root()

@@ -4,13 +4,10 @@ from server import (
     create_user,
     get_api_key,
     get_json,
-    health_check,
     post_json,
     spawn_ragit_server,
 )
 import shutil
-import subprocess
-import time
 from utils import (
     cargo_run,
     goto_root,

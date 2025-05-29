@@ -3,7 +3,13 @@
 # differently when there's `{{previous_summary}}` and when there's not.
 
 import shutil
-from utils import cargo_run, count_chunks, goto_root, mk_and_cd_tmp_dir, write_string
+from utils import (
+    cargo_run,
+    count_chunks,
+    goto_root,
+    mk_and_cd_tmp_dir,
+    write_string,
+)
 
 def prompts(test_model: str):
     goto_root()
