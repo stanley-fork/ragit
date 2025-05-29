@@ -681,7 +681,7 @@ if __name__ == "__main__":
             }
 
             with open("result.json", "w") as f:
-                f.write(json.dumps(result, indent=4))
+                f.write(json.dumps(result, indent=4, ensure_ascii=True))
 
             for seq, (name, test) in enumerate(tests):
                 print(f"running `{name}`...")
@@ -728,7 +728,7 @@ if __name__ == "__main__":
                     os.chdir("tests")
 
                     with open("result.json", "w") as f:
-                        f.write(json.dumps(result, indent=4))
+                        f.write(json.dumps(result, indent=4, ensure_ascii=True))
 
             ended_at = datetime.now()
             result["meta"]["ended_at"] = str(ended_at)
@@ -736,7 +736,7 @@ if __name__ == "__main__":
             result["meta"]["complete"] = True
             goto_root()
             os.chdir("tests")
-            result = json.dumps(result, indent=4)
+            result = json.dumps(result, indent=4, ensure_ascii=True)
             print(result)
 
             with open("result.json", "w") as f:
