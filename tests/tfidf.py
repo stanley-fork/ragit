@@ -59,7 +59,7 @@ def tfidf():
     # step 4: tfidf on korean
     write_string("korean.txt", "나는 비빔인간입니다.")
     cargo_run(["add", "korean.txt"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["korean"])
     cargo_run(["check"])
     assert "korean.txt" in cargo_run(["tfidf", "비빔인간"], stdout=True)
     assert "lorem_ipsum1.txt" not in cargo_run(["tfidf", "비빔인간"], stdout=True)

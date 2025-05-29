@@ -22,6 +22,7 @@ from ii import ii
 from images import images
 from images2 import images2
 from images3 import images3
+from korean import korean
 from logs import logs
 from ls import ls
 from many_chunks import many_chunks
@@ -311,6 +312,10 @@ Commands
                                 `rag tfidf` can retrieve files correctly. It also tests
                                 tfidf searches on cjk strings.
 
+    korean                      run `korean` test
+                                It runs ragit with/without "korean" feature and makes sure
+                                that the tokenizer behaves differently.
+
     ragit_api [model]           run `ragit_api` test
                                 It asks "what's your name" to the model. It returns OK
                                 if the api call was successful. It doesn't care about the
@@ -567,6 +572,9 @@ if __name__ == "__main__":
         elif command == "tfidf":
             tfidf()
 
+        elif command == "korean":
+            korean()
+
         elif command == "ragit_api":
             if test_model is None:
                 print("Please specify which model to run the tests with.")
@@ -621,6 +629,7 @@ if __name__ == "__main__":
                 ("real_repos_regression", real_repos_regression),
                 ("subdir", subdir),
                 ("tfidf", tfidf),
+                ("korean", korean),
                 ("merge", merge),
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
