@@ -3,6 +3,7 @@ from utils import (
     cargo_run,
     goto_root,
     mk_and_cd_tmp_dir,
+    read_string,
     write_string,
 )
 
@@ -25,11 +26,12 @@ def csv_reader():
     write_string("empty.csv", "")
     write_string("malformed.csv", "name,age,city\nAlice,30,New York\nBob,25\n")
 
+    # if "csv" feature is set, it converts csv files to jsonl so that LLMs can read them more easily
     cargo_run(["init"])
     cargo_run(["add", "--all"])
     cargo_run(["config", "--set", "model", "dummy"])
     cargo_run(["config", "--set", "strict_file_reader", "false"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["csv"])
     cargo_run(["check"])
 
     for file, data in data.items():
@@ -48,12 +50,21 @@ def csv_reader():
     cargo_run(["remove", "normal.csv", "empty.csv", "malformed.csv"])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
     cargo_run(["add", "normal.csv", "empty.csv"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["csv"])
     cargo_run(["check"])
 
     cargo_run(["add", "malformed.csv"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["csv"])
 
     # failed to process malformed.csv
     assert "malformed.csv" not in json.loads(cargo_run(["ls-files", "--processed", "--name-only", "--json"], stdout=True))
     assert "malformed.csv" in json.loads(cargo_run(["ls-files", "--staged", "--name-only", "--json"], stdout=True))
+
+    # if "csv" feature is not set, it uses a plain text reader
+    cargo_run(["remove", "normal.csv", "empty.csv", "malformed.csv"])
+    cargo_run(["add", "normal.csv", "empty.csv", "malformed.csv"])
+    cargo_run(["build"], features=[])
+    cargo_run(["check"])
+
+    for file in ["normal.csv", "empty.csv", "malformed.csv"]:
+        assert cargo_run(["cat-file", file], stdout=True).strip() == read_string(file).strip()
