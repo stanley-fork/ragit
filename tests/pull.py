@@ -40,6 +40,7 @@ assert u5 == u6
 '''
 def pull():
     goto_root()
+    server_process = None
 
     try:
         server_process = spawn_ragit_server()
@@ -119,4 +120,5 @@ def pull():
         assert u5 == u6
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()

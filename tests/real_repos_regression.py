@@ -134,10 +134,12 @@ Please check if it has 0 images.
 # I created this test, which tries to reproduce all the errors found
 # in the `real_repos` test.
 def real_repos_regression():
+    goto_root()
+    server_process = None
+
     try:
-        goto_root()
         mk_and_cd_tmp_dir()
-        server_process = server_process = subprocess.Popen(["python3", "../tests/simple_image_server.py"])
+        server_process = subprocess.Popen(["python3", "../tests/simple_image_server.py"])
         shutil.copyfile("../tests/images/empty.png", "empty.png")
         os.mkdir("assets")
         shutil.copyfile("../tests/images/hello_world.webp", "assets/not-empty.webp")
@@ -174,4 +176,5 @@ def real_repos_regression():
         assert len(url_queries) == 2
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()

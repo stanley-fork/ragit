@@ -21,6 +21,7 @@ from utils import (
 
 def server_permission():
     goto_root()
+    server_process = None
 
     try:
         server_process = spawn_ragit_server()
@@ -250,4 +251,5 @@ def server_permission():
             # TODO: public-chat vs private-chat
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()

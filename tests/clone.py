@@ -20,6 +20,7 @@ from utils import (
 
 def clone(base2_size: int = 600):
     goto_root()
+    server_process = None
 
     try:
         server_process = spawn_ragit_server()
@@ -113,4 +114,5 @@ def clone(base2_size: int = 600):
             os.chdir("..")
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()

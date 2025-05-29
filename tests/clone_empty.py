@@ -13,6 +13,7 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir, write_string
 
 def clone_empty():
     goto_root()
+    server_process = None
 
     try:
         server_process = spawn_ragit_server()
@@ -55,4 +56,5 @@ def clone_empty():
         assert empty_repo_uid == cargo_run(["uid"], stdout=True).strip()
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()

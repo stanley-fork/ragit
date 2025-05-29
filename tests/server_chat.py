@@ -15,6 +15,7 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 
 def server_chat(test_model: str):
     goto_root()
+    server_process = None
 
     try:
         server_process = spawn_ragit_server()
@@ -91,7 +92,8 @@ def server_chat(test_model: str):
             assert requests.post("http://127.0.0.1:41127/test-user/sample2/build-search-index").status_code == 200
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()
 
 # It assumes that `rag config --set model _` is already run.
 def get_model_api_key() -> Optional[str]:

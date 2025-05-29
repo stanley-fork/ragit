@@ -14,6 +14,7 @@ from utils import (
 
 def server():
     goto_root()
+    server_process = None
 
     try:
         server_process = spawn_ragit_server()
@@ -146,7 +147,8 @@ def server():
             os.chdir("..")
 
     finally:
-        server_process.kill()
+        if server_process is not None:
+            server_process.kill()
 
 # 0. truncate all the data in the server
 # 1. spawns a ragit-server process
