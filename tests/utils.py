@@ -206,3 +206,25 @@ def get_commit_hash():
 
     except Exception as e:
         return f"cannot get commit_hash: {e}"
+
+_message: Optional[str] = None
+
+# `send_message`, `recv_message` and `reset_message` are very simple
+# wrapers around a global value `_message: Optional[str]`. The test
+# runner resets the message buffer before each test case. If a test
+# case sends a message, the message is recorded in the result.
+def send_message(message: str):
+    global _message
+
+    if _message is None:
+        _message = message
+
+    else:
+        _message += "\n\n" + message
+
+def recv_message() -> Optional[str]:
+    return _message
+
+def reset_message():
+    global _message
+    _message = None

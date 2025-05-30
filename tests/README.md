@@ -39,3 +39,13 @@ Once you have implemented the function `foo`, you have to add it to `tests/tests
 2. You'll see a very long string literal `help_message`. Add `foo` here.
 3. A few lines later, you'll see a lot of `elif command == "test_name"`. Add `foo` here.
 4. This is the most important one. You'll see a very long list `tests` after `elif command == "all"`. You have to add `foo` here so that CI runs `foo`. Please don't place your new test after `migrate`.
+
+## Interaction between a test case and the runner
+
+There are a few ways a test case can interact with the runner.
+
+1. Whether the case raises an exception or not is the most important information. If it does, the test runner records the exception and its stack trace in the test result. So a failed test must raise an exception and the exception must have as much information as possible.
+2. The runner doesn't care about return value at all because only successful cases return.
+3. Sometimes you want information from successful tests. And sometimes it's difficult to encode all the information in the exception and stack trace. In those cases, you can use `send_message`.
+  - If a case sends a message, the runner records the message in the result.
+  - If it sends messages multiple times, the messages are joined with `"\n\n"`.

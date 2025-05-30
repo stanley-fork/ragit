@@ -2,6 +2,8 @@ import os
 import re
 import shutil
 import subprocess
+from subprocess import CalledProcessError
+import time
 from utils import (
     cargo_run,
     count_chunks,
@@ -10,6 +12,7 @@ from utils import (
     goto_root,
     ls_recursive,
     mk_and_cd_tmp_dir,
+    send_message,
 )
 
 repositories = [
@@ -153,12 +156,20 @@ def real_repos(
         if repo != "all" and repo != r["ragit-name"]:
             continue
 
+        started_at = time.time()
+        send_message(f"started creating a knowledge-base of {r['ragit-name']}")
         os.chdir("clone-here")
 
         if os.path.exists(r["git-name"]):
             shutil.rmtree(r["git-name"])
 
-        subprocess.run(["git", "clone", r["git-url"], "--depth=1"], check=True)
+        try:
+            subprocess.run(["git", "clone", r["git-url"], "--depth=1"], check=True)
+
+        except CalledProcessError:
+            send_message(f"failed to clone {r['git-url']}")
+            continue
+
         new_path = os.path.join("..", r["ragit-name"])
         shutil.move(r["git-name"], new_path)
         os.chdir(new_path)
@@ -187,7 +198,8 @@ def real_repos(
         # ragit's fault or their fault.
         # This process cannot be automated. It automatically collects and dumps the error
         # messages but it will not affect the result of this test.
-        file_errors[r["ragit-name"]] = extract_error_messages(cargo_run(["build"], stdout=True))
+        file_errors_ = extract_error_messages(cargo_run(["build"], stdout=True))
+        file_errors[r["ragit-name"]] = file_errors_
 
         # For testing purposes, `strict_file_reader=true` makes more sense. But I also
         # want to use this script to create real-world knowledge-bases, and for that,
@@ -207,6 +219,8 @@ def real_repos(
         cargo_run(["meta", "--set", "file-count", str(count_files()[2])])
 
         add_readme(r, test_model)
+        send_message(f"finished creating a knowledge-base of {r['ragit-name']}: it took {int(time.time() - started_at)} seconds")
+        send_message(f"----- {r['ragit-name']} ({len(file_errors_)} errors) -----\n" + "\n".join([f"    {e}" for e in file_errors_]))
 
         os.chdir("..")
 

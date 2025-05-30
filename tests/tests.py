@@ -66,6 +66,8 @@ from utils import (
     get_commit_hash,
     get_ragit_version,
     goto_root,
+    recv_message,
+    reset_message,
 )
 
 def get_platform_info() -> dict[str, str]:
@@ -290,8 +292,13 @@ Commands
     csv_reader                  run `csv_reader` test
 
     real_repos [repo=all]       run `real_repos` test
-                                Clone real git repos from the web and build knowledge-base
-                                on the repos. It's to test file readers, not LLMs.
+                                It clones real git repos from the web and build knowledge-base
+                                of the repos.
+                                This is a very important test because it's the exact use
+                                case of ragit that I have in my mind.
+                                The test code uses the dummy model and only test file readers. If
+                                you want to use real models, you have to run the main function of
+                                `real_repos.py`.
 
     real_repos_regression       run `real_repos_regression` test
                                 I ran `python3 tests.py real_repos` and was surprised to see
@@ -693,10 +700,11 @@ if __name__ == "__main__":
                 f.write(json.dumps(result, indent=4, ensure_ascii=True))
 
             for seq, (name, test) in enumerate(tests):
-                print(f"running `{name}`...")
+                print(f"running `{name}`...", flush=True)
 
                 try:
                     start = time.time()
+                    reset_message()
                     rand_seed(seed)
                     test()
 
@@ -722,6 +730,10 @@ if __name__ == "__main__":
                 finally:
                     result["result"]["complete"] += 1
                     result["result"]["remaining"] -= 1
+
+                    # `except Exception as e` does not catch all the exceptions
+                    if name in result["tests"]:
+                        result["tests"][name]["message"] = recv_message()
 
                     if not no_clean:
                         try:
