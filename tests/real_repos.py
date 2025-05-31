@@ -168,6 +168,7 @@ def real_repos(
 
         except CalledProcessError:
             send_message(f"failed to clone {r['git-url']}")
+            os.chdir("..")
             continue
 
         new_path = os.path.join("..", r["ragit-name"])
