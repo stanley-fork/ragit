@@ -3,6 +3,7 @@ import os
 import shutil
 from utils import (
     cargo_run,
+    count_files,
     goto_root,
     mk_and_cd_tmp_dir,
     write_string,
@@ -41,7 +42,12 @@ def svg(test_model: str):
     # step 1: image reader, with a strict file reader
     cargo_run(["add", *[svg_file for svg_file, _ in svg_files]])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
-    cargo_run(["build"])
+
+    # extra step: make sure that it doesn't run without "svg" feature
+    assert "FeatureNotEnabled" in cargo_run(["build"], features=[], stdout=True)
+    assert count_files() == (len(svg_files), len(svg_files), 0)  # (total, staged, processed)
+
+    cargo_run(["build"], features=["svg"])
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # cannot process the broken svgs
@@ -53,7 +59,7 @@ def svg(test_model: str):
     # step 2: image reader, without a strict file reader
     cargo_run(["add", *[svg_file for svg_file, _ in svg_files]])
     cargo_run(["config", "--set", "strict_file_reader", "false"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["svg"])
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # the loose file reader treats broken svg files as text files
@@ -65,7 +71,7 @@ def svg(test_model: str):
     # step 3: markdown reader, with a strict file reader
     cargo_run(["add", *[svg_to_md(svg_file) for svg_file, _ in svg_files]])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["svg"])
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # cannot process the markdown files with broken svgs
@@ -77,7 +83,7 @@ def svg(test_model: str):
     # step 4: markdow reader, without a strict file reader
     cargo_run(["add", *[svg_to_md(svg_file) for svg_file, _ in svg_files]])
     cargo_run(["config", "--set", "strict_file_reader", "false"])
-    cargo_run(["build"])
+    cargo_run(["build"], features=["svg"])
     stat = json.loads(cargo_run(["ls-files", "--stat-only", "--json"], stdout=True))
 
     # Valid svg files are replaced with `img_{uid}`, while broken ones are not changed
