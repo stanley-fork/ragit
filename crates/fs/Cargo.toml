@@ -4,6 +4,8 @@ version = "0.4.0"
 edition = "2024"
 license = "MIT"
 description = "fs utilities for ragit"
+repository = "https://github.com/baehyunsol/ragit"
+documentation = "https://docs.rs/ragit-fs"
 
 [dependencies]
 chrono = "0.4.40"

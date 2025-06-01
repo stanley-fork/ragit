@@ -4,6 +4,8 @@ version = "0.4.0"
 edition = "2024"
 license = "MIT"
 description = "api utilities for ragit"
+repository = "https://github.com/baehyunsol/ragit"
+documentation = "https://docs.rs/ragit-api"
 
 [dependencies]
 async-std = "1.13.0"

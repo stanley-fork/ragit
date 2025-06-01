@@ -4,6 +4,8 @@ version = "0.4.0"
 edition = "2024"
 license = "MIT"
 description = "korean tokenizer for ragit"
+repository = "https://github.com/baehyunsol/ragit"
+documentation = "https://docs.rs/ragit-korean"
 
 [dependencies]
 lazy_static = "1.5.0"
