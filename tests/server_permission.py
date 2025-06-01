@@ -38,12 +38,12 @@ def server_permission():
         assert user1_info["email"] == "sample1@email.com"
         assert user2_info["email"] == "sample2@email.com"
 
-        create_repo(user="test-user-1", repo="repo1", readme="hello, world", api_key=user1_api_key)
+        create_repo(user="test-user-1", repo="repo1", description="hello, world", api_key=user1_api_key)
         repo_info1 = get_json(url="http://127.0.0.1:41127/repo-list/test-user-1/repo1", raw_url=True)
         get_json(url="http://127.0.0.1:41127/repo-list/test-user-1/repo2", raw_url=True, expected_status_code=404)
 
         assert repo_info1["name"] == "repo1"
-        assert repo_info1["readme"] == "hello, world"
+        assert repo_info1["description"] == "hello, world"
         assert repo_info1["pushed_at"] is None
         assert repo_info1["repo_size"] == 0
 
@@ -56,7 +56,7 @@ def server_permission():
 
         assert repo_info2["pushed_at"] is not None
         assert repo_info2["repo_size"] > 0
-        assert repo_info2["readme"] == "hello, world"
+        assert repo_info1["description"] == "hello, world"
 
         for permission in [
             # (read, write, clone, push, chat),
