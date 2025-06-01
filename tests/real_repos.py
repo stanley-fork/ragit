@@ -181,6 +181,9 @@ def real_repos(
         if os.path.exists("Cargo.toml"):
             os.remove("Cargo.toml")
 
+        if os.path.exists(".cargo"):
+            shutil.rmtree(".cargo")
+
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", test_model])
         cargo_run(["config", "--set", "strict_file_reader", "true"])
