@@ -195,21 +195,21 @@ def real_repos(
         for ext in r["extensions"]:
             cargo_run(["add", *ls_recursive(ext)])
 
-        cargo_run(["build"])
+        cargo_run(["build"], features=["full"])
         cargo_run(["check"])
 
         # I want to collect error messages from real world use cases, and see if it's
         # ragit's fault or their fault.
         # This process cannot be automated. It automatically collects and dumps the error
         # messages but it will not affect the result of this test.
-        file_errors_ = extract_error_messages(cargo_run(["build"], stdout=True))
+        file_errors_ = extract_error_messages(cargo_run(["build"], features=["full"], stdout=True))
         file_errors[r["ragit-name"]] = file_errors_
 
         # For testing purposes, `strict_file_reader=true` makes more sense. But I also
         # want to use this script to create real-world knowledge-bases, and for that,
         # I have to turn off the option.
         cargo_run(["config", "--set", "strict_file_reader", "false"])
-        cargo_run(["build"])
+        cargo_run(["build"], features=["full"])
         cargo_run(["check"])
 
         # It's included in readme.
