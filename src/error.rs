@@ -54,6 +54,10 @@ pub enum Error {
     MPSCError(String),
     CannotDecodeUid,
     ModelNotSelected,
+    InvalidModelName {
+        name: String,
+        candidates: Vec<String>,
+    },
 
     /// The error message looks like
     /// "in order to do {action}, you have to enable feature {feature}."
@@ -209,6 +213,7 @@ impl From<ApiError> for Error {
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
             ApiError::FileError(e) => Error::FileError(e),
             ApiError::ApiKeyNotFound { env_var } => Error::ApiKeyNotFound { env_var },
+            ApiError::InvalidModelName { name, candidates } => Error::InvalidModelName { name, candidates },
             e => Error::ApiError(e),
         }
     }

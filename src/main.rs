@@ -86,35 +86,30 @@ async fn main() {
                 Error::FeatureNotEnabled { action, feature } => {
                     eprintln!("In order to {action}, you have to enable feature {feature}.");
                 },
-                Error::ApiError(e) => match e {
-                    ragit_api::Error::InvalidModelName { name, candidates } => {
-                        eprintln!(
-                            "{name:?} is not a valid name for a chat model.\n{}",
-                            if candidates.is_empty() {
-                                if let Ok(root_dir) = find_root() {
-                                    if let Ok(index) = Index::load(root_dir, LoadMode::OnlyJson) {
-                                        format!(
-                                            "Valid model names are: {:?}",
-                                            index.models.iter().map(|model| &model.name).collect::<Vec<_>>(),
-                                        )
-                                    }
-
-                                    else {
-                                        String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
-                                    }
+                Error::InvalidModelName { name, candidates } => {
+                    eprintln!(
+                        "{name:?} is not a valid name for a chat model.\n{}",
+                        if candidates.is_empty() {
+                            if let Ok(root_dir) = find_root() {
+                                if let Ok(index) = Index::load(root_dir, LoadMode::OnlyJson) {
+                                    format!(
+                                        "Valid model names are: {:?}",
+                                        index.models.iter().map(|model| &model.name).collect::<Vec<_>>(),
+                                    )
                                 }
 
                                 else {
                                     String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
                                 }
-                            } else {
-                                format!("Multiple models were matched: {candidates:?}")
-                            },
-                        );
-                    },
-                    _ => {
-                        eprintln!("{e:?}");
-                    },
+                            }
+
+                            else {
+                                String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
+                            }
+                        } else {
+                            format!("Multiple models were matched: {candidates:?}")
+                        },
+                    );
                 },
                 Error::CliError { message, span } => {
                     eprintln!("cli error: {message}\n\n{}", ragit_cli::underline_span(
@@ -176,7 +171,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             if all {
                 if !files.is_empty() {
                     return Err(Error::CliError {
-                        message: String::from("You cannot use `--all` options with paths."),
+                        message: String::from("You cannot use `--all` option with paths."),
                         span: (String::new(), 0, 0),  // TODO
                     });
                 }
@@ -1232,6 +1227,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--selected"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
+                .args(ArgType::String, ArgCount::Leq(1))
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1243,6 +1239,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let selected_only = parsed_args.get_flag(1).is_some();
             let json_mode = parsed_args.get_flag(2).is_some();
+            let args = parsed_args.get_args();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let mut models = Index::list_models(
                 &join3(
@@ -1256,13 +1253,32 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             )?;
 
             if selected_only {
-                match get_model_by_name(&models, &index.api_config.model) {
-                    Ok(model) => { models = vec![model.clone()]; },
-                    Err(_) => match index.find_lowest_cost_model() {
-                        Some(model) => { models = vec![model.clone()]; },
-                        None => { models = vec![]; },
-                    },
+                if !args.is_empty() {
+                    return Err(Error::CliError {
+                        message: String::from("You cannot use `--selected` option with a model name."),
+                        span: (String::new(), 0, 0),  // TODO
+                    });
                 }
+
+                models = match get_model_by_name(&models, &index.api_config.model) {
+                    Ok(model) => vec![model.clone()],
+                    Err(_) => match index.find_lowest_cost_model() {
+                        Some(model) => vec![model.clone()],
+                        None => vec![],
+                    },
+                };
+            }
+
+            else if let Some(model) = args.get(0) {
+                models = match get_model_by_name(&models, model) {
+                    Ok(model) => vec![model.clone()],
+                    Err(ragit_api::Error::InvalidModelName { candidates, .. }) => models.iter().filter(
+                        |model| candidates.contains(&model.name)
+                    ).map(
+                        |model| model.clone()
+                    ).collect(),
+                    Err(_) => vec![],
+                };
             }
 
             if !json_mode && !name_only {
