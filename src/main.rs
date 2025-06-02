@@ -1265,7 +1265,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
             }
 
-            if !json_mode {
+            if !json_mode && !name_only {
                 println!("{} models", models.len());
             }
 

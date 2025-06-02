@@ -97,7 +97,7 @@ pub use user::{
 
 static POOL: tokio::sync::OnceCell<PgPool> = tokio::sync::OnceCell::const_new();
 
-async fn get_pool() -> &'static PgPool {
+pub async fn get_pool() -> &'static PgPool {
     POOL.get_or_init(|| async {
         write_log(
             "init_pg_pool",

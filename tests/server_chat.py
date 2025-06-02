@@ -27,16 +27,20 @@ def server_chat(test_model: str):
         # The test runs on the server but `config --set model` alters the local knowledge-base.
         # It does so in order to get api key from the local knowledge-base.
         cargo_run(["config", "--set", "model", test_model])
+        exact_model_name = cargo_run(["ls-models", "--selected", "--name-only"], stdout=True).strip()
+
         create_user(id="test-user", password="secure-password")
         server_api_key = get_api_key(id="test-user", password="secure-password")
         model_api_key = get_model_api_key()
         create_repo(user="test-user", repo="sample1", api_key=server_api_key)
 
         # set default model of server
-        model_full_name = set_default_model(user="test-user", model_name=test_model, server_api_key=server_api_key)
-
-        if model_api_key is not None:
-            put_model_api_key(user="test-user", model_name=model_full_name, model_api_key=model_api_key, server_api_key=server_api_key)
+        register_model(
+            user="test-user",
+            model_name=exact_model_name,
+            model_api_key=model_api_key,
+            server_api_key=server_api_key,
+        )
 
         cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample1"])
         os.chdir("..")
@@ -123,12 +127,13 @@ def get_model_api_key() -> Optional[str]:
 # The same model might have (slightly) different names.
 # What's even worse is that `model_name` is given by the test runner, who doesn't know about
 # `models.json` at all. So it first tries to guess what the actual name of the model is.
-# It returns the full name of the model.
-def set_default_model(user: str, model_name: str, server_api_key: str) -> str:
-    models = requests.get(
-        f"http://127.0.0.1:41127/user-list/{user}/ai-model-list",
-        headers={ "x-api-key": server_api_key },
-    ).json()
+def register_model(
+    user: str,
+    model_name: str,
+    model_api_key: Optional[str],
+    server_api_key: str,
+) -> str:
+    models = requests.get(f"http://127.0.0.1:41127/ai-model-list").json()
     models = [model for model in models if model_name in model["name"] or model_name in model["api_name"]]
 
     if len(models) == 0:
@@ -137,12 +142,17 @@ def set_default_model(user: str, model_name: str, server_api_key: str) -> str:
     if len(models) > 1:
         raise Exception(f"Model name {model_name} is ambiguous: {models}")
 
-    model_name = models[0]["name"]
-    response = requests.put(
-        f"http://127.0.0.1:41127/user-list/{user}/ai-model-list",
-        json={ "default_model": model_name },
-        headers={ "x-api-key": server_api_key },
-    )
+    model_id = models[0]["id"]
+
+    # I run it 3 times because I want to make sure that this api
+    # not only registers a model but also updates a model.
+    for i in range(3):
+        response = requests.put(
+            f"http://127.0.0.1:41127/user-list/{user}/ai-model-list",
+            json={ "model_id": model_id, "default_model": i == 2, "api_key": model_api_key },
+            headers={ "x-api-key": server_api_key },
+        )
+
     assert response.status_code == 200, f"Failed to set default model: {response.text}"
     return model_name
 

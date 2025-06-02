@@ -1,15 +1,15 @@
 #![recursion_limit = "256"]
 
-use ragit_server::{AI_MODEL_CONFIG, CONFIG};
+use ragit_server::CONFIG;
 use ragit_server::cli::{CliCommand, RunArgs, parse_cli_args};
-use ragit_server::config::{AiModelConfig, Config};
+use ragit_server::config::Config;
 use ragit_server::methods::*;
+use ragit_server::models::ai_model::initialize_ai_models;
 use ragit_server::utils::fetch_form_data;
 use ragit_fs::{
     WriteMode,
     exists,
     initialize_log,
-    read_string,
     remove_dir_all,
     write_log,
     write_string,
@@ -67,7 +67,7 @@ async fn main() {
             std::process::exit(1);
         },
     };
-    initinalize_server(&args);
+    initinalize_server(&args).await;
     let config = CONFIG.get().unwrap();
 
     write_log("server", "hello from ragit-server!");
@@ -546,13 +546,8 @@ async fn main() {
     ).run(([0, 0, 0, 0], args.port_number.unwrap_or(config.port_number))).await;
 }
 
-use ragit_server::models::ai_model::AiModelCreation;
-use ragit_api::{Model, ModelRaw, get_model_by_name};
-
-// It sets global value `crate::CONFIG`.
-fn initinalize_server(args: &RunArgs) {
-    // TODO: it seems like `sqlx::migrate!` isn't doing anything
-    sqlx::migrate!("./migrations/");
+// It sets global value `crate::CONFIG` and initialize ai models (if needed).
+async fn initinalize_server(args: &RunArgs) {
     let config_file = args.config_file.clone().unwrap_or(String::from("./config.json"));
 
     if !exists(&config_file) {
@@ -618,87 +613,6 @@ fn initinalize_server(args: &RunArgs) {
         remove_dir_all(&config.push_session_dir).unwrap();
     }
 
-    if !exists(&config.default_models) {
-        let default_models = vec![
-            ModelRaw::llama_70b(),
-            ModelRaw::llama_8b(),
-            ModelRaw::gpt_4o(),
-            ModelRaw::gpt_4o_mini(),
-            ModelRaw::sonnet(),
-            ModelRaw::command_r(),
-            ModelRaw::command_r_plus(),
-            ModelRaw::gemini_2_flash(),
-        ];
-
-        if args.force_default_config {
-            write_string(
-                &config.default_models,
-                &serde_json::to_string_pretty(&default_models).unwrap(),
-                WriteMode::CreateOrTruncate,
-            ).unwrap();
-        }
-
-        else {
-            println!("Model file `{}` not found. Would you like to create a new one?", config.default_models);
-            println!("");
-            println!("1) Create a default model file at `{}`.", config.default_models);
-            println!("2) I don't know what you're talking about. Please help me.");
-
-            loop {
-                print!(">>> ");
-                let mut s = String::new();
-                std::io::stdout().flush().unwrap();
-                std::io::stdin().read_line(&mut s).unwrap();
-
-                match s.get(0..1) {
-                    Some("1") => {
-                        write_string(
-                            &config.default_models,
-                            &serde_json::to_string_pretty(&default_models).unwrap(),
-                            WriteMode::CreateOrTruncate,
-                        ).unwrap();
-                    },
-                    Some("2") => todo!(),
-                    _ => {
-                        println!("Just say 1 or 2.");
-                        continue;
-                    },
-                }
-
-                break;
-            }
-        }
-    }
-
-    let models = read_string(&config.default_models).unwrap();
-
-    // There are unnecessarily many schemas for ai models.
-    // 1. `ragit_api::Model`: what ragit internally uses
-    // 2. `ragit_api::ModelRaw`: schema for `models.json`
-    // 3. `ragit_server::AiModelCreation`: schema for `ai_model` table in DB
-    let models1 = serde_json::from_str::<Vec<AiModelCreation>>(&models).unwrap();
-    let models2 = serde_json::from_str::<Vec<ModelRaw>>(&models).unwrap();
-
-    let models_parsed = models2.iter().map(|model| Model::try_from(model).unwrap()).collect::<Vec<_>>();
-    let default_model = match get_model_by_name(&models_parsed, &config.default_ai_model) {
-        Ok(model) => model.name.clone(),
-        Err(_) => {
-            eprintln!(
-                "Ai model `{}` is not found in `{}`. Choosing `{}` as a default model.",
-                config.default_ai_model,
-                config.default_models,
-                &models2[0].name,
-            );
-
-            models2[0].name.clone()
-        },
-    };
-
-    let ai_model_config = AiModelConfig {
-        default_models: models1,
-        default_model,
-    };
-
-    AI_MODEL_CONFIG.set(ai_model_config).unwrap();
+    initialize_ai_models(get_pool().await).await.unwrap();
     CONFIG.set(config).unwrap();
 }

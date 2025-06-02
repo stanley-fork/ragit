@@ -30,6 +30,13 @@ pub struct UserAiModel {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct UserAiModelUpdate {
+    pub model_id: String,
+    pub default_model: bool,
+    pub api_key: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AiModel {
     pub id: String,
     pub name: String,
@@ -280,21 +287,26 @@ pub async fn get_list_by_user_id(user: &str, pool: &PgPool) -> Result<Vec<UserAi
     Ok(result)
 }
 
+// TODO: It has a big problem.
+//       A user always have to send a complete `UserAiModelUpdate`, which
+//       includes `api_key` field. But the user can never know the api key
+//       because `GET /user-list/{user}/ai-model-list` only returns a preview
+//       of the api key.
 pub async fn register(
     user: &str,
-    model_id: &str,
-    api_key: Option<String>,
-    default_model: bool,
+    update: &UserAiModelUpdate,
     pool: &PgPool,
 ) -> Result<(), Error> {
     crate::query!(
         "INSERT
         INTO user_ai_model (user_, ai_model_id, api_key, default_model, added_at)
-        VALUES ($1, $2, $3, $4, NOW())",
+        VALUES ($1, $2, $3, $4, NOW())
+        ON CONFLICT (user_, ai_model_id)
+        DO UPDATE SET api_key = $3, default_model = $4;",
         user,
-        model_id,
-        api_key.as_ref().map(|s| s.as_str()),
-        default_model,
+        &update.model_id,
+        update.api_key.as_ref().map(|s| s.as_str()),
+        update.default_model,
     ).execute(pool).await?;
     Ok(())
 }
@@ -379,6 +391,18 @@ pub async fn set_default_model(user: &str, model: &str, pool: &PgPool) -> Result
         model_id,
         user,
     ).execute(pool).await?;
+
+    Ok(())
+}
+
+/// It initializes models only if there's no model at all (a.k.a the server is run for the first time).
+pub async fn initialize_ai_models(pool: &PgPool) -> Result<(), Error> {
+    let j = include_str!("../../../../models.json");
+    let models = serde_json::from_str::<Vec<AiModelCreation>>(j)?;
+
+    for model in models.iter() {
+        upsert_and_return_id(model, pool).await?;
+    }
 
     Ok(())
 }

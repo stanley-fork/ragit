@@ -1,8 +1,8 @@
 use super::{HandleError, RawResponse, get_or, get_pool, handler};
-use crate::{AI_MODEL_CONFIG, CONFIG};
-use crate::models::{ai_model, auth};
+use crate::CONFIG;
+use crate::models::auth;
+use crate::models::ai_model::{self, UserAiModelUpdate};
 use crate::models::user::{self, UserCreation};
-use ragit_api::JsonType;
 use serde_json::Value;
 use std::collections::HashMap;
 use warp::http::StatusCode;
@@ -54,19 +54,6 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
 
     let user = serde_json::from_value::<UserCreation>(body).handle_error(400)?;
     user::create(&user, pool).await.handle_error(500)?;
-    let ai_model_config = AI_MODEL_CONFIG.get().handle_error(500)?;
-
-    for model in ai_model_config.default_models.iter() {
-        let model_id = ai_model::upsert_and_return_id(model, pool).await.handle_error(500)?;
-        ai_model::register(
-            &user.id,
-            &model_id,
-            None,  // api_key
-            model.name == ai_model_config.default_model,  // default model
-            pool,
-        ).await.handle_error(500)?;
-    }
-
     Ok(Box::new(with_status(String::new(), StatusCode::from_u16(200).unwrap())))
 }
 
@@ -91,46 +78,8 @@ pub async fn put_user_ai_model_list(user: String, form: Value, api_key: Option<S
 async fn put_user_ai_model_list_(user: String, form: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(404)?;
-
-    let Value::Object(form) = form else {
-        return Err((400, format!("Expected a json object, got `{:?}`", JsonType::from(&form))));
-    };
-
-    match form.get("default_model") {
-        Some(Value::String(default_model)) => {
-            ai_model::set_default_model(&user, default_model, pool).await.handle_error(404)?;
-            return Ok(Box::new(with_status(String::new(), StatusCode::from_u16(200).unwrap())));
-        },
-        Some(v) => {
-            return Err((400, format!("Expected a string, got `{:?}`", JsonType::from(v))));
-        },
-        None => {},
-    }
-
-    let model_name = match form.get("model") {
-        Some(Value::String(name)) => name,
-        Some(v) => {
-            return Err((400, format!("Expected a string, got `{:?}`", JsonType::from(v))));
-        },
-        None => {
-            return Err((400, format!("Key `model` is missing")));
-        },
-    };
-
-    if let Some(Value::String(api_key)) = form.get("api_key") {
-        // If it fails, that's likely because `model_name` is wrong
-        ai_model::update_api_key(&user, model_name, Some(api_key.to_string()), pool).await.handle_error(404)?;
-    }
-
-    else if let Some(Value::Null) = form.get("api_key") {
-        ai_model::update_api_key(&user, model_name, None, pool).await.handle_error(404)?;
-    }
-
-    else if let Some(v) = form.get("api_key") {
-        return Err((400, format!("Expected a string or null, got `{:?}`", JsonType::from(v))));
-    }
-
-    // TODO: handle more fields
+    let update = serde_json::from_value::<UserAiModelUpdate>(form).handle_error(400)?;
+    ai_model::register(&user, &update, pool).await.handle_error(500)?;
 
     Ok(Box::new(with_status(
         String::new(),

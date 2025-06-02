@@ -1,8 +1,10 @@
 use crate::api_provider::ApiProvider;
 use crate::error::Error;
+use lazy_static::lazy_static;
 use ragit_fs::join4;
 use ragit_pdl::Message;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::io::{Read, Write, stdin, stdout};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -189,6 +191,11 @@ impl Model {
     }
 }
 
+/// There are 2 types for models: `Model` and `ModelRaw`. I know it's confusing, I'm sorry.
+/// `Model` is the type ragit internally uses and `ModelRaw` is only for json serialization.
+/// Long time ago, there was only `Model` type. But then I implemented `models.json` interface.
+/// I wanted people to directly edit the json file and found that `Model` isn't intuitive to
+/// edit directly. So I added this struct.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ModelRaw {
     /// Model name shown to user.
@@ -241,163 +248,55 @@ pub struct ModelRaw {
     pub api_env_var: Option<String>,
 }
 
+lazy_static! {
+    static ref DEFAULT_MODELS: HashMap<String, ModelRaw> = {
+        let models_dot_json = include_str!("../../../models.json");
+        let models = serde_json::from_str::<Vec<ModelRaw>>(&models_dot_json).unwrap();
+        models.into_iter().map(
+            |model| (model.name.clone(), model)
+        ).collect()
+    };
+}
+
 impl ModelRaw {
     pub fn llama_70b() -> Self {
-        ModelRaw {
-            name: String::from("llama3.3-70b-groq"),
-            api_name: String::from("llama-3.3-70b-versatile"),
-            can_read_images: false,
-            api_provider: String::from("openai"),
-            api_url: Some(String::from("https://api.groq.com/openai/v1/chat/completions")),
-            input_price: 0.59,
-            output_price: 0.79,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("GROQ_API_KEY")),
-        }
+        DEFAULT_MODELS.get("llama3.3-70b-groq").unwrap().clone()
     }
 
     pub fn llama_8b() -> Self {
-        ModelRaw {
-            name: String::from("llama3.1-8b-groq"),
-            api_name: String::from("llama-3.1-8b-instant"),
-            can_read_images: false,
-            api_provider: String::from("openai"),
-            api_url: Some(String::from("https://api.groq.com/openai/v1/chat/completions")),
-            input_price: 0.05,
-            output_price: 0.08,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("GROQ_API_KEY")),
-        }
+        DEFAULT_MODELS.get("llama3.1-8b-groq").unwrap().clone()
     }
 
     pub fn gpt_4o() -> Self {
-        ModelRaw {
-            name: String::from("gpt-4o"),
-            api_name: String::from("gpt-4o"),
-            can_read_images: true,
-            api_provider: String::from("openai"),
-            api_url: Some(String::from("https://api.openai.com/v1/chat/completions")),
-            input_price: 2.5,
-            output_price: 10.0,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("OPENAI_API_KEY")),
-        }
+        DEFAULT_MODELS.get("gpt-4o").unwrap().clone()
     }
 
     pub fn gpt_4o_mini() -> Self {
-        ModelRaw {
-            name: String::from("gpt-4o-mini"),
-            api_name: String::from("gpt-4o-mini"),
-            can_read_images: true,
-            api_provider: String::from("openai"),
-            api_url: Some(String::from("https://api.openai.com/v1/chat/completions")),
-            input_price: 0.15,
-            output_price: 0.6,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("OPENAI_API_KEY")),
-        }
+        DEFAULT_MODELS.get("gpt-4o-mini").unwrap().clone()
     }
 
     pub fn gemini_2_flash() -> Self {
-        ModelRaw {
-            name: String::from("gemini-2.0-flash"),
-            api_name: String::from("gemini-2.0-flash"),
-            can_read_images: true,
-            api_provider: String::from("google"),
-            api_url: None,
-            input_price: 0.1,
-            output_price: 0.4,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("GOOGLE_API_KEY")),
-        }
+        DEFAULT_MODELS.get("gemini-2.0-flash").unwrap().clone()
     }
 
     pub fn sonnet() -> Self {
-        ModelRaw {
-            name: String::from("claude-3.5-sonnet"),
-            api_name: String::from("claude-3-5-sonnet-20240620"),
-            can_read_images: true,
-            api_provider: String::from("anthropic"),
-            api_url: Some(String::from("https://api.anthropic.com/v1/messages")),
-            input_price: 3.0,
-            output_price: 15.0,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("ANTHROPIC_API_KEY")),
-        }
+        DEFAULT_MODELS.get("claude-3.7-sonnet").unwrap().clone()
     }
 
     pub fn phi_4_14b() -> Self {
-        ModelRaw {
-            name: String::from("phi-4-14b-ollama"),
-            api_name: String::from("phi4:14b"),
-            can_read_images: true,
-            api_provider: String::from("openai"),
-            api_url: Some(String::from("http://127.0.0.1:11434/v1/chat/completions")),
-            input_price: 0.0,
-            output_price: 0.0,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: None,
-        }
+        DEFAULT_MODELS.get("phi-4-14b-ollama").unwrap().clone()
     }
 
     pub fn command_r() -> Self {
-        ModelRaw {
-            name: String::from("command-r"),
-            api_name: String::from("command-r"),
-            can_read_images: true,
-            api_provider: String::from("cohere"),
-            api_url: Some(String::from("https://api.cohere.com/v2/chat")),
-            input_price: 0.15,
-            output_price: 0.6,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("COHERE_API_KEY")),
-        }
+        DEFAULT_MODELS.get("command-r").unwrap().clone()
     }
 
     pub fn command_r_plus() -> Self {
-        ModelRaw {
-            name: String::from("command-r-plus"),
-            api_name: String::from("command-r-plus"),
-            can_read_images: true,
-            api_provider: String::from("cohere"),
-            api_url: Some(String::from("https://api.cohere.com/v2/chat")),
-            input_price: 2.5,
-            output_price: 10.0,
-            api_timeout: None,
-            explanation: None,
-            api_key: None,
-            api_env_var: Some(String::from("COHERE_API_KEY")),
-        }
+        DEFAULT_MODELS.get("command-r-plus").unwrap().clone()
     }
 
     pub fn default_models() -> Vec<ModelRaw> {
-        vec![
-            ModelRaw::llama_70b(),
-            ModelRaw::llama_8b(),
-            ModelRaw::gpt_4o(),
-            ModelRaw::gpt_4o_mini(),
-            ModelRaw::gemini_2_flash(),
-            ModelRaw::sonnet(),
-            ModelRaw::command_r(),
-            ModelRaw::command_r_plus(),
-            ModelRaw::phi_4_14b(),
-        ]
+        DEFAULT_MODELS.values().map(|model| model.clone()).collect()
     }
 }
 
@@ -536,4 +435,16 @@ fn partial_match(haystack: &str, needle: &str) -> bool {
     }
 
     n_cursor == n_bytes.len()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DEFAULT_MODELS, Model};
+
+    #[test]
+    fn validate_models_dot_json() {
+        for model in DEFAULT_MODELS.values() {
+            Model::try_from(model).unwrap();
+        }
+    }
 }
