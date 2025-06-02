@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS user_ (
     last_login_at TIMESTAMPTZ
 );
 
+-- At first, I wanted to implement chat in ragit-server. Users register their api key to the
+-- server and use the models. That's why there are 2 tables for ai models: `user_ai_model` and
+-- `ai_model`. `ai_model` has information about llama, gpt and claude. `user_ai_model` has
+-- user A's api key for llama, user B's api key for llama, user B's api key for gpt, ...
+--
+-- For now, we're not adding chat interface to ragithub, so we're only using `ai_model`. But
+-- I'll add chat interface someday, so I'll keep `user_ai_model` table.
+
 -- AI model for chat.
 -- It's user's reponsibility to register a valid model and api_key.
 CREATE TABLE IF NOT EXISTS user_ai_model (
@@ -40,12 +48,38 @@ CREATE UNIQUE INDEX IF NOT EXISTS user_ai_model_by_user ON user_ai_model ( user_
 CREATE TABLE IF NOT EXISTS ai_model (
     id TEXT PRIMARY KEY,  -- hash value of model name and metadata
 
-    -- inherits that of `models.json`. see `crates/api/src/model.rs`
+    -- `id` field is a hash value of these 4 fields: `name`, `api_name`, `api_provider`, `api_url`.
+
+    -- `name` is  for humans, and `api_name` is for apis.
+    -- For example, llama3.3's name for groq's api is "llama-3.3-70b-versatile" and
+    -- for human it's "llama3.3-70b-groq".
     name TEXT NOT NULL,
     api_name TEXT NOT NULL,
+
+    -- openai | anthropic | cohere | google
     api_provider TEXT NOT NULL,
+
+    -- It's for openai-compatible apis.
     api_url TEXT,
-    can_read_images BOOLEAN NOT NULL
+
+    can_read_images BOOLEAN NOT NULL,
+
+    -- dollars per million tokens
+    -- if it's a free model, it's 0
+    input_price DOUBLE PRECISION NOT NULL,
+    output_price DOUBLE PRECISION NOT NULL,
+
+    explanation TEXT,
+
+    -- When users download this model, ragit will use this env var to
+    -- find the api key.
+    api_env_var TEXT,
+
+    -- for easier search
+    tags TEXT[] NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX IF NOT EXISTS ai_model_by_name ON ai_model ( name );
 
@@ -68,6 +102,9 @@ CREATE TABLE IF NOT EXISTS repository (
 
     chunk_count INTEGER NOT NULL,
     push_session_id TEXT,
+
+    -- for easier search
+    tags TEXT[] NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL,
     pushed_at TIMESTAMPTZ,

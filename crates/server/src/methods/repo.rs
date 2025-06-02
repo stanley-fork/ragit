@@ -1,4 +1,4 @@
-use super::{HandleError, RawResponse, get_pool, handler};
+use super::{HandleError, RawResponse, get_or, get_pool, handler};
 use chrono::{Datelike, Utc};
 use crate::models::{repo, user};
 use crate::models::repo::{RepoOperation, RepoUpdate};
@@ -13,8 +13,8 @@ pub async fn get_repo_list(user: String, query: HashMap<String, String>, api_key
 
 async fn get_repo_list_(user: String, query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
-    let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
+    let limit = get_or(&query, "limit", 50);
+    let offset = get_or(&query, "offset", 0);
     let has_permission = user::check_auth(&user, api_key, pool).await.handle_error(500)?;
     let repo_list = repo::get_list(&user, has_permission, limit, offset, pool).await.handle_error(500)?;
 

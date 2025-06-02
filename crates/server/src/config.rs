@@ -1,5 +1,5 @@
 use crate::error::Error;
-use ragit_api::ModelRaw;
+use crate::models::ai_model::AiModelCreation;
 use ragit_fs::read_string;
 use serde::{Deserialize, Serialize};
 
@@ -55,6 +55,6 @@ impl Default for Config {
 // config file and model file.
 #[derive(Debug)]
 pub struct AiModelConfig {
-    pub default_models: Vec<ModelRaw>,
+    pub default_models: Vec<AiModelCreation>,
     pub default_model: String,
 }

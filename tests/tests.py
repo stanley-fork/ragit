@@ -47,6 +47,7 @@ from real_repos import real_repos
 from real_repos_regression import real_repos_regression
 from recover import recover
 from server import server
+from server_ai_model import server_ai_model
 from server_chat import server_chat
 from server_permission import server_permission
 from subdir import subdir
@@ -153,6 +154,10 @@ Commands
                                 It tests endpoints related to a repository. It first pushes a
                                 repository and fetches data (chunks, images, files, ...) from
                                 the server.
+
+    server_ai_model             run `server_ai_model` test
+                                It tests endpoints related to ai models. It creates/updates and
+                                reads ai models. Deletion is WIP.
 
     server_chat [model]         run `server_chat` test
                                 It tests chat-related endpoints of ragit-server.
@@ -395,6 +400,9 @@ if __name__ == "__main__":
         elif command == "server":
             server()
 
+        elif command == "server_ai_model":
+            server_ai_model()
+
         elif command == "server_chat":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -615,6 +623,7 @@ if __name__ == "__main__":
                 ("clone_empty", clone_empty),
                 ("pull", pull),
                 ("server", server),
+                ("server_ai_model", server_ai_model),
                 ("server_permission", server_permission),
                 ("cli", cli),
                 ("outside", outside),

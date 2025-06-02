@@ -1,4 +1,4 @@
-use super::{HandleError, RawResponse, get_pool, handler};
+use super::{HandleError, RawResponse, get_or, get_pool, handler};
 use crate::{AI_MODEL_CONFIG, CONFIG};
 use crate::models::{ai_model, auth};
 use crate::models::user::{self, UserCreation};
@@ -14,8 +14,8 @@ pub async fn get_user_list(query: HashMap<String, String>, api_key: Option<Strin
 
 async fn get_user_list_(query: HashMap<String, String>, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
-    let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
+    let limit = get_or(&query, "limit", 50);
+    let offset = get_or(&query, "offset", 0);
     let include_privates = auth::is_admin(api_key, pool).await.handle_error(500)?;
     let users = user::get_list(include_privates, limit, offset, pool).await.handle_error(500)?;
 
@@ -57,7 +57,7 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
     let ai_model_config = AI_MODEL_CONFIG.get().handle_error(500)?;
 
     for model in ai_model_config.default_models.iter() {
-        let model_id = ai_model::create_and_return_id(model, pool).await.handle_error(500)?;
+        let model_id = ai_model::upsert_and_return_id(model, pool).await.handle_error(500)?;
         ai_model::register(
             &user.id,
             &model_id,
@@ -70,11 +70,11 @@ async fn create_user_(body: Value, api_key: Option<String>) -> RawResponse {
     Ok(Box::new(with_status(String::new(), StatusCode::from_u16(200).unwrap())))
 }
 
-pub async fn get_ai_model_list(user: String, api_key: Option<String>) -> Box<dyn Reply> {
-    handler(get_ai_model_list_(user, api_key).await)
+pub async fn get_user_ai_model_list(user: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(get_user_ai_model_list_(user, api_key).await)
 }
 
-async fn get_ai_model_list_(user: String, api_key: Option<String>) -> RawResponse {
+async fn get_user_ai_model_list_(user: String, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
 
     // TODO: do I have to allow everyone to see the model list of a public user?
@@ -84,11 +84,11 @@ async fn get_ai_model_list_(user: String, api_key: Option<String>) -> RawRespons
     Ok(Box::new(json(&model_list)))
 }
 
-pub async fn put_ai_model_list(user: String, form: Value, api_key: Option<String>) -> Box<dyn Reply> {
-    handler(put_ai_model_list_(user, form, api_key).await)
+pub async fn put_user_ai_model_list(user: String, form: Value, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(put_user_ai_model_list_(user, form, api_key).await)
 }
 
-async fn put_ai_model_list_(user: String, form: Value, api_key: Option<String>) -> RawResponse {
+async fn put_user_ai_model_list_(user: String, form: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
     user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(404)?;
 

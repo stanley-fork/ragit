@@ -6,8 +6,6 @@ info:
 paths:
   /{user}/{repo}/index/:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetIndex
@@ -33,8 +31,6 @@ paths:
                 type: object
   /{user}/{repo}/config/{config}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetConfig
@@ -66,8 +62,6 @@ paths:
                 type: object
   /{user}/{repo}/prompt/{prompt}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetPrompt
@@ -99,8 +93,6 @@ paths:
                 type: string
   /{user}/{repo}/uid:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetRepoUid
@@ -127,8 +119,6 @@ paths:
                 description: uid of the repository
   /{user}/{repo}/chunk-count:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetChunkCount
@@ -155,8 +145,6 @@ paths:
                 format: int64
   /{user}/{repo}/chunk-list/{chunk-prefix}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetChunkList
@@ -190,8 +178,6 @@ paths:
                   type: string
   /{user}/{repo}/chunk-list/:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetChunkListAll
@@ -219,8 +205,6 @@ paths:
                   type: string
   /{user}/{repo}/chunk/{chunk-uid}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetChunk
@@ -252,8 +236,6 @@ paths:
                 $ref: '#/components/schemas/ChunkDetail'
   /{user}/{repo}/image-list/{image-prefix}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetImageList
@@ -287,8 +269,6 @@ paths:
                   type: string
   /{user}/{repo}/image/{image-uid}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetImage
@@ -321,8 +301,6 @@ paths:
                 format: binary
   /{user}/{repo}/image-desc/{image-uid}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetImageDescription
@@ -359,8 +337,6 @@ paths:
                     type: string
   /{user}/{repo}/file-content:
     get:
-      tags:
-        - todo
       summary: todo
       description: get a content of a file or a directory
       operationId: GetFileContent
@@ -407,8 +383,6 @@ paths:
                 $ref: '#/components/schemas/FileDetail'
   /{user}/{repo}/cat-file/{uid}:
     get:
-      tags:
-        - todo
       summary: todo
       description: If you want to get a content of a file or a chunk, I recommend you use `/{user}/{repo}/content/{uid}` api instead of this. This api exists for historical reasons.
       operationId: GetCatFile
@@ -440,8 +414,6 @@ paths:
                 type: string
   /{user}/{repo}/content/{uid}:
     get:
-      tags:
-        - todo
       summary: todo
       description: It's useful when you want to render a content of a chunk or a file. It doesn't give you the content of the original file, but a version that LLMs actually see when they RAG.
       operationId: GetContent
@@ -479,8 +451,6 @@ paths:
     get: todo
   /{user}/{repo}/meta:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetMeta
@@ -508,8 +478,6 @@ paths:
                   type: string
   /{user}/{repo}/meta/{key}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetMetaByKey
@@ -542,8 +510,6 @@ paths:
                 nullable: true
   /{user}/{repo}/version:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetRepoVersion
@@ -572,8 +538,6 @@ paths:
     post: todo
   /{user}/{repo}/search:
     get:
-      tags:
-        - todo
       summary: todo
       description: search for chunks in this repository. There's no `sort-by` or `sort-ord` option. If you provide `query` parameter, it sorts the result by tfidf-score. Otherwise, it uses `chunk.sortable_string()` methods which usually sorts the chunks by file name.
       operationId: searchChunk
@@ -638,8 +602,6 @@ paths:
     post: todo
   /{user}/{repo}/traffic:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetTraffic
@@ -674,8 +636,6 @@ paths:
                       format: int64
   /{user}/{repo}/chat/{chat-id}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: getChat
@@ -706,14 +666,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ChatWithHistory'
-    post: todo
+    post:
+      summary: todo
+      description: Ragithub's chat interface is WIP and we're not working on it anymore.
   /{user}/{repo}/chat-list:
-    get: todo
-    post: todo
+    get:
+      summary: todo
+      description: Ragithub's chat interface is WIP and we're not working on it anymore.
+    post:
+      summary: todo
+      description: Ragithub's chat interface is WIP and we're not working on it anymore.
   /health:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetHealth
@@ -722,8 +686,6 @@ paths:
           description: todo
   /version:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetServerVersion
@@ -737,8 +699,6 @@ paths:
                 example: "0.4.0-dev"
   /user-list:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetUserList
@@ -769,8 +729,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserSimple'
     post:
-      tags:
-        - todo
       summary: todo
       description: It creates a new user. If it's the first user, the user becomes an admin.
       operationId: CreateUser
@@ -787,14 +745,14 @@ paths:
   /user-list/{user}:
     get: todo
   /user-list/{user}/ai-model-list:
-    get: todo
-
-    # PUT only updates a model, and POST creates a new model (POST is WIP)
-    put: todo
+    get:
+      summary: todo
+      description: This was intended for chat interface, but the plan has changed and we're not developing chat interface for ragithub. Please use `GET /ai-model-list` API instead.
+    put:
+      summary: todo
+      description: This was intended for chat interface, but the plan has changed and we're not developing chat interface for ragithub. Please use `PUT /ai-model-list` API instead.
   /user-list/{user}/api-key-list:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetApiKeyList
@@ -815,8 +773,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiKey'
     post:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: CreateApiKey
@@ -844,8 +800,6 @@ paths:
                 description: created api key
   /repo-list/{user}:
     get:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: GetRepoList
@@ -880,10 +834,8 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/RepoSimple'
+                  $ref: '#/components/schemas/Repository'
     post:
-      tags:
-        - todo
       summary: todo
       description: todo
       operationId: CreateRepo
@@ -900,7 +852,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RepoCreate'
+              $ref: '#/components/schemas/RepoCreation'
       responses:
         '200':
           description: todo
@@ -913,9 +865,63 @@ paths:
   /repo-list/{user}/{repo}:
     get: todo
     put: todo
+  /ai-model-list:
+    get:
+      summary: todo
+      description: It gets the list of ai models.
+      operationId: GetAiModelList
+      parameters:
+        - name: name
+          in: path
+          required: false
+          description: name of the ai model
+          schema:
+            type: string
+        - name: tags
+          in: path
+          required: false
+          description: comma-separated string of tags
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: offset
+          in: query
+          description: todo
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: todo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AiModel'
+    put:
+      summary: todo
+      description: It updates or inserts an ai model.
+      operationId: PutAiModelList
+      requestBody:
+        description: todo
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiModelCreation'
 components:
   schemas:
-    UserSimple:
+    UserDetail:
       type: object
       properties:
         id:
@@ -947,7 +953,7 @@ components:
           type: string
         public:
           type: boolean
-    RepoSimple:
+    Repository:
       type: object
       properties:
         id:
@@ -970,6 +976,10 @@ components:
           type: integer
           format: int64
           description: sum of the sizes of its archives, in bytes
+        tags:
+          type: array
+          items:
+            type: string
         created_at:
           type: string
           format: date-time
@@ -980,7 +990,7 @@ components:
         updated_at:
           type: string
           format: date-time
-    RepoCreate:
+    RepoCreation:
       type: object
       properties:
         name:
@@ -991,6 +1001,10 @@ components:
         website:
           type: string
           nullable: true
+        tags:
+          type: array
+          items:
+            type: string
         public_read:
           type: boolean
         public_write:
@@ -1169,3 +1183,90 @@ components:
         password:
           type: string
           description: user password in plain text
+    AiModel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: It's a unique identifier of the model. It's a hash value of `name` + `api_name` + `api_provider` + `api_url`.
+        name:
+          type: string
+          description: It's a name for humans.
+        api_name:
+          type: string
+          description: It's a name for apis.
+        api_provider:
+          type: string
+          description: openai | anthropic | cohere | google
+        api_url:
+          type: string
+          nullable: true
+          description: openai-compatible apis need this field. If it's not set, it uses the default url of each api provider.
+        can_read_images:
+          type: bool
+        input_price:
+          type: number
+          format: double
+          description: dollars per 1 million input tokens
+        output_price:
+          type: number
+          format: double
+          description: dollars per 1 million output tokens
+        explanation:
+          type: string
+          nullable: true
+        api_env_var:
+          type: string
+          nullable: true
+          description: Ragit uses this environment variable for api key.
+          example: OPENAI_API_KEY
+        tags:
+          type: array
+          description: It helps users find models more easily in ragithub.
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AiModelCreation:
+      type: object
+      properties:
+        name:
+          type: string
+          description: It's a name for humans.
+        api_name:
+          type: string
+          description: It's a name for apis.
+        api_provider:
+          type: string
+          description: openai | anthropic | cohere | google
+        api_url:
+          type: string
+          nullable: true
+          description: openai-compatible apis need this field. If it's not set, it uses the default url of each api provider.
+        can_read_images:
+          type: bool
+        input_price:
+          type: number
+          format: double
+          description: dollars per 1 million input tokens
+        output_price:
+          type: number
+          format: double
+          description: dollars per 1 million output tokens
+        explanation:
+          type: string
+          nullable: true
+        api_env_var:
+          type: string
+          nullable: true
+          description: Ragit uses this environment variable for api key.
+          example: OPENAI_API_KEY
+        tags:
+          type: array
+          description: It helps users find models more easily in ragithub.
+          items:
+            type: string

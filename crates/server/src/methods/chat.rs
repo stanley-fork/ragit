@@ -1,4 +1,4 @@
-use super::{HandleError, RawResponse, get_pool, handler};
+use super::{HandleError, RawResponse, get_or, get_pool, handler};
 use chrono::Utc;
 use crate::CONFIG;
 use crate::models::{ai_model, chat, repo};
@@ -34,8 +34,8 @@ async fn get_chat_list_(user: String, repo: String, query: HashMap<String, Strin
     let pool = get_pool().await;
     let repo_id = repo::get_id(&user, &repo, pool).await.handle_error(404)?;
     repo::check_auth(repo_id, RepoOperation::Chat, api_key, pool).await.handle_error(500)?.handle_error(404)?;
-    let limit = query.get("limit").map(|s| s.as_ref()).unwrap_or("50").parse::<i64>().unwrap_or(50);
-    let offset = query.get("offset").map(|s| s.as_ref()).unwrap_or("0").parse::<i64>().unwrap_or(0);
+    let limit = get_or(&query, "limit", 50);
+    let offset = get_or(&query, "offset", 0);
     let chats = chat::get_list_by_repo_id(repo_id, limit, offset, pool).await.handle_error(500)?;
 
     Ok(Box::new(json(&chats)))
@@ -93,7 +93,7 @@ async fn post_chat_(
     // There's a quirk. Ragit reads model info from `.ragit/models.json`, but ragit-server wants to
     // store everything on DB. And it does so. So, it first reads model info from the DB and
     // writes `.ragit/models.json` on the fly.
-    ai_model::update_model_schema(&user, &repo, &model_schema).handle_error(500)?;
+    ai_model::update_model_schema_on_disk(&user, &repo, &model_schema).handle_error(500)?;
     let mut index = Index::load(index_at, LoadMode::OnlyJson).handle_error(500)?;
     index.api_config.model = model_name.clone();
     let history = chat::get_history_by_id(chat_id, pool).await.handle_error(500)?;

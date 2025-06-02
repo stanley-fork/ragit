@@ -1,7 +1,7 @@
 use super::{HandleError, RawResponse, check_secure_path, get_or, get_pool, handler};
 use crate::CONFIG;
 use crate::models::file::{FileDetail, FileSimple, FileType};
-use crate::models::repo::{self, RepoCreate, RepoOperation};
+use crate::models::repo::{self, RepoCreation, RepoOperation};
 use crate::models::user;
 use crate::utils::get_rag_path;
 use ragit::{
@@ -24,7 +24,7 @@ use std::collections::{HashMap, HashSet};
 use warp::http::StatusCode;
 use warp::reply::{Reply, json, with_header, with_status};
 
-// I set `body: Value` not `body: RepoCreate` because it gives a better error message for invalid schemas.
+// I set `body: Value` not `body: RepoCreation` because it gives a better error message for invalid schemas.
 // It runs `rag init` on disk.
 pub async fn create_repo(user: String, body: Value, api_key: Option<String>) -> Box<dyn Reply> {
     handler(create_repo_(user, body, api_key).await)
@@ -32,7 +32,7 @@ pub async fn create_repo(user: String, body: Value, api_key: Option<String>) -> 
 
 async fn create_repo_(user: String, body: Value, api_key: Option<String>) -> RawResponse {
     let pool = get_pool().await;
-    let repo = serde_json::from_value::<RepoCreate>(body).handle_error(400)?;
+    let repo = serde_json::from_value::<RepoCreation>(body).handle_error(400)?;
     user::check_auth(&user, api_key, pool).await.handle_error(500)?.handle_error(403)?;
     repo.validate().handle_error(400)?;
     (!repo::check_existence(&user, &repo.name, pool).await.handle_error(500)?).handle_error(400)?;

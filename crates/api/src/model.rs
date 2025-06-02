@@ -201,7 +201,7 @@ pub struct ModelRaw {
 
     pub can_read_images: bool,
 
-    /// `openai | cohere | anthropic`
+    /// `openai | cohere | anthropic | google`
     ///
     /// If you're using an openai-compatible
     /// api, set this to `openai`.
@@ -219,6 +219,10 @@ pub struct ModelRaw {
     /// Dollars per 1 million output tokens.
     pub output_price: f64,
 
+    // FIXME: I set the default value to 180 seconds long ago.
+    //        At that time, it's very common for LLMs to take
+    //        1 ~ 2 minutes to respond. But now, nobody would
+    //        wait 180 seconds. Do I have to reduce it?
     /// The number is in seconds.
     /// If not set, it's default to 180 seconds.
     pub api_timeout: Option<u64>,

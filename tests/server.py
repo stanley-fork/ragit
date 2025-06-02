@@ -207,6 +207,7 @@ def create_repo(
     api_key: Optional[str] = None,
     description: Optional[str] = None,
     website: Optional[str] = None,
+    tags: Optional[list[str]] = None,
     public_read: bool = True,
     public_write: bool = True,
     public_clone: bool = True,
@@ -218,6 +219,7 @@ def create_repo(
         "name": repo,
         "description": description,
         "website": website,
+        "tags": tags or [],
         "public_read": public_read,
         "public_write": public_write,
         "public_clone": public_clone,
@@ -265,24 +267,37 @@ def get_api_key(
     assert response.status_code == 200
     return response.text
 
-def post_json(
+def rest_api(
+    method: str,  # GET | POST | PUT | DELETE
     url: str,
-    body,
+    body = None,
     user: Optional[str] = "test-user",
     repo: Optional[str] = None,
     raw_url: bool = False,
     api_key: Optional[str] = None,
     expected_status_code: Optional[int] = 200,
+    parse_response: bool = False,
 ):
+    kwargs = {}
     headers = {} if api_key is None else { "x-api-key": api_key }
-    response = requests.post(
+
+    if len(headers) > 0:
+        kwargs["headers"] = headers
+
+    if body is not None:
+        kwargs["json"] = body
+
+    response = requests.request(
+        method,
         os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url,
-        json=body,
-        headers=headers,
+        **kwargs,
     )
 
     if expected_status_code is not None:
         assert response.status_code == expected_status_code
+
+    if parse_response and expected_status_code == 200:
+        return json.loads(response.text)
 
 def get_json(
     url: str,
@@ -291,18 +306,63 @@ def get_json(
     raw_url: bool = False,
     api_key: Optional[str] = None,
     expected_status_code: Optional[int] = 200,
+    parse_response: bool = True,
 ):
-    headers = {} if api_key is None else { "x-api-key": api_key }
-    response = requests.get(
-        os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url,
-        headers=headers,
+    return rest_api(
+        method="GET",
+        url=url,
+        body=None,
+        user=user,
+        repo=repo,
+        raw_url=raw_url,
+        api_key=api_key,
+        expected_status_code=expected_status_code,
+        parse_response=parse_response,
     )
 
-    if expected_status_code is not None:
-        assert response.status_code == expected_status_code
+def post_json(
+    url: str,
+    body,
+    user: Optional[str] = "test-user",
+    repo: Optional[str] = None,
+    raw_url: bool = False,
+    api_key: Optional[str] = None,
+    expected_status_code: Optional[int] = 200,
+    parse_response: bool = False,
+):
+    return rest_api(
+        method="POST",
+        url=url,
+        body=body,
+        user=user,
+        repo=repo,
+        raw_url=raw_url,
+        api_key=api_key,
+        expected_status_code=expected_status_code,
+        parse_response=parse_response,
+    )
 
-    if expected_status_code == 200:
-        return json.loads(response.text)
+def put_json(
+    url: str,
+    body,
+    user: Optional[str] = "test-user",
+    repo: Optional[str] = None,
+    raw_url: bool = False,
+    api_key: Optional[str] = None,
+    expected_status_code: Optional[int] = 200,
+    parse_response: bool = False,
+):
+    return rest_api(
+        method="PUT",
+        url=url,
+        body=body,
+        user=user,
+        repo=repo,
+        raw_url=raw_url,
+        api_key=api_key,
+        expected_status_code=expected_status_code,
+        parse_response=parse_response,
+    )
 
 def assert_eq_json(path: str, value):
     file = json.loads(read_string(os.path.join(".ragit", path)))

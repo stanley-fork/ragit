@@ -8,6 +8,7 @@ use warp::http::status::StatusCode;
 use warp::reply::{Reply, with_header, with_status};
 
 mod admin;
+mod ai_model;
 mod auth;
 mod chat;
 mod chunk;
@@ -27,6 +28,10 @@ mod user;
 pub use admin::{
     drop_all,
     truncate_all,
+};
+pub use ai_model::{
+    get_ai_model_list,
+    put_ai_model_list,
 };
 pub use auth::{
     create_api_key,
@@ -84,10 +89,10 @@ pub use repo_fs::{
 pub use search::search;
 pub use user::{
     create_user,
-    get_ai_model_list,
     get_user,
+    get_user_ai_model_list,
     get_user_list,
-    put_ai_model_list,
+    put_user_ai_model_list,
 };
 
 static POOL: tokio::sync::OnceCell<PgPool> = tokio::sync::OnceCell::const_new();

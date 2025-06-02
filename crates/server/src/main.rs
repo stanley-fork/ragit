@@ -269,22 +269,22 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(get_repo);
 
-    let get_ai_model_list_handler = warp::get()
+    let get_user_ai_model_list_handler = warp::get()
         .and(warp::path("user-list"))
         .and(warp::path::param::<String>())
         .and(warp::path("ai-model-list"))
         .and(warp::path::end())
         .and(warp::header::optional::<String>("x-api-key"))
-        .then(get_ai_model_list);
+        .then(get_user_ai_model_list);
 
-    let put_ai_model_list_handler = warp::put()
+    let put_user_ai_model_list_handler = warp::put()
         .and(warp::path("user-list"))
         .and(warp::path::param::<String>())
         .and(warp::path("ai-model-list"))
         .and(warp::path::end())
         .and(warp::body::json())
         .and(warp::header::optional::<String>("x-api-key"))
-        .then(put_ai_model_list);
+        .then(put_user_ai_model_list);
 
     let create_repo_handler = warp::post()
         .and(warp::path("repo-list"))
@@ -459,6 +459,19 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(search);
 
+    let get_ai_model_list_handler = warp::get()
+        .and(warp::path("ai-model-list"))
+        .and(warp::path::end())
+        .and(warp::query::<HashMap<String, String>>())
+        .then(get_ai_model_list);
+
+    let put_ai_model_list_handler = warp::put()
+        .and(warp::path("ai-model-list"))
+        .and(warp::path::end())
+        .and(warp::body::json::<Value>())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(put_ai_model_list);
+
     let get_health_handler = warp::get()
         .and(warp::path("health"))
         .map(get_health);
@@ -469,9 +482,9 @@ async fn main() {
         get_server_version_handler
             .or(get_user_list_handler)
             .or(get_repo_list_handler)
-            .or(get_ai_model_list_handler)
-            .or(put_ai_model_list_handler)
             .or(get_user_handler)
+            .or(get_user_ai_model_list_handler)
+            .or(put_user_ai_model_list_handler)
             .or(get_repo_handler)
             .or(get_index_handler)
             .or(get_config_handler)
@@ -509,6 +522,8 @@ async fn main() {
             .or(get_api_key_list_handler)
             .or(create_api_key_handler)
             .or(search_handler)
+            .or(get_ai_model_list_handler)
+            .or(put_ai_model_list_handler)
             .or(get_health_handler)
             .or(not_found_handler)
             .with(warp::log::custom(
@@ -531,6 +546,7 @@ async fn main() {
     ).run(([0, 0, 0, 0], args.port_number.unwrap_or(config.port_number))).await;
 }
 
+use ragit_server::models::ai_model::AiModelCreation;
 use ragit_api::{Model, ModelRaw, get_model_by_name};
 
 // It sets global value `crate::CONFIG`.
@@ -655,8 +671,15 @@ fn initinalize_server(args: &RunArgs) {
     }
 
     let models = read_string(&config.default_models).unwrap();
-    let models = serde_json::from_str::<Vec<ModelRaw>>(&models).unwrap();
-    let models_parsed = models.iter().map(|model| Model::try_from(model).unwrap()).collect::<Vec<_>>();
+
+    // There are unnecessarily many schemas for ai models.
+    // 1. `ragit_api::Model`: what ragit internally uses
+    // 2. `ragit_api::ModelRaw`: schema for `models.json`
+    // 3. `ragit_server::AiModelCreation`: schema for `ai_model` table in DB
+    let models1 = serde_json::from_str::<Vec<AiModelCreation>>(&models).unwrap();
+    let models2 = serde_json::from_str::<Vec<ModelRaw>>(&models).unwrap();
+
+    let models_parsed = models2.iter().map(|model| Model::try_from(model).unwrap()).collect::<Vec<_>>();
     let default_model = match get_model_by_name(&models_parsed, &config.default_ai_model) {
         Ok(model) => model.name.clone(),
         Err(_) => {
@@ -664,15 +687,15 @@ fn initinalize_server(args: &RunArgs) {
                 "Ai model `{}` is not found in `{}`. Choosing `{}` as a default model.",
                 config.default_ai_model,
                 config.default_models,
-                &models[0].name,
+                &models2[0].name,
             );
 
-            models[0].name.clone()
+            models2[0].name.clone()
         },
     };
 
     let ai_model_config = AiModelConfig {
-        default_models: models,
+        default_models: models1,
         default_model,
     };
 

@@ -199,6 +199,9 @@ def clean_test_output(s: str) -> str:
 
     return s
 
+def deepcopy(v):
+    return eval(str(v))
+
 def get_commit_hash():
     try:
         import subprocess

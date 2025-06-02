@@ -26,6 +26,7 @@ pub struct Repository {
     pub website: Option<String>,
     pub stars: i32,
     pub repo_size: i64,  // sum of the size of its archives, in bytes
+    pub tags: Vec<String>,
     #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
     #[serde(with = "ts_milliseconds_option")]
@@ -37,10 +38,11 @@ pub struct Repository {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct RepoCreate {
+pub struct RepoCreation {
     pub name: String,
     pub description: Option<String>,
     pub website: Option<String>,
+    pub tags: Vec<String>,
     pub public_read: bool,
     pub public_write: bool,
     pub public_clone: bool,
@@ -48,7 +50,7 @@ pub struct RepoCreate {
     pub public_chat: bool,
 }
 
-impl RepoCreate {
+impl RepoCreation {
     pub fn validate(&self) -> bool {
         // e.g. name is r"[a-zA-Z0-9_-]+"
         // TODO
@@ -61,6 +63,7 @@ impl RepoCreate {
 pub struct RepoUpdate {
     pub description: Option<String>,
     pub website: Option<String>,
+    pub tags: Vec<String>,
     pub public_read: bool,
     pub public_write: bool,
     pub public_clone: bool,
@@ -93,6 +96,7 @@ pub async fn get_list(
             description,
             website,
             stars,
+            tags,
             (SELECT SUM(blob_size) FROM archive WHERE session_id = repository.push_session_id) AS repo_size,
             public_read,
             repository.created_at,
@@ -120,6 +124,7 @@ pub async fn get_list(
             description: row.description.clone(),
             website: row.website.clone(),
             stars: row.stars,
+            tags: row.tags.clone(),
             repo_size: row.repo_size.unwrap_or(0),
             created_at: row.created_at,
             pushed_at: row.pushed_at,
@@ -140,6 +145,7 @@ pub async fn get_repository(repo_id: i32, pool: &PgPool) -> Result<Repository, E
             description,
             website,
             stars,
+            tags,
             (SELECT SUM(blob_size) FROM archive WHERE session_id = repository.push_session_id) AS repo_size,
             repository.created_at,
             pushed_at,
@@ -157,6 +163,7 @@ pub async fn get_repository(repo_id: i32, pool: &PgPool) -> Result<Repository, E
         description: row.description,
         website: row.website,
         stars: row.stars,
+        tags: row.tags.clone(),
         repo_size: row.repo_size.unwrap_or(0),
         created_at: row.created_at,
         pushed_at: row.pushed_at,
@@ -174,7 +181,7 @@ pub async fn check_existence(user: &str, repo: &str, pool: &PgPool) -> Result<bo
     Ok(!rows.is_empty())
 }
 
-pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) -> Result<i32, Error> {
+pub async fn create_and_return_id(user: &str, repo: &RepoCreation, pool: &PgPool) -> Result<i32, Error> {
     let repo_id = crate::query!(
         "INSERT
         INTO repository (
@@ -183,6 +190,7 @@ pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) 
             description,
             website,
             stars,
+            tags,
             public_read,
             public_write,
             public_clone,
@@ -201,11 +209,12 @@ pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) 
             $3,    -- description
             $4,    -- website
             0,     -- stars
-            $5,    -- public_read
-            $6,    -- public_write
-            $7,    -- public_clone
-            $8,   -- public_push
-            $9,   -- public_chat
+            $5,    -- tags
+            $6,    -- public_read
+            $7,    -- public_write
+            $8,    -- public_clone
+            $9,    -- public_push
+            $10,   -- public_chat
             0,     -- chunk_count
             NULL,  -- push_session_id
             NOW(), -- created_at
@@ -218,6 +227,7 @@ pub async fn create_and_return_id(user: &str, repo: &RepoCreate, pool: &PgPool) 
         repo.name.clone(),
         repo.description.clone(),
         repo.website.clone(),
+        &repo.tags,
         repo.public_read,
         repo.public_write,
         repo.public_clone,
@@ -234,14 +244,16 @@ pub async fn update_repo(repo_id: i32, repo: RepoUpdate, pool: &PgPool) -> Resul
         SET
             description = $1,
             website = $2,
-            public_read = $3,
-            public_write = $4,
-            public_clone = $5,
-            public_push = $6,
-            public_chat = $7
-        WHERE id = $8",
+            tags = $3,
+            public_read = $4,
+            public_write = $5,
+            public_clone = $6,
+            public_push = $7,
+            public_chat = $8
+        WHERE id = $9",
         repo.description.as_ref().map(|s| s.as_str()),
         repo.website.as_ref().map(|s| s.as_str()),
+        &repo.tags,
         repo.public_read,
         repo.public_write,
         repo.public_clone,
