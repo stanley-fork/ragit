@@ -12,7 +12,9 @@ pub struct UserDetail {
     pub email: Option<String>,
     pub readme: Option<String>,
     pub public: bool,
+    #[serde(with = "ts_milliseconds")]
     pub created_at: DateTime<Utc>,
+    #[serde(with = "ts_milliseconds_option")]
     pub last_login_at: Option<DateTime<Utc>>,
 }
 
