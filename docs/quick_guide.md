@@ -4,25 +4,44 @@ First, let's say there're text files explaining ai. We'll build a knowledge-base
 
 ```
 ai_tutorials/
- ├ ai_tutorial_1.txt
- ├ ai_tutorial_2.txt
- ├ ai_tutorial_3.txt
- ╰ ... and many more txt files
+  |
+  *-- ai_tutorial_1.txt
+  |
+  *-- ai_tutorial_2.txt
+  |
+  *-- ai_tutorial_3.txt
+  |
+  *-- ... and many more txt files
 ```
 
 Run `cd ai_tutorial; rag init`. You'll see a new directory created like below.
 
 ```
 ai_tutorials/
- ├ .ragit/
- │  ├ chunks/
- │  ├ configs/
- │  ├ prompts/
- │  ╰ index.json
- ├ ai_tutorial_1.txt
- ├ ai_tutorial_2.txt
- ├ ai_tutorial_3.txt
- ╰ ... and many more txt files
+  |
+  *-- .ragit/
+  |   |
+  |   *-- chunks/
+  |   |
+  |   *-- configs/
+  |   |
+  |   *-- files/
+  |   |
+  |   *-- images/
+  |   |
+  |   *-- prompts/
+  |   |
+  |   *-- index.json
+  |   |
+  |   *-- models.json
+  |
+  *-- ai_tutorial_1.txt
+  |
+  *-- ai_tutorial_2.txt
+  |
+  *-- ai_tutorial_3.txt
+  |
+  *-- ... and many more txt files
 ```
 
 `.ragit/` is like `.git/` of git repositories. It saves metadata and chunks. After `rag init`, the knowledge-base is empty. You have to add files to the staging using `rag add` command.
@@ -32,10 +51,10 @@ Run `rag add --all`. Now you're ready to build the knowledge-base. Run `rag buil
 ```
 elapsed time: 00:33
 staged files: 15, processed files: 13
-remaining chunks (approx): 27
-committed chunks: 1
-currently processing files: `ai_tutorial_14.txt`, `ai_tutorial_21.txt`
+errors: 0
+committed chunks: 39
 buffered files: 8, buffered chunks: 8
+flush count: 1
 model: gpt-4o-mini
 input tokens: 14081 (0.001$), output tokens: 1327 (0.000$)
 ```
@@ -46,16 +65,32 @@ You can press Ctrl+C to pause the process. You can resume from where you left of
 
 ```
 ai_tutorials/
- ├ .ragit/
- │  ├ chunks/
- │  │  ╰ ... a lot of files ...
- │  ├ configs/
- │  ├ prompts/
- │  ╰ index.json
- ├ ai_tutorial_1.txt
- ├ ai_tutorial_2.txt
- ├ ai_tutorial_3.txt
- ╰ ... and many more txt files
+  |
+  *-- .ragit/
+  |   |
+  |   *-- chunks/
+  |   |   |
+  |   |   *-- ... a lot of directories
+  |   |
+  |   *-- configs/
+  |   |
+  |   *-- files/
+  |   |
+  |   *-- images/
+  |   |
+  |   *-- prompts/
+  |   |
+  |   *-- index.json
+  |   |
+  |   *-- models.json
+  |
+  *-- ai_tutorial_1.txt
+  |
+  *-- ai_tutorial_2.txt
+  |
+  *-- ai_tutorial_3.txt
+  |
+  *-- ... and many more txt files
 ```
 
 After it's built, you'll see many data files in the `.ragit/` directory. You can ask queries on the knowledge-base now.
@@ -76,11 +111,20 @@ Before downloading knowledge-bases, we have to init a rag index. Run `rag init`.
 
 ```
 playground
- ╰ .ragit
-    ├ chunks/
-    ├ configs/
-    ├ prompts/
-    ╰ index.json
+  |
+  *-- .ragit/
+      |
+      *-- chunks/
+      |
+      *-- configs/
+      |
+      *-- files/
+      |
+      *-- prompts/
+      |
+      *-- index.json
+      |
+      *-- models.json
 ```
 
 You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone http://ragit.baehyunsol.com/sample/git`
@@ -89,42 +133,47 @@ You'll see an empty rag index. Now we have to download knowledge-bases from the 
 - [ragit](http://ragit.baehyunsol.com/sample/ragit)
 - [rustc-dev-guide](http://ragit.baehyunsol.com/sample/rustc)
 
-Let's clone all of them. Run `rag clone http://ragit.baehyunsol.com/sample/git; rag clone http://ragit.baehyunsol.com/sample/ragit; rag clone http://ragit.baehyunsol.com/sample/rustc;`
+Let's clone all of them. You cannot clone them inside `playground/`, because you knowledge-bases cannot be nested. Please make sure to `cd ..;` before you clone them.
+
+Run `cd ..; rag clone http://ragit.baehyunsol.com/sample/git; rag clone http://ragit.baehyunsol.com/sample/ragit; rag clone http://ragit.baehyunsol.com/sample/rustc;`
 
 ```
-playground
- ├ .ragit
- │  ├ chunks/
- │  ├ configs/
- │  ├ prompts/
- │  ╰ index.json
- ├ git
- │  ╰ .ragit
- │     ├ chunks/
- │     ├ configs/
- │     ├ prompts/
- │     ╰ index.json
- ├ ragit
- │  ╰ .ragit
- │     ├ chunks/
- │     ├ configs/
- │     ├ prompts/
- │     ╰ index.json
- ╰ rustc
-    ╰ .ragit
-       ├ chunks/
-       ├ configs/
-       ├ prompts/
-       ╰ index.json
+<cwd>
+  |
+  *-- playground
+  |   |
+  |   *-- .ragit/
+  |       |
+  |       *-- .. many files and directories
+  |
+  *-- git
+  |   |
+  |   *-- .ragit/
+  |       |
+  |       *-- .. many files and directories
+  |
+  *-- ragit
+  |   |
+  |   *-- .ragit/
+  |       |
+  |       *-- .. many files and directories
+  |
+  *-- rustc
+      |
+      *-- .ragit/
+          |
+          *-- .. many files and directories
 ```
 
-Now we have 1 empty knowledge-base and 3 complete knowledge-bases in the playground. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one. Run `rag merge ./git --prefix=git`, `rag merge ./ragit --prefix=ragit` and `rag merge ./rustc --prefix=rustc`.
+Now we have 1 empty knowledge-base and 3 complete knowledge-bases. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one (playground).
+
+Run `cd playground`. `rag merge ../git --prefix=git`, `rag merge ../ragit --prefix=ragit` and `rag merge ../rustc --prefix=rustc`.
 
 ## 3. Change Configs
 
 Before asking a question or building a knowledge-base, you may want to change configurations. Configurations are very important because most commands cost money and you can optimize it with proper configurations.
 
-### Per-Repository Configuration
+### Per Knowledge-Base Configuration
 
 Run `rag config --get model`. You'll see which model is used to answer your queries and build a knowledge-base.
 

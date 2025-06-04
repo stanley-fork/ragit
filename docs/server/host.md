@@ -1,4 +1,8 @@
-It requires a postgres DB to run. If you're not sure what to do, ask chatGPT `"I want to run a simple web server and the server wants me a URL of a postgres DB. How do I host a postgres DB?"`.
+# Hosting ragit-server
+
+You can host a simple server where you can clone/push knowledge-bases to.
+
+It requires a postgres DB to run. Create an empty postgres instance, and it'll do the rest.
 
 With the DB, please set env var `DATABASE_URL` with the DB URL (TODO: use dotenvy crate).
 
@@ -11,3 +15,5 @@ This has to be done before compilation or migration. If it's first time running 
 Now you're good to go.
 
 > `cargo run --release -- run`
+
+By default, it runs on port 41127. You can change the port number with `--port` option.

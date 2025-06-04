@@ -2,12 +2,10 @@ openapi: "3.0.4"
 info:
   title: ragit-server
   description: backend for ragithub
-  version: 0.1.0
+  version: 0.4.0
 paths:
   /{user}/{repo}/index/:
     get:
-      summary: todo
-      description: todo
       operationId: GetIndex
       parameters:
         - name: user
@@ -31,8 +29,6 @@ paths:
                 type: object
   /{user}/{repo}/config/{config}:
     get:
-      summary: todo
-      description: todo
       operationId: GetConfig
       parameters:
         - name: user
@@ -62,8 +58,6 @@ paths:
                 type: object
   /{user}/{repo}/prompt/{prompt}:
     get:
-      summary: todo
-      description: todo
       operationId: GetPrompt
       parameters:
         - name: user
@@ -93,8 +87,6 @@ paths:
                 type: string
   /{user}/{repo}/uid:
     get:
-      summary: todo
-      description: todo
       operationId: GetRepoUid
       parameters:
         - name: user
@@ -109,7 +101,7 @@ paths:
           description: repository name
           schema:
             type: string
-      response:
+      responses:
         '200':
           description: uid of the repository
           content:
@@ -119,8 +111,6 @@ paths:
                 description: uid of the repository
   /{user}/{repo}/chunk-count:
     get:
-      summary: todo
-      description: todo
       operationId: GetChunkCount
       parameters:
         - name: user
@@ -145,8 +135,6 @@ paths:
                 format: int64
   /{user}/{repo}/chunk-list/{chunk-prefix}:
     get:
-      summary: todo
-      description: todo
       operationId: GetChunkList
       parameters:
         - name: user
@@ -178,8 +166,6 @@ paths:
                   type: string
   /{user}/{repo}/chunk-list/:
     get:
-      summary: todo
-      description: todo
       operationId: GetChunkListAll
       parameters:
         - name: user
@@ -205,8 +191,6 @@ paths:
                   type: string
   /{user}/{repo}/chunk/{chunk-uid}:
     get:
-      summary: todo
-      description: todo
       operationId: GetChunk
       parameters:
         - name: user
@@ -236,8 +220,6 @@ paths:
                 $ref: '#/components/schemas/ChunkDetail'
   /{user}/{repo}/image-list/{image-prefix}:
     get:
-      summary: todo
-      description: todo
       operationId: GetImageList
       parameters:
         - name: user
@@ -269,8 +251,6 @@ paths:
                   type: string
   /{user}/{repo}/image/{image-uid}:
     get:
-      summary: todo
-      description: todo
       operationId: GetImage
       parameters:
         - name: user
@@ -301,8 +281,6 @@ paths:
                 format: binary
   /{user}/{repo}/image-desc/{image-uid}:
     get:
-      summary: todo
-      description: todo
       operationId: GetImageDescription
       parameters:
         - name: user
@@ -337,7 +315,6 @@ paths:
                     type: string
   /{user}/{repo}/file-content:
     get:
-      summary: todo
       description: get a content of a file or a directory
       operationId: GetFileContent
       parameters:
@@ -360,7 +337,6 @@ paths:
             type: string
         - name: limit
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -368,7 +344,6 @@ paths:
             default: 100
         - name: offset
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -376,14 +351,13 @@ paths:
             default: 0
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FileDetail'
   /{user}/{repo}/cat-file/{uid}:
     get:
-      summary: todo
       description: If you want to get a content of a file or a chunk, I recommend you use `/{user}/{repo}/content/{uid}` api instead of this. This api exists for historical reasons.
       operationId: GetCatFile
       parameters:
@@ -414,7 +388,6 @@ paths:
                 type: string
   /{user}/{repo}/content/{uid}:
     get:
-      summary: todo
       description: It's useful when you want to render a content of a chunk or a file. It doesn't give you the content of the original file, but a version that LLMs actually see when they RAG.
       operationId: GetContent
       parameters:
@@ -438,7 +411,7 @@ paths:
             type: string
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -446,13 +419,13 @@ paths:
                 items:
                   $ref: '#/components/schemas/MultiModalContent'
   /{user}/{repo}/archive-list:
-    get: todo
+    get:
+      description: Ragit client uses this API to clone knowledge-bases.
   /{user}/{repo}/archive/{archive-id}:
-    get: todo
+    get:
+      description: Ragit client uses this API to clone knowledge-bases.
   /{user}/{repo}/meta:
     get:
-      summary: todo
-      description: todo
       operationId: GetMeta
       parameters:
         - name: user
@@ -478,8 +451,6 @@ paths:
                   type: string
   /{user}/{repo}/meta/{key}:
     get:
-      summary: todo
-      description: todo
       operationId: GetMetaByKey
       parameters:
         - name: user
@@ -510,8 +481,6 @@ paths:
                 nullable: true
   /{user}/{repo}/version:
     get:
-      summary: todo
-      description: todo
       operationId: GetRepoVersion
       parameters:
         - name: user
@@ -535,10 +504,27 @@ paths:
                 type: string
                 example: "0.4.0-dev"
   /{user}/{repo}/build-search-index:
-    post: todo
+    post:
+      description: "This is the same as running `rag ii-build` in a local repository. It is helpful when you want to search for chunks in the server."
+      operationId: PostBuildSearchIndex
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "It doesn't return anything."
   /{user}/{repo}/search:
     get:
-      summary: todo
       description: search for chunks in this repository. There's no `sort-by` or `sort-ord` option. If you provide `query` parameter, it sorts the result by tfidf-score. Otherwise, it uses `chunk.sortable_string()` methods which usually sorts the chunks by file name.
       operationId: searchChunk
       parameters:
@@ -571,7 +557,6 @@ paths:
             type: string
         - name: limit
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -579,7 +564,6 @@ paths:
             default: 100
         - name: offset
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -587,7 +571,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -595,15 +579,15 @@ paths:
                 items:
                   $ref: '#/components/schemas/ChunkDetail'
   /{user}/{repo}/begin-push:
-    post: todo
+    post:
+      description: Ragit client uses this API to push knowledge-bases.
   /{user}/{repo}/archive:
-    post: todo
+      description: Ragit client uses this API to push knowledge-bases.
   /{user}/{repo}/finalize-push:
-    post: todo
+      description: Ragit client uses this API to push knowledge-bases.
   /{user}/{repo}/traffic:
     get:
-      summary: todo
-      description: todo
+      description: It gives you numbers of push/clone of this repository.
       operationId: GetTraffic
       parameters:
         - name: user
@@ -620,7 +604,7 @@ paths:
             type: string
       responses:
         '200':
-          description: todo
+          description: "The response has 15 keys: \"all\" and 14 dates. \"all\" has the number of push/clone for all time. Each date has the number of push/clone at that date. A date has format \"2025-06-01\". It gives 14 most recent days."
           content:
             application/json:
               schema:
@@ -636,8 +620,6 @@ paths:
                       format: int64
   /{user}/{repo}/chat/{chat-id}:
     get:
-      summary: todo
-      description: todo
       operationId: getChat
       parameters:
         - name: user
@@ -667,27 +649,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/ChatWithHistory'
     post:
-      summary: todo
       description: Ragithub's chat interface is WIP and we're not working on it anymore.
   /{user}/{repo}/chat-list:
     get:
-      summary: todo
       description: Ragithub's chat interface is WIP and we're not working on it anymore.
     post:
-      summary: todo
       description: Ragithub's chat interface is WIP and we're not working on it anymore.
   /health:
     get:
-      summary: todo
-      description: todo
       operationId: GetHealth
       responses:
         '200':
-          description: todo
+          description: ""
   /version:
     get:
-      summary: todo
-      description: todo
       operationId: GetServerVersion
       responses:
         '200':
@@ -699,13 +674,10 @@ paths:
                 example: "0.4.0-dev"
   /user-list:
     get:
-      summary: todo
-      description: todo
       operationId: GetUserList
       parameters:
         - name: limit
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -713,7 +685,6 @@ paths:
             default: 50
         - name: offset
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -721,7 +692,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -729,11 +700,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/UserSimple'
     post:
-      summary: todo
       description: It creates a new user. If it's the first user, the user becomes an admin.
       operationId: CreateUser
       requestBody:
-        description: todo
         required: true
         content:
           application/json:
@@ -743,18 +712,45 @@ paths:
         '200':
           description: The response has no body.
   /user-list/{user}:
-    get: todo
+    get:
+      operationId: GetUser
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        '200':
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDetail'
   /user-list/{user}/ai-model-list:
     get:
-      summary: todo
       description: This was intended for chat interface, but the plan has changed and we're not developing chat interface for ragithub. Please use `GET /ai-model-list` API instead.
     put:
-      summary: todo
       description: This was intended for chat interface, but the plan has changed and we're not developing chat interface for ragithub. Please use `PUT /ai-model-list` API instead.
   /user-list/{user}/api-key-list:
     get:
-      summary: todo
-      description: todo
       operationId: GetApiKeyList
       parameters:
         - name: user
@@ -765,7 +761,7 @@ paths:
             type: string
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -773,8 +769,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiKey'
     post:
-      summary: todo
-      description: todo
       operationId: CreateApiKey
       parameters:
         - name: user
@@ -784,7 +778,6 @@ paths:
           schema:
             type: string
       requestBody:
-        description: todo
         required: true
         content:
           application/json:
@@ -792,7 +785,7 @@ paths:
               $ref: '#/components/schemas/ApiKeyCreation'
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             text/plain:
               schema:
@@ -800,8 +793,6 @@ paths:
                 description: created api key
   /repo-list/{user}:
     get:
-      summary: todo
-      description: todo
       operationId: GetRepoList
       parameters:
         - name: user
@@ -812,7 +803,6 @@ paths:
             type: string
         - name: limit
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -820,7 +810,6 @@ paths:
             default: 50
         - name: offset
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -828,7 +817,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -836,8 +825,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/Repository'
     post:
-      summary: todo
-      description: todo
       operationId: CreateRepo
       parameters:
         - name: user
@@ -847,7 +834,6 @@ paths:
           schema:
             type: string
       requestBody:
-        description: todo
         required: true
         content:
           application/json:
@@ -855,7 +841,7 @@ paths:
               $ref: '#/components/schemas/RepoCreation'
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -863,29 +849,71 @@ paths:
                 format: int32
                 description: repo id
   /repo-list/{user}/{repo}:
-    get: todo
-    put: todo
+    get:
+      operationId: GetRepo
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: '$/components/schemas/Repository'
+    put:
+      operationId: UpdateRepo
+      parameters:
+        - name: user
+          in: path
+          required: true
+          description: user id
+          schema:
+            type: string
+        - name: repo
+          in: path
+          required: true
+          description: repository name
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepoUpdate'
+      responses:
+        '200':
+          description: ""
   /ai-model-list:
     get:
-      summary: todo
       description: It gets the list of ai models.
       operationId: GetAiModelList
       parameters:
         - name: name
-          in: path
+          in: query
           required: false
           description: name of the ai model
           schema:
             type: string
         - name: tags
-          in: path
+          in: query
           required: false
           description: comma-separated string of tags
           schema:
             type: string
         - name: limit
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -893,7 +921,6 @@ paths:
             default: 50
         - name: offset
           in: query
-          description: todo
           required: false
           schema:
             type: integer
@@ -901,7 +928,7 @@ paths:
             default: 0
       responses:
         '200':
-          description: todo
+          description: ""
           content:
             application/json:
               schema:
@@ -909,11 +936,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/AiModel'
     put:
-      summary: todo
       description: It updates or inserts an ai model.
       operationId: PutAiModelList
       requestBody:
-        description: todo
         required: true
         content:
           application/json:
@@ -922,6 +947,26 @@ paths:
 components:
   schemas:
     UserDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        readme:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        last_login_at:
+          type: string
+          format: date-time
+    UserSimple:
       type: object
       properties:
         id:
@@ -1015,12 +1060,34 @@ components:
           type: boolean
         public_chat:
           type: boolean
+    RepoUpdate:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        public_read:
+          type: boolean
+        public_write:
+          type: boolean
+        public_clone:
+          type: boolean
+        public_push:
+          type: boolean
+        public_chat:
+          type: boolean
     ChunkDetail:
       type: object
       properties:
         uid:
           type: string
-          description: todo
         data:
           type: array
           items:
@@ -1055,6 +1122,7 @@ components:
           type: string
           example: "0.4.0-dev"
     MultiModalContent:
+      description: "Ragit is multimodal: a chunk consists of texts and images. Ragit uses this schema to represent a multimodal content in json."
       type: object
       properties:
         type:
@@ -1188,7 +1256,7 @@ components:
       properties:
         id:
           type: string
-          description: It's a unique identifier of the model. It's a hash value of `name` + `api_name` + `api_provider` + `api_url`.
+          description: "It's a unique identifier of the model. It's a hash value of `name` + `api_name` + `api_provider` + `api_url`."
         name:
           type: string
           description: It's a name for humans.
@@ -1203,7 +1271,7 @@ components:
           nullable: true
           description: openai-compatible apis need this field. If it's not set, it uses the default url of each api provider.
         can_read_images:
-          type: bool
+          type: boolean
         input_price:
           type: number
           format: double
@@ -1248,7 +1316,7 @@ components:
           nullable: true
           description: openai-compatible apis need this field. If it's not set, it uses the default url of each api provider.
         can_read_images:
-          type: bool
+          type: boolean
         input_price:
           type: number
           format: double
