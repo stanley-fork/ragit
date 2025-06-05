@@ -1,3 +1,4 @@
+use chrono::{Datelike, DateTime, Local};
 use crate::error::Error;
 use crate::index::Index;
 use ragit_api::record::Record;
@@ -8,7 +9,7 @@ pub struct Audit {
     pub input_tokens: u64,
     pub output_tokens: u64,
 
-    /// divide this by 1_000_000_000 to get dollars
+    /// divide this by 1_000_000 to get dollars
     pub input_cost: u64,
     pub output_cost: u64,
 }
@@ -32,9 +33,12 @@ impl Index {
     /// `rag audit`
     ///
     /// If `since` is set, it only counts record after the timestamp. It's a unix timestamp, usually acquired by `chrono::Local::now().timestamp()`
-    pub fn audit(&self, since: Option<u64>) -> Result<HashMap<String, Audit>, Error> {
+    pub fn audit(&self, since: Option<DateTime<Local>>) -> Result<HashMap<String, Audit>, Error> {
         let mut result = HashMap::new();
-        let since = since.unwrap_or(0);
+        let since = match since {
+            Some(since) => format!("{:04}{:02}{:02}", since.year(), since.month(), since.day()),
+            None => String::from("00000000"),
+        };
 
         // TODO: it's not a good idea to hard-code all the keys...
         for key in [
@@ -51,12 +55,12 @@ impl Index {
 
             match self.api_config.get_api_usage(&self.root_dir, key) {
                 Ok(records) => {
-                    for Record { input, output, input_weight, output_weight, time } in records.iter() {
-                        if *time >= since {
-                            audit.input_tokens += input;
-                            audit.output_tokens += output;
-                            audit.input_cost += input * input_weight;
-                            audit.output_cost += output * output_weight;
+                    for (date, Record { input_tokens, output_tokens, input_cost, output_cost }) in records.iter() {
+                        if date >= &since {
+                            audit.input_tokens += input_tokens;
+                            audit.output_tokens += output_tokens;
+                            audit.input_cost += input_cost;
+                            audit.output_cost += output_cost;
                         }
                     }
                 },

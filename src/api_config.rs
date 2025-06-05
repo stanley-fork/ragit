@@ -10,6 +10,7 @@ use ragit_fs::{
     write_string,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 // This struct is used for loading partial configurations from ~/.config/ragit/api.json
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -142,7 +143,7 @@ impl ApiConfig {
         }
     }
 
-    pub fn get_api_usage(&self, root_dir: &str, id: &str) -> Result<Vec<Record>, Error> {
+    pub fn get_api_usage(&self, root_dir: &str, id: &str) -> Result<HashMap<String, Record>, Error> {
         match &self.dump_api_usage_at(root_dir, id) {
             Some(RecordAt { path, id }) => {
                 let tracker = Tracker::load_from_file(path)?;
@@ -151,10 +152,10 @@ impl ApiConfig {
                     Some(record) => Ok(record.clone()),
 
                     // It's not an error, it's just that this id was never used
-                    None => Ok(vec![]),
+                    None => Ok(HashMap::new()),
                 }
             },
-            None => Ok(vec![]),  // TODO: is this an error attempting to do this? I'm not sure
+            None => Ok(HashMap::new()),  // TODO: is this an error attempting to do this? I'm not sure
         }
     }
 }

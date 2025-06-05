@@ -1,5 +1,5 @@
 use async_recursion::async_recursion;
-use chrono::Local;
+use chrono::{Days, Local};
 use ragit::{
     AddMode,
     Audit,
@@ -296,7 +296,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let this_week = parsed_args.get_flag(0).is_some();
-            let since = (Local::now().timestamp().max(604800) - 604800) as u64;  // a week is 604800 seconds
+            let since = Local::now().checked_sub_days(Days::new(7)).unwrap();
             let category = parsed_args.arg_flags.get("--category").map(|c| c.to_string());
             let show_tokens = parsed_args.get_flag(1).unwrap_or(String::from("--only-tokens")) != "--only-costs";
             let show_costs = parsed_args.get_flag(1).unwrap_or(String::from("--only-costs")) != "--only-tokens";
@@ -330,7 +330,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         if show_tokens && show_costs { format!("\"category\": {category:?}, ") } else { String::new() },
                         if show_tokens { format!("\"total tokens\": {}, \"input tokens\": {}, \"output tokens\": {}", result.input_tokens + result.output_tokens, result.input_tokens, result.output_tokens) } else { String::new() },
                         if show_tokens && show_costs { ", " } else { "" },
-                        if show_costs { format!("\"total cost\": {:.03}, \"input cost\": {:.03}, \"output cost\": {:.03}", (result.input_cost + result.output_cost) as f64 / 1_000_000_000.0, result.input_cost as f64 / 1_000_000_000.0, result.output_cost as f64 / 1_000_000_000.0) } else { String::new() },
+                        if show_costs { format!("\"total cost\": {:.03}, \"input cost\": {:.03}, \"output cost\": {:.03}", (result.input_cost + result.output_cost) as f64 / 1_000_000.0, result.input_cost as f64 / 1_000_000.0, result.output_cost as f64 / 1_000_000.0) } else { String::new() },
                         "}",
                     );
                 }
@@ -345,9 +345,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
 
                     if show_costs {
-                        println!("    total cost:  {:.03}$", (result.input_cost + result.output_cost) as f64 / 1_000_000_000.0);
-                        println!("    input cost:  {:.03}$", result.input_cost as f64 / 1_000_000_000.0);
-                        println!("    output cost: {:.03}$", result.output_cost as f64 / 1_000_000_000.0);
+                        println!("    total cost:  {:.03}$", (result.input_cost + result.output_cost) as f64 / 1_000_000.0);
+                        println!("    input cost:  {:.03}$", result.input_cost as f64 / 1_000_000.0);
+                        println!("    output cost: {:.03}$", result.output_cost as f64 / 1_000_000.0);
                     }
                 }
             }
@@ -373,9 +373,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         }
 
                         if show_costs {
-                            entry.insert(String::from("total cost"), ((audit.input_cost + audit.output_cost) as f64 / 1_000_000_000.0).into());
-                            entry.insert(String::from("input cost"), (audit.input_cost as f64 / 1_000_000_000.0).into());
-                            entry.insert(String::from("output cost"), (audit.output_cost as f64 / 1_000_000_000.0).into());
+                            entry.insert(String::from("total cost"), ((audit.input_cost + audit.output_cost) as f64 / 1_000_000.0).into());
+                            entry.insert(String::from("input cost"), (audit.input_cost as f64 / 1_000_000.0).into());
+                            entry.insert(String::from("output cost"), (audit.output_cost as f64 / 1_000_000.0).into());
                         }
 
                         map.insert(category.to_string(), entry.into());
@@ -396,9 +396,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         }
 
                         if show_costs {
-                            println!("    total cost:  {:.03}$", (audit.input_cost + audit.output_cost) as f64 / 1_000_000_000.0);
-                            println!("    input cost:  {:.03}$", audit.input_cost as f64 / 1_000_000_000.0);
-                            println!("    output cost: {:.03}$", audit.output_cost as f64 / 1_000_000_000.0);
+                            println!("    total cost:  {:.03}$", (audit.input_cost + audit.output_cost) as f64 / 1_000_000.0);
+                            println!("    input cost:  {:.03}$", audit.input_cost as f64 / 1_000_000.0);
+                            println!("    output cost: {:.03}$", audit.output_cost as f64 / 1_000_000.0);
                         }
                     }
                 }

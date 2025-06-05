@@ -389,24 +389,24 @@ impl Index {
         println!("flush count: {flush_count}");
         println!("model: {}", self.api_config.model);
 
-        let mut input_tokens = 0;
-        let mut output_tokens = 0;
-        let mut input_cost = 0;
-        let mut output_cost = 0;
+        let mut input_tokens_s = 0;
+        let mut output_tokens_s = 0;
+        let mut input_cost_s = 0;
+        let mut output_cost_s = 0;
 
         match self.api_config.get_api_usage(&self.root_dir, "create_chunk_from") {
             Ok(api_records) => {
-                for Record { input, output, input_weight, output_weight, .. } in api_records.iter() {
-                    input_tokens += input;
-                    output_tokens += output;
-                    input_cost += input * input_weight;
-                    output_cost += output * output_weight;
+                for Record { input_tokens, output_tokens, input_cost, output_cost } in api_records.values() {
+                    input_tokens_s += *input_tokens;
+                    output_tokens_s += *output_tokens;
+                    input_cost_s += *input_cost;
+                    output_cost_s += *output_cost;
                 }
 
                 println!(
-                    "input tokens: {input_tokens} ({:.3}$), output tokens: {output_tokens} ({:.3}$)",
-                    input_cost as f64 / 1_000_000_000.0,
-                    output_cost as f64 / 1_000_000_000.0,
+                    "input tokens: {input_tokens_s} ({:.3}$), output tokens: {output_tokens_s} ({:.3}$)",
+                    input_cost_s as f64 / 1_000_000.0,
+                    output_cost_s as f64 / 1_000_000.0,
                 );
             },
             Err(_) => {
