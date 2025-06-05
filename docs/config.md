@@ -33,112 +33,69 @@ A recommended way of reading/writing config is `rag config` command.
 
 ## Reference
 
-(Dear contributors, below section is auto-generated. Do not modify manually.)
-
-```rust
-
-// default values
-// chunk_size: 4000,
-// slide_len: 1000,
-// image_size: 2000,
-// min_summary_len: 200,
-// max_summary_len: 1000,
-// strict_file_reader: false,
-// compression_threshold: 2048,
-// compression_level: 3,
-struct BuildConfig {
-    /// It's not a max_chunk_size, and it's impossible to make every chunk have the same size because
-    ///
-    /// 1. An image cannot be splitted.
-    /// 2. Different files cannot be merged.
-    ///
-    /// But it's guaranteed that a chunk is never bigger than chunk_size * 2.
-    chunk_size: usize,
-
-    slide_len: usize,
-
-    /// An image is treated like an N characters string, and this is N.
-    image_size: usize,
-
-    /// It forces the LLM to generate a summary that has at least `min_summary_len` characters
-    /// and at most `max_summary_len` characters.
-    min_summary_len: usize,
-    max_summary_len: usize,
-
-    /// If it's set, `rag build` panics if there's any error with a file.
-    /// For example, if there's an invalid utf-8 character `PlainTextReader` would die.
-    /// If it cannot follow a link of an image in a markdown file, it would die.
-    /// You don't need this option unless you're debugging ragit itself.
-    strict_file_reader: bool,
-
-    /// If the `.chunks` file is bigger than this (in bytes), the file is compressed
-    compression_threshold: u64,
-
-    /// 0 ~ 9
-    compression_level: u32,
-}
-
-// default values
-// max_titles: 32,
-// max_summaries: 10,
-// max_retrieval: 3,
-// enable_ii: true,
-// enable_rag: true,
-// super_rerank: false,
-struct QueryConfig {
-    /// This is deprecated and not used any more. It's here for backward compatibility.
-    max_titles: usize,
-
-    /// If there are more than this amount of chunks, it runs tf-idf to select chunks.
-    max_summaries: usize,
-
-    /// If there are more than this amount of chunks, it runs `rerank_summary` prompt to select chunks.
-    max_retrieval: usize,
-
-    /// If it's enabled, it uses an inverted index when running tf-idf search.
-    /// It doesn't automatically build an inverted index when it's missing. You
-    /// have to run `rag ii-build` manually to build the index.
-    enable_ii: bool,
-
-    /// You can disable the entire rag pipeline. If it's set, ragit never retrieves
-    /// any chunk from the knowledge-base.
-    enable_rag: bool,
-
-    /// If it's enabled, it runs `rerank_summary.pdl` multiple times (usually 5 times) with much more candidates.
-    /// It takes more time and money, but is likely to yield better result.
-    super_rerank: bool,
-}
-
-// default values
-// api_key: None,
-// dump_log: false,
-// dump_api_usage: true,
-// max_retry: 5,
-// sleep_between_retries: 15000,
-// timeout: 120000,
-// sleep_after_llm_call: None,
-// model: "llama3.3-70b-groq",
-struct ApiConfig {
-    /// This value is NOT used anymore. It's here for backward-compatibility.
-    /// You have to use env var or `models.json`.
-    api_key: Option<String>,
-
-    /// Run `rag ls-models` to see the list of the models.
-    model: String,
-    timeout: Option<u64>,
-    sleep_between_retries: u64,
-    max_retry: usize,
-
-    /// It's in milliseconds.
-    /// If you see 429 too often, use this option.
-    sleep_after_llm_call: Option<u64>,
-
-    /// It records every LLM conversation, including failed ones.
-    /// It's useful if you wanna know what's going on!
-    /// But be careful, it would take a lot of space.
-    dump_log: bool,
-
-    /// It records how many tokens are used.
-    dump_api_usage: bool,
-}
-```
+- chunk_size: int (number of characters)
+    - default: 4000
+    - Ragit tries its best to make each chunk smaller than this.
+    - `chunk_size` and `slide_len` isn't always perfect because ragit can handle images. It cannot divide an image into 2 pieces, so an image at the end might make a chunk bigger than `chunk_size`.
+- slide_len: int (number of characters)
+    - default: 1000
+    - There's a sliding window between 2 chunks. Each sliding window has this length.
+    - `chunk_size` and `slide_len` isn't always perfect because ragit can handle images. It cannot divide an image into 2 pieces, so an image at the end might make a chunk bigger than `chunk_size`.
+- image_size: int
+    - default: 2000
+    - If it's 2000, ragit treats an image as 2000 characters (when calculating `chunk_size` and `slide_len`).
+- min_summary_len: int (number of characters)
+    - default: 200
+    - Ragit uses pdl schema to force LLMs generate summaries longer than this.
+- max_summary_len: int (number of characters)
+    - default: 1000
+- strict_file_reader: bool
+    - default: false
+    - It literally makes file readers more strict. For example, if there's a broken svg file, a normal file reader will treat it as a text file while a strict file will refuse to process the file.
+- compression_threshold: int
+    - default: 2048
+- compression_level: int
+    - default: 3
+    - range: 0 ~ 9
+- max_titles: int
+    - default: 32
+    - It's deprecated and not used anymore.
+- max_summaries: int
+    - default: 10
+    - If it's 10, ragit selects 10 chunks with tfidf and reranks the 10 chunks. If there are less than 10 chunks in the knowledge-base, it doesn't run tfidf and directly reranks the chunks.
+- max_retrieval: int
+    - default: 3
+    - If it's 3, ragit selects 3 chunks in the knowledge-base and feed that to LLM's context.
+- enable_ii: bool
+    - default: true
+    - You can enable/disable an inverted-index. The inverted-index makes searching much faster, but the results changes very slightly.
+    - It doesn't build the inverted-index. You have to run `rag ii-build` if you want to build it.
+- enable_rag: bool
+    - default: true
+- super_rerank: bool
+    - default: false
+    - If it's set, it reviews more chunks. It takes much longer time, but is likely to yield better results.
+    - I'm not documenting its implementation: I'll keep trying and testing new strategies.
+- api_key: string
+    - It's deprecated and not used anymore.
+- model: string
+    - Run `rag ls-models` to see the list of the models. You can also fetch new models from ragithub (WIP).
+- max_retry: int
+    - default: 5
+    - If it's set
+- timeout: int (milliseconds)
+    - default: 120000
+    - Timeout for API call.
+- sleep_between_retries: int (milliseconds)
+    - default: 15000
+    - If `max_retry` is set, it sleeps this amount of time between api calls.
+- sleep_after_llm_call: int (milliseconds)
+    - default: null
+    - If you see 429 too often, use this option. You might also want to set `--jobs=1`.
+- dump_log: bool
+    - default: false
+    - It records EVERY api calls, including failed ones. Be careful, it would take a lot of space!
+    - You can find the logs in `.ragit/logs/`
+- dump_api_usage: bool
+    - default: true
+    - It records how many tokens and dollars are used.
