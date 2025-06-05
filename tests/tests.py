@@ -182,7 +182,7 @@ Commands
                                 a knowledge-base.
 
     migrate                     run `migrate` test
-                                It checks out git to v 0.1.1, creates a knowledge-base, and
+                                It checks out git to v 0.2.0, creates a knowledge-base, and
                                 run `migrate` until the knowledge-base is migrated to the
                                 newest version.
                                 Since it runs `git checkout`, it may mess up your working
