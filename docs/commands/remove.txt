@@ -9,22 +9,25 @@ rag-rm - Alias
 SYNOPSIS
 --------
 [verse]
-'rag remove' [--dry-run] [--recursive | -r] [--auto] [--staged | --processed] [--all] <files>...
+'rag remove' [--dry-run] [--recursive | -r] [--auto]
+            [--staged | --processed] [--all] <files>...
 
 DESCRIPTION
 -----------
 Run `rag help chunks` to read documents on chunks and files.
 
-It remove files in a knowledge-base. You can list the names of the files, or use `--all` flag.
-`rag rm --all` is like running `rag rm -r .` in the root directory. The only difference is
-that `rag rm --all` does nothing when the knowledge-base is empty while `rag rm -r .` complains
-that "there's no such file".
+It remove files in a knowledge-base. You can list the names of the files, or
+use `--all` flag. `rag rm --all` is like running `rag rm -r .` in the root
+directory. The only difference is that `rag rm --all` does nothing when the
+knowledge-base is empty while `rag rm -r .` complains that "there's no such file".
 
-Unlike git, it never removes file in the file system. It only modifies ragit's index.
+Unlike git, it never removes file in the file system. It only modifies
+ragit's index.
 
-If a directory name is given, it removes all the files in the directory recursively. This requires
-`--recursive` flag.
+If a directory name is given, it removes all the files in the directory
+recursively. This requires `--recursive` flag.
 
-By default, it removes all the files that are known to ragit. With `--staged` flag, it only removes
-staged files and with `--processed` flag, it only removes processed files. `--auto` is another filter.
-It removes a file in knowledge-base if the file does not exist in the file system.
+By default, it removes all the files that are known to ragit. With `--staged`
+flag, it only removes staged files and with `--processed` flag, it only removes
+processed files. `--auto` is another filter. It removes a file in
+knowledge-base if the file does not exist in the file system.

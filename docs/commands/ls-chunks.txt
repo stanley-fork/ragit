@@ -13,8 +13,8 @@ SYNOPSIS
 DESCRIPTION
 -----------
 Run `rag help uid-query` to read how uid-query works. If the uid is of a chunk,
-if shows the information about the chunk. If it's a file, it shows the information
-about the chunks of the file. If it's an image, it dies.
+if shows the information about the chunk. If it's a file, it shows the
+information about the chunks of the file. If it's an image, it dies.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

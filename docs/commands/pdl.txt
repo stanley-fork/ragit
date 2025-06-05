@@ -8,12 +8,13 @@ rag-pdl - Execute a pdl file
 SYNOPSIS
 --------
 [verse]
-'rag pdl' <file> [--model <model>] [--models <file>] [--context <file>] [--strict] [--escape] [--log <dir>] [--schema <schema>]
+'rag pdl' <file> [--model <model>] [--models <file>] [--context <file>]
+            [--strict] [--escape] [--log <dir>] [--schema <schema>]
 
 DESCRIPTION
 -----------
-This document explains `rag pdl` command, not the pdl format itself. Run `rag help pdl-format`
-to read documents on the file format.
+This document explains `rag pdl` command, not the pdl format itself. Run
+`rag help pdl-format` to read documents on the file format.
 
 Pdl is a Prompt Description Language, which allows you to write pragmatic prompts.
 
@@ -22,14 +23,15 @@ It executes a pdl file and dumps the result to stdout.
 OPTIONS
 -------
 --model::
-        An LLM model to run the prompt with. If the model's not set, it tries to
-        guess the model. If it's inside a knowledge-base, it reads the configuration
-        of the knowledge-base and uses the default model of the knowledge-base.
+        An LLM model to run the prompt with. If the model's not set, it tries
+        to guess the model. If it's inside a knowledge-base, it reads the
+        configuration of the knowledge-base and uses the default model of the
+        knowledge-base.
 
 --models::
-        Path to `models.json` file. If it's not given, ragit will try to find one.
-        If it's inside a knowledge-base, it'll use `.ragit/models.json`. If
-        `~/.config/ragit/models.json` is found, it'll use the file.
+        Path to `models.json` file. If it's not given, ragit will try to find
+        one. If it's inside a knowledge-base, it'll use `.ragit/models.json`.
+        If `~/.config/ragit/models.json` is found, it'll use the file.
 
 --context::
         Path to a json file which adds a context to the prompt. A pdl file is

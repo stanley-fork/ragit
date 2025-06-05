@@ -8,18 +8,21 @@ rag-retrieve-chunks - Retrive chunks that are relevant to a query
 SYNOPSIS
 --------
 [verse]
-'rag retrive-chunks' [--uid-only] [--max-retrieval <n>] [--max-summaries <n>] [--[no-]rerank] [--json | -j] <query>
+'rag retrive-chunks' [--uid-only] [--max-retrieval <n>]
+            [--max-summaries <n>] [--[no-]rerank] [--json | -j] <query>
 
 DESCRIPTION
 -----------
-It runs step 2, 3 and 4 of ragit's pipeline. If you wanna know about the pipeline,
-run `rag help pipeline`. If `--no-rerank` is set, it only runs step 2 and 3.
+It runs step 2, 3 and 4 of ragit's pipeline. If you wanna know about the
+pipeline, run `rag help pipeline`. If `--no-rerank` is set, it only runs
+step 2 and 3.
 
-`--max-summaries` decides how many chunks are selected by tfidf-scores (step 3). If it's
-not set, it uses the value in config.
+`--max-summaries` decides how many chunks are selected by tfidf-scores (step 3).
+If it's not set, it uses the value in config.
 
-`max-retrieval` decides how many chunks are selected by reranker (step 4). If it's not,
-it uses the value in config. If `--no-rerank` is set, this value is ignored.
+`max-retrieval` decides how many chunks are selected by reranker (step 4).
+If it's not, it uses the value in config. If `--no-rerank` is set, this
+value is ignored.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

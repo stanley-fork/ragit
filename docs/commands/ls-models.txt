@@ -14,10 +14,10 @@ DESCRIPTION
 -----------
 It lists the ai models defined in `.ragit/models.json`. If `--selected` is set,
 it filters out models that are not selected. If it fails to find the selected
-model (e.g. something's wrong with the config file), it will show you the lowest
-cost model. This is the default behavior in selecting models. When you run
-`rag build` or `rag query`, it will also fallback to the lowest cost model if it
-cannot find a model.
+model (e.g. something's wrong with the config file), it will show you the
+lowest cost model. This is the default behavior in selecting models. When you
+run `rag build` or `rag query`, it will also fallback to the lowest cost model
+if it cannot find a model.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

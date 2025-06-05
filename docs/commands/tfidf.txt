@@ -8,22 +8,24 @@ rag-tfidf - Run full-text search using its tfidf engine
 SYNOPSIS
 --------
 [verse]
-'rag tfidf' [--uid-only] [--keyword | --query] [--limit <n=10>] [--json | -j] <keywords>
+'rag tfidf' [--uid-only] [--keyword | --query] [--limit <n=10>]
+            [--json | -j] <keywords>
 
 DESCRIPTION
 -----------
-This command is to test full-text search engine, not to retrieve chunks. If you want to retrieve chunks,
-run `rag retrieve-chunks`.
+This command is to test full-text search engine, not to retrieve chunks. If
+you want to retrieve chunks, run `rag retrieve-chunks`.
 
-You can run full-text search on your knowledge-base using this command. Be careful that its argument
-is `<keywords>`, not `<query>`. Ragit goes through an LLM prompt which extracts keywords from a query,
-but `rag tfidf` does not. If you want such behavior, try `rag tfidf --query <your_query>`.
+You can run full-text search on your knowledge-base using this command. Be
+careful that its argument is `<keywords>`, not `<query>`. Ragit goes through
+an LLM prompt which extracts keywords from a query, but `rag tfidf` does not.
+If you want such behavior, try `rag tfidf --query <your_query>`.
 
 - `rag tfidf --query "How do I use ragit?"`
 - `rag tfidf "ragit, usage, ragit instruction, ragit tutorial"`
 
-In short, if you want to use it like a embedding-search engine, use `rag tfidf --query`. If you want a
-keyword-based search engine, use `rag tfidf`.
+In short, if you want to use it like a embedding-search engine, use
+`rag tfidf --query`. If you want a keyword-based search engine, use `rag tfidf`.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

@@ -8,37 +8,39 @@ rag-merge - Merge another knowledge-base into the current base
 SYNOPSIS
 --------
 [verse]
-'rag merge' <path> [--prefix <path>] [--force | -f | --ignore | --interactive | --reject] [--quiet | -q]
+'rag merge' <path> [--prefix <path>]
+            [--force | -f | --ignore | --interactive | --reject] [--quiet | -q]
 
 DESCRIPTION
 -----------
-It has 2 use cases: merging another complete knowledge-base, merging 2 half-built knowledge-bases
-and continue building.
+It has 2 use cases: merging another complete knowledge-base, merging 2
+half-built knowledge-bases and continue building.
 
 1. Merging 2 complete knowledge-bases
 
-Let's say you have cloned 2 knowledge-bases: `rag clone http://ragit.baehyunsol.com/sample/git` and
-`rag clone http://ragit.baehyunsol.com/sample/ragit`. It would create 2 directories `git/` and `ragit/`,
-and each is a complete knowledge-base. If you wanna know about git, you `cd git` and `rag query <QUERY>`.
-Or, you can `cd ragit` and ask how ragit works. But this is not ergonomic. If you have 10 different topics,
-there would be 10 different directories and you would have to change directory each time.
+Let's say you have cloned 2 knowledge-bases: `rag clone http://ragit.baehyunsol.com/sample/git`
+and `rag clone http://ragit.baehyunsol.com/sample/ragit`.
+It would create 2 directories `git/` and `ragit/`, and each is a complete
+knowledge-base. If you wanna know about git, you `cd git` and
+`rag query <QUERY>`. Or, you can `cd ragit` and ask how ragit works. But this
+is not ergonomic. If you have 10 different topics, there would be 10 different
+directories and you would have to change directory each time.
 
-That's where `rag merge` shines. Below is how it works. 1) run `mkdir merged; cd merged; rag init` to create
-an empty knowledge-base 2) run `rag merge ../git/ --prefix=git` and `rag merge ../ragit/ --prefix=ragit` to
-merge the 2 knowledge-bases.
+That's where `rag merge` shines. Below is how it works.
 
-When you merge a base, it reads the list of processed files of the base, then copies all the chunks of the
-processed files. Since it identifies chunks based on paths, it's easy to introduce collisions. For example,
-if both knowledge-bases have a file `doc/index.txt`, there's no way to distinguish the two. That's why you
-need `--prefix`. It adds prefixes to the paths. For example, if `--prefix=git` is enabled, `doc/index.txt`
-of the knowledge-base will be copied to `git/doc/index.txt`. Giving appropriate prefixes makes the life of
-you (RAG user), LLM and the engine easier.
+1) run `mkdir merged; cd merged; rag init` to create an empty knowledge-base
+2) run `rag merge ../git/ --prefix=git` and
+   `rag merge ../ragit/ --prefix=ragit` to merge the 2 knowledge-bases.
+
+When you merge a base, it reads the list of processed files of the base, then
+copies all the chunks of the processed files. Since it identifies chunks based
+on paths, it's easy to introduce collisions. For example, if both
+knowledge-bases have a file `doc/index.txt`, there's no way to distinguish the
+two. That's why you need `--prefix`. It adds prefixes to the paths. For example,
+if `--prefix=git` is enabled, `doc/index.txt` of the knowledge-base will be
+copied to `git/doc/index.txt`. Giving appropriate prefixes makes the lives of you
+(RAG user), LLM and the engine easier.
 
 2. Merging 2 half-built knowledge-bases and continue building
 
-You can do this by merging without `--prefix`. Let's say there are 4 files: `help1.txt`, `help2.txt`,
-`help3.txt` and `help4.txt`. You want to build a knowledge-base using the files. Instead of creating a single
-knowledge-base, you copy the entire directory and create knowledge-bases in both directories.
-
-In the first knowledge-base, you run `rag add help1.txt help2.txt; rag build`. In the second one, you run
-`rag add help3.txt help4.txt; rag build`. It would run 2x faster. Then you merge the 2 bases without `--prefix`.
+This feature is still under construction.

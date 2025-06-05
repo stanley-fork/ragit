@@ -8,18 +8,20 @@ rag-audit - Show how much you spent using LLMs
 SYNOPSIS
 --------
 [verse]
-'rag audit' [--this-week] [--only-tokens | --only-costs] [--category | -c <category>] [--json | -j]
+'rag audit' [--this-week] [--only-tokens | --only-costs]
+            [--category | -c <category>] [--json | -j]
 
 DESCRIPTION
 -----------
-This command shows how much you spent using LLMs. It works only if you have enabled
-`rag config --set dump_api_usage true`.
+This command shows how much you spent using LLMs. It works only if you have
+enabled `rag config --set dump_api_usage true`.
 
-With `--category` flag, you can inspect with more details.
-For example, with `--category=create_chunk_from`, you can see how much you've spent
-creating chunks. If you just want the total amount, use `--category=total`. Available
-categories are: "create_chunk_from", "describe_image", "rerank_summary", "answer_query_with_chunks",
-"rephrase_multi_turn", "raw_request", "extract_keywords" and "summary_chunks".
+With `--category` flag, you can inspect with more details. For example,
+with `--category=create_chunk_from`, you can see how much you've spent
+creating chunks. If you just want the total amount, use `--category=total`.
+Available categories are: "create_chunk_from", "describe_image",
+"rerank_summary", "answer_query_with_chunks", "rephrase_multi_turn",
+"raw_request", "extract_keywords" and "summary_chunks".
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

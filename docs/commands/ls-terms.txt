@@ -12,15 +12,16 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-Run `rag help uid-query` to read how uid-query works. If the uid is of an image, it dies. Later
-versions will allow `rag ls-terms` on images.
+Run `rag help uid-query` to read how uid-query works. If the uid is of an
+image, it dies. Later versions will allow `rag ls-terms` on images.
 
-Ragit uses tfidf algorithm to retrieve texts, and tfidf uses a tokenizer. This command shows
-how your documents are tokenized. It shows how many times each term in a chunk appears. It's
-also know as TF (term-frequency). If you provide a uid of a file, it merges TFs of chunks in the
-file. It's NOT a TF of merged chunks, but a merged TF of chunks. It's different because chunks have
-sliding windows. If a term appears once in a file, but is included in a sliding window. `rag ls-terms`
-will tell you that the term appears twice.
+Ragit uses tfidf algorithm to retrieve texts, and tfidf uses a tokenizer.
+This command shows how your documents are tokenized. It shows how many times
+each term in a chunk appears. It's also known as TF (term-frequency). If you
+provide a uid of a file, it merges TFs of chunks in the file. It's NOT a TF
+of merged chunks, but a merged TF of chunks. It's different because chunks have
+sliding windows. If a term appears once in a file, but is included in a sliding
+window. `rag ls-terms` will tell you that the term appears twice.
 
 If no uid is given, it shows a merged TF of all the chunks.
 

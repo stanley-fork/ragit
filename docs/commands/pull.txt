@@ -12,15 +12,15 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-By default, it does not pull configs and prompts. You have to use `--configs` and `--prompts`
-flags to pull them. If there's no configs or prompts in the remote, `--configs` and `--prompts`
-flags do nothing.
+By default, it does not pull configs and prompts. You have to use
+`--configs` and `--prompts` flags to pull them. If there's no configs
+or prompts in the remote, `--configs` and `--prompts` flags do nothing.
 
-Ragit is not a version control system, it's a knowledge-base management system. Unlike `git pull`,
-you cannot undo `rag pull`. Once it's pulled, the original knowledge-base is overwritten with the
-new one and you cannot revert that.
+Ragit is not a version control system, it's a knowledge-base management system.
+Unlike `git pull`, you cannot undo `rag pull`. Once it's pulled, the original
+knowledge-base is overwritten with the new one and you cannot revert that.
 
 It only writes to `.ragit/`. It does not touch the raw data files.
 
-If the knowledge-base is private, you need an api key to pull. You have to set `RAGIT_API_KEY`
-environment variable.
+If the knowledge-base is private, you need an api key to pull. You have to set
+`RAGIT_API_KEY` environment variable.

@@ -105,27 +105,27 @@ def get_platform_info() -> dict[str, str]:
 help_message = """
 Commands
     end_to_end [model=dummy]    run `end_to_end` test
-                                It simulates a basic workflow of ragit: init,
-                                add, build and query. It runs on a real dataset:
-                                the documents of ragit.
+                                It simulates a basic workflow of ragit: init, add, build and
+                                query. It runs on a real dataset: the documents of ragit.
 
     external_bases              run `external_bases` test
                                 It creates bunch of knowledge-bases and run
                                 `rag merge` on them. It also checks whether `rag tfidf`
-                                can successfully retrieve a chunk from multiple knowledge-bases.
+                                can successfully retrieve a chunk from multiple
+                                knowledge-bases.
 
     merge                       run `merge` test
                                 It's like `external_bases` test, but with `--prefix` option.
 
     add_and_rm                  run `add_and_rm` test
-                                It runs tons of `rag add` and `rag rm` with
-                                different options.
+                                It runs tons of `rag add` and `rag rm` with different options.
 
     add_and_rm2                 run `add_and_rm2` test
                                 Like `add_and_rm`, but it's more focused on `rag rm`.
 
     ignore                      run `ignore` test
-                                It tests whether `rag add` respects `.ragignore` or `.gitignore`.
+                                It tests whether `rag add` respects `.ragignore` or
+                                `.gitignore`.
 
     archive                     run `archive` test
                                 It runs `archive-create` and `archive-extract` and check
@@ -134,8 +134,8 @@ Commands
 
     recover                     run `recover` test
                                 It checks whether 1) `rag check` fails on a broken
-                                knowledge-base and 2) `rag check --recover` can
-                                fix a broken knowledge-base.
+                                knowledge-base and 2) `rag check --recover` can fix a broken
+                                knowledge-base.
 
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
@@ -147,8 +147,8 @@ Commands
                                 and pushes it back to the server.
 
     pull                        run `pull` test
-                                It creates a repository, pushes and pulls the repository and see
-                                if it works.
+                                It creates a repository, pushes and pulls the repository and
+                                see if it works.
 
     server                      run `server` test
                                 It tests endpoints related to a repository. It first pushes a
@@ -174,18 +174,20 @@ Commands
 
     cli                         run `cli` test
                                 It tests whether cli parser can parse the arguments correctly.
+                                It also creates invalid inputs and see if the cli parser can
+                                successfully reject them.
 
     outside                     run `outside`
                                 It tests whether ragit can successfully reject files outside
                                 a knowledge-base.
 
     migrate                     run `migrate` test
-                                It checks out git to v 0.1.1, creates a knowledge-base,
-                                and run `migrate` until the knowledge-base is migrated to
-                                the newest version.
+                                It checks out git to v 0.1.1, creates a knowledge-base, and
+                                run `migrate` until the knowledge-base is migrated to the
+                                newest version.
                                 Since it runs `git checkout`, it may mess up your working
-                                tree. If you have uncommitted changes, this test will fail
-                                and does not mess up your working tree.
+                                tree. If you have uncommitted changes, this test will do
+                                nothing and fail.
 
     migrate2                    run `migrate2` test
                                 Like `migrate`, but clones knowledge-bases from web instead
@@ -197,8 +199,8 @@ Commands
                                 latest version of ragit-server.
 
     config                      run `config` test
-                                I have added new configs to ragit 0.3.5. And I want to see
-                                if it's compatible with older versions.
+                                I have added new configs to ragit 0.3.5. And I want to see if
+                                it's compatible with older versions.
 
     gh_issue_20                 run `gh_issue_20` test
                                 https://github.com/baehyunsol/ragit/issues/20
@@ -287,12 +289,12 @@ Commands
 
     write_lock                  run `write_lock` test
                                 It reproduces gh issue #8.
-                                https://github.com/baehyunsol/ragit/issues/9
+                                https://github.com/baehyunsol/ragit/issues/8
 
     markdown_reader             run `markdown_reader` test
-                                I have found many bugs in `markdown_reader_v0`. The bugs
-                                are reproduced in this test. If you find a new one, please
-                                add that to this test.
+                                I have found many bugs in `markdown_reader_v0`. The bugs are
+                                reproduced in this test. If you find a new one, please add that
+                                to this test.
 
     csv_reader                  run `csv_reader` test
 
@@ -301,44 +303,44 @@ Commands
                                 of the repos.
                                 This is a very important test because it's the exact use
                                 case of ragit that I have in my mind.
-                                The test code uses the dummy model and only test file readers. If
-                                you want to use real models, you have to run the main function of
-                                `real_repos.py`.
+                                The test code uses the dummy model and only test file readers.
+                                If you want to use real models, you have to run the main
+                                function of `real_repos.py`.
 
     real_repos_regression       run `real_repos_regression` test
                                 I ran `python3 tests.py real_repos` and was surprised to see
                                 it throwing so many errors. Many of them were ragit's fault. So
-                                I created this test, which tries to reproduce all the errors found
-                                in the `real_repos` test.
+                                I created this test, which tries to reproduce all the errors
+                                found in the `real_repos` test.
 
     prompts [model=dummy]       run `prompts` test
-                                It's the smallest set of commands that parses and executes
-                                all the `.pdl` files in `prompts/` directory.
+                                It's the smallest set of commands that parses and executes all
+                                the `.pdl` files in `prompts/` directory.
 
     subdir                      run `subdir` test
-                                It checks whether `ragit` is smart enough to find `.ragit/`
-                                in any directory.
+                                It checks whether `ragit` is smart enough to find `.ragit/` in
+                                any directory.
 
     tfidf                       run `tfidf` test
-                                It creates bunch of lorem-ipsum files and see if
-                                `rag tfidf` can retrieve files correctly. It also tests
-                                tfidf searches on cjk strings.
+                                It creates bunch of lorem-ipsum files and see if `rag tfidf`
+                                can retrieve files correctly. It also tests tfidf searches on
+                                cjk strings.
 
     korean                      run `korean` test
-                                It runs ragit with/without "korean" feature and makes sure
-                                that the tokenizer behaves differently.
+                                It runs ragit with/without "korean" feature and makes sure that
+                                the tokenizer behaves differently.
 
     ragit_api [model]           run `ragit_api` test
-                                It asks "what's your name" to the model. It returns OK
-                                if the api call was successful. It doesn't care about the
-                                content of the model's response.
+                                It asks "what's your name" to the model. It returns OK if the
+                                api call was successful. It doesn't care about the content of
+                                the model's response.
 
     cargo_tests                 run `cargo test` on all the crates
 
     cargo_features              run `cargo_features` test
-                                Ragit has many cargo features. This test compiles
-                                ragit with all the possible combinations of features
-                                and makes sure that they all compile.
+                                Ragit has many cargo features. This test compiles ragit with
+                                all the possible combinations of features and makes sure that
+                                they all compile.
 
     models_init                 run `models_init` test
                                 It tests the initialization of models.json and

@@ -15,30 +15,28 @@ DESCRIPTION
 Run `rag help chunks` to read documents on chunks and files. It also explains
 what staging area and processed files are.
 
-This command adds files to the staging area. Then you have to run `rag build`
-to generate chunks from the files in the staging area. It does not follow symlinks.
+This command adds files to the staging area. Then you have to run `rag build` to
+generate chunks from the files in the staging area. It does not follow symlinks.
 
 Below is the behavior of this command according to the flag.
 
 1. `rag add`
 
-|           | processed/modified | processed/not-modified |    staged    |    new    |  n exist  |
-|-----------|--------------------|------------------------|--------------|-----------|-----------|
-| ignore    | ignore             | ignore                 | ignore       | ignore    | error     |
-| n ignore  | stage              | ignore                 | ignore       | stage     | error     |
+Without any options, it respects `.ignore` file and ignores already staged
+files. If you try to add a file that does not exist, it would throw an
+error.
+
+You can also add a processed file after modifying the file. If the processed
+version and the modified version are different (it compares hash), the file
+is staged. Otherwise, it's ignored.
 
 2. `rag add --reject`
 
-|           | processed/modified | processed/not-modified |    staged    |    new    |  n exist  |
-|-----------|--------------------|------------------------|--------------|-----------|-----------|
-| ignore    | error              | error                  | error        | error     | error     |
-| n ignore  | error              | error                  | error        | stage     | error     |
+It's like `rag add`, but it throws an error instead of ignoring files. So it
+either adds all the files or 0 files.
 
 If any file is erroneous, `rag add --reject` does not alter the knowledge-base.
 
 3. `rag add --force`
 
-|           | processed/modified | processed/not-modified |    staged    |    new    |  n exist  |
-|-----------|--------------------|------------------------|--------------|-----------|-----------|
-| ignore    | stage              | ignore                 | ignore       | stage     | error     |
-| n ignore  | stage              | ignore                 | ignore       | stage     | error     |
+It's like `rag add`, but doesn't care about `.ignore` file.

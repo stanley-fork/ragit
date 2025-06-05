@@ -12,16 +12,17 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-This command checks whether a knowledge-base is corrupted or not. It's a quite expensive
-command to run. In most cases, what you want to run is `rag status`, not `rag check`.
+This command checks whether a knowledge-base is corrupted or not. It's a quite
+expensive command to run. In most cases, what you want to run is `rag status`,
+not `rag check`.
 
 There are 2 use cases for this command.
 
-1. When you have downloaded a knowledge-base and wanna know whether the knowledge-base
-   is corrupted or not, run this command.
-2. If you have implemented a new feature, which modifies a knowledge-base, use this
-   command to check whether your new feature breaks a knowledge-base. If you're
-   writing a test for your feature, call `rag check` frequently to see if everything's alright.
+1. When you have downloaded a knowledge-base and wanna know whether the
+   knowledge-base is corrupted or not, run this command.
+2. If you have implemented a new feature, you have to write a test. Use this
+   command in the test to make sure that your new feature does not mess up
+   the knowledge-base.
 
-`--recover` tries to recover from a corrupted knowledge-base, without any loss of
-information. It may fail.
+`--recover` tries to recover from a corrupted knowledge-base, without any loss
+of information. It may fail.

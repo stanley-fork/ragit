@@ -12,15 +12,19 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-Like `git clone`, it clones a knowledge-base and copies it to a newly created directory.
+Like `git clone`, it clones a knowledge-base and copies it to a newly created
+directory.
 
 You can think of 2 use cases of `rag clone`
 
 1. Clone a complete knowledge-base and query it.
-2. Clone a half-built knowledge-base and continue building it. Or, you can clone multiple half-built ones and merge them.
+2. Clone a half-built knowledge-base and continue building it. Or, you can
+   clone multiple half-built ones and merge them.
 
-Ragit will support both use cases, but the second one is not stable yet. Cloning a half-built base is not tested yet, and
-`rag merge` is still heavily under construction.
+Ragit will support both use cases, but the second one is not stable yet.
+Cloning a half-built base is not tested yet, and `rag merge` is still heavily
+under construction.
 
-If you're cloning a private knowledge-base, you need an api key. Ragit looks for api key in environment variables. You have
-to set `RAGIT_API_KEY` environment variable.
+If you're cloning a private knowledge-base, you need an api key. Ragit looks
+for api key in environment variables. You have to set `RAGIT_API_KEY`
+environment variable.
