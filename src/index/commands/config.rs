@@ -25,10 +25,24 @@ lazy_static! {
     ].into_iter().map(
         |(key, value)| (key.to_string(), value)
     ).collect();
+
+    static ref DEPRECATED_CONFIGS: HashMap<String, String> = vec![
+        ("max_titles", "Please use `max_summaries` and `max_retrieval`."),
+        ("api_key", "Please set an environment variable or edit `models.json`."),
+    ].into_iter().map(
+        |(key, value)| (key.to_string(), value.to_string())
+    ).collect();
 }
 
 impl Index {
     pub fn get_config_by_key(&self, key: String) -> Result<Value, Error> {
+        if let Some(message) = DEPRECATED_CONFIGS.get(&key) {
+            return Err(Error::DeprecatedConfig {
+                key,
+                message: message.to_string(),
+            });
+        }
+
         for path in [
             self.get_build_config_path()?,
             self.get_api_config_path()?,
@@ -76,7 +90,9 @@ impl Index {
             match j {
                 Value::Object(obj) => {
                     for (k, v) in obj.iter() {
-                        result.insert(k.to_string(), v.clone());
+                        if !DEPRECATED_CONFIGS.contains_key(k) {
+                            result.insert(k.to_string(), v.clone());
+                        }
                     }
                 },
                 _ => {
@@ -99,6 +115,13 @@ impl Index {
 
     /// It returns the previous value, if exists.
     pub fn set_config_by_key(&mut self, key: String, value: String) -> Result<Option<String>, Error> {
+        if let Some(message) = DEPRECATED_CONFIGS.get(&key) {
+            return Err(Error::DeprecatedConfig {
+                key,
+                message: message.to_string(),
+            });
+        }
+
         // if `set_config_by_key` fails, it has to revert the json files before returning error
         let mut tmp_json_cache = HashMap::new();
 

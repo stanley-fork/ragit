@@ -681,7 +681,7 @@ if __name__ == "__main__":
                 ("query_with_schema llama3.3-70b", lambda: query_with_schema(test_model="llama3.3-70b")),
                 ("models_init", models_init),
                 ("test_home_config_override", test_home_config_override),
-                ("config", config),
+                ("config", config),  # NOTE: it checkouts older versions of ragit
                 ("migrate", migrate),
                 ("migrate2", migrate2),
                 ("migrate3", migrate3),

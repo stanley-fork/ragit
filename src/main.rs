@@ -109,6 +109,9 @@ async fn main() {
                         eprintln!("There are multiple models that match `{name}`: {}", candidates.join(", "));
                     }
                 },
+                Error::DeprecatedConfig { key, message } => {
+                    eprintln!("Config `{key}` is deprecated!\n{message}");
+                },
                 Error::CliError { message, span } => {
                     eprintln!("cli error: {message}\n\n{}", ragit_cli::underline_span(
                         &span.0,

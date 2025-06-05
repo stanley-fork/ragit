@@ -50,6 +50,10 @@ pub enum Error {
         message: String,
     },
     DirtyKnowledgeBase,
+    DeprecatedConfig {
+        key: String,
+        message: String,
+    },
     MergeConflict(Uid),
     MPSCError(String),
     CannotDecodeUid,
