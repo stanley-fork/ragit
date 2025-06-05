@@ -87,29 +87,27 @@ async fn main() {
                     eprintln!("In order to {action}, you have to enable feature {feature}.");
                 },
                 Error::InvalidModelName { name, candidates } => {
-                    eprintln!(
-                        "{name:?} is not a valid name for a chat model.\n{}",
-                        if candidates.is_empty() {
-                            if let Ok(root_dir) = find_root() {
-                                if let Ok(index) = Index::load(root_dir, LoadMode::OnlyJson) {
-                                    format!(
-                                        "Valid model names are: {:?}",
-                                        index.models.iter().map(|model| &model.name).collect::<Vec<_>>(),
-                                    )
-                                }
-
-                                else {
-                                    String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
-                                }
+                    if candidates.is_empty() {
+                        let all_model_names = if let Ok(root_dir) = find_root() {
+                            if let Ok(index) = Index::load(root_dir, LoadMode::OnlyJson) {
+                                index.models.iter().map(|model| model.name.to_string()).collect::<Vec<_>>()
                             }
 
                             else {
-                                String::from("It cannot find any model name. Please make sure that your knowledge-base is not corrupted.")
+                                vec![]
                             }
-                        } else {
-                            format!("Multiple models were matched: {candidates:?}")
-                        },
-                    );
+                        }
+
+                        else {
+                            vec![]
+                        };
+
+                        eprintln!("No model matches `{name}`. Valid model names are: {}", all_model_names.join(", "));
+                    }
+
+                    else {
+                        eprintln!("There are multiple models that match `{name}`: {}", candidates.join(", "));
+                    }
                 },
                 Error::CliError { message, span } => {
                     eprintln!("cli error: {message}\n\n{}", ragit_cli::underline_span(
@@ -588,14 +586,35 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         .args(ArgType::String, ArgCount::Exact(2))
                         .parse(&args, 3)?;
                     let args = parsed_args.get_args_exact(2)?;
-                    let previous_value = index.set_config_by_key(args[0].clone(), args[1].clone())?;
+                    let key = args[0].clone();
+                    let value = args[1].clone();
+
+                    // QoL improvement: it warns if the user typed a wrong model name.
+                    if &key == "model" {
+                        let models = Index::list_models(
+                            &join3(
+                                &index.root_dir,
+                                INDEX_DIR_NAME,
+                                MODEL_FILE_NAME,
+                            )?,
+                            &|_| true,  // no filter
+                            &|model| model,  // no map
+                            &|model| model.name.to_string(),
+                        )?;
+
+                        if let Err(e @ ragit_api::Error::InvalidModelName { .. }) = get_model_by_name(&models, &value) {
+                            return Err(e.into());
+                        }
+                    }
+
+                    let previous_value = index.set_config_by_key(key.clone(), value.clone())?;
 
                     match previous_value {
-                        Some(v) => {
-                            println!("set `{}`: `{}` -> `{}`", args[0].clone(), v, args[1].clone());
+                        Some(prev) => {
+                            println!("set `{key}`: `{prev}` -> `{value}`");
                         },
                         None => {
-                            println!("set `{}`: `{}`", args[0].clone(), args[1].clone());
+                            println!("set `{key}`: `{value}`");
                         },
                     }
                 },
