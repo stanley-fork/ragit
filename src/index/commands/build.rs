@@ -438,9 +438,9 @@ async fn build_chunks(
 
         // it's not a good idea to just use `api_config.model`.
         // different `api_config.model` might point to the same model,
-        // but different `get_model_by_name().api_name` always refer to
+        // but different `get_model_by_name().name` always refer to
         // different models
-        index.get_model_by_name(&index.api_config.model)?.api_name,
+        index.get_model_by_name(&index.api_config.model)?.name,
     );
     let mut index_in_file = 0;
     let mut previous_summary = None;
