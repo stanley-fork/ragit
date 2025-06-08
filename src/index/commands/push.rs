@@ -55,12 +55,7 @@ impl Index {
 
         let started_at = Instant::now();
         let mut uploaded_bytes = 0;
-        let mut url = Url::parse(&remote)?;
-        url.set_port(Some(41127)).map_err(|_| Error::RequestFailure {
-            context: Some(String::from("push")),
-            code: None,
-            url: url.as_str().to_string(),
-        })?;
+        let url = Url::parse(&remote)?;
         let mut has_to_erase_lines = false;
 
         // compare remote uid and local uid. if they're the same do nothing

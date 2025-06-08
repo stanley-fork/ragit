@@ -68,13 +68,7 @@ impl Index {
             url = format!("{url}/");
         }
 
-        let mut url = Url::parse(&url)?;
-        url.set_port(Some(41127)).map_err(|_| Error::RequestFailure {
-            context: Some(String::from("clone")),
-            code: None,
-            url: url.as_str().into(),
-        })?;
-
+        let url = Url::parse(&url)?;
         let started_at = Instant::now();
         let archive_list_url = url.join("archive-list/")?;
         let archive_list = request_json_file(archive_list_url.as_str()).await?;

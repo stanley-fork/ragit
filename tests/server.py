@@ -48,7 +48,7 @@ def server():
             cargo_run(["meta", "--set", "whatever-key", "whatever-value"])
             create_repo(user="test-user", repo=repo, api_key=api_key, public_read=True, public_write=True)
             cargo_run(["uid"])  # `index.json` has `uid` field. in order to `assert_eq_json`, we have to init uid of the local index
-            cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1/test-user/{repo}/"])
+            cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1:41127/test-user/{repo}/"])
             index_json = get_json(url="index", repo=repo)
             assert_eq_json("index.json", index_json)
 

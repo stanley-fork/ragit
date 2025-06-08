@@ -41,7 +41,7 @@ def clone(base2_size: int = 600):
         create_user(id="test-user", password="password")
         api_key = get_api_key(id="test-user", password="password")
         create_repo(user="test-user", repo="repo1", api_key=api_key)
-        cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo1"])
+        cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user/repo1"])
 
         # step 3: create another local knowledge-base
         #         base 2: a larger base with 8k markdown files
@@ -60,7 +60,7 @@ def clone(base2_size: int = 600):
 
         # step 4: push the local knowledge-base to the server
         create_repo(user="test-user", repo="repo2", api_key=api_key)
-        cargo_run(["push", "--remote=http://127.0.0.1/test-user/repo2"])
+        cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user/repo2"])
 
         # step 5: clone samples from ragit.baehyunsol.com and push it to the local server
         os.chdir("..")
@@ -77,12 +77,12 @@ def clone(base2_size: int = 600):
             get_repo_stat(user="test-user", repo=base, expected_status_code=404)
             create_repo(user="test-user", repo=base, api_key=api_key)
             assert get_repo_stat(user="test-user", repo=base) == (0, 0)  # (push, clone)
-            cargo_run(["push", f"--remote=http://127.0.0.1/test-user/{base}"])
+            cargo_run(["push", f"--remote=http://127.0.0.1:41127/test-user/{base}"])
             assert get_repo_stat(user="test-user", repo=base) == (1, 0)
             os.chdir("..")
 
         # step 6: clone and check base 1
-        cargo_run(["clone", "http://127.0.0.1/test-user/repo1"])
+        cargo_run(["clone", "http://127.0.0.1:41127/test-user/repo1"])
         os.chdir("repo1")
         cargo_run(["check"])
         assert "sample1.txt" not in cargo_run(["tfidf", "think"], stdout=True)
@@ -92,7 +92,7 @@ def clone(base2_size: int = 600):
 
         # step 7: clone and check base 2
         os.chdir("..")
-        cargo_run(["clone", "http://127.0.0.1/test-user/repo2"])
+        cargo_run(["clone", "http://127.0.0.1:41127/test-user/repo2"])
         os.chdir("repo2")
         cargo_run(["check"])
 
@@ -100,9 +100,9 @@ def clone(base2_size: int = 600):
         os.chdir("..")
 
         for (base, url) in [
-            ("git", "http://127.0.0.1/test-user/git"),
-            ("ragit", "http://127.0.0.1/test-user/ragit"),
-            ("rustc", "http://127.0.0.1/test-user/rustc"),
+            ("git", "http://127.0.0.1:41127/test-user/git"),
+            ("ragit", "http://127.0.0.1:41127/test-user/ragit"),
+            ("rustc", "http://127.0.0.1:41127/test-user/rustc"),
         ]:
             cargo_run(["clone", url])
             assert get_repo_stat(user="test-user", repo=base) == (1, 1)

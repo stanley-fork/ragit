@@ -65,10 +65,10 @@ def pull():
         u1 = cargo_run(["uid"], stdout=True).strip()
 
         # push A
-        cargo_run(["push", "--remote=http://127.0.0.1/test-user/test-repo"])
+        cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user/test-repo"])
 
         # push A -> check if it says "Everything up-to-date"
-        assert "Everything up-to-date" in cargo_run(["push", "--remote=http://127.0.0.1/test-user/test-repo"], stdout=True)
+        assert "Everything up-to-date" in cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user/test-repo"], stdout=True)
 
         # edit A
         cargo_run(["meta", "--set", "key", "value"])
@@ -77,11 +77,11 @@ def pull():
         u2 = cargo_run(["uid"], stdout=True).strip()
 
         # push A -> check if it's successfully pushed
-        assert "Everything up-to-date" not in cargo_run(["push", "--remote=http://127.0.0.1/test-user/test-repo"], stdout=True)
+        assert "Everything up-to-date" not in cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user/test-repo"], stdout=True)
 
         # clone A to repo B
         os.chdir("..")
-        cargo_run(["clone", "http://127.0.0.1/test-user/test-repo", "B"])
+        cargo_run(["clone", "http://127.0.0.1:41127/test-user/test-repo", "B"])
         os.chdir("B")
 
         # read uid of B: u3
@@ -104,7 +104,7 @@ def pull():
         u5 = cargo_run(["uid"], stdout=True).strip()
 
         # push A -> check if it's successfully pushed
-        assert "Everything up-to-date" not in cargo_run(["push", "--remote=http://127.0.0.1/test-user/test-repo"], stdout=True)
+        assert "Everything up-to-date" not in cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user/test-repo"], stdout=True)
 
         # pull B -> check if it's successfully pulled
         os.chdir("../B")

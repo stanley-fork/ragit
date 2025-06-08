@@ -45,7 +45,7 @@ def migrate3():
             cargo_run(["build"])
             cargo_run(["check"])
             chunks[version] = set(json.loads(cargo_run(["ls-chunks", "--json", "--uid-only"], stdout=True)))
-            cargo_run(["push", f"--remote=http://127.0.0.1/test-user/base-{version}"])
+            cargo_run(["push", f"--remote=http://127.0.0.1:41127/test-user/base-{version}"])
             os.chdir("..")
             shutil.rmtree(f"base-{version}")
 
@@ -54,7 +54,7 @@ def migrate3():
             checkout(ragit_version)
 
             for clone_version in versions:
-                cargo_run(["clone", f"http://127.0.0.1/test-user/base-{clone_version}"])
+                cargo_run(["clone", f"http://127.0.0.1:41127/test-user/base-{clone_version}"])
                 os.chdir(f"base-{clone_version}")
                 cargo_run(["check"])
                 assert chunks[clone_version] == set(json.loads(cargo_run(["ls-chunks", "--json", "--uid-only"], stdout=True)))

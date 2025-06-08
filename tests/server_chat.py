@@ -42,7 +42,7 @@ def server_chat(test_model: str):
             server_api_key=server_api_key,
         )
 
-        cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample1"])
+        cargo_run(["push", "--configs", "--remote=http://127.0.0.1:41127/test-user/sample1"])
         os.chdir("..")
 
         # step 2: init sample 2 (empty knowledge-base)
@@ -51,7 +51,7 @@ def server_chat(test_model: str):
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", test_model])
         create_repo(user="test-user", repo="sample2", api_key=server_api_key)
-        cargo_run(["push", "--configs", "--remote=http://127.0.0.1/test-user/sample2"])
+        cargo_run(["push", "--configs", "--remote=http://127.0.0.1:41127/test-user/sample2"])
         os.chdir("..")
 
         # step 3: let's ask questions!

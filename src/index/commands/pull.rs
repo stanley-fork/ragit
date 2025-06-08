@@ -37,12 +37,7 @@ impl Index {
         };
 
         // compare remote uid and local uid. if they're the same do nothing
-        let mut url = Url::parse(&repo_url)?;
-        url.set_port(Some(41127)).map_err(|_| Error::RequestFailure {
-            context: Some(String::from("pull")),
-            code: None,
-            url: url.as_str().to_string(),
-        })?;
+        let url = Url::parse(&repo_url)?;
         let get_uid_url = url.join("uid")?;
 
         match self.get_uid("pull", get_uid_url.as_str()).await {
