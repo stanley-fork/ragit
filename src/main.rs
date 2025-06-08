@@ -237,7 +237,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 quiet,
             )?;
         },
-        Some("archive-extract") | Some("extract-archive") => {
+        Some("archive-extract") | Some("extract-archive") | Some("extract") => {
             let parsed_args = ArgParser::new()
                 .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
                 .arg_flag("--output", ArgType::Path)
@@ -2400,7 +2400,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 &[
                     "add",
                     "archive-create", "create-archive", "archive",
-                    "archive-extract", "extract-archive",
+                    "archive-extract", "extract-archive", "extract",
                     "build",
                     "audit",
                     "cat-file",

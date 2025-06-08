@@ -5,6 +5,7 @@ NAME
 ----
 rag-archive-extract - Extract an archive and create a knowledge-base
 rag-extract-archive - Alias
+rag-extract - Alias
 
 SYNOPSIS
 --------
