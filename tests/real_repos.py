@@ -17,6 +17,13 @@ from utils import (
 
 repositories = [
     {
+        "git-name": "ragit",
+        "description": "git-like rag pipeline",
+        "git-url": "https://github.com/baehyunsol/ragit",
+        "license": "MIT",
+        "ragit-name": "ragit",
+        "extensions": ["txt", "md"],
+    }, {
         "git-name": "git",
         "description": "fast, scalable, distributed revision control system",
         "git-url": "https://github.com/git/git",
