@@ -6,6 +6,7 @@ use crate::error::Error;
 pub async fn drop_all() -> Result<(), Error> {
     let pool = get_pool().await;
     sqlx::query!("DROP TABLE ai_model").execute(pool).await?;
+    sqlx::query!("DROP TABLE api_key").execute(pool).await?;
     sqlx::query!("DROP TABLE archive").execute(pool).await?;
     sqlx::query!("DROP TABLE chat").execute(pool).await?;
     sqlx::query!("DROP TABLE chat_history").execute(pool).await?;
@@ -28,6 +29,7 @@ pub async fn drop_all() -> Result<(), Error> {
 pub async fn truncate_all() -> Result<(), Error> {
     let pool = get_pool().await;
     sqlx::query!("TRUNCATE ai_model").execute(pool).await?;
+    sqlx::query!("TRUNCATE api_key").execute(pool).await?;
     sqlx::query!("TRUNCATE archive").execute(pool).await?;
     sqlx::query!("TRUNCATE chat").execute(pool).await?;
     sqlx::query!("TRUNCATE chat_history").execute(pool).await?;
