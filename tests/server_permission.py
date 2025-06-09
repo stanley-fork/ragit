@@ -47,7 +47,7 @@ def server_permission():
         assert repo_info1["pushed_at"] is None
         assert repo_info1["repo_size"] == 0
 
-        cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc"])
+        cargo_run(["clone", "https://ragit.baehyunsol.com/sample/rustc"])
         os.chdir("rustc")
         cargo_run(["push", "--remote=http://127.0.0.1:41127/test-user-1/repo1"])
         os.chdir("..")

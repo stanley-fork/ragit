@@ -127,15 +127,15 @@ playground
       *-- models.json
 ```
 
-You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone http://ragit.baehyunsol.com/sample/git`
+You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone https://ragit.baehyunsol.com/sample/git`
 
-- [git](http://ragit.baehyunsol.com/sample/git)
-- [ragit](http://ragit.baehyunsol.com/sample/ragit)
-- [rustc-dev-guide](http://ragit.baehyunsol.com/sample/rustc)
+- [git](https://ragit.baehyunsol.com/sample/git)
+- [ragit](https://ragit.baehyunsol.com/sample/ragit)
+- [rustc-dev-guide](https://ragit.baehyunsol.com/sample/rustc)
 
 Let's clone all of them. You cannot clone them inside `playground/`, because you knowledge-bases cannot be nested. Please make sure to `cd ..;` before you clone them.
 
-Run `cd ..; rag clone http://ragit.baehyunsol.com/sample/git; rag clone http://ragit.baehyunsol.com/sample/ragit; rag clone http://ragit.baehyunsol.com/sample/rustc;`
+Run `cd ..; rag clone https://ragit.baehyunsol.com/sample/git; rag clone https://ragit.baehyunsol.com/sample/ragit; rag clone https://ragit.baehyunsol.com/sample/rustc;`
 
 ```
 <cwd>

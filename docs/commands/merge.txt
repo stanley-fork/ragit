@@ -18,8 +18,8 @@ half-built knowledge-bases and continue building.
 
 1. Merging 2 complete knowledge-bases
 
-Let's say you have cloned 2 knowledge-bases: `rag clone http://ragit.baehyunsol.com/sample/git`
-and `rag clone http://ragit.baehyunsol.com/sample/ragit`.
+Let's say you have cloned 2 knowledge-bases: `rag clone https://ragit.baehyunsol.com/sample/git`
+and `rag clone https://ragit.baehyunsol.com/sample/ragit`.
 It would create 2 directories `git/` and `ragit/`, and each is a complete
 knowledge-base. If you wanna know about git, you `cd git` and
 `rag query <QUERY>`. Or, you can `cd ragit` and ask how ragit works. But this

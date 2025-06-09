@@ -43,7 +43,7 @@ Other than those 3 platforms, I haven't tested ragit on any platform.
 
 ```sh
 cargo install ragit;
-rag clone http://ragit.baehyunsol.com/sample/ragit;
+rag clone https://ragit.baehyunsol.com/sample/ragit;
 cd ragit;
 export GROQ_API_KEY=YOUR_API_KEY;
 rag query "How do I contribute to ragit?";

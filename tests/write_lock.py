@@ -45,7 +45,7 @@ def write_lock(test_model: str):
     # test 2: call `rag query` while `rag ii-build` is running
     goto_root()
     mk_and_cd_tmp_dir()
-    cargo_run(["clone", "http://ragit.baehyunsol.com/sample/git"])
+    cargo_run(["clone", "https://ragit.baehyunsol.com/sample/git"])
     os.chdir("git")
     cargo_run(["config", "--set", "model", "dummy"])
 

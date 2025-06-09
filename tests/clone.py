@@ -66,9 +66,9 @@ def clone(base2_size: int = 600):
         os.chdir("..")
 
         for (base, url) in [
-            ("git", "http://ragit.baehyunsol.com/sample/git"),
-            ("ragit", "http://ragit.baehyunsol.com/sample/ragit"),
-            ("rustc", "http://ragit.baehyunsol.com/sample/rustc"),
+            ("git", "https://ragit.baehyunsol.com/sample/git"),
+            ("ragit", "https://ragit.baehyunsol.com/sample/ragit"),
+            ("rustc", "https://ragit.baehyunsol.com/sample/rustc"),
         ]:
             cargo_run(["clone", url], timeout=100)
             os.rename(base, base + "-cloned")

@@ -38,9 +38,9 @@ def ii():
 
     # step 2: clone remote knowledge-bases
     for (url, dir) in [
-        ("http://ragit.baehyunsol.com/sample/git", "git"),
-        ("http://ragit.baehyunsol.com/sample/ragit", "ragit"),
-        ("http://ragit.baehyunsol.com/sample/rustc", "rustc"),
+        ("https://ragit.baehyunsol.com/sample/git", "git"),
+        ("https://ragit.baehyunsol.com/sample/ragit", "ragit"),
+        ("https://ragit.baehyunsol.com/sample/rustc", "rustc"),
     ]:
         cargo_run(["clone", url, dir])
         os.chdir(dir)

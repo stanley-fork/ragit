@@ -21,7 +21,7 @@ def server():
         mk_and_cd_tmp_dir()
 
         # step 1: we'll do experiments with these repos
-        cargo_run(["clone", "http://ragit.baehyunsol.com/sample/rustc", "sample-rustc"])
+        cargo_run(["clone", "https://ragit.baehyunsol.com/sample/rustc", "sample-rustc"])
 
         os.mkdir("sample-empty")
         os.chdir("sample-empty")

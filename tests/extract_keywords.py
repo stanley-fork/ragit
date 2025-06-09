@@ -5,7 +5,7 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 def extract_keywords(test_model: str):
     goto_root()
     mk_and_cd_tmp_dir()
-    cargo_run(["clone", "http://ragit.baehyunsol.com/sample/ragit"])
+    cargo_run(["clone", "https://ragit.baehyunsol.com/sample/ragit"])
     os.chdir("ragit")
     cargo_run(["config", "--set", "model", test_model])
 

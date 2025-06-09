@@ -14,9 +14,9 @@ def migrate2():
         checkout(old_version)
 
         for url in [
-            "http://ragit.baehyunsol.com/sample/ragit",
-            "http://ragit.baehyunsol.com/sample/git",
-            "http://ragit.baehyunsol.com/sample/rustc",
+            "https://ragit.baehyunsol.com/sample/ragit",
+            "https://ragit.baehyunsol.com/sample/git",
+            "https://ragit.baehyunsol.com/sample/rustc",
         ]:
             clone_result = cargo_run(["clone", url], check=False, output_schema=["returncode", "stdout", "stderr"])
 
