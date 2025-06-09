@@ -40,6 +40,7 @@ from pdf import pdf
 from pdl import pdl
 from prompts import prompts
 from pull import pull
+from pull_ragithub import pull_ragithub
 from query_options import query_options
 from query_with_schema import query_with_schema
 from ragit_api import ragit_api
@@ -149,6 +150,12 @@ Commands
     pull                        run `pull` test
                                 It creates a repository, pushes and pulls the repository and
                                 see if it works.
+
+    pull                        run `pull_ragithub` test
+                                Most other tests, including `pull` runs ragit-server on
+                                localhost, but it clones and pulls a knowledge-base from
+                                ragithub. I want to make sure that the latest version is
+                                always compatible with ragithub.
 
     server                      run `server` test
                                 It tests endpoints related to a repository. It first pushes a
@@ -399,6 +406,9 @@ if __name__ == "__main__":
         elif command == "pull":
             pull()
 
+        elif command == "pull_ragithub":
+            pull_ragithub()
+
         elif command == "server":
             server()
 
@@ -624,6 +634,7 @@ if __name__ == "__main__":
                 ("clone", clone),
                 ("clone_empty", clone_empty),
                 ("pull", pull),
+                ("pull_ragithub", pull_ragithub),
                 ("server", server),
                 ("server_ai_model", server_ai_model),
                 ("server_permission", server_permission),
