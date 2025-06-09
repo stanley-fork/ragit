@@ -250,7 +250,7 @@ pub struct ModelRaw {
 
 lazy_static! {
     static ref DEFAULT_MODELS: HashMap<String, ModelRaw> = {
-        let models_dot_json = include_str!("../../../models.json");
+        let models_dot_json = include_str!("../models.json");
         let models = serde_json::from_str::<Vec<ModelRaw>>(&models_dot_json).unwrap();
         models.into_iter().map(
             |model| (model.name.clone(), model)

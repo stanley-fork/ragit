@@ -397,7 +397,7 @@ pub async fn set_default_model(user: &str, model: &str, pool: &PgPool) -> Result
 
 /// It initializes models only if there's no model at all (a.k.a the server is run for the first time).
 pub async fn initialize_ai_models(pool: &PgPool) -> Result<(), Error> {
-    let j = include_str!("../../../../models.json");
+    let j = include_str!("../../models.json");
     let models = serde_json::from_str::<Vec<AiModelCreation>>(j)?;
 
     for model in models.iter() {
