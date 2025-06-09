@@ -1629,10 +1629,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
 
                 // looks for `models.json` with best-effort
-                // TODO: use `Index::get_initial_models`, but how?
-                //       it's private. is it okay to make it public?
-                //       it takes `&self` as an input, but does not use `self` at all!
-                //       why not just remove the argument?
                 None => match &index {
                     Ok(Ok(index)) => index.models.clone(),
                     _ => {
