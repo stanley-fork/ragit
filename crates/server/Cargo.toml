@@ -1,6 +1,6 @@
 [package]
 name = "ragit-server"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2024"
 license = "MIT"
 description = "poc server implementation of ragit"
@@ -12,10 +12,10 @@ base64 = "0.22.1"
 bytes = "1.10.0"
 chrono = { version = "0.4.40", features = ["serde"] }
 futures-util = "0.3.31"
-ragit = { path = "../..", version = "0.4.1" }
-ragit-api = { path = "../api", version = "0.4.1" }
-ragit-cli = { path = "../cli", version = "0.4.1" }
-ragit-fs = { path = "../fs", version = "0.4.1" }
+ragit = { path = "../..", version = "0.4.2" }
+ragit-api = { path = "../api", version = "0.4.2" }
+ragit-cli = { path = "../cli", version = "0.4.2" }
+ragit-fs = { path = "../fs", version = "0.4.2" }
 rand = "0.9.0"
 regex = "1.11.1"
 serde = { version = "1.0.218", features = ["derive"] }
