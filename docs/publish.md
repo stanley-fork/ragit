@@ -36,5 +36,6 @@ Let's say the latest published version is 0.3.1, and you want to publish 0.3.2.
 5. Add github release. The title must be `Version 0.3.2`.
   - Add binaries: make sure to checkout the correct commit, and make sure to run `cargo build --profile=production --features=full,production`.
   - After compiling the binary, run `rag version --build-options` and make sure that it's profile is "production" and all the features are enabled.
+  - Examples for the names of the binaries: `ragit-0.3.2-linux-x64`, `ragit-0.3.2-windows11-x64.exe`, `ragit-0.3.2-mac-aarch64`
 
 [baehyunsol]: https://github.com/baehyunsol
