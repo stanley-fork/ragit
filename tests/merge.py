@@ -144,3 +144,17 @@ def merge():
     # the merge was successful, but the count does not change because
     # the files are the same
     assert count_files() == (10, 0, 10)
+
+    # what if a prefix is not just a name?
+    cargo_run(["merge", "../sub-base1", "--prefix", "/sub1/sub1"])
+    cargo_run(["ls-files", "sub1/sub1/doc_1.md"])
+
+    cargo_run(["merge", "../sub-base1", "--prefix", "sub1/sub2"])
+    cargo_run(["ls-files", "sub1/sub2/doc_1.md"])
+
+    cargo_run(["merge", "../sub-base1", "--prefix", "./sub1/sub3"])
+    cargo_run(["ls-files", "sub1/sub3/doc_1.md"])
+
+    # These don't make sense :)
+    assert cargo_run(["merge", "../sub-base1", "--prefix", "../sub1/sub3"], check=False) != 0
+    assert cargo_run(["merge", "../sub-base1", "--prefix", ".."], check=False) != 0

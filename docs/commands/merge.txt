@@ -44,3 +44,27 @@ copied to `git/doc/index.txt`. Giving appropriate prefixes makes the lives of yo
 2. Merging 2 half-built knowledge-bases and continue building
 
 This feature is still under construction.
+
+OPTIONS
+-------
+--prefix::
+        It adds a prefix to the files in the other knowledge-base. For
+        example, if there's a file `/src/doc.txt` in the other
+        knowledge-base, and `--prefix=other`, the file will be saved at
+        `other/src/doc.txt` in the current knowledge-base.
+
+--force::
+        If a file in the other knowledge-base already exists in the current
+        knowledge-base, it overwrites the current version with the new one.
+
+--ignore::
+        If a file in the other knowledge-base already exists in the current
+        knowledge-base, it ignores the new one and keeps the old one.
+
+--interactive::
+        If a file in the other knowledge-base already exists in the current
+        knowledge-base, it asks you if it should overwrite or not.
+
+--reject::
+        If any file in the other knowledge-base already exists in the current
+        knowledge-base, it doesn't merge the bases.

@@ -54,6 +54,7 @@ pub enum Error {
         key: String,
         message: String,
     },
+    InvalidMergePrefix(String),
     MergeConflict(Uid),
     MPSCError(String),
     CannotDecodeUid,

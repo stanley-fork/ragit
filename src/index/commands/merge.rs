@@ -77,6 +77,21 @@ impl Index {
 
             if let Some(prefix) = &prefix {
                 new_file_path = normalize(&join(prefix, rel_path)?)?;
+
+                // a very naive heuristic: if prefix is `/foo`, the user wants to
+                // create `foo` in the root directory. But internally, ragit does
+                // not use `/` for the root dir. So it just removes the character.
+                if new_file_path.starts_with("/") {
+                    new_file_path = new_file_path.get(1..).unwrap().to_string();
+                }
+
+                // another naive heuristic: if a prefix starts with "../", that
+                // doesn't make sense! But `ragit_fs::normalize` cannot filter that
+                // out, so I do that manually with this if statement.
+                if new_file_path.starts_with("../") || new_file_path == ".." {
+                    return Err(Error::InvalidMergePrefix(prefix.to_string()));
+                }
+
                 new_file_uid = Uid::update_file_uid(*uid_other, rel_path, &new_file_path);
             }
 
