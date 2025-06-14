@@ -146,6 +146,15 @@ def server():
 
             os.chdir("..")
 
+        # step 3: really empty knowledge-base: only create a knowledge-base with the API, and no pushes
+        repo = "really-empty"
+        create_repo(user="test-user", repo=repo, api_key=api_key, public_read=True, public_write=True)
+
+        # when you `create_repo`, the server creates a dummy knowledge-base even if you don't push anything
+        index_json = get_json(url="index", repo=repo)  # a dummy `index.json`
+        chunks = get_json(url="chunk-list", repo=repo)
+        assert chunks == []
+
     finally:
         if server_process is not None:
             server_process.kill()
