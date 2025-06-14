@@ -52,9 +52,9 @@ def images():
     assert count_files() == (1, 1, 0)  # (total, staged, processed)
     cargo_run(["check", "--recover"])
 
-    shutil.copyfile("../tests/images/empty.png", "sample2.png")
-    shutil.copyfile("../tests/images/empty.jpg", "sample5.jpg")
-    shutil.copyfile("../tests/images/empty.webp", "sample6.webp")
+    shutil.copyfile("../tests/images/green.png", "sample2.png")
+    shutil.copyfile("../tests/images/red.jpg", "sample5.jpg")
+    shutil.copyfile("../tests/images/blue.webp", "sample6.webp")
     cargo_run(["build"])
     cargo_run(["check"])
 
