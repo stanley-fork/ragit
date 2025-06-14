@@ -122,5 +122,44 @@ Say something
         assert read_string(log_file).count("<|Assistant|>") > 1
         assert "at least 100 characters" in read_string(log_file)
 
+        # test 4: test tera engine
+        write_string("test4.pdl", """
+<|schema|>
+
+integer
+
+<|user|>
+
+Below is the list of the customers
+
+- {{customer1.name}}: {{customer1.age}} years old
+- {{customer2.name}}: {{customer2.age}} years old
+- {{customer3.name}}: {{customer3.age}} years old
+
+How old is {{customer1.name}}?
+
+<|assistant|>
+""")
+        context = {
+            "customer1": { "name": "Bae", "age": 29 },
+            "customer2": { "name": "Hyun", "age": 35 },
+            "customer3": { "name": "Sol", "age": 16 },
+        }
+        broken_context = {
+            "customer1": [],
+        }
+
+        with open("context.json", "w") as f:
+            f.write(json.dumps(context))
+
+        with open("broken_context.json", "w") as f:
+            f.write(json.dumps(broken_context))
+
+        assert int(cargo_run(["pdl", "test4.pdl", "--model", test_model, "--context=context.json"], stdout=True)) == context["customer1"]["age"]
+
+        # If the context is broken, `--strict` will refuse to run and no `--strict` will run it with the broken context
+        cargo_run(["pdl", "test4.pdl", "--model", "dummy", "--context=broken_context.json"])
+        assert cargo_run(["pdl", "test4.pdl", "--strict", "--model", "dummy", "--context=broken_context.json"], check=False) != 0
+
     finally:
         shutil.rmtree(global_config_dir)
