@@ -431,11 +431,22 @@ pub fn normalize(path: &str) -> Result<String, FileError> {
     for component in path.split("/") {
         match component {
             c if c == "." => {},
+
+            // this branch is messy and that's a design decision
+            // It's obvious that `normalize("./foo")` is `"foo"` and
+            // `normalize("./foo/../bar/")` is `"bar"`. But what about
+            // `normalize("../foo")`? Is that an error or just `"../foo"`?
+            // I chose `"../foo"` and that's just a design decision.
             c if c == ".." => if result.is_empty() {
                 result.push(c.to_string());
             } else {
-                result.pop();
+                let p = result.pop().unwrap().to_string();
+
+                if p == ".." {
+                    result.push(p);
+                }
             },
+
             c => { result.push(c.to_string()); },
         }
     }

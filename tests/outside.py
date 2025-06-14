@@ -22,6 +22,12 @@ def outside():
 
     # cannot add `../sample.md`
     assert cargo_run(["add", "../sample.md"], check=False) != 0
+    assert "outside" in cargo_run(["add", "../sample.md"], check=False, stderr=True)
+
+    # there used to be a bug: it's not supposed to be able to add `../../src/main.rs`, but it was.
+    # I fixed it.
+    assert cargo_run(["add", "../../src/main.rs"], check=False) != 0
+    assert "outside" in cargo_run(["add", "../../src/main.rs"], check=False, stderr=True)
 
     cargo_run(["add", "../base/sample.md"])
     cargo_run(["config", "--set", "model", "dummy"])
