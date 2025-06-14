@@ -151,7 +151,7 @@ Commands
                                 It creates a repository, pushes and pulls the repository and
                                 see if it works.
 
-    pull                        run `pull_ragithub` test
+    pull_ragithub               run `pull_ragithub` test
                                 Most other tests, including `pull` runs ragit-server on
                                 localhost, but it clones and pulls a knowledge-base from
                                 ragithub. I want to make sure that the latest version is
