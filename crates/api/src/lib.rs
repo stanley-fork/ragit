@@ -1,11 +1,11 @@
 use ragit_fs::{WriteMode, read_string, write_string};
 
 mod api_provider;
+pub mod audit;
 mod error;
 mod json_type;
 mod message;
 mod model;
-pub mod record;
 mod request;
 mod response;
 
@@ -17,7 +17,7 @@ pub use crate::error::Error;
 pub use crate::json_type::JsonType;
 pub use crate::message::message_contents_to_json_array;
 pub use crate::model::{Model, ModelRaw, get_model_by_name};
-pub use crate::record::RecordAt;
+pub use crate::audit::RecordAt;
 pub use crate::request::Request;
 pub use crate::response::Response;
 
