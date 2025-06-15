@@ -1,7 +1,7 @@
 use chrono::{Datelike, DateTime, Local};
 use crate::error::Error;
 use crate::index::Index;
-use ragit_api::record::Record;
+use ragit_api::audit::AuditRecord;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
@@ -50,12 +50,13 @@ impl Index {
             "raw_request",
             "extract_keywords",
             "summary_chunks",
+            "pdl",
         ] {
             let mut audit = Audit::default();
 
             match self.api_config.get_api_usage(&self.root_dir, key) {
                 Ok(records) => {
-                    for (date, Record { input_tokens, output_tokens, input_cost, output_cost }) in records.iter() {
+                    for (date, AuditRecord { input_tokens, output_tokens, input_cost, output_cost }) in records.iter() {
                         if date >= &since {
                             audit.input_tokens += input_tokens;
                             audit.output_tokens += output_tokens;

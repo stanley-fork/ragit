@@ -13,11 +13,11 @@ mod response;
 mod tests;
 
 pub use crate::api_provider::ApiProvider;
+pub use crate::audit::AuditRecord;
 pub use crate::error::Error;
 pub use crate::json_type::JsonType;
 pub use crate::message::message_contents_to_json_array;
 pub use crate::model::{Model, ModelRaw, get_model_by_name};
-pub use crate::audit::RecordAt;
 pub use crate::request::Request;
 pub use crate::response::Response;
 

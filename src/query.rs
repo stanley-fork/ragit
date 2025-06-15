@@ -202,7 +202,7 @@ impl Index {
             dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "rerank_summary"),
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rerank_summary"),
+            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rerank_summary"),
             schema,
             schema_max_try: 3,
         };
@@ -248,7 +248,7 @@ impl Index {
             dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "answer_query_with_chunks"),
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "answer_query_with_chunks"),
+            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "answer_query_with_chunks"),
             schema_max_try: 3,
             ..Request::default()
         };
@@ -292,7 +292,7 @@ impl Index {
             dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "rephrase_multi_turn"),
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rephrase_multi_turn"),
+            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "rephrase_multi_turn"),
             schema,
             schema_max_try: 3,
         };
@@ -326,7 +326,7 @@ impl Index {
             dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "raw_request"),
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             model: self.get_model_by_name(&self.api_config.model)?,
-            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "raw_request"),
+            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "raw_request"),
             schema_max_try: 3,
             ..Request::default()
         };

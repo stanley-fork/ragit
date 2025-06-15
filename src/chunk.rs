@@ -252,7 +252,7 @@ impl Chunk {
             max_retry: index.api_config.max_retry,
             sleep_between_retries: index.api_config.sleep_between_retries,
             timeout: index.api_config.timeout,
-            record_api_usage_at: index.api_config.dump_api_usage_at(&index.root_dir, "create_chunk_from"),
+            dump_api_usage_at: index.api_config.dump_api_usage_at(&index.root_dir, "create_chunk_from"),
             dump_pdl_at: index.api_config.create_pdl_path(&index.root_dir, "create_chunk_from"),
             dump_json_at: index.api_config.dump_log_at(&index.root_dir),
             schema,

@@ -26,6 +26,9 @@ def audit(test_model: str):
     # nothing's dumped
     assert parse_audit_output("total") == 0
 
+    # invalid category
+    assert cargo_run(["audit", "-c", "invalid-category"], check=False) != 0
+
     cargo_run(["config", "--set", "dump_api_usage", "true"])
     cargo_run(["query", "Why is the sky blue?"])
 
@@ -47,3 +50,9 @@ def audit(test_model: str):
     assert parse_audit_output("total") == 0
     assert parse_audit_output("answer_query_with_chunks") == 0
     assert parse_audit_output("create_chunk_from") == 0
+
+    # `rag audit` tracks usages of `rag pdl`, if possible
+    assert parse_audit_output("pdl") == 0
+    write_string("t.pdl", "<|user|>\n\nWhy is the sky blue?")
+    cargo_run(["pdl", "t.pdl", "--model", test_model])
+    assert parse_audit_output("pdl") > 0

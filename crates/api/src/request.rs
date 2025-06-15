@@ -2,9 +2,9 @@ use async_std::task;
 use chrono::Local;
 use crate::{ApiProvider, Error};
 use crate::audit::{
-    RecordAt,
+    AuditRecordAt,
+    dump_api_usage,
     dump_pdl,
-    record_api_usage,
 };
 use crate::message::{message_contents_to_json_array, message_to_json};
 use crate::model::{Model, ModelRaw};
@@ -38,7 +38,7 @@ pub struct Request {
 
     /// milliseconds
     pub sleep_between_retries: u64,
-    pub record_api_usage_at: Option<RecordAt>,
+    pub dump_api_usage_at: Option<AuditRecordAt>,
 
     /// It dumps the AI conversation in pdl format. See <https://crates.io/crates/ragit-pdl> to read about pdl.
     pub dump_pdl_at: Option<String>,
@@ -232,8 +232,8 @@ impl Request {
         if let ApiProvider::Test(test_model) = &self.model.api_provider {
             let response = test_model.get_dummy_response(&self.messages)?;
 
-            if let Some(key) = &self.record_api_usage_at {
-                if let Err(e) = record_api_usage(
+            if let Some(key) = &self.dump_api_usage_at {
+                if let Err(e) = dump_api_usage(
                     key,
                     0,
                     0,
@@ -242,8 +242,8 @@ impl Request {
                     false,
                 ) {
                     write_log(
-                        "record_api_usage",
-                        &format!("record_api_usage({key:?}, ..) failed with {e:?}"),
+                        "dump_api_usage",
+                        &format!("dump_api_usage({key:?}, ..) failed with {e:?}"),
                     );
                 }
             }
@@ -331,8 +331,8 @@ impl Request {
 
                             match Response::from_str(&text, &self.model.api_provider) {
                                 Ok(result) => {
-                                    if let Some(key) = &self.record_api_usage_at {
-                                        if let Err(e) = record_api_usage(
+                                    if let Some(key) = &self.dump_api_usage_at {
+                                        if let Err(e) = dump_api_usage(
                                             key,
                                             result.get_prompt_token_count() as u64,
                                             result.get_output_token_count() as u64,
@@ -341,8 +341,8 @@ impl Request {
                                             false,
                                         ) {
                                             write_log(
-                                                "record_api_usage",
-                                                &format!("record_api_usage({key:?}, ..) failed with {e:?}"),
+                                                "dump_api_usage",
+                                                &format!("dump_api_usage({key:?}, ..) failed with {e:?}"),
                                             );
                                         }
                                     }
@@ -455,7 +455,7 @@ impl Default for Request {
             timeout: Some(20_000),
             max_retry: 2,
             sleep_between_retries: 6_000,
-            record_api_usage_at: None,
+            dump_api_usage_at: None,
             dump_pdl_at: None,
             dump_json_at: None,
             schema: None,

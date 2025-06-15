@@ -15,13 +15,13 @@ use std::collections::HashMap;
 use std::ops::AddAssign;
 
 #[derive(Clone, Debug)]
-pub struct RecordAt {
+pub struct AuditRecordAt {
     pub path: String,
     pub id: String,
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Record {
+pub struct AuditRecord {
     pub input_tokens: u64,
     pub output_tokens: u64,
 
@@ -30,8 +30,8 @@ pub struct Record {
     pub output_cost: u64,
 }
 
-impl AddAssign<Record> for Record {
-    fn add_assign(&mut self, rhs: Record) {
+impl AddAssign<AuditRecord> for AuditRecord {
+    fn add_assign(&mut self, rhs: AuditRecord) {
         self.input_tokens += rhs.input_tokens;
         self.output_tokens += rhs.output_tokens;
         self.input_cost += rhs.input_cost;
@@ -39,8 +39,8 @@ impl AddAssign<Record> for Record {
     }
 }
 
-impl From<&Record> for Value {
-    fn from(r: &Record) -> Value {
+impl From<&AuditRecord> for Value {
+    fn from(r: &AuditRecord) -> Value {
         Value::Array(vec![
             Value::from(r.input_tokens),
             Value::from(r.output_tokens),
@@ -50,10 +50,10 @@ impl From<&Record> for Value {
     }
 }
 
-impl TryFrom<&Value> for Record {
+impl TryFrom<&Value> for AuditRecord {
     type Error = Error;
 
-    fn try_from(j: &Value) -> Result<Record, Error> {
+    fn try_from(j: &Value) -> Result<AuditRecord, Error> {
         let mut result = vec![];
 
         match &j {
@@ -76,7 +76,7 @@ impl TryFrom<&Value> for Record {
                     }
                 }
 
-                Ok(Record {
+                Ok(AuditRecord {
                     input_tokens: result[0],
                     output_tokens: result[1],
                     input_cost: result[2],
@@ -91,34 +91,34 @@ impl TryFrom<&Value> for Record {
     }
 }
 
-fn records_from_json(j: &Value) -> Result<HashMap<String, Record>, Error> {
+fn records_from_json(j: &Value) -> Result<HashMap<String, AuditRecord>, Error> {
     match j {
         Value::Object(obj) => {
             let mut result = HashMap::with_capacity(obj.len());
 
             for (key, value) in obj.iter() {
-                result.insert(key.to_string(), Record::try_from(value)?);
+                result.insert(key.to_string(), AuditRecord::try_from(value)?);
             }
 
             Ok(result)
         },
         Value::Array(arr) => {
-            let mut result: HashMap<String, Record> = HashMap::new();
+            let mut result: HashMap<String, AuditRecord> = HashMap::new();
 
             for r in arr.iter() {
-                let RecordLegacy {
+                let AuditRecordLegacy {
                     time,
                     input,
                     output,
                     input_weight,
                     output_weight,
-                } = RecordLegacy::try_from(r)?;
+                } = AuditRecordLegacy::try_from(r)?;
                 // NOTE: RecordLegacy -> Record conversion might introduce a few hours of errors.
                 let date = match DateTime::<Utc>::from_timestamp(time as i64, 0) {
                     Some(date) => format!("{:04}{:02}{:02}", date.year(), date.month(), date.day()),
                     None => format!("19700101"),
                 };
-                let new_record = Record {
+                let new_record = AuditRecord {
                     input_tokens: input,
                     output_tokens: output,
                     input_cost: input * input_weight / 1000,
@@ -141,7 +141,7 @@ fn records_from_json(j: &Value) -> Result<HashMap<String, Record>, Error> {
 }
 
 #[derive(Clone)]
-pub struct Tracker(pub HashMap<String, HashMap<String, Record>>);  // user_name -> usage
+pub struct Tracker(pub HashMap<String, HashMap<String, AuditRecord>>);  // user_name -> usage
 
 impl Tracker {
     pub fn new() -> Self {
@@ -203,8 +203,8 @@ impl From<&Tracker> for Value {
     }
 }
 
-pub fn record_api_usage(
-    at: &RecordAt,
+pub fn dump_api_usage(
+    at: &AuditRecordAt,
     input_tokens: u64,
     output_tokens: u64,
 
@@ -218,7 +218,7 @@ pub fn record_api_usage(
     let mut tracker = Tracker::load_from_file(&at.path)?;
     let today = Local::now();
     let today = format!("{:04}{:02}{:02}", today.year(), today.month(), today.day());
-    let new_record = Record {
+    let new_record = AuditRecord {
         input_tokens,
         output_tokens,
         input_cost: input_tokens * input_weight / 1000,
@@ -243,7 +243,7 @@ pub fn record_api_usage(
     Ok(())
 }
 
-pub fn get_user_usage_data_since(at: RecordAt, since: DateTime<Local>) -> Option<HashMap<String, Record>> {
+pub fn get_user_usage_data_since(at: AuditRecordAt, since: DateTime<Local>) -> Option<HashMap<String, AuditRecord>> {
     let since = format!("{:04}{:02}{:02}", since.year(), since.month(), since.day());
 
     match Tracker::load_from_file(&at.path) {
@@ -259,7 +259,7 @@ pub fn get_user_usage_data_since(at: RecordAt, since: DateTime<Local>) -> Option
     }
 }
 
-pub fn get_usage_data_since(path: &str, since: DateTime<Local>) -> Option<HashMap<String, Record>> {
+pub fn get_usage_data_since(path: &str, since: DateTime<Local>) -> Option<HashMap<String, AuditRecord>> {
     let since = format!("{:04}{:02}{:02}", since.year(), since.month(), since.day());
 
     match Tracker::load_from_file(path) {
@@ -281,10 +281,10 @@ pub fn get_usage_data_since(path: &str, since: DateTime<Local>) -> Option<HashMa
 }
 
 /// It returns the cost in dollars (in a formatted string), without any currency unit.
-pub fn calc_usage(records: &HashMap<String, Record>) -> String {
+pub fn calc_usage(records: &HashMap<String, AuditRecord>) -> String {
     // cost * 1M
     let mut total: u64 = records.values().map(
-        |Record { input_cost, output_cost, .. }| *input_cost + *output_cost
+        |AuditRecord { input_cost, output_cost, .. }| *input_cost + *output_cost
     ).sum();
 
     // cost * 1K
@@ -336,12 +336,12 @@ pub fn dump_pdl(
 }
 
 /*
- * Below is a previous implementation of `Record`.
+ * Below is a previous implementation of `AuditRecord`.
  * I found it painfully slowing, so I rewrite it from scratch (above).
  */
 
-impl From<RecordLegacy> for Value {
-    fn from(r: RecordLegacy) -> Value {
+impl From<AuditRecordLegacy> for Value {
+    fn from(r: AuditRecordLegacy) -> Value {
         Value::Array(vec![
             Value::from(r.time),
             Value::from(r.input),
@@ -353,7 +353,7 @@ impl From<RecordLegacy> for Value {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct RecordLegacy {
+pub struct AuditRecordLegacy {
     pub time: u64,
     pub input: u64,
     pub output: u64,
@@ -363,10 +363,10 @@ pub struct RecordLegacy {
     pub output_weight: u64,
 }
 
-impl TryFrom<&Value> for RecordLegacy {
+impl TryFrom<&Value> for AuditRecordLegacy {
     type Error = Error;
 
-    fn try_from(j: &Value) -> Result<RecordLegacy, Error> {
+    fn try_from(j: &Value) -> Result<AuditRecordLegacy, Error> {
         let mut result = vec![];
 
         match &j {
@@ -389,7 +389,7 @@ impl TryFrom<&Value> for RecordLegacy {
                     }
                 }
 
-                Ok(RecordLegacy {
+                Ok(AuditRecordLegacy {
                     time: result[0],
                     input: result[1],
                     output: result[2],

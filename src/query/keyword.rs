@@ -88,7 +88,7 @@ impl Index {
             sleep_between_retries: self.api_config.sleep_between_retries,
             timeout: self.api_config.timeout,
             temperature: None,
-            record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "extract_keywords"),
+            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "extract_keywords"),
             dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "extract_keywords"),
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             schema,

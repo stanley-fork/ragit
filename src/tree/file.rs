@@ -145,7 +145,7 @@ impl Index {
                     max_retry: self.api_config.max_retry,
                     sleep_between_retries: self.api_config.sleep_between_retries,
                     timeout: self.api_config.timeout,
-                    record_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "summary_chunks"),
+                    dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "summary_chunks"),
                     dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "summary_chunks"),
                     dump_json_at: self.api_config.dump_log_at(&self.root_dir),
                     schema,

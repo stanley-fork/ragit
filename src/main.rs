@@ -1698,6 +1698,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 (Some(schema), _) => Some(schema),
                 _ => None,
             };
+            let dump_api_usage_at = match &index {
+                Ok(Ok(index)) => index.api_config.dump_api_usage_at(&index.root_dir, "pdl"),
+                _ => None,
+            };
 
             let request = ragit_api::Request {
                 messages,
@@ -1705,10 +1709,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 model: model.clone(),
                 dump_pdl_at,
                 dump_json_at,
-
-                // TODO: do we have to record this when `--log` is set?
-                //       `dump_pdl_at` dumps token count but not the actual cost
-                record_api_usage_at: None,
+                dump_api_usage_at,
 
                 // TODO: do these have to be configurable?
                 temperature: None,

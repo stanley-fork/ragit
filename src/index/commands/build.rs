@@ -9,7 +9,7 @@ use crate::index::{
     LoadMode,
 };
 use crate::uid::Uid;
-use ragit_api::record::Record;
+use ragit_api::audit::AuditRecord;
 use ragit_fs::{
     WriteMode,
     exists,
@@ -396,7 +396,7 @@ impl Index {
 
         match self.api_config.get_api_usage(&self.root_dir, "create_chunk_from") {
             Ok(api_records) => {
-                for Record { input_tokens, output_tokens, input_cost, output_cost } in api_records.values() {
+                for AuditRecord { input_tokens, output_tokens, input_cost, output_cost } in api_records.values() {
                     input_tokens_s += *input_tokens;
                     output_tokens_s += *output_tokens;
                     input_cost_s += *input_cost;

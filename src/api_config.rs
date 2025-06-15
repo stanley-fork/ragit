@@ -1,7 +1,7 @@
 use chrono::Local;
 use crate::constant::{INDEX_DIR_NAME, LOG_DIR_NAME};
 use crate::error::Error;
-use ragit_api::record::{Record, RecordAt, Tracker};
+use ragit_api::audit::{AuditRecord, AuditRecordAt, Tracker};
 use ragit_fs::{
     WriteMode,
     exists,
@@ -120,7 +120,7 @@ impl ApiConfig {
         }
     }
 
-    pub fn dump_api_usage_at(&self, root_dir: &str, id: &str) -> Option<RecordAt> {
+    pub fn dump_api_usage_at(&self, root_dir: &str, id: &str) -> Option<AuditRecordAt> {
         if self.dump_api_usage {
             match join3(root_dir, INDEX_DIR_NAME, "usages.json") {
                 Ok(path) => {
@@ -132,7 +132,7 @@ impl ApiConfig {
                         );
                     }
 
-                    Some(RecordAt { path, id: id.to_string() })
+                    Some(AuditRecordAt { path, id: id.to_string() })
                 },
                 Err(_) => None,
             }
@@ -143,9 +143,9 @@ impl ApiConfig {
         }
     }
 
-    pub fn get_api_usage(&self, root_dir: &str, id: &str) -> Result<HashMap<String, Record>, Error> {
+    pub fn get_api_usage(&self, root_dir: &str, id: &str) -> Result<HashMap<String, AuditRecord>, Error> {
         match &self.dump_api_usage_at(root_dir, id) {
-            Some(RecordAt { path, id }) => {
+            Some(AuditRecordAt { path, id }) => {
                 let tracker = Tracker::load_from_file(path)?;
 
                 match tracker.0.get(id) {
