@@ -605,7 +605,7 @@ async fn initinalize_server(args: &RunArgs) {
             config.log_file.clone(),
             args.verbose || config.dump_log_to_stdout,
             false,    // dump_to_stderr
-            false,    // keep_previous_file
+            true,     // keep_previous_file
         ).unwrap();
     }
 

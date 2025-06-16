@@ -1,8 +1,9 @@
 use crate::{
     FileError,
     WriteMode,
-    copy_file,
     exists,
+    file_size,
+    rename,
     write_string,
 };
 use chrono::Local;
@@ -19,11 +20,7 @@ pub fn initialize_log(
     keep_previous_file: bool,
 ) -> Result<(), FileError> {
     if let Some(path) = &dump_to_file {
-        if !keep_previous_file {
-            if exists(path) {
-                copy_file(path, &format!("{path}-backup"))?;
-            }
-
+        if !keep_previous_file || !exists(path) {
             write_string(path, "", WriteMode::Atomic)?;
         }
     }
@@ -41,7 +38,6 @@ fn get_log_file_path() -> Option<String> {
 pub fn write_log(owner: &str, msg: &str) {
     let dump_to_stdout = DUMP_TO_STDOUT.get().map(|b| *b).unwrap_or(false);
     let dump_to_stderr = DUMP_TO_STDERR.get().map(|b| *b).unwrap_or(false);
-
     let path = get_log_file_path();
 
     if path.is_none() && !dump_to_stdout && !dump_to_stderr {
@@ -59,11 +55,27 @@ pub fn write_log(owner: &str, msg: &str) {
     );
 
     if let Some(path) = path {
-        write_string(
+        if let Ok(size) = file_size(&path) {
+            if size > (1 << 20) {  // at most 1 MiB per log file
+                let dst = format!("{path}-{}", Local::now().to_rfc3339().get(0..19).unwrap());
+
+                if let Err(e) = rename(&path, &dst) {
+                    eprintln!("error at `rename({path:?}, {dst:?})` at `write_log(...)`: {e:?}");
+                }
+
+                if let Err(e) = write_string(&path, "", WriteMode::Atomic) {
+                    eprintln!("error at `write_string({path:?}, \"\", WriteMode::Atomic)` at `write_log(...)`: {e:?}");
+                }
+            }
+        }
+
+        if let Err(e) = write_string(
             &path,
             &message,
             WriteMode::AlwaysAppend,
-        ).unwrap();
+        ) {
+            eprintln!("error at `write_string({path:?}, ..)` at `write_log(...)`: {e:?}");
+        }
     }
 
     if dump_to_stdout {
