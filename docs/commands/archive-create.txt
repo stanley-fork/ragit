@@ -1,4 +1,4 @@
-rag-archive(1)
+rag-archive-create(1)
 ==========
 
 NAME
