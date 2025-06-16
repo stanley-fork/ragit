@@ -32,7 +32,7 @@ def parse_log(log: str) -> list[dict]:
         day, month, year, hour, minute, second, address, message = r.groups()
         day, month, year, hour, minute, second = int(day), months[month], int(year), int(hour), int(minute), int(second)
 
-        if (r := re.match(r"\s*(GET|POST|PUT|DELETE)\s*([-a-zA-Z0-9/_]+)\s*(\d{3})(.+)", message)) is not None:
+        if (r := re.match(r"\s*(GET|POST|PUT|DELETE)\s*([-a-zA-Z0-9/_.]+)\s*(\d{3})(.+)", message)) is not None:
             method, path, status, message = r.groups()
             status = int(status)
 
