@@ -68,6 +68,7 @@ def cargo_run(
     output_schema: Optional[list[str]] = None,  # returncode | stdout | stderr
     raw_output: bool = False,
 ):
+    add_coverage(args)
     output_schema = output_schema or []
     features = features or None  # has to ignore an empty list
     features = ["--no-default-features"] if features is None else ["--no-default-features", "--features", ",".join(features)]
@@ -209,6 +210,51 @@ def get_commit_hash():
 
     except Exception as e:
         return f"cannot get commit_hash: {e}"
+
+# It's a simple coverage test. It checks what commands and options
+# the test harness runs. It doesn't care about arguments of the commands.
+_coverage: set[str] = set()
+
+def add_coverage(args: list[str]):
+    if len(args) == 0:
+        _coverage.add("")
+        return
+
+    if args[0] == "-C":
+        args = [args[2], "-C", *args[3:]]
+
+    # intentional cli error
+    if args[0].startswith("-"):
+        return
+
+    if "--" in args:
+        args = args[args.index("--") + 1:]
+
+    command = args[0]
+
+    # aliases
+    command = {
+        "create-archive": "archive-create",
+        "archive": "archive-create",
+        "extract-archive": "archive-extract",
+        "extract": "archive-extract",
+        "build-ii": "ii-build",
+        "reset-ii": "ii-reset",
+        "rm": "remove",
+    }.get(command, command)
+
+    # sort the options for equality check
+    options = sorted([arg for arg in args[1:] if arg.startswith("-")])
+
+    # clean arg flags
+    options = [
+        option if "=" not in option else option[:option.index("=")] for option in options
+    ]
+
+    _coverage.add(" ".join([command, *options]))
+
+def get_coverage() -> list[str]:
+    return sorted(list(_coverage))
 
 _message: Optional[str] = None
 

@@ -66,6 +66,7 @@ from utils import (
     clean,
     clean_test_output,
     get_commit_hash,
+    get_coverage,
     get_ragit_version,
     goto_root,
     recv_message,
@@ -697,6 +698,28 @@ if __name__ == "__main__":
                 ("migrate2", migrate2),
                 ("migrate3", migrate3),
             ]
+            tests = [
+                ("ignore", ignore),
+                ("recover", recover),
+                ("cli", cli),
+                ("outside", outside),
+                ("meta", meta),
+                ("symlink", symlink),
+                ("gh_issue_20", gh_issue_20),
+                ("clean_up_erroneous_chunk", clean_up_erroneous_chunk),
+                ("images", images),
+                ("markdown_reader", markdown_reader),
+                ("csv_reader", csv_reader),
+                ("real_repos_regression", real_repos_regression),
+                ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
+                ("prompts dummy", lambda: prompts(test_model="dummy")),
+                ("empty dummy", lambda: empty(test_model="dummy")),
+                ("extract_keywords dummy", lambda: extract_keywords(test_model="dummy")),
+            
+                # 얘네는 빨리 끝나기는 하는데 server가 필요함...
+                ("clone_empty", clone_empty),
+                ("pull", pull),
+            ]
             started_at = datetime.now()
             has_error = False
             result = {
@@ -752,6 +775,7 @@ if __name__ == "__main__":
                 finally:
                     result["result"]["complete"] += 1
                     result["result"]["remaining"] -= 1
+                    result["coverage"] = get_coverage()
 
                     # `except Exception as e` does not catch all the exceptions
                     if name in result["tests"]:
