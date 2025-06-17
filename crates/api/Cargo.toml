@@ -15,7 +15,7 @@ clap = { version = "4.5.26", features = ["derive"] }
 futures = "0.3.31"
 image = "0.25.5"
 lazy_static = "1.5.0"
-ragit-fs = { path = "../fs", version = "0.4.2" }
+ragit-fs = { path = "../fs", version = "0.4.2", features = ["log"] }
 ragit-pdl = { path = "../pdl", version = "0.4.2" }
 reqwest = "0.12.12"
 serde = { version = "1.0.218", features = ["derive"] }

@@ -22,7 +22,7 @@ mupdf = { version = "0.5.0", optional = true }
 png = { version = "0.17.16", optional = true }  # `resvg`'s function returns `png::EncodingError`
 ragit-api = { path = "./crates/api", version = "0.4.2" }
 ragit-cli = { path = "./crates/cli", version = "0.4.2" }
-ragit-fs = { path = "./crates/fs", version = "0.4.2" }
+ragit-fs = { path = "./crates/fs", version = "0.4.2", features = ["diff"] }
 ragit-ignore = { path = "./crates/ignore", version = "0.4.2" }
 ragit-korean = { path = "./crates/korean", version = "0.4.2", optional = true }
 ragit-pdl = { path = "./crates/pdl", version = "0.4.2" }

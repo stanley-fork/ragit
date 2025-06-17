@@ -1,7 +1,9 @@
 #![allow(dead_code)]
 
+#[cfg(feature = "log")]
 mod log;
 
+#[cfg(feature = "log")]
 pub use crate::log::{initialize_log, write_log};
 
 use std::collections::hash_map;
@@ -400,6 +402,7 @@ pub fn set_current_dir(path: &str) -> Result<(), FileError> {
     std::env::set_current_dir(path).map_err(|e| FileError::from_std(e, path))
 }
 
+#[cfg(feature = "diff")]
 pub fn diff(path: &str, base: &str) -> Result<String, FileError> {
     match pathdiff::diff_paths(path, base) {
         Some(path) => match path.to_str() {
@@ -410,6 +413,7 @@ pub fn diff(path: &str, base: &str) -> Result<String, FileError> {
     }
 }
 
+#[cfg(feature = "diff")]
 /// It calcs diff and normalizes.
 pub fn get_relative_path(base: &str, path: &str) -> Result<String, FileError> {
     // It has to normalize the output because `diff` behaves differently on windows and unix.
