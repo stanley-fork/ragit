@@ -21,7 +21,7 @@ def migrate3():
 
     try:
         server_process = spawn_ragit_server()
-        versions = ["0.3.0", "0.3.5", "0.4.0"]
+        versions = ["0.3.0", "0.3.5", "0.4.0", "0.4.2"]
         chunks = {}
 
         mk_and_cd_tmp_dir()
