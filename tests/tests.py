@@ -15,6 +15,7 @@ from empty import empty
 from end_to_end import end_to_end
 from external_bases import external_bases
 from extract_keywords import extract_keywords
+from fetch_models import fetch_models
 from generous_file_reader import generous_file_reader
 from gh_issue_20 import gh_issue_20
 from ignore import ignore
@@ -173,6 +174,10 @@ Commands
     server_permission           run `server_permission` test
                                 It creates users and repositories with different permissions
                                 and sends requests with/without api keys.
+
+    fetch_models                run `fetch_models` test
+                                It's like `server_ai_model`, but it updates local `models.json`
+                                instead of server.
 
     query_options [model]       run `query_options` test
                                 It tests various option flags of `rag query`.
@@ -426,6 +431,9 @@ if __name__ == "__main__":
         elif command == "server_permission":
             server_permission()
 
+        elif command == "fetch_models":
+            fetch_models()
+
         elif command == "query_options":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -639,6 +647,7 @@ if __name__ == "__main__":
                 ("server", server),
                 ("server_ai_model", server_ai_model),
                 ("server_permission", server_permission),
+                ("fetch_models", fetch_models),
                 ("cli", cli),
                 ("outside", outside),
                 ("archive", archive),

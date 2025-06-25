@@ -1,4 +1,9 @@
-use super::{Index, erase_lines};
+use super::{
+    Index,
+    erase_lines,
+    request_binary_file,
+    request_json_file,
+};
 use super::archive::BlockType;
 use crate::constant::{ARCHIVE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
@@ -17,7 +22,6 @@ use ragit_fs::{
     write_bytes,
 };
 use reqwest::Url;
-use serde_json::Value;
 use std::collections::HashMap;
 use std::time::Instant;
 
@@ -196,56 +200,4 @@ fn infer_repo_name_from_url(url: &str) -> String {
         },
         _ => String::from("_"),
     }
-}
-
-async fn request_binary_file(url: &str) -> Result<Vec<u8>, Error> {
-    let client = reqwest::Client::new();
-    let mut request = client.get(url);
-
-    if let Some(api_key) = get_ragit_api_key() {
-        request = request.header(
-            "x-api-key",
-            &api_key,
-        );
-    }
-
-    let response = request.send().await?;
-
-    if response.status().as_u16() != 200 {
-        return Err(Error::RequestFailure {
-            context: Some(String::from("clone")),
-            code: Some(response.status().as_u16()),
-            url: url.to_string(),
-        });
-    }
-
-    Ok(response.bytes().await?.to_vec())
-}
-
-async fn request_json_file(url: &str) -> Result<Value, Error> {
-    let client = reqwest::Client::new();
-    let mut request = client.get(url);
-
-    if let Some(api_key) = get_ragit_api_key() {
-        request = request.header(
-            "x-api-key",
-            &api_key,
-        );
-    }
-
-    let response = request.send().await?;
-
-    if response.status().as_u16() != 200 {
-        return Err(Error::RequestFailure {
-            context: Some(String::from("clone")),
-            code: Some(response.status().as_u16()),
-            url: url.to_string(),
-        });
-    }
-
-    Ok(serde_json::from_str(&response.text().await?)?)
-}
-
-pub(crate) fn get_ragit_api_key() -> Option<String> {
-    std::env::var("RAGIT_API_KEY").ok()
 }

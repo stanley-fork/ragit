@@ -1,0 +1,20 @@
+rag-model(1)
+==========
+
+NAME
+----
+rag-model - Manage local AI models
+
+SYNOPSIS
+--------
+[verse]
+'rag model --remove' --all | -a | <model>
+'rag model --search' [--name-only | --stat-only] [--json | -j] <model>
+            [--remote <url=https://ragit.baehyunsol.com>]
+'rag model --fetch' --all | -a | <model> [--existing-only] [--quiet | -q]
+            [--remote <url=https://ragit.baehyunsol.com>]
+
+DESCRIPTION
+-----------
+You can remove AI models in local `models.json` file, or fetch new models from
+remote to local.

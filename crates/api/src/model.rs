@@ -184,6 +184,10 @@ impl Model {
         Ok(None)
     }
 
+    pub fn is_test_model(&self) -> bool {
+        matches!(self.api_provider, ApiProvider::Test(_))
+    }
+
     pub fn default_models() -> Vec<Model> {
         ModelRaw::default_models().iter().map(
             |model| model.try_into().unwrap()
@@ -232,12 +236,14 @@ pub struct ModelRaw {
     //        wait 180 seconds. Do I have to reduce it?
     /// The number is in seconds.
     /// If not set, it's default to 180 seconds.
+    #[serde(default)]
     pub api_timeout: Option<u64>,
 
     pub explanation: Option<String>,
 
     /// If you don't want to use an env var, you
     /// can hard-code your api key in this field.
+    #[serde(default)]
     pub api_key: Option<String>,
 
     /// If you've hard-coded your api key,
