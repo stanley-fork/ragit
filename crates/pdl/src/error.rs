@@ -20,7 +20,7 @@ pub enum Error {
     /// see <https://docs.rs/base64/latest/base64/enum.DecodeError.html>
     Base64DecodeError(base64::DecodeError),
 
-    /// https://docs.rs/tera/latest/tera/struct.Error.html
+    /// see <https://docs.rs/tera/latest/tera/struct.Error.html>
     TeraError(tera::Error),
 }
 

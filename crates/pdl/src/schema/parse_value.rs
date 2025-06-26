@@ -13,7 +13,7 @@ use serde_json::Value;
 //   3. If there are multiple literals that are evaluated to the same value, it keeps only one of them.
 //       - This happens frequently. Most LLMs think and answer (with or without an explicit CoT). In such cases, the json literal
 //         appears once in the think tokens and once in the answer tokens.
-pub fn extract_jsonish_literal(s: &str) -> JsonishLiteral {
+pub fn extract_jsonish_literal(s: &'_ str) -> JsonishLiteral<'_> {
     let mut state = NaturalLanguageParseState::Init;
     let mut json_stack = vec![];
     let mut start_index = 0;
