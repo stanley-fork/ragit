@@ -47,11 +47,9 @@ impl Index {
             remote = format!("{remote}/");
         }
 
-        let url = Url::parse(&remote)?;
-        let mut request_url = url.join("ai-model-list/")?;
-        request_url.set_query(Some(&format!("name={name}")));
-        let remote_models = request_json_file(request_url.as_str()).await?;
-        let remote_models = serde_json::from_value::<Vec<ModelRaw>>(remote_models)?;
+        let mut url = Url::parse(&remote)?;
+        url = url.join("ai-model-list/")?;
+        let remote_models = request_models(url, Some(name)).await?;
 
         let models_at = Index::get_rag_path(
             &self.root_dir,
@@ -113,8 +111,8 @@ impl Index {
             remote = format!("{remote}/");
         }
 
-        let url = Url::parse(&remote)?;
-        let mut request_url = url.join("ai-model-list/")?;
+        let mut url = Url::parse(&remote)?;
+        url = url.join("ai-model-list/")?;
 
         let remote_models = if existing_only {
             let mut remote_models = vec![];
@@ -122,19 +120,16 @@ impl Index {
             for model in local_models.keys() {
                 // TODO: there must be a more efficient way to request_json_file
                 //       e.g. find a common substring of local models
-                request_url.set_query(Some(&format!("name={model}")));
+                url.set_query(Some(&format!("name={model}")));
 
-                let remote_models_ = request_json_file(request_url.as_str()).await?;
+                let remote_models_ = request_json_file(url.as_str()).await?;
                 let mut remote_models_ = serde_json::from_value::<Vec<ModelRaw>>(remote_models_)?;
                 remote_models.append(&mut remote_models_);
             }
 
             remote_models
         } else {
-            // TODO: default `limit` is 50. What if there are more than 50 models?
-            let remote_models = request_json_file(request_url.as_str()).await?;
-            let remote_models = serde_json::from_value::<Vec<ModelRaw>>(remote_models)?;
-            remote_models
+            request_models(url, None).await?
         };
         let mut fetched = 0;
         let mut updated = 0;
@@ -203,6 +198,34 @@ impl Index {
         save_models(&[], &models_at)?;
         Ok(())
     }
+}
+
+async fn request_models(mut url: Url, name: Option<&str>) -> Result<Vec<ModelRaw>, Error> {
+    let mut result = vec![];
+    let mut offset = 0;
+
+    loop {
+        if let Some(name) = name {
+            url.set_query(Some(&format!("name={name}&limit=10&offset={offset}")));
+        }
+
+        else {
+            url.set_query(Some(&format!("limit=10&offset={offset}")));
+        }
+
+        let remote_models = request_json_file(url.as_str()).await?;
+        let mut remote_models = serde_json::from_value::<Vec<ModelRaw>>(remote_models)?;
+        let break_ = remote_models.len() < 10;
+        result.append(&mut remote_models);
+
+        if break_ {
+            break;
+        }
+
+        offset += 10;
+    }
+
+    Ok(result)
 }
 
 // If there's nothing to update, it returns `None`. Otherwise, it returns the updated model.

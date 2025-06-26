@@ -548,6 +548,8 @@ async fn main() {
 
 // It sets global value `crate::CONFIG` and initialize ai models (if needed).
 async fn initinalize_server(args: &RunArgs) {
+    let pool = get_pool().await;
+    sqlx::migrate!().run(pool).await.unwrap();
     let config_file = args.config_file.clone().unwrap_or(String::from("./config.json"));
 
     if !exists(&config_file) {
@@ -613,6 +615,6 @@ async fn initinalize_server(args: &RunArgs) {
         remove_dir_all(&config.push_session_dir).unwrap();
     }
 
-    initialize_ai_models(get_pool().await).await.unwrap();
+    initialize_ai_models(pool).await.unwrap();
     CONFIG.set(config).unwrap();
 }

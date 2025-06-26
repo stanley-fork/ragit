@@ -122,9 +122,18 @@ pub async fn upsert_and_return_id(model: &AiModelCreation, pool: &PgPool) -> Res
             NOW(),  -- created_at
             NOW()   -- updated_at
         )
-        ON CONFLICT (id)
+        -- This is a design mistake. At first, I wanted to allow users to use different models
+        -- with the same name. Users use their models to chat. They only care about their models,
+        -- and others' models might have the same name. The `id` field was to deduplicate exact
+        -- same models.
+        -- But now, we're not working on the chat feature anymore. Instead, it's a model store
+        -- where ragit users fetch new models. So there must be no name conflict.
+        ON CONFLICT (name)
         DO UPDATE SET
-            -- if `id` is the same, $2 ~ $5 must be the same
+            id = $1,
+            api_name = $3,
+            api_provider = $4,
+            api_url = $5,
             can_read_images = $6,
             input_price = $7,
             output_price = $8,
@@ -156,8 +165,90 @@ pub async fn get_list(
 ) -> Result<Vec<AiModel>, Error> {
     // TODO: how can I use sqlx as a sql builder?
     match (&name, tags.len()) {
-        (None, 0) | (Some(_), _) => {
-            let mut models = crate::query_as!(
+        (Some(name), _) => {
+            // We need another pair of `(limit, offset)` because
+            // we'll first filter by name, which we cannot do with SQL,
+            // then apply limit and offset.
+            let limit = limit as usize;
+            let offset = offset as usize;
+            let mut inner_offset = 0;
+            let mut result = vec![];
+
+            loop {
+                let mut models = crate::query_as!(
+                    AiModel,
+                    "SELECT
+                        id,
+                        name,
+                        api_name,
+                        api_provider,
+                        api_url,
+                        can_read_images,
+                        input_price,
+                        output_price,
+                        explanation,
+                        api_env_var,
+                        tags,
+                        created_at,
+                        updated_at
+                    FROM ai_model
+                    ORDER BY name
+                    LIMIT 50
+                    OFFSET $1",
+                    inner_offset,
+                ).fetch_all(pool).await?;
+                inner_offset += 50;
+
+                if models.is_empty() {
+                    break;
+                }
+
+                // It does roundtrips to `ragit_api::ModelRaw` and `ragit_api::Model`
+                // because I want to use `ragit_api::get_model_by_name` so that the api behaves
+                // exactly the same as `rag ls-models`.
+                let model_by_name = models.iter().map(|model| (model.name.clone(), model.clone())).collect::<HashMap<_, _>>();
+                let ra_models = models.iter().filter_map(
+                    |model| match tags.len() {
+                        0 => {
+                            ragit_api::Model::try_from(&ragit_api::ModelRaw::from(model)).ok()
+                        },
+                        _ => if tags.iter().all(|tag| model.tags.contains(tag)) {
+                            ragit_api::Model::try_from(&ragit_api::ModelRaw::from(model)).ok()
+                        } else {
+                            None
+                        },
+                    }
+                ).collect::<Vec<_>>();
+                let model_names = match ragit_api::get_model_by_name(&ra_models, name) {
+                    Ok(model) => vec![model.name.clone()],
+                    Err(ragit_api::Error::InvalidModelName { candidates, .. }) => candidates,
+                    _ => vec![],
+                };
+
+                models = model_names.iter().map(|name| model_by_name.get(name).unwrap().clone()).collect();
+                result.append(&mut models);
+
+                if result.len() > limit + offset {
+                    break;
+                }
+            }
+
+            if result.len() > offset {
+                result = result[offset..].to_vec();
+
+                if result.len() > limit {
+                    result = result[..limit].to_vec();
+                }
+            }
+
+            else {
+                result = vec![];
+            }
+
+            Ok(result)
+        },
+        (None, 0) => {
+            let models = crate::query_as!(
                 AiModel,
                 "SELECT
                     id,
@@ -174,36 +265,12 @@ pub async fn get_list(
                     created_at,
                     updated_at
                 FROM ai_model
-                ORDER BY id
+                ORDER BY name
                 LIMIT $1
                 OFFSET $2",
                 limit,
                 offset,
             ).fetch_all(pool).await?;
-
-            // It does an unnecessary roundtrips to `ragit_api::ModelRaw` and `ragit_api::Model`
-            // because I want to use `ragit_api::get_model_by_name` so that the api behaves
-            // exactly the same as `rag ls-models`.
-            if let Some(name) = &name {
-                let model_by_name = models.iter().map(|model| (model.name.clone(), model.clone())).collect::<HashMap<_, _>>();
-                let ra_models = models.iter().filter_map(
-                    |model| match tags.len() {
-                        0 => ragit_api::Model::try_from(&ragit_api::ModelRaw::from(model)).ok(),
-                        _ => if tags.iter().all(|tag| model.tags.contains(tag)) {
-                            ragit_api::Model::try_from(&ragit_api::ModelRaw::from(model)).ok()
-                        } else {
-                            None
-                        },
-                    }
-                ).collect::<Vec<_>>();
-                let model_names = match ragit_api::get_model_by_name(&ra_models, name) {
-                    Ok(model) => vec![model.name.clone()],
-                    Err(ragit_api::Error::InvalidModelName { candidates, .. }) => candidates,
-                    _ => vec![],
-                };
-
-                models = model_names.iter().map(|name| model_by_name.get(name).unwrap().clone()).collect()
-            }
 
             Ok(models)
         },
@@ -226,7 +293,7 @@ pub async fn get_list(
                     updated_at
                 FROM ai_model
                 WHERE $1 = ANY(tags)
-                ORDER BY id
+                ORDER BY name
                 LIMIT $2
                 OFFSET $3",
                 &tags[0],

@@ -18,3 +18,17 @@ DESCRIPTION
 -----------
 You can remove AI models in local `models.json` file, or fetch new models from
 remote to local.
+
+You can remove models in `.ragit/models.json` with `rag model --remove` command.
+You can either remove a model by name, or all models with `--all` option.
+
+`rag model --search` is like `rag ls-models`, but it lists models in the
+remote, not in local `models.json`. You have to set `--remote` to a working
+ragit-server. If you're not sure just keep it blank.
+
+If you find a nice model with `rag model --search` command and want to use it,
+you can use `rag model --fetch` command. If you run `rag model --fetch --all`,
+it will download all the models in the remote and write it to local
+`models.json`. Sometimes, you don't want to download new models, but keep your
+local models up to date. In that case, you can run
+`rag model --fetch --existing-only --all` to keep your models up to date.
