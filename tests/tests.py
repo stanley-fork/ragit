@@ -349,6 +349,7 @@ Commands
                                 the model's response.
 
     cargo_tests                 run `cargo test` on all the crates
+                                It also makes sure that cargo emits no warnings.
 
     cargo_features              run `cargo_features` test
                                 Ragit has many cargo features. This test compiles ragit with
