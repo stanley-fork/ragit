@@ -2,6 +2,7 @@ from add_and_rm import add_and_rm
 from add_and_rm2 import add_and_rm2
 from archive import archive
 from audit import audit
+from erroneous_llm import erroneous_llm
 from cargo_tests import cargo_tests
 from cargo_features import cargo_features
 from cat_file import cat_file
@@ -223,6 +224,10 @@ Commands
                                 It creates a lot of small files and see if ragit can
                                 handle the files correctly. It also tests interrupting
                                 `rag build`.
+
+    erroneous_llm               run `erroneous_llm` test
+                                It tests how `rag build` behaves when the LLM server is
+                                unstable.
 
     many_jobs [model=dummy] [jobs=999]
                                 run `many_jobs` test
@@ -483,6 +488,9 @@ if __name__ == "__main__":
         elif command == "many_chunks":
             many_chunks()
 
+        elif command == "erroneous_llm":
+            erroneous_llm()
+
         elif command == "many_jobs":
             jobs = args[3] if len(args) > 3 else 999
             test_model = test_model if test_model else "dummy"
@@ -653,6 +661,7 @@ if __name__ == "__main__":
                 ("outside", outside),
                 ("archive", archive),
                 ("many_chunks", many_chunks),
+                ("erroneous_llm", erroneous_llm),
                 ("many_jobs", many_jobs),
                 ("ls", ls),
                 ("meta", meta),
