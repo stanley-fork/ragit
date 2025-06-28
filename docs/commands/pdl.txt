@@ -9,7 +9,7 @@ SYNOPSIS
 --------
 [verse]
 'rag pdl' <file> [--model <model>] [--models <file>] [--context <file>]
-            [--strict] [--escape] [--log <dir>] [--schema <schema>]
+            [--[no-]strict] [--escape] [--log <dir>] [--schema <schema>]
 
 DESCRIPTION
 -----------
@@ -43,12 +43,12 @@ OPTIONS
         Path to a json file which adds a context to the prompt. A pdl file is
         pragmatic: you can parameterize your prompt using tera template engine.
 
---strict::
-        By default, ragit ignores errors in pdl files. For example, if there's
-        `{{ name }}` in the pdl file but there's no `name` in the context, it
-        just turns off the tera renderer.
-        If this flag is enabled, the program dies if there's an error while
-        parsing the pdl file.
+--[no-]strict::
+        By default, ragit rejects to run a pdl file if there's an error. For
+        example, if there's `{{ name }}` in the pdl file but there's no `name`
+        in the context, it doesn't call LLM and exits with an error.
+        If `--no-strict` is set, it turns off the tera renderer and treats
+        `{{ name }}` like a literal string.
 
 --escape::
         There are some special syntaxes that pdl use. For example, `<|user|>`

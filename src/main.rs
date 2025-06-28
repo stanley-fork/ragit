@@ -1770,7 +1770,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         // TODO: maybe create a function for this? I don't want `main.rs` to be too bloated
         Some("pdl") => {
             let parsed_args = ArgParser::new()
-                .optional_flag(&["--strict"])
+                .flag_with_default(&["--strict", "--no-strict"])
                 .optional_flag(&["--escape"])
                 .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--models", ArgType::Path)
@@ -1788,7 +1788,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             // `index.json` will help us find models, but it's not necessary
             let index = root_dir.map(|root_dir| Index::load(root_dir, LoadMode::OnlyJson));
             let pdl_at = parsed_args.get_args_exact(1)?[0].clone();
-            let strict_mode = parsed_args.get_flag(0).unwrap_or(String::new()) == "--strict";
+            let strict_mode = parsed_args.get_flag(0).unwrap() == "--strict";
             let escape = parsed_args.get_flag(1).unwrap_or(String::new()) == "--escape";
             let models = match parsed_args.arg_flags.get("--models") {
                 Some(path) => {

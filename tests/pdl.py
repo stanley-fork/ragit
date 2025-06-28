@@ -29,19 +29,19 @@ def pdl(test_model: str):
 
         # test 1: simple schema and reading local config files
         write_string("test1.pdl", """
-    <|schema|>
+<|schema|>
 
-    { name: str, age: int }
+{ name: str, age: int }
 
-    <|system|>
+<|system|>
 
-    You'll be given a short story with a character. Your job is to extract a name and age of the character.
+You'll be given a short story with a character. Your job is to extract a name and age of the character.
 
-    Your response must be a json object, with 2 keys: "name" and "age". "name" is a string and "age" is an integer.
+Your response must be a json object, with 2 keys: "name" and "age". "name" is a string and "age" is an integer.
 
-    <|user|>
+<|user|>
 
-    There lives a man named ragit. He is 26 years old.
+There lives a man named ragit. He is 26 years old.
     """)
 
         # if there's no knowledge-base, you have to specify model name
@@ -70,11 +70,11 @@ def pdl(test_model: str):
         shutil.copyfile("../tests/images/hello_world.webp", "sample.webp")
 
         write_string("test2.pdl", """
-    <|user|>
+<|user|>
 
-    I have an image of a wooden plank. There's something written on it... What does it say?
+I have an image of a wooden plank. There's something written on it... What does it say?
 
-    <|media(sample.webp)|>
+<|media(sample.webp)|>
     """)
 
         # if there's no knowledge-base, you have to specify model name
@@ -157,8 +157,10 @@ How old is {{customer1.name}}?
 
         assert int(cargo_run(["pdl", "test4.pdl", "--model", test_model, "--context=context.json"], stdout=True)) == context["customer1"]["age"]
 
-        # If the context is broken, `--strict` will refuse to run and no `--strict` will run it with the broken context
-        cargo_run(["pdl", "test4.pdl", "--model", "dummy", "--context=broken_context.json"])
+        # If the context is broken, `--strict` will refuse to run and `--no-strict` will run it with the broken context
+        # It's `--strict` by default.
+        cargo_run(["pdl", "test4.pdl", "--no-strict", "--model", "dummy", "--context=broken_context.json"])
+        assert cargo_run(["pdl", "test4.pdl", "--model", "dummy", "--context=broken_context.json"], check=False) != 0
         assert cargo_run(["pdl", "test4.pdl", "--strict", "--model", "dummy", "--context=broken_context.json"], check=False) != 0
 
     finally:
