@@ -39,6 +39,11 @@ lazy_static! {
         //     include_str!("../prompts/summarize_chunks.pdl").to_string(),
         // );
 
+        result.insert(
+            String::from("summarize_knowledge_base"),
+            include_str!("../prompts/summarize_knowledge_base.pdl").to_string(),
+        );
+
         result
     };
 }
