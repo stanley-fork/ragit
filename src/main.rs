@@ -2365,14 +2365,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 );
             }
         },
-        // tmp command for testing `Index::summary_file`
-        // this interface is likely to change
-        Some("summary-file") => {
-            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-
-            for file_uid in index.get_all_file_uids() {
-                index.summary_file(file_uid).await?;
-            }
+        Some("summary") => {
+            // let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            // index.summarize().await?;
         },
         Some("tfidf") => {
             let parsed_args = ArgParser::new()

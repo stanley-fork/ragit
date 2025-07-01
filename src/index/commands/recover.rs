@@ -1,13 +1,13 @@
 use super::Index;
 use crate::{ApiConfig, BuildConfig, QueryConfig, chunk};
 use crate::chunk::ChunkSource;
-use crate::constant::{CHUNK_DIR_NAME, FILE_INDEX_DIR_NAME, INDEX_DIR_NAME};
+use crate::constant::{FILE_INDEX_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::{
     IIStatus,
     tfidf,
 };
-use crate::uid::{self, Uid, UidType, UidWriteMode};
+use crate::uid::{self, Uid, UidWriteMode};
 use ragit_fs::{
     WriteMode,
     create_dir_all,
@@ -94,9 +94,6 @@ impl Index {
                         continue;
                     }
                 },
-                ChunkSource::Chunks { .. } => {
-                    // gc will run later
-                },
             }
 
             let corrupted_tfidf_file = !exists(&tfidf_file) || tfidf::load_from_file(&tfidf_file).is_err();
@@ -125,38 +122,6 @@ impl Index {
             }
 
             chunk_count += 1;
-        }
-
-        // Recover B-1: gc
-        // FIXME: it has a terrible time complexity
-        'gc_loop: loop {
-            for chunk_uid in self.get_all_chunk_uids()? {
-                match chunk_uid.get_uid_type()? {
-                    UidType::Group => {
-                        let chunk_ = self.get_chunk_by_uid(chunk_uid)?;
-                        let chunk_path = Index::get_uid_path(
-                            &self.root_dir,
-                            CHUNK_DIR_NAME,
-                            chunk_uid,
-                            Some("chunk"),
-                        )?;
-
-                        if let ChunkSource::Chunks { uids } = &chunk_.source {
-                            for uid in uids.iter() {
-                                if !self.check_chunk_by_uid(*uid) {
-                                    remove_file(&chunk_path)?;
-                                    result.removed_chunks += 1;
-                                    chunk_count -= 1;
-                                    continue 'gc_loop;
-                                }
-                            }
-                        }
-                    },
-                    _ => {},
-                }
-            }
-
-            break;
         }
 
         // Recover A

@@ -48,8 +48,10 @@ pub enum UidType {
     Chunk,
     Image,
     File,
-    Group,
     KnowledgeBase,
+
+    /// It's deprecated.
+    Group,
 }
 
 /// There are 2 ways to store `Vec<Uid>` to a file.

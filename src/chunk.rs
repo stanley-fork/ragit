@@ -326,9 +326,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
             ChunkSource::File { path, index, page: _ } => {
                 curr_chunks.insert((path.clone(), *index), chunk);
             },
-            ChunkSource::Chunks { .. } => {
-                unmergeable_chunks.push(chunk);
-            },
+            _ => { unmergeable_chunks.push(chunk); },
         }
     }
 
@@ -357,13 +355,11 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
     curr_chunks.sort_by_key(
         |chunk| match &chunk.source {
             ChunkSource::File { index, .. } => *index,
-            ChunkSource::Chunks { .. } => 0,  // unreachable
         }
     );
     curr_chunks.sort_by_key(
         |chunk| match &chunk.source {
             ChunkSource::File { path, .. } => path.to_string(),
-            ChunkSource::Chunks { .. } => String::new(),  // unreachable
         }
     );
 

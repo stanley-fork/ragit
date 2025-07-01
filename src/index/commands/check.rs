@@ -20,7 +20,6 @@ impl Index {
     /// - Check A: For each chunk file,
     ///   - Check A-0: the chunk is not corrupted.
     ///   - Check A-1: the file it points to is in `self.processed_files` (if it's `ChunkSource::File`).
-    ///   - Check A-2: the chunks it points to are all valid (if it's `ChunkSource::Chunks`).
     /// - Check B: For each file index,
     ///   - Check B-0: its chunk uids point to a real chunk and the chunk points to this file.
     ///   - Check B-1: `self.processed_files` has an entry for the file.
@@ -35,7 +34,6 @@ impl Index {
         let mut images = HashMap::new();
         let mut chunks_to_files = HashMap::with_capacity(self.chunk_count);
         let mut processed_files = HashSet::with_capacity(self.processed_files.len());
-        let mut chunk_pointees = HashSet::new();
         let mut all_chunk_uids = HashSet::with_capacity(self.chunk_count);
         let uids_to_files = self.processed_files.iter().map(|(file, uid)| (uid.to_string(), file.to_string())).collect::<HashMap<_, _>>();
         let mut file_uid_checks = uids_to_files.keys().map(|uid| (uid.to_string(), false /* exists */)).collect::<HashMap<_, _>>();
@@ -64,11 +62,6 @@ impl Index {
                     chunks_to_files.insert(chunk_uid, (path.to_string(), *index));
                     processed_files.insert(path.to_string());
                 },
-                ChunkSource::Chunks { uids: chunk_uids } => {
-                    for chunk_uid in chunk_uids.iter() {
-                        chunk_pointees.insert(*chunk_uid);
-                    }
-                },
             }
 
             for image in chunk.images.iter() {
@@ -77,12 +70,6 @@ impl Index {
 
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
             tfidf::load_from_file(&tfidf_file)?;
-        }
-
-        for chunk_pointee in chunk_pointees.iter() {
-            if !all_chunk_uids.contains(chunk_pointee) {  // Check A-2
-                return Err(Error::BrokenIndex(format!("There's a chunk that points to `{chunk_pointee}`, but there's no such chunk.")));
-            }
         }
 
         for processed_file in processed_files.iter() {

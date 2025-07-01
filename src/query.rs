@@ -1,7 +1,6 @@
 use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
-use crate::tree::generate_tree;
 use ragit_api::Request;
 use ragit_pdl::{
     Pdl,
@@ -57,20 +56,26 @@ impl Index {
         // 10 chunks, ... In each call, the LLM is asked to select at most 5 relevant chunks in the given 10 chunks.
         // Then it collects the chunks from the 4 LLM calls. If `chunks.len()` is still greater than 10, it does the same thing again.
         while chunks.len() > max_summaries {  // when `super_rerank` is set
-            let mut t = generate_tree(chunks.len(), max_summaries);
-            t.mark_range(&mut 0);
-            let ranges = t.flatten_range();
-            let each_chunk = ranges.iter().map(|(from, to)| chunks[*from..*to].to_vec()).collect::<Vec<Vec<Chunk>>>();
             let mut join_set = JoinSet::new();
             let mut new_chunks = vec![];
 
-            for ec in each_chunk.iter() {
+            // Let's say `max_summaries` is 10.
+            // If `chunks.len()` is 41, it reranks 5 times (9, 9, 9, 9, 5)
+            // If `chunks.len()` is 40, it reranks 4 times (10, 10, 10, 10).
+            // If `chunks.len()` is 39, it reranks 4 times (10, 10, 10, 9).
+            let mut slide_size = max_summaries;
+
+            if chunks.len() % slide_size < slide_size / 2 {
+                slide_size -= 1;
+            }
+
+            for cc in chunks.chunks(slide_size) {
                 let index = self.clone();
                 let query = query.to_string();
-                let ec = ec.to_vec();
+                let cc = cc.to_vec();
 
                 join_set.spawn(async move {
-                    index.summaries_to_chunks(&query, ec, max_retrieval.max(max_summaries / 2)).await
+                    index.summaries_to_chunks(&query, cc, max_retrieval.max(max_summaries / 2)).await
                 });
             }
 
