@@ -1,6 +1,5 @@
 use chrono::{Datelike, DateTime, Local, Utc};
 use crate::Error;
-use crate::json_type::JsonType;
 use ragit_fs::{
     WriteMode,
     create_dir_all,
@@ -9,7 +8,7 @@ use ragit_fs::{
     read_string,
     write_string,
 };
-use ragit_pdl::Message;
+use ragit_pdl::{Message, JsonType};
 use serde_json::{Map, Value};
 use std::collections::HashMap;
 use std::ops::AddAssign;

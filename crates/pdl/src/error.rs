@@ -2,6 +2,10 @@ use crate::schema::SchemaParseError;
 use ragit_fs::FileError;
 use std::string::FromUtf8Error;
 
+mod json_type;
+
+pub use json_type::JsonType;
+
 #[derive(Debug)]
 pub enum Error {
     RoleMissing,
@@ -13,6 +17,10 @@ pub enum Error {
     FileError(FileError),
     Utf8Error(FromUtf8Error),
     SchemaParseError(SchemaParseError),
+    JsonTypeError {
+        expected: JsonType,
+        got: JsonType,
+    },
 
     /// see <https://docs.rs/serde_json/latest/serde_json/struct.Error.html>
     JsonSerdeError(serde_json::Error),

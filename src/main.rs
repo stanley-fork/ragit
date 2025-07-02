@@ -2366,8 +2366,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("summary") => {
-            // let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            // index.summarize().await?;
+            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+            println!("{}", index.summarize().await?);
         },
         Some("tfidf") => {
             let parsed_args = ArgParser::new()

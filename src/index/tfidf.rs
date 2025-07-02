@@ -5,13 +5,13 @@ use crate::query::Keywords;
 use crate::uid::Uid;
 use flate2::Compression;
 use flate2::read::{GzDecoder, GzEncoder};
-use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     read_bytes,
     read_string,
     write_bytes,
 };
+use ragit_pdl::JsonType;
 use rust_stemmers::{Algorithm, Stemmer};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

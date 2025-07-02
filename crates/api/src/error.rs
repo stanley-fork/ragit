@@ -1,5 +1,5 @@
-use crate::json_type::JsonType;
 use ragit_fs::FileError;
+use ragit_pdl::JsonType;
 
 #[derive(Debug)]
 pub enum Error {
@@ -50,7 +50,13 @@ impl From<std::io::Error> for Error {
 
 impl From<ragit_pdl::Error> for Error {
     fn from(e: ragit_pdl::Error) -> Error {
-        Error::PdlError(e)
+        match e {
+            ragit_pdl::Error::FileError(e) => Error::FileError(e),
+            ragit_pdl::Error::JsonTypeError { expected, got } => Error::JsonTypeError { expected, got },
+            ragit_pdl::Error::JsonSerdeError(e) => Error::JsonSerdeError(e),
+            ragit_pdl::Error::TeraError(e) => Error::TeraError(e),
+            _ => Error::PdlError(e),
+        }
     }
 }
 

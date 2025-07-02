@@ -356,6 +356,17 @@ impl Schema {
         }
     }
 
+    /// Both inclusive.
+    pub fn integer_between(min: Option<i128>, max: Option<i128>) -> Self {
+        Schema {
+            r#type: SchemaType::Integer,
+            constraint: Some(Constraint {
+                min: min.map(|n| n.to_string()),
+                max: max.map(|n| n.to_string()),
+            }),
+        }
+    }
+
     pub fn default_float() -> Self {
         Schema {
             r#type: SchemaType::Float,
@@ -540,7 +551,6 @@ pub fn render_pdl_schema(
 // union of all constraints
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Constraint {
-
     // for `Integer` and `Float`, these are min/max values
     // for `String`, these are min/max char len
     // for `Array`, these are min/max len

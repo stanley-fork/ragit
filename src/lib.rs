@@ -9,6 +9,7 @@ mod index;
 mod prompts;
 mod query;
 pub mod schema;
+mod summary;
 mod tree;
 mod uid;
 

@@ -4,7 +4,6 @@ use crate::index::{INDEX_DIR_NAME, INDEX_FILE_NAME};
 use crate::prompts::PROMPTS;
 use flate2::read::GzDecoder;
 use lazy_static::lazy_static;
-use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     copy_dir,
@@ -29,6 +28,7 @@ use ragit_fs::{
     write_bytes,
     write_string,
 };
+use ragit_pdl::JsonType;
 use regex::Regex;
 use serde_json::{Number, Value};
 use std::{cmp, fmt};

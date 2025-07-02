@@ -4,7 +4,6 @@ use crate::chunk::{self, ChunkSource};
 use crate::error::Error;
 use crate::index::{BuildConfig, ImageDescription, tfidf};
 use crate::uid::{self, Uid};
-use ragit_api::JsonType;
 use ragit_fs::{
     basename,
     file_name,
@@ -13,6 +12,7 @@ use ragit_fs::{
     read_string,
     set_extension,
 };
+use ragit_pdl::JsonType;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 

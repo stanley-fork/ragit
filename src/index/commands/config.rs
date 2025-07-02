@@ -2,8 +2,8 @@ use super::{BuildConfig, Index};
 use crate::{ApiConfig, QueryConfig};
 use crate::error::Error;
 use lazy_static::lazy_static;
-use ragit_api::JsonType;
 use ragit_fs::{WriteMode, read_string, write_bytes, write_string};
+use ragit_pdl::JsonType;
 use serde_json::Value;
 use std::collections::HashMap;
 

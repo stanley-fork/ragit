@@ -1,7 +1,6 @@
 use super::Index;
 use crate::constant::METADATA_FILE_NAME;
 use crate::error::Error;
-use ragit_api::JsonType;
 use ragit_fs::{
     WriteMode,
     exists,
@@ -9,6 +8,7 @@ use ragit_fs::{
     remove_file,
     write_bytes,
 };
+use ragit_pdl::JsonType;
 use serde_json::Value;
 use std::collections::HashMap;
 

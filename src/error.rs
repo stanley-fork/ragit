@@ -1,5 +1,6 @@
 use crate::uid::Uid;
-pub use ragit_api::{Error as ApiError, JsonType};
+pub use ragit_api::Error as ApiError;
+pub use ragit_pdl::JsonType;
 use ragit_fs::FileError;
 use std::string::FromUtf8Error;
 
@@ -216,6 +217,7 @@ impl From<ApiError> for Error {
             ApiError::StdIoError(e) => Error::StdIoError(e),
             ApiError::ReqwestError(e) => Error::ReqwestError(e),
             ApiError::JsonSerdeError(e) => Error::JsonSerdeError(e),
+            ApiError::TeraError(e) => Error::TeraError(e),
             ApiError::FileError(e) => Error::FileError(e),
             ApiError::ApiKeyNotFound { env_var } => Error::ApiKeyNotFound { env_var },
             ApiError::InvalidModelName { name, candidates } => Error::InvalidModelName { name, candidates },

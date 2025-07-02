@@ -3,13 +3,13 @@ use crate::constant::IMAGE_DIR_NAME;
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
-use ragit_api::JsonType;
 use ragit_fs::{
     file_size,
     read_bytes,
     read_string,
     set_extension,
 };
+use ragit_pdl::JsonType;
 use serde::Serialize;
 use serde_json::Value;
 

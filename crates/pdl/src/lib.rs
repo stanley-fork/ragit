@@ -1,6 +1,8 @@
 use lazy_static::lazy_static;
 use ragit_fs::{extension, join, parent, read_bytes, read_string};
 use regex::bytes::Regex;
+use serde::Serialize;
+use serde_json::Value;
 
 mod error;
 mod image;
@@ -9,7 +11,7 @@ mod role;
 mod schema;
 mod util;
 
-pub use error::Error;
+pub use error::{Error, JsonType};
 pub use image::ImageType;
 pub use message::{Message, MessageContent};
 pub use role::{PdlRole, Role};
@@ -19,6 +21,28 @@ pub use util::{decode_base64, encode_base64};
 lazy_static! {
     static ref MEDIA_RE: Regex = Regex::new(r"^media\((.+)\)$").unwrap();
     static ref RAW_MEDIA_RE: Regex = Regex::new(r"^raw_media\(([a-zA-Z0-9]+):([^:]+)\)$").unwrap();
+}
+
+/// `parse_pdl` takes `tera::Context` as an input. If you're too lazy to
+/// construct a `tera::Context`, you can use this function. It converts
+/// a rust struct into a json object.
+pub fn into_context<T: Serialize>(v: &T) -> Result<tera::Context, Error> {
+    let v = serde_json::to_value(v)?;
+    let mut result = tera::Context::new();
+
+    match v {
+        Value::Object(object) => {
+            for (k, v) in object.iter() {
+                result.insert(k, v);
+            }
+
+            Ok(result)
+        },
+        _ => Err(Error::JsonTypeError {
+            expected: JsonType::Object,
+            got: (&v).into(),
+        }),
+    }
 }
 
 #[derive(Clone, Debug)]

@@ -1,16 +1,22 @@
 <|system|>
 
-You're a knowledge-base summarizer. You'll be given a knowledge-base. A knowledge-base consists of directories and files, like any other file system. The difference is that an AI agent divided large files into chunks, and it added summaries to each chunk and file. When a user asks a question, an AI retrieves relevant chunks from the knowledge-base and uses the chunks to answer the question.
+You're a RAG agent. A user will ask you a question, and you have to answer the question. There's a knowledge-base, and you can gather information from the knowledge-base. A knowledge-base consists ofr directories and files, like any other file system. The difference is that another agent divided large files into chunks, and added summaries to each chunk and file. You can freely browse and read files to answer the user question.
 
-Your job is to summarize the knowledge-base. For example, if the knowledge-base is made from a source code repository, you have to describe what the code does. If it's a manual of an Operating system, you have to write a paragraph that describes the operating system. If it's a bunch of news articles, the summary has to include what the news are about, when they're written, and a simple statistics.
+The user question is:
 
-{# NOTE: If there are less than 10 chunks, this prompt will not be used at all! #}
+{{question|safe}}
+
+{% if single_paragraph %}
+The user wants you to write a single paragraph that answers the question.
+{% else %}
+The user wants you to write multiple paragraphs that answer the question.
+{% endif %}
 
 <|user|>
 
 Below is the information you gathered from the knowledge-base so far.
 
-{# If it's the first turn, I'll provide a very rough, code-generated summary of the knowledge-base. #}
+{# The initial context is code-generated. If it's a knowledge-base-summarizer, it's a file tree of the root dir. #}
 {{context|safe}}
 
 <|assistant|>
@@ -19,15 +25,31 @@ Okay
 
 <|user|>
 
-Your job is to create a paragraph that describes the knowledge-base. Does the context have enough information to write the paragraph?
+{% if single_paragraph %}
+Your job is to write a paragraph that answers the user question.
+{% else %}
+Your job is to write multiple paragraphs that answer the user question.
+{% endif %}
 
+Do you think you have enough information to write the paragraph{% if not single_paragraph %}s{% endif %}?
+
+{% if has_enough_information %}
+<|assistant|>
+
+Yes
+
+<|user|>
+
+Then write the paragraph{% if not single_paragraph %}s{% endif %} that answers the user question. Don't say anything other than the paragraph{% if not single_paragraph %}s{% endif %}.
+
+{% else %}
 <|assistant|>
 
 No
 
 <|user|>
 
-In order to write the paragraph, what more information do you need?
+In order to write the paragraph{% if not single_paragraph %}s{% endif %}, what more information do you need?
 
 {% if needed_information %}
 <|assistant|>
@@ -43,7 +65,7 @@ Below are the actions that you can do. Choose an action that would help get the 
 2. See a list of files in a directory: if you give me the exact path of a directory, I'll show you a list of the files in the directory.
 3. Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.
 4. Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.
-5. Call a RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.
+5. Call a simple RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.
 
 Just give me a number between 1 ~ 5. Then I'll give you a further instruction.
 
@@ -76,9 +98,10 @@ Do you want to do more actions? Say yes or no.
 {% endif %}  {# action.num #}
 {% endfor %}
 
+{% if is_actions_complete %}
 <|user|>
 
-What *new* information did you get from the actions? List the new information that might help you summarize the knowledge-base.
+What *new* information did you get from the actions? List the new information that might help you answer the user question.
 
 {% if new_information %}
 <|assistant|>
@@ -91,4 +114,6 @@ Below is the information you gathered before you do the actions. Update it with 
 
 {# When this point is reached, we update the context with its response and continue the loop. #}
 {% endif %}  {# new_information #}
+{% endif %}  {# is_actions_complete #}
 {% endif %}  {# needed_information #}
+{% endif %}  {# has_enough_information #}

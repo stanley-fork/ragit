@@ -3,7 +3,6 @@ use ragit_fs::{WriteMode, read_string, write_string};
 mod api_provider;
 pub mod audit;
 mod error;
-mod json_type;
 mod message;
 mod model;
 mod request;
@@ -15,13 +14,13 @@ mod tests;
 pub use crate::api_provider::ApiProvider;
 pub use crate::audit::AuditRecord;
 pub use crate::error::Error;
-pub use crate::json_type::JsonType;
 pub use crate::message::message_contents_to_json_array;
 pub use crate::model::{Model, ModelRaw, get_model_by_name};
 pub use crate::request::Request;
 pub use crate::response::Response;
 
 pub use ragit_pdl::{
+    JsonType,
     ImageType,
     Message,
     MessageContent,
