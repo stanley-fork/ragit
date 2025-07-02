@@ -2367,7 +2367,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("summary") => {
             let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            println!("{}", index.summarize().await?);
+            let summary = index.agent(
+                "Give me a summary of the knowledge-base.",
+                true,  // single paragraph
+                index.get_rough_summary()?,  // initial context
+            ).await?;
+
+            println!("{summary}");
         },
         Some("tfidf") => {
             let parsed_args = ArgParser::new()

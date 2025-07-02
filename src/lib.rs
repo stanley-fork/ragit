@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
+mod agent;
 mod api_config;
 pub mod chunk;
 mod constant;
@@ -9,7 +10,6 @@ mod index;
 mod prompts;
 mod query;
 pub mod schema;
-mod summary;
 mod tree;
 mod uid;
 

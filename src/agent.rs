@@ -1,6 +1,3 @@
-// Playground for `summarize_knowledge_base.pdl`
-// This is an agent that generates a summary of the entire knowledge-base. If this agent works well, I'll develop a general-purpose agent for ragit.
-
 use crate::Keywords;
 use crate::error::Error;
 use crate::index::Index;
@@ -19,7 +16,7 @@ use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Serialize)]
-struct SummaryAgentState {
+struct AgentState {
     question: String,
     single_paragraph: bool,
     context: String,
@@ -35,7 +32,7 @@ struct SummaryAgentState {
     result: Option<String>,
 }
 
-impl SummaryAgentState {
+impl AgentState {
     pub fn get_schema(&self) -> Option<Schema> {
         if self.has_enough_information {
             None
@@ -106,9 +103,9 @@ impl SummaryAgentState {
     }
 }
 
-impl Default for SummaryAgentState {
+impl Default for AgentState {
     fn default() -> Self {
-        SummaryAgentState {
+        AgentState {
             question: String::new(),
             single_paragraph: false,
             context: String::new(),
@@ -360,15 +357,20 @@ impl Action {
 }
 
 impl Index {
-    pub async fn summarize(&self) -> Result<String, Error> {
-        let mut state = SummaryAgentState::default();
-        state.single_paragraph = true;
-        state.question = String::from("Give me a summary of the knowledge-base.");
-        state.context = self.get_rough_summary()?;
+    pub async fn agent(
+        &self,
+        question: &str,
+        single_paragraph: bool,
+        initial_context: String,
+    ) -> Result<String, Error> {
+        let mut state = AgentState::default();
+        state.single_paragraph = single_paragraph;
+        state.question = question.to_string();
+        state.context = initial_context;
         let mut context_update = 0;
 
         loop {
-            state = self.summarize_step(state).await?;
+            state = self.step_agent(state).await?;
 
             if state.has_enough_information {
                 return Ok(state.result.unwrap());
@@ -376,7 +378,7 @@ impl Index {
 
             if let Some(context) = &state.new_context {
                 let context = context.to_string();
-                state = SummaryAgentState::default();
+                state = AgentState::default();
                 state.context = context;
                 context_update += 1;
 
@@ -389,10 +391,10 @@ impl Index {
         }
     }
 
-    async fn summarize_step(&self, mut state: SummaryAgentState) -> Result<SummaryAgentState, Error> {
+    async fn step_agent(&self, mut state: AgentState) -> Result<AgentState, Error> {
         let schema = state.get_schema();
         let Pdl { messages, .. } = parse_pdl(
-            &self.get_prompt("summarize_knowledge_base")?,
+            &self.get_prompt("agent")?,
             &into_context(&state)?,
             "/",  // TODO: `<|media|>` is not supported for this prompt
             true,
@@ -404,8 +406,8 @@ impl Index {
             max_retry: self.api_config.max_retry,
             sleep_between_retries: self.api_config.sleep_between_retries,
             timeout: self.api_config.timeout,
-            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "summarize_knowledge_base"),
-            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "summarize_knowledge_base"),
+            dump_api_usage_at: self.api_config.dump_api_usage_at(&self.root_dir, "agent"),
+            dump_pdl_at: self.api_config.create_pdl_path(&self.root_dir, "agent"),
             dump_json_at: self.api_config.dump_log_at(&self.root_dir),
             schema: schema.clone(),
             schema_max_try: 3,
@@ -422,7 +424,8 @@ impl Index {
         Ok(state)
     }
 
-    fn get_rough_summary(&self) -> Result<String, Error> {
+    /// This is an initial context of a summary agent.
+    pub fn get_rough_summary(&self) -> Result<String, Error> {
         // HashMap<extension, number of chunks>
         // It counts chunks instead of files because files have variable lengths,
         // but chunks have a length limit.
