@@ -21,7 +21,7 @@ With `--category` flag, you can inspect with more details. For example, with
 chunks. If you just want the total amount, use `--category=total`. Available
 categories are: "create_chunk_from", "describe_image", "rerank_summary",
 "answer_query_with_chunks", "rephrase_multi_turn", "raw_request",
-"extract_keywords", "summary_chunks" and "pdl".
+"extract_keywords", "agent" and "pdl".
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

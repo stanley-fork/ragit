@@ -69,10 +69,10 @@ Below are the actions that you can do. Choose an action that would help get the 
 
 Just give me a number between 1 ~ 5. Then I'll give you a further instruction.
 
-{% if action.num %}
+{% if action.index %}
 <|assistant|>
 
-{{action.num}}
+{{action.index}}
 
 <|user|>
 

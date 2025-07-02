@@ -1,6 +1,7 @@
 # The goal of this test is to cover all the pdl files in `prompts/` directory.
 # It has to cover different paths of each prompt. For example, `summarize.pdl` behaves
 # differently when there's `{{previous_summary}}` and when there's not.
+# This doesn't cover `agent.pdl`
 
 import shutil
 from utils import (

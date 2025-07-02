@@ -49,7 +49,7 @@ impl Index {
             "rephrase_multi_turn",
             "raw_request",
             "extract_keywords",
-            "summary_chunks",
+            "agent",
             "pdl",
         ] {
             let mut audit = Audit::default();

@@ -333,7 +333,7 @@ Commands
 
     prompts [model=dummy]       run `prompts` test
                                 It's the smallest set of commands that parses and executes all
-                                the `.pdl` files in `prompts/` directory.
+                                the `.pdl` files in `prompts/` directory, except `agent.pdl`.
 
     subdir                      run `subdir` test
                                 It checks whether `ragit` is smart enough to find `.ragit/` in
