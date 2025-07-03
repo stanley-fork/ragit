@@ -18,6 +18,7 @@ def summary():
 
     # I wish `rag summary` works with an empty knowledge-base
     cargo_run(["summary"])
+    cargo_run(["check"])
     assert uid_empty != get_uid()
 
     write_string("a.txt", "Hello, World!")
@@ -26,21 +27,25 @@ def summary():
 
     # Now that the knowledge-base was edited, the summary has to be invalidated
     assert cargo_run(["summary", "--cached"], check=False) != 0
+    cargo_run(["check"])
 
     uid_without_summary = get_uid()
 
     # `summary --remove` should be nop because the summary has already been invalidated
     cargo_run(["summary", "--remove"])
+    cargo_run(["check"])
     assert uid_without_summary == get_uid()
 
     # create a summary with the dummy model
     cargo_run(["summary"])
+    cargo_run(["check"])
     assert uid_without_summary != get_uid()
     uid_with_dummy_summary = get_uid()
     dummy_summary = get_summary()
 
     rand_summary = rand_word()
     cargo_run(["summary", "--set", rand_summary])
+    cargo_run(["check"])
     assert uid_with_dummy_summary != get_uid()
     assert dummy_summary != get_summary()
 
@@ -52,10 +57,12 @@ def summary():
     assert rand_summary == get_summary()
 
     cargo_run(["summary", "--force"])
+    cargo_run(["check"])
     assert uid_with_rand_summary != get_uid()
     assert rand_summary != get_summary()
 
     cargo_run(["summary", "--remove"])
+    cargo_run(["check"])
     assert uid_without_summary == get_uid()
     assert cargo_run(["summary", "--cached"], check=False) != 0
 

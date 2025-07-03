@@ -113,11 +113,12 @@ impl Index {
                 // So if we add the uid of the summary to it, we must get the
                 // current uid of the knowledge-base. Otherwise, the knowledge-base
                 // has been edited and the summary is not valid anymore.
+                let uid_without_summary = summary.uid;
                 let summary_uid = Uid::new_summary(&summary.summary);
 
-                // TODO: what if `summary_uid` has exactly 0xffff_ffff uids?
-                if (summary_uid + summary.uid).clear_metadata() == uid.clear_metadata()
-                && summary_uid.get_data_size() + 1 == uid.get_data_size() {
+                // TODO: what if `uid_without_summary` has exactly 0xffff_ffff uids?
+                if (summary_uid + uid_without_summary).clear_metadata() == uid.clear_metadata()
+                && uid_without_summary.get_data_size() + 1 == uid.get_data_size() {
                     Some(&summary.summary)
                 }
 
