@@ -78,10 +78,9 @@ impl Index {
         self.uid = None;
 
         self.summary = Some(Summary {
-            uid: self.calculate_uid()?,
+            uid: self.calculate_uid(false  /* force */)?,
             summary,
         });
-        self.uid = None;
 
         // Now it'll update the uid with the summary
         self.calculate_and_save_uid()?;
@@ -95,10 +94,9 @@ impl Index {
         self.uid = None;
 
         self.summary = Some(Summary {
-            uid: self.calculate_uid()?,
+            uid: self.calculate_uid(false  /* force */)?,
             summary: summary.to_string(),
         });
-        self.uid = None;
 
         // Now it'll update the uid with the summary
         self.calculate_and_save_uid()?;

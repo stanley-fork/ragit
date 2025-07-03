@@ -42,7 +42,7 @@ impl Index {
 
         match self.get_uid("pull", get_uid_url.as_str()).await {
             Ok(remote_uid) => {
-                let self_uid = self.calculate_uid()?;
+                let self_uid = self.calculate_uid(false  /* force */)?;
 
                 if remote_uid == self_uid {
                     return Ok(PullResult::AlreadyUpToDate);

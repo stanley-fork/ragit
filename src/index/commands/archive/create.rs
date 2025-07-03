@@ -467,7 +467,7 @@ fn event_loop(
                         index.ii_status = IIStatus::None;
 
                         // archive always has uid because `rag pull` needs uid
-                        index.uid = Some(index.calculate_uid()?);
+                        index.uid = Some(index.calculate_uid(false  /* force */)?);
 
                         let index_json = serde_json::to_vec(&index)?;
                         compress(&index_json, compression_level)?

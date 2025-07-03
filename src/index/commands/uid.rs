@@ -17,7 +17,7 @@ impl Index {
         match self.uid {
             Some(uid) => Ok(uid),
             None => {
-                let uid = self.calculate_uid()?;
+                let uid = self.calculate_uid(false  /* force */)?;
                 self.uid = Some(uid);
                 self.save_to_file()?;
                 Ok(uid)
@@ -26,10 +26,10 @@ impl Index {
     }
 
     /// It uses a cached value if exists.
-    pub fn calculate_uid(&self) -> Result<Uid, Error> {
+    pub fn calculate_uid(&self, force: bool) -> Result<Uid, Error> {
         match self.uid {
-            Some(uid) => Ok(uid),
-            None => {
+            Some(uid) if !force => Ok(uid),
+            _ => {
                 let mut uids = vec![];
 
                 for chunk_path in self.get_all_chunk_files()?.iter() {

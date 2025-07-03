@@ -202,6 +202,14 @@ impl Index {
             self.check_ii()?;
         }
 
+        if let Some(uid) = self.uid {
+            let c_uid = self.calculate_uid(true  /* --force */)?;
+
+            if uid != c_uid {
+                return Err(Error::BrokenIndex(format!("self.uid is {uid}, but the calculated uid is {c_uid}")));
+            }
+        }
+
         Ok(())
     }
 }
