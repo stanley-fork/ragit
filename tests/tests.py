@@ -54,6 +54,7 @@ from server_ai_model import server_ai_model
 from server_chat import server_chat
 from server_permission import server_permission
 from subdir import subdir
+from summary import summary
 from svg import svg
 from symlink import symlink
 from tfidf import tfidf
@@ -269,6 +270,13 @@ Commands
 
     audit [model]               run `audit` test
 
+    summary                     run `summary` test
+                                It tests `rag summary`. It doesn't evaluate the quality of the
+                                generated summary. It only checks whether the cli option of the
+                                command work as expected. `end_to_end` test runs the command
+                                and dumps the output, so you can check that out if you want to
+                                see the quality of a summary.
+
     images                      run `images` test
                                 It creates a markdown file with images and check
                                 whether the markdown reader can parse the file
@@ -466,6 +474,9 @@ if __name__ == "__main__":
                 sys.exit(1)
 
             audit(test_model=test_model)
+
+        elif command == "summary":
+            summary()
 
         elif command == "migrate":
             migrate()
@@ -680,6 +691,7 @@ if __name__ == "__main__":
                 ("tfidf", tfidf),
                 ("korean", korean),
                 ("merge", merge),
+                ("summary", summary),
                 ("external_bases", external_bases),
                 ("end_to_end dummy", lambda: end_to_end(test_model="dummy")),
                 ("end_to_end llama3.3-70b", lambda: end_to_end(test_model="llama3.3-70b")),

@@ -77,6 +77,8 @@ pub use commands::{
     PushResult,
     RecoverResult,
     RemoveResult,
+    Summary,
+    SummaryMode,
     VersionInfo,
     get_compatibility_warning,
 };
@@ -113,6 +115,7 @@ pub struct Index {
     pub ii_status: IIStatus,
 
     pub uid: Option<Uid>,
+    pub summary: Option<Summary>,
 
     #[serde(skip)]
     pub root_dir: Path,
@@ -159,6 +162,7 @@ impl Index {
             repo_url: None,
             ii_status: IIStatus::None,
             uid: None,
+            summary: None,
             root_dir: String::from("."),
             build_config: BuildConfig::default(),
             query_config: QueryConfig::default(),
@@ -214,6 +218,7 @@ impl Index {
             repo_url: None,
             ii_status: IIStatus::None,
             uid: None,
+            summary: None,
             prompts: PROMPTS.clone(),
             models: vec![],
         };
@@ -243,6 +248,7 @@ impl Index {
             repo_url: None,
             ii_status: IIStatus::None,
             uid: None,
+            summary: None,
             prompts: PROMPTS.clone(),
             models: vec![],
         };

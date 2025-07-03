@@ -1,0 +1,36 @@
+rag-summary(1)
+==========
+
+NAME
+----
+rag-summary - Get the summary of the knowledge-base
+
+SYNOPSIS
+--------
+[verse]
+'rag summary' [--force | -f | --cached]
+'rag summary' --remove
+'rag summary' --set <summary>
+
+DESCRIPTION
+-----------
+It runs a summary agent and dumps a summary of the knowledge-base to stdout.
+The summary is saved to disk and reused unless you edit the knowledge-base. It
+checks whether the knowledge-base was edited or not by comparing its uid.
+
+If `--force` is set, it will always run the summary agent whether or not there
+is a cached summary.
+
+If `--cached` is set, it will always use the summary on disk. If there isn't it
+throws an error.
+
+Run `rag summary --remove` to remove the cached summary. If there isn't cached
+summary, nothing happens.
+
+The cached summary is used by other agents. For example, `rag query` agent
+might read the summary if it wants to.
+
+If you already have a summary of the knowledge-base, or not satisfied with
+the AI-generated summary, you can save your own summary with
+`rag summary --set <your_summary>`. Having a good summary of the knowledge-base
+is always helpful because other agents use it.

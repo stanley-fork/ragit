@@ -4,7 +4,6 @@ use crate::index::Index;
 use ragit_api::Request;
 use ragit_fs::{
     WriteMode,
-    extension,
     join,
     write_string,
 };
@@ -16,7 +15,7 @@ use ragit_pdl::{
 };
 use serde::Serialize;
 use serde_json::Value;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 mod action;
 mod file_tree;
@@ -195,6 +194,12 @@ impl ActionTrace {
             let action = self.actions[n - 1];  // AI uses 1-based index
             self.index = Some(n);
             self.instruction = Some(action.get_instruction());
+
+            if !action.requires_argument() {
+                // See comments in `Action::get_instruction`
+                self.argument = Some(String::from("okay"));
+                self.result = Some(action.run("", index).await?);
+            }
         }
 
         else if self.argument.is_none() {
@@ -235,6 +240,13 @@ impl Index {
     ) -> Result<String, Error> {
         // dedup
         actions = actions.into_iter().collect::<HashSet<_>>().into_iter().collect();
+
+        // It cannot get summary if there's no summary.
+        if self.get_summary().is_none() {
+            actions = actions.into_iter().filter(
+                |action| *action != Action::GetSummary
+            ).collect();
+        }
 
         let mut state = AgentState::default();
         state.single_paragraph = single_paragraph;
@@ -314,72 +326,5 @@ impl Index {
         }
 
         Ok(state)
-    }
-
-    /// This is an initial context of a summary agent.
-    pub fn get_rough_summary(&self) -> Result<String, Error> {
-        // HashMap<extension, number of chunks>
-        // It counts chunks instead of files because files have variable lengths,
-        // but chunks have a length limit.
-        let mut count_by_extension = HashMap::new();
-
-        // It's not always equal to `self.chunk_count` because some chunks are not
-        // from a file.
-        let mut file_chunk_count = 0;
-
-        let mut file_tree = FileTree::root();
-        let mut char_len = 0;
-        let mut image_uids = HashSet::new();
-
-        for (file, uid) in self.processed_files.iter() {
-            let chunks = self.get_chunks_of_file(*uid)?;
-            let extension = extension(file)?
-                .map(|e| format!(".{e}"))
-                .unwrap_or_else(|| String::from("no extension"));
-            file_tree.insert(file);
-            file_chunk_count += chunks.len();
-
-            match count_by_extension.get_mut(&extension) {
-                Some(n) => { *n += chunks.len() },
-                _ => { count_by_extension.insert(extension, chunks.len()); },
-            }
-
-            for chunk in chunks.iter() {
-                let chunk = self.get_chunk_by_uid(*chunk)?;
-                char_len += chunk.char_len;
-
-                for image in chunk.images.iter() {
-                    image_uids.insert(*image);
-                }
-            }
-        }
-
-        let mut count_by_extension = count_by_extension.into_iter().collect::<Vec<_>>();
-        count_by_extension.sort_by_key(|(_, count)| *count);
-
-        let common_extensions = match count_by_extension.len() {
-            0 => String::from(""),
-            1 => format!("All the files have the same extension: `{}`", count_by_extension[0].0),
-            2 => format!(
-                "The files' extension is either `{}` ({:.3} %) or `{}` ({:.3} %)",
-                count_by_extension[0].0, count_by_extension[0].1 as f64 * 100.0 / file_chunk_count as f64,
-                count_by_extension[1].0, count_by_extension[1].1 as f64 * 100.0 / file_chunk_count as f64,
-            ),
-            _ => format!(
-                "The most common extensions of the files are `{}` ({:.3} %), `{}` ({:.3} %) and `{}` ({:.3} %)",
-                count_by_extension[0].0, count_by_extension[0].1 as f64 * 100.0 / file_chunk_count as f64,
-                count_by_extension[1].0, count_by_extension[1].1 as f64 * 100.0 / file_chunk_count as f64,
-                count_by_extension[2].0, count_by_extension[2].1 as f64 * 100.0 / file_chunk_count as f64,
-            ),
-        };
-
-        Ok(format!(
-            "This knowledge-base consists of {} files ({} characters of text and {} images). {}\nBelow is the list of the files and directories in the knowledge-base.\n\n{}",
-            self.processed_files.len(),
-            char_len,
-            image_uids.len(),
-            common_extensions,
-            file_tree.render(),
-        ))
     }
 }

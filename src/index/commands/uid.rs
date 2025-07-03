@@ -71,7 +71,18 @@ impl Index {
                 // I think problem 2 is less serious than problem 1, so I chose not to include configs and prompts. Also, it's more consistent
                 // with how git creates a commit hash.
 
-                Ok(Uid::new_knowledge_base(&uids))
+                let mut result = Uid::new_knowledge_base(&uids);
+
+                // `index.summary.uid` is the uid of the knowledge-base without the summary.
+                // If it matches `result`, the summary is up to date and must be added to the result.
+                if let Some(summary) = &self.summary {
+                    if summary.uid == result {
+                        uids.push(Uid::new_summary(&summary.summary));
+                        result = Uid::new_knowledge_base(&uids);
+                    }
+                }
+
+                Ok(result)
             },
         }
     }

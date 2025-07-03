@@ -21,6 +21,7 @@ mod pull;
 mod push;
 mod recover;
 mod remove;
+mod summary;
 mod uid;
 
 pub use add::{AddMode, AddResult};
@@ -32,6 +33,7 @@ pub use pull::PullResult;
 pub use push::PushResult;
 pub use recover::RecoverResult;
 pub use remove::RemoveResult;
+pub use summary::{Summary, SummaryMode};
 
 pub fn erase_lines(n: usize) {
     if n != 0 {

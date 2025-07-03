@@ -12,6 +12,11 @@ pub enum Action {
     SearchExact,
     SearchTfidf,
 
+    /// This action will be filtered out if there's no summary.
+    /// Please make sure to run `rag summary` if you want to
+    /// use this action.
+    GetSummary,
+
     /// I'm using the term "simple" because I want to make sure that it's not an agentic RAG.
     SimpleRag,
 }
@@ -23,18 +28,33 @@ impl Action {
             Action::ReadDir,
             Action::SearchExact,
             Action::SearchTfidf,
+            Action::GetSummary,
             Action::SimpleRag,
         ]
     }
 
+    // If this action requires an argument, the instruction must be "Give me an argument. The argument must be...".
+    // If it doesn't require an argument, an AI will always reply "okay" to the instruction (I'll push a fake turn).
     pub(crate) fn get_instruction(&self) -> String {
         match self {
             Action::ReadFile => "Give me an exact path of a file that you want to read. Don't say anything other than the path of the file.",
             Action::ReadDir => "Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory.",
             Action::SearchExact => "Give me a keyword that you want to search for. It's not a pattern, just a keyword (case-sensitive). I'll use exact-text-matching to search. Don't say anything other than the keyword.",
             Action::SearchTfidf => "Give me a comma-separated list of keywords that you want to search for. Don't say anything other than the keywords.",
+            Action::GetSummary => "I'll give you the summary. Hold on.",
             Action::SimpleRag => "Give me a simple factual question. Don't say anything other than the question.",
         }.to_string()
+    }
+
+    pub(crate) fn requires_argument(&self) -> bool {
+        match self {
+            Action::ReadFile => true,
+            Action::ReadDir => true,
+            Action::SearchExact => true,
+            Action::SearchTfidf => true,
+            Action::GetSummary => false,
+            Action::SimpleRag => true,
+        }
     }
 
     pub(crate) fn write_prompt(actions: &[Action]) -> String {
@@ -49,6 +69,7 @@ impl Action {
             Action::ReadDir => "See a list of files in a directory: if you give me the exact path of a directory, I'll show you a list of the files in the directory.",
             Action::SearchExact => "Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.",
             Action::SearchTfidf => "Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.",
+            Action::GetSummary => "Get summary of the entire knowledge-base.",
             Action::SimpleRag => "Call a simple RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.",
         }.to_string()
     }
@@ -198,6 +219,11 @@ impl Action {
                         ).collect::<Vec<_>>().join("\n\n")
                     )
                 }
+            },
+            Action::GetSummary => {
+                // The summary must exist. Otherwise, this action should have been filtered out.
+                let summary = index.get_summary().unwrap();
+                summary.to_string()
             },
             Action::SimpleRag => {
                 let response = index.query(

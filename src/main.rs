@@ -2,7 +2,6 @@ use async_recursion::async_recursion;
 use chrono::{Days, Local};
 use ragit::{
     AddMode,
-    AgentAction,
     Audit,
     Error,
     IIStatus,
@@ -17,6 +16,7 @@ use ragit::{
     PushResult,
     QueryTurn,
     RemoveResult,
+    SummaryMode,
     UidQueryConfig,
     get_build_options,
     get_compatibility_warning,
@@ -2367,15 +2367,50 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("summary") => {
-            let index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            let summary = index.agent(
-                "Give me a summary of the knowledge-base.",
-                true,  // single paragraph
-                index.get_rough_summary()?,  // initial context
-                AgentAction::all_actions(),
-            ).await?;
+            let parsed_args = ArgParser::new().parse(&args, 2);
 
-            println!("{summary}");
+            // `ArgParser.parse()` fails unless it's `rag summary --help`
+            match parsed_args {
+                Ok(parsed_args) if parsed_args.show_help() => {
+                    println!("{}", include_str!("../docs/commands/summary.txt"));
+                    return Ok(());
+                },
+                _ => {},
+            }
+
+            let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
+
+            match args.get(2).map(|s| s.as_str()) {
+                Some("--remove") => {
+                    ArgParser::new()
+                        .args(ArgType::String, ArgCount::None)
+                        .parse(&args, 3)?;
+
+                    index.remove_summary()?;
+                },
+                Some("--set") => {
+                    let parsed_args = ArgParser::new()
+                        .args(ArgType::String, ArgCount::Exact(1))
+                        .parse(&args, 3)?;
+
+                    index.set_summary(&parsed_args.get_args_exact(1)?[0])?;
+                },
+                _ => {
+                    let parsed_args = ArgParser::new()
+                        .optional_flag(&["--force", "--cached"])
+                        .short_flag(&["--force"])
+                        .args(ArgType::String, ArgCount::None)
+                        .parse(&args, 2)?;
+                    let summary_mode = parsed_args.get_flag(0).map(|flag| SummaryMode::parse_flag(&flag)).unwrap_or(None);
+
+                    match index.summary(summary_mode).await? {
+                        Some(s) => { println!("{s}"); },
+                        None => {  // `--cached`, but no summary
+                            return Err(Error::NoSummary);
+                        },
+                    }
+                },
+            }
         },
         Some("tfidf") => {
             let parsed_args = ArgParser::new()

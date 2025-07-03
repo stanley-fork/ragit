@@ -42,6 +42,8 @@ pub use index::{
     PushResult,
     RecoverResult,
     RemoveResult,
+    Summary,
+    SummaryMode,
     TfidfResult,
     VersionInfo,
     get_compatibility_warning,

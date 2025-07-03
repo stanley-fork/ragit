@@ -23,6 +23,7 @@ pub enum Error {
     NoFileToRemove,
     NoRemoteToPullFrom,
     NoSuchMeta(String),
+    NoSummary,
     CorruptedFile { path: Path, message: Option<String> },
     CliError {
         message: String,

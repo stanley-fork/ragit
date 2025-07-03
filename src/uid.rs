@@ -49,6 +49,7 @@ pub enum UidType {
     Image,
     File,
     KnowledgeBase,
+    Summary,
 
     /// It's deprecated.
     Group,
@@ -172,6 +173,7 @@ impl Uid {
     const FILE_TYPE: u128 = (0x3 << 32);
     const GROUP_TYPE: u128 = (0x4 << 32);
     const KNOWLEDGE_BASE_TYPE: u128 = (0x5 << 32);
+    const SUMMARY_TYPE: u128 = (0x6 << 32);
 
     pub(crate) fn decode_partial(bytes: &[u8]) -> Result<Self, Error> {
         match bytes.len() {
@@ -222,7 +224,7 @@ impl Uid {
         let mut hasher = Sha3_256::new();
         hasher.update(format!("{}{}{}{}", chunk.source.hash_str(), chunk.title, chunk.summary, chunk.data).as_bytes());
         let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
-        result.low &= Uid::METADATA_MASK;
+        result = result.clear_metadata();
         result.low |= Uid::CHUNK_TYPE;
         result.low |= (chunk.data.len() as u128) & 0xffff_ffff;
         result
@@ -232,7 +234,7 @@ impl Uid {
         let mut hasher = Sha3_256::new();
         hasher.update(bytes);
         let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
-        result.low &= Uid::METADATA_MASK;
+        result = result.clear_metadata();
         result.low |= Uid::IMAGE_TYPE;
         result.low |= (bytes.len() as u128) & 0xffff_ffff;
         result
@@ -268,7 +270,7 @@ impl Uid {
 
         let mut result = format!("{:064x}", file_content_hasher.finalize()).parse::<Uid>().unwrap();
         result ^= file_path_uid;
-        result.low &= Uid::METADATA_MASK;
+        result = result.clear_metadata();
         result.low |= Uid::FILE_TYPE;
         result.low |= (size as u128) & 0xffff_ffff;
         Ok(result)
@@ -287,7 +289,7 @@ impl Uid {
             }
         }
 
-        result.low &= Uid::METADATA_MASK;
+        result = result.clear_metadata();
         result.low |= Uid::GROUP_TYPE;
         result.low |= (child_count as u128) & 0xffff_ffff;
         result
@@ -300,9 +302,20 @@ impl Uid {
             result += *uid;
         }
 
-        result.low &= Uid::METADATA_MASK;
+        result = result.clear_metadata();
         result.low |= Uid::KNOWLEDGE_BASE_TYPE;
         result.low |= (uids.len() as u128) & 0xffff_ffff;
+        result
+    }
+
+    pub fn new_summary(summary: &str) -> Self {
+        let mut hasher = Sha3_256::new();
+        hasher.update(summary.as_bytes());
+
+        let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+        result = result.clear_metadata();
+        result.low |= Uid::SUMMARY_TYPE;
+        result.low |= (summary.len() as u128) & 0xffff_ffff;
         result
     }
 
@@ -353,6 +366,13 @@ impl Uid {
         format!("{:08x}", self.high >> 96)
     }
 
+    #[must_use = "method returns a new uid and does not mutate the original value"]
+    pub(crate) fn clear_metadata(&self) -> Uid {
+        let mut result = *self;
+        result.low &= Uid::METADATA_MASK;
+        result
+    }
+
     pub(crate) fn get_uid_type(&self) -> Result<UidType, Error> {
         let field = ((self.low >> 32) & 0xf) << 32;
 
@@ -362,6 +382,7 @@ impl Uid {
             Uid::FILE_TYPE => Ok(UidType::File),
             Uid::GROUP_TYPE => Ok(UidType::Group),
             Uid::KNOWLEDGE_BASE_TYPE => Ok(UidType::KnowledgeBase),
+            Uid::SUMMARY_TYPE => Ok(UidType::Summary),
             _ => Err(Error::InvalidUid(self.to_string())),
         }
     }

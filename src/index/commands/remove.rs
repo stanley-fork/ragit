@@ -136,6 +136,7 @@ impl Index {
                 }
             }
 
+            // FIXME: why does it save to file twice? is it intentional?
             self.reset_uid(true /* save_to_file */)?;
             self.save_to_file()?;
         }
