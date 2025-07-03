@@ -2,6 +2,7 @@ use async_recursion::async_recursion;
 use chrono::{Days, Local};
 use ragit::{
     AddMode,
+    AgentAction,
     Audit,
     Error,
     IIStatus,
@@ -2371,6 +2372,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 "Give me a summary of the knowledge-base.",
                 true,  // single paragraph
                 index.get_rough_summary()?,  // initial context
+                AgentAction::all_actions(),
             ).await?;
 
             println!("{summary}");

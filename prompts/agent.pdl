@@ -56,18 +56,14 @@ In order to write the paragraph{% if not single_paragraph %}s{% endif %}, what m
 
 {{needed_information|safe}}
 
-{% for action in actions %}
+{% for action in action_traces %}
 <|user|>
 
 Below are the actions that you can do. Choose an action that would help get the information that you need.
 
-1. Read a file: if you give me the exact path of a file, I'll show you the content of the file.
-2. See a list of files in a directory: if you give me the exact path of a directory, I'll show you a list of the files in the directory.
-3. Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.
-4. Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.
-5. Call a simple RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.
+{{action_prompt|safe}}
 
-Just give me a number between 1 ~ 5. Then I'll give you a further instruction.
+Please choose which action to run (give me a number). Then I'll give you a further instruction.
 
 {% if action.index %}
 <|assistant|>
@@ -111,6 +107,8 @@ What *new* information did you get from the actions? List the new information th
 <|user|>
 
 Below is the information you gathered before you do the actions. Update it with the new information.
+
+{{context|safe}}
 
 {# When this point is reached, we update the context with its response and continue the loop. #}
 {% endif %}  {# new_information #}

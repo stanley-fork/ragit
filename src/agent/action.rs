@@ -5,32 +5,29 @@ use crate::index::Index;
 use ragit_cli::substr_edit_distance;
 use ragit_pdl::escape_pdl_tokens;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Action {
     ReadFile,
     ReadDir,
     SearchExact,
     SearchTfidf,
 
-    /// I'm using the term because I want to make sure that it's not an agentic RAG.
+    /// I'm using the term "simple" because I want to make sure that it's not an agentic RAG.
     SimpleRag,
 }
 
 impl Action {
-    pub const MAX_INDEX: usize = 5;
-
-    pub fn from_index(n: usize) -> Result<Self, Error> {
-        match n {
-            1 => Ok(Action::ReadFile),
-            2 => Ok(Action::ReadDir),
-            3 => Ok(Action::SearchExact),
-            4 => Ok(Action::SearchTfidf),
-            5 => Ok(Action::SimpleRag),
-            _ => Err(Error::InvalidActionIndex(n)),
-        }
+    pub fn all_actions() -> Vec<Action> {
+        vec![
+            Action::ReadFile,
+            Action::ReadDir,
+            Action::SearchExact,
+            Action::SearchTfidf,
+            Action::SimpleRag,
+        ]
     }
 
-    pub fn get_instruction(&self) -> String {
+    pub(crate) fn get_instruction(&self) -> String {
         match self {
             Action::ReadFile => "Give me an exact path of a file that you want to read. Don't say anything other than the path of the file.",
             Action::ReadDir => "Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory.",
@@ -40,7 +37,23 @@ impl Action {
         }.to_string()
     }
 
-    pub async fn run(&self, argument: &str, index: &Index) -> Result<String, Error> {
+    pub(crate) fn write_prompt(actions: &[Action]) -> String {
+        actions.iter().enumerate().map(
+            |(i, p)| format!("{}. {}", i + 1, p.write_unit_prompt())
+        ).collect::<Vec<_>>().join("\n")
+    }
+
+    pub(crate) fn write_unit_prompt(&self) -> String {
+        match self {
+            Action::ReadFile => "Read a file: if you give me the exact path of a file, I'll show you the content of the file.",
+            Action::ReadDir => "See a list of files in a directory: if you give me the exact path of a directory, I'll show you a list of the files in the directory.",
+            Action::SearchExact => "Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.",
+            Action::SearchTfidf => "Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.",
+            Action::SimpleRag => "Call a simple RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.",
+        }.to_string()
+    }
+
+    pub(crate) async fn run(&self, argument: &str, index: &Index) -> Result<String, Error> {
         let mut argument = argument.trim().to_string();
 
         // argument is a path
@@ -103,6 +116,8 @@ impl Action {
                 }
 
                 if file_tree.is_empty() {
+                    // TODO: I want to suggest directories with a similar name,
+                    //       but it's too tricky to find ones.
                     format!("There's no such directory: `{argument}`")
                 }
 

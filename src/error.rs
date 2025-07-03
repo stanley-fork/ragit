@@ -16,7 +16,6 @@ pub enum Error {
     InvalidConfigKey(String),
     InvalidImageType(String),
     InvalidUid(String),
-    InvalidActionIndex(usize),
     PromptMissing(String),
     IndexNotFound,
     NoSuchChunk(Uid),

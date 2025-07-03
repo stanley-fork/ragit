@@ -30,7 +30,20 @@ struct AgentState {
     single_paragraph: bool,
     context: String,
     needed_information: Option<String>,
-    actions: Vec<ActionTrace>,
+    action_traces: Vec<ActionTrace>,
+
+    // Actions that this agent can run.
+    // It's necessary because agents have different sets of capabilities.
+    // For example, the summary agent cannot run `Action::GetSummary` because
+    // there's no summary yet!
+    #[serde(skip)]
+    actions: Vec<Action>,
+
+    // It's generated from `actions`.
+    // It's fed to AI's context.
+    action_prompt: String,
+
+    // I want to use the term `has_action_to_run`, but serde_json doesn't allow that :(
     is_actions_complete: bool,
     new_information: Option<String>,
     new_context: Option<String>,
@@ -51,8 +64,8 @@ impl AgentState {
             None
         }
 
-        else if !self.check_actions_complete() {
-            self.actions.last().unwrap().get_schema()
+        else if self.has_action_to_run() {
+            self.action_traces.last().unwrap().get_schema()
         }
 
         else {
@@ -67,16 +80,16 @@ impl AgentState {
 
         else if self.needed_information.is_none() {
             self.needed_information = Some(input.as_str().unwrap().to_string());
-            self.actions.push(ActionTrace::default());
+            self.action_traces.push(ActionTrace::new(self.actions.clone()));
         }
 
-        else if !self.check_actions_complete() {
-            let last_action = self.actions.last_mut().unwrap();
+        else if self.has_action_to_run() {
+            let last_action = self.action_traces.last_mut().unwrap();
             last_action.update(input, index).await?;
 
             match last_action.r#continue.as_ref().map(|s| s.as_str()) {
                 Some("yes") => {
-                    self.actions.push(ActionTrace::default());
+                    self.action_traces.push(ActionTrace::new(self.actions.clone()));
                 },
                 Some("no") => {
                     self.is_actions_complete = true;
@@ -101,13 +114,13 @@ impl AgentState {
         Ok(())
     }
 
-    fn check_actions_complete(&self) -> bool {
-        if let Some(action) = self.actions.last() {
-            action.r#continue.as_ref().map(|s| s.as_str()) == Some("no")
+    fn has_action_to_run(&self) -> bool {
+        if let Some(action) = self.action_traces.last() {
+            action.r#continue.as_ref().map(|s| s.as_str()) != Some("no")
         }
 
         else {
-            false
+            true
         }
     }
 }
@@ -120,6 +133,8 @@ impl Default for AgentState {
             context: String::new(),
             needed_information: None,
             actions: vec![],
+            action_prompt: String::new(),
+            action_traces: vec![],
             is_actions_complete: false,
             new_information: None,
             new_context: None,
@@ -131,6 +146,10 @@ impl Default for AgentState {
 
 #[derive(Debug, Default, Serialize)]
 struct ActionTrace {
+    // A set of actions that it can run.
+    #[serde(skip)]
+    actions: Vec<Action>,
+
     // It uses an index of an action instead of the action itself.
     // That's because it's tricky to (de)serialize actions.
     index: Option<usize>,
@@ -141,9 +160,16 @@ struct ActionTrace {
 }
 
 impl ActionTrace {
+    pub fn new(actions: Vec<Action>) -> Self {
+        ActionTrace {
+            actions,
+            ..ActionTrace::default()
+        }
+    }
+
     pub fn get_schema(&self) -> Option<Schema> {
         if self.index.is_none() {
-            Some(Schema::integer_between(Some(1), Some(Action::MAX_INDEX as i128)))
+            Some(Schema::integer_between(Some(1), Some(self.actions.len() as i128)))
         }
 
         else if self.argument.is_none() {
@@ -161,21 +187,29 @@ impl ActionTrace {
 
     pub async fn update(&mut self, input: Value, index: &Index) -> Result<(), Error> {
         if self.index.is_none() {
-            let n = input.as_u64().unwrap() as usize;
-            let action = Action::from_index(n)?;
+            // If `input.as_u64()` fails, that means the AI is so stupid
+            // that it cannot choose a number even with pdl schema's help.
+            // So we just choose an arbitrary action. The AI's gonna fail
+            // anyway and will break soon.
+            let n = input.as_u64().unwrap_or(1) as usize;
+            let action = self.actions[n - 1];  // AI uses 1-based index
             self.index = Some(n);
             self.instruction = Some(action.get_instruction());
         }
 
         else if self.argument.is_none() {
+            // NOTE: pdl schema `string` is infallible
             let input = input.as_str().unwrap();
-            let action = Action::from_index(self.index.unwrap())?;
+            let action = self.actions[self.index.unwrap() - 1];  // AI uses 1-based index
             self.argument = Some(input.to_string());
             self.result = Some(action.run(input, index).await?);
         }
 
         else if self.r#continue.is_none() {
-            let input = input.as_bool().unwrap();
+            // If `input.as_bool()` fails, that means the AI is
+            // not smart enough to generate a boolean. There's
+            // no need to continue.
+            let input = input.as_bool().unwrap_or(false);
             let s = if input { "yes" } else { "no" };
 
             self.r#continue = Some(s.to_string());
@@ -195,11 +229,19 @@ impl Index {
         question: &str,
         single_paragraph: bool,
         initial_context: String,
+
+        // list of available actions
+        mut actions: Vec<Action>,
     ) -> Result<String, Error> {
+        // dedup
+        actions = actions.into_iter().collect::<HashSet<_>>().into_iter().collect();
+
         let mut state = AgentState::default();
         state.single_paragraph = single_paragraph;
         state.question = question.to_string();
         state.context = initial_context;
+        state.actions = actions.clone();
+        state.action_prompt = Action::write_prompt(&actions);
         let mut context_update = 0;
 
         loop {
@@ -215,6 +257,8 @@ impl Index {
                 state.single_paragraph = single_paragraph;
                 state.question = question.to_string();
                 state.context = context;
+                state.actions = actions.clone();
+                state.action_prompt = Action::write_prompt(&actions);
                 context_update += 1;
 
                 // TODO: I want LLMs to decide whether it has enough information.

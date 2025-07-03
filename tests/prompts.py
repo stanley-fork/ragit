@@ -1,7 +1,6 @@
 # The goal of this test is to cover all the pdl files in `prompts/` directory.
 # It has to cover different paths of each prompt. For example, `summarize.pdl` behaves
 # differently when there's `{{previous_summary}}` and when there's not.
-# This doesn't cover `agent.pdl`
 
 import shutil
 from utils import (
@@ -48,6 +47,9 @@ def prompts(test_model: str):
 
     # `extract_keyword.pdl`, `rerank_summary.pdl`, `answer_query.pdl`
     cargo_run(["query", "You're looking at a source code of a command line utility. What does the main function do?"])
+
+    # `agent.pdl`
+    cargo_run(["summary"])
 
     # `multi_turn.pdl` is tested by `server2.py`
 

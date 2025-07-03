@@ -10,6 +10,7 @@ from utils import (
     get_commit_hash,
     goto_root,
     ls_recursive,
+    send_message,
 )
 
 def end_to_end(test_model: str):
@@ -152,3 +153,7 @@ def end_to_end(test_model: str):
     cargo_run(["gc", "--logs"])
     cargo_run(["query", "What makes ragit special?"])
     cargo_run(["query", "--super-rerank", "What makes ragit special?"])
+
+    # step 11: summary
+    summary = cargo_run(["summary"], stdout=True)
+    send_message(f"--- summary of the knowledge-base ---\n\n{summary}")

@@ -92,7 +92,7 @@ impl FileTree {
 
             let mut lines = vec![
                 dirs.iter().map(
-                    |(d, f)| format!("{d}/    ({f} files in it)")
+                    |(d, f)| format!("{d}/    ({f} files in it, recursively)")
                 ).collect::<Vec<_>>(),
                 files,
             ].concat();
