@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use serde::Serialize;
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct FileTree {
     is_dir: bool,
     children: HashMap<String, FileTree>,

@@ -56,7 +56,7 @@ In order to write the paragraph{% if not single_paragraph %}s{% endif %}, what m
 
 {{needed_information|safe}}
 
-{% for action in action_traces %}
+{% for action in action_states %}
 <|user|>
 
 Below are the actions that you can do. Choose an action that would help get the information that you need.
@@ -81,7 +81,7 @@ Please choose which action to run (give me a number). Then I'll give you a furth
 
 <|user|>
 
-{{action.result|safe}}
+{{action.result_rendered|safe}}
 
 Do you want to do more actions? Say yes or no.
 

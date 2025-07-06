@@ -70,7 +70,7 @@ impl Index {
             true,  // single paragraph
             self.get_rough_summary()?,  // initial context
             actions,
-        ).await?;
+        ).await?.response;
 
         // We have to make sure that `self.calculate_uid` calculates uid
         // without any summary.

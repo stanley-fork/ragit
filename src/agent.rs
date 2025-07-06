@@ -1,4 +1,5 @@
 use chrono::Local;
+use crate::chunk::Chunk;
 use crate::error::Error;
 use crate::index::Index;
 use ragit_api::Request;
@@ -20,16 +21,24 @@ use std::collections::HashSet;
 mod action;
 mod file_tree;
 
-pub use action::Action;
+pub use action::{Action, ActionResult};
+use action::{ActionState, ActionTrace};
 pub use file_tree::FileTree;
 
+// `derive(Serialize) for AgentState` has 2 purposes.
+//
+// 1. Dump log in `.ragit/logs`.
+// 2. Create `tera::Context` for `agent.pdl`. The context is fed to the AI.
+//
+// I'm NOT gonna `derive(Deserialize)`. There are too many edge cases in
+// deserializing the state.
 #[derive(Debug, Serialize)]
 struct AgentState {
     question: String,
     single_paragraph: bool,
     context: String,
     needed_information: Option<String>,
-    action_traces: Vec<ActionTrace>,
+    action_states: Vec<ActionState>,
 
     // Actions that this agent can run.
     // It's necessary because agents have different sets of capabilities.
@@ -39,7 +48,7 @@ struct AgentState {
     actions: Vec<Action>,
 
     // It's generated from `actions`.
-    // It's fed to AI's context.
+    // It's fed to the AI's context.
     action_prompt: String,
 
     // I want to use the term `has_action_to_run`, but serde_json doesn't allow that :(
@@ -64,7 +73,7 @@ impl AgentState {
         }
 
         else if self.has_action_to_run() {
-            self.action_traces.last().unwrap().get_schema()
+            self.action_states.last().unwrap().get_schema()
         }
 
         else {
@@ -72,23 +81,28 @@ impl AgentState {
         }
     }
 
-    pub async fn update(&mut self, input: Value, index: &Index) -> Result<(), Error> {
+    pub async fn update(
+        &mut self,
+        input: Value,
+        index: &Index,
+        action_traces: &mut Vec<ActionTrace>,
+    ) -> Result<(), Error> {
         if self.has_enough_information {
             self.result = Some(input.as_str().unwrap().to_string());
         }
 
         else if self.needed_information.is_none() {
             self.needed_information = Some(input.as_str().unwrap().to_string());
-            self.action_traces.push(ActionTrace::new(self.actions.clone()));
+            self.action_states.push(ActionState::new(self.actions.clone()));
         }
 
         else if self.has_action_to_run() {
-            let last_action = self.action_traces.last_mut().unwrap();
-            last_action.update(input, index).await?;
+            let last_action = self.action_states.last_mut().unwrap();
+            last_action.update(input, index, action_traces).await?;
 
             match last_action.r#continue.as_ref().map(|s| s.as_str()) {
                 Some("yes") => {
-                    self.action_traces.push(ActionTrace::new(self.actions.clone()));
+                    self.action_states.push(ActionState::new(self.actions.clone()));
                 },
                 Some("no") => {
                     self.is_actions_complete = true;
@@ -113,8 +127,19 @@ impl AgentState {
         Ok(())
     }
 
+    pub fn update_context(&mut self, context: String) {
+        self.context = context;
+        self.needed_information = None;
+        self.action_states = vec![];
+        self.is_actions_complete = false;
+        self.new_information = None;
+        self.new_context = None;
+        self.has_enough_information = false;
+        self.result = None;
+    }
+
     fn has_action_to_run(&self) -> bool {
-        if let Some(action) = self.action_traces.last() {
+        if let Some(action) = self.action_states.last() {
             action.r#continue.as_ref().map(|s| s.as_str()) != Some("no")
         }
 
@@ -133,7 +158,7 @@ impl Default for AgentState {
             needed_information: None,
             actions: vec![],
             action_prompt: String::new(),
-            action_traces: vec![],
+            action_states: vec![],
             is_actions_complete: false,
             new_information: None,
             new_context: None,
@@ -143,88 +168,41 @@ impl Default for AgentState {
     }
 }
 
-#[derive(Debug, Default, Serialize)]
-struct ActionTrace {
-    // A set of actions that it can run.
-    #[serde(skip)]
-    actions: Vec<Action>,
-
-    // It uses an index of an action instead of the action itself.
-    // That's because it's tricky to (de)serialize actions.
-    index: Option<usize>,
-    instruction: Option<String>,
-    argument: Option<String>,
-    result: Option<String>,
-    r#continue: Option<String>,  // "yes" | "no"
+#[derive(Serialize)]
+pub struct AgentResponse {
+    pub response: String,
+    pub actions: Vec<ActionTrace>,
 }
 
-impl ActionTrace {
-    pub fn new(actions: Vec<Action>) -> Self {
-        ActionTrace {
-            actions,
-            ..ActionTrace::default()
-        }
-    }
+impl AgentResponse {
+    pub fn retrieved_chunks(&self, index: &Index) -> Result<Vec<Chunk>, Error> {
+        let mut chunks = vec![];
 
-    pub fn get_schema(&self) -> Option<Schema> {
-        if self.index.is_none() {
-            Some(Schema::integer_between(Some(1), Some(self.actions.len() as i128)))
-        }
+        for action in self.actions.iter() {
+            match &action.result {
+                ActionResult::ReadFileShort { chunk_uids, .. } => {
+                    for chunk_uid in chunk_uids.iter() {
+                        chunks.push(index.get_chunk_by_uid(*chunk_uid)?);
+                    }
+                },
+                ActionResult::SimpleRag(rag) => {
+                    for chunk in rag.retrieved_chunks.iter() {
+                        chunks.push(chunk.clone());
+                    }
+                },
 
-        else if self.argument.is_none() {
-            None
-        }
-
-        else if self.r#continue.is_none() {
-            Some(Schema::default_yesno())
-        }
-
-        else {
-            unreachable!()
-        }
-    }
-
-    pub async fn update(&mut self, input: Value, index: &Index) -> Result<(), Error> {
-        if self.index.is_none() {
-            // If `input.as_u64()` fails, that means the AI is so stupid
-            // that it cannot choose a number even with pdl schema's help.
-            // So we just choose an arbitrary action. The AI's gonna fail
-            // anyway and will break soon.
-            let n = input.as_u64().unwrap_or(1) as usize;
-            let action = self.actions[n - 1];  // AI uses 1-based index
-            self.index = Some(n);
-            self.instruction = Some(action.get_instruction());
-
-            if !action.requires_argument() {
-                // See comments in `Action::get_instruction`
-                self.argument = Some(String::from("okay"));
-                self.result = Some(action.run("", index).await?);
+                // `ReadFileLong` and `Search` have chunks, but I'm not sure
+                // whether I have to include them in `retrieved_chunks`.
+                ActionResult::ReadFileLong(_)
+                | ActionResult::NoSuchFile { .. }
+                | ActionResult::ReadDir(_)
+                | ActionResult::NoSuchDir { .. }
+                | ActionResult::Search { .. }
+                | ActionResult::GetSummary(_) => {},
             }
         }
 
-        else if self.argument.is_none() {
-            // NOTE: pdl schema `string` is infallible
-            let input = input.as_str().unwrap();
-            let action = self.actions[self.index.unwrap() - 1];  // AI uses 1-based index
-            self.argument = Some(input.to_string());
-            self.result = Some(action.run(input, index).await?);
-        }
-
-        else if self.r#continue.is_none() {
-            // If `input.as_bool()` fails, that means the AI is
-            // not smart enough to generate a boolean. There's
-            // no need to continue.
-            let input = input.as_bool().unwrap_or(false);
-            let s = if input { "yes" } else { "no" };
-
-            self.r#continue = Some(s.to_string());
-        }
-
-        else {
-            unreachable!()
-        }
-
-        Ok(())
+        Ok(chunks)
     }
 }
 
@@ -237,7 +215,7 @@ impl Index {
 
         // list of available actions
         mut actions: Vec<Action>,
-    ) -> Result<String, Error> {
+    ) -> Result<AgentResponse, Error> {
         // dedup
         actions = actions.into_iter().collect::<HashSet<_>>().into_iter().collect();
 
@@ -255,22 +233,21 @@ impl Index {
         state.actions = actions.clone();
         state.action_prompt = Action::write_prompt(&actions);
         let mut context_update = 0;
+        let mut action_traces = vec![];
 
         loop {
-            state = self.step_agent(state).await?;
+            state = self.step_agent(state, &mut action_traces).await?;
 
             if state.has_enough_information {
-                return Ok(state.result.unwrap());
+                return Ok(AgentResponse {
+                    response: state.result.unwrap(),
+                    actions: action_traces,
+                });
             }
 
             if let Some(context) = &state.new_context {
-                let context = context.to_string();
-                state = AgentState::default();
-                state.single_paragraph = single_paragraph;
-                state.question = question.to_string();
-                state.context = context;
-                state.actions = actions.clone();
-                state.action_prompt = Action::write_prompt(&actions);
+                let context = context.clone();
+                state.update_context(context);
                 context_update += 1;
 
                 // TODO: I want LLMs to decide whether it has enough information.
@@ -282,7 +259,7 @@ impl Index {
         }
     }
 
-    async fn step_agent(&self, mut state: AgentState) -> Result<AgentState, Error> {
+    async fn step_agent(&self, mut state: AgentState, action_traces: &mut Vec<ActionTrace>) -> Result<AgentState, Error> {
         let schema = state.get_schema();
         let Pdl { messages, .. } = parse_pdl(
             &self.get_prompt("agent")?,
@@ -311,7 +288,7 @@ impl Index {
             Value::String(r.get_message(0).unwrap().to_string())
         };
 
-        state.update(response, self).await?;
+        state.update(response, self, action_traces).await?;
 
         if let Some(log_at) = self.api_config.dump_log_at(&self.root_dir) {
             let now = Local::now();

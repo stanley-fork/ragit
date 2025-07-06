@@ -2,6 +2,7 @@ use async_recursion::async_recursion;
 use chrono::{Days, Local};
 use ragit::{
     AddMode,
+    AgentAction,
     Audit,
     Error,
     IIStatus,
@@ -1981,6 +1982,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
                 .optional_arg_flag("--schema", ArgType::String)
+                .optional_flag(&["--agent"])
                 .short_flag(&["--interactive", "--json"])
                 .args(ArgType::Query, ArgCount::Any)
                 .parse(&args, 2)?;
@@ -2024,21 +2026,59 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let interactive_mode = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
+            let agent_mode = parsed_args.get_flag(5).is_some();
 
-            match (interactive_mode, json_mode, &schema) {
-                (true, _, Some(_)) => {
+            match (agent_mode, interactive_mode, json_mode, &schema) {
+                (true, false, json_mode, None) => {
+                    let response = index.agent(
+                        &parsed_args.get_args_exact(1)?[0],
+                        false,
+                        String::from("There's no information yet."),
+                        AgentAction::all_actions(),
+                    ).await?;
+
+                    if json_mode {
+                        println!("{}", serde_json::to_string_pretty(&response)?);
+                    }
+
+                    else {
+                        println!("{}", response.response);
+                        let retrieved_chunks = response.retrieved_chunks(&index)?;
+
+                        if !retrieved_chunks.is_empty() {
+                            println!("\n---- sources ----");
+
+                            for chunk in retrieved_chunks.iter() {
+                                println!("{} ({})", chunk.render_source(), chunk.uid.get_short_name());
+                            }
+                        }
+                    }
+                },
+                (true, true, _, _) => {
+                    return Err(Error::CliError {
+                        message: String::from("You cannot query interactively in an agent mode."),
+                        span: (String::new(), 0, 0),  // TODO
+                    });
+                },
+                (true, _, _, Some(_)) => {
+                    return Err(Error::CliError {
+                        message: String::from("You cannot set schema in an agent mode."),
+                        span: (String::new(), 0, 0),  // TODO
+                    });
+                },
+                (_, true, _, Some(_)) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot set schema in an interactive mode."),
                         span: (String::new(), 0, 0),  // TODO
                     });
                 },
-                (true, true, _) => {
+                (_, true, true, _) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot query interactively in a json mode."),
                         span: (String::new(), 0, 0),  // TODO
                     });
                 },
-                (true, _, _) => {
+                (_, true, _, _) => {
                     let mut history = vec![];
 
                     loop {
