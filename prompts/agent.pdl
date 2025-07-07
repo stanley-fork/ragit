@@ -74,15 +74,17 @@ Please choose which action to run (give me a number). Then I'll give you a furth
 
 {{action.instruction|safe}}
 
-{% if action.argument %}
+{% for t in action.argument_turns %}
 <|assistant|>
 
-{{action.argument|safe}}
+{{t.assistant|safe}}
 
 <|user|>
 
-{{action.result_rendered|safe}}
+{{t.user|safe}}
+{% endfor %}
 
+{% if action.complete %}
 Do you want to do more actions? Say yes or no.
 
 {% if action.continue %}
@@ -90,7 +92,7 @@ Do you want to do more actions? Say yes or no.
 
 {{action.continue}}
 {% endif %}  {# action.continue #}
-{% endif %}  {# action.argument #}
+{% endif %}  {# action.copmlete #}
 {% endif %}  {# action.num #}
 {% endfor %}
 

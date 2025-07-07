@@ -282,6 +282,21 @@ pub enum ActionResult {
 }
 
 impl ActionResult {
+    // If it's ok, the AI can update the context with information from `self.render()`.
+    // If it's not ok, `self.render()` will instruct the AI how to generate a valid argument.
+    pub fn is_ok(&self) -> bool {
+        match self {
+            ActionResult::ReadFileShort { .. }
+            | ActionResult::ReadFileLong(_)
+            | ActionResult::ReadDir(_)
+            | ActionResult::Search { .. }
+            | ActionResult::GetSummary(_)
+            | ActionResult::SimpleRag(_) => true,
+            ActionResult::NoSuchFile { .. }
+            | ActionResult::NoSuchDir { .. } => false,
+        }
+    }
+
     // This is exactly what the AI sees (a turn).
     pub fn render(&self) -> String {
         match self {
@@ -361,11 +376,16 @@ pub struct ActionState {
     // That's because it's tricky to (de)serialize actions.
     pub index: Option<usize>,
     pub instruction: Option<String>,
-    pub argument: Option<String>,
-    pub result: Option<ActionResult>,
 
-    // What the AI sees
-    pub result_rendered: Option<String>,
+    // It might take multiple turns for the AI to generate an argument.
+    // e.g. if it tries to read a file that does not exist, the engine
+    // will give a feedback and the AI will retry
+    pub argument_turns: Vec<ArgumentTurn>,
+
+    // There's a valid argument in `argument_turns`, and it's run.
+    pub complete: bool,
+
+    pub result: Option<ActionResult>,
 
     // If yes, it runs another action within the same context
     pub r#continue: Option<String>,  // "yes" | "no"
@@ -375,6 +395,7 @@ impl ActionState {
     pub fn new(actions: Vec<Action>) -> Self {
         ActionState {
             actions,
+            complete: false,
             ..ActionState::default()
         }
     }
@@ -384,7 +405,7 @@ impl ActionState {
             Some(Schema::integer_between(Some(1), Some(self.actions.len() as i128)))
         }
 
-        else if self.argument.is_none() {
+        else if !self.complete {
             None
         }
 
@@ -415,28 +436,61 @@ impl ActionState {
 
             if !action.requires_argument() {
                 // See comments in `Action::get_instruction`
-                self.argument = Some(String::from("okay"));
-                self.result = Some(action.run("", index).await?);
-                self.result_rendered = self.result.clone().map(|r| r.render());
+                let argument = "okay";
+                let result = action.run("", index).await?;
+                let mut result_rendered = result.render();
+
+                if result.is_ok() {
+                    self.complete = true;
+                }
+
+                // If it's not complete, we have to give the instruction again so that the AI
+                // will generate the argument.
+                else {
+                    result_rendered = format!("{result_rendered}\n\n{}", action.get_instruction());
+                }
+
+                self.argument_turns.push(ArgumentTurn {
+                    assistant: argument.to_string(),
+                    user: result_rendered.to_string(),
+                });
+                self.result = Some(result.clone());
                 action_traces.push(ActionTrace {
                     action,
                     argument: None,
-                    result: self.result.clone().unwrap(),
+                    result: result.clone(),
                 });
             }
         }
 
-        else if self.argument.is_none() {
-            // NOTE: pdl schema `string` is infallible
-            let input = input.as_str().unwrap();
+        else if !self.complete {
             let action = self.actions[self.index.unwrap() - 1];  // AI uses 1-based index
-            self.argument = Some(input.to_string());
-            self.result = Some(action.run(input, index).await?);
-            self.result_rendered = self.result.clone().map(|r| r.render());
+
+            // NOTE: pdl schema `string` is infallible
+            let argument = input.as_str().unwrap();
+            let result = action.run(argument, index).await?;
+            let mut result_rendered = result.render();
+
+            // Some AIs are not smart enough to generate a valid argument.
+            // If the AI fails to generate valid argument more than once,
+            // it just breaks.
+            if result.is_ok() || self.argument_turns.len() > 0 {
+                self.complete = true;
+            }
+
+            else {
+                result_rendered = format!("{result_rendered}\n\n{}", action.get_instruction());
+            }
+
+            self.argument_turns.push(ArgumentTurn {
+                assistant: argument.to_string(),
+                user: result_rendered.to_string(),
+            });
+            self.result = Some(result.clone());
             action_traces.push(ActionTrace {
                 action,
-                argument: Some(input.to_string()),
-                result: self.result.clone().unwrap(),
+                argument: None,
+                result: result.clone(),
             });
         }
 
@@ -456,6 +510,16 @@ impl ActionState {
 
         Ok(())
     }
+}
+
+#[derive(Debug, Serialize)]
+struct ArgumentTurn {
+    // An argument of an action, that AI generated
+    assistant: String,
+
+    // If the argument is valid, it's a result of the action.
+    // Otherwise, it's a feedback: why the argument is invalid and how to fix it.
+    user: String,
 }
 
 #[derive(Serialize)]
