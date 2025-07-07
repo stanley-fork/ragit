@@ -19,6 +19,7 @@ def write_lock(test_model: str):
         write_string("sample1.txt", "Hello, World!")
         write_string("sample2.txt", "Hello, World!")
         cargo_run(["add", "sample1.txt", "sample2.txt"])
+        cargo_run(["config", "--set", "summary_after_build", "false"])
 
         if i % 2 == 0:
             cargo_run(["config", "--set", "model", "dummy"])

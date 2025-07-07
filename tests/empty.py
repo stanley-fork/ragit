@@ -12,6 +12,7 @@ def empty(test_model: str):
     mk_and_cd_tmp_dir()
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", test_model])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
     cargo_run(["build"])
     cargo_run(["check"])
     cargo_run(["query", "what's your name?"])

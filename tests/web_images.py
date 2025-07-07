@@ -16,6 +16,7 @@ def web_images(test_model: str):
     cargo_run(["init"])
     cargo_run(["add", "single.md", "double.md"])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
     cargo_run(["config", "--set", "model", test_model])
     cargo_run(["build"])
     cargo_run(["check"])

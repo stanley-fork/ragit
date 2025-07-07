@@ -24,6 +24,7 @@ def images2(test_model: str):
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", test_model])
     cargo_run(["config", "--set", "strict_file_reader", "true"])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
     cargo_run(["config", "--set", "dump_log", "true"])
     cargo_run(["add", "sample.md", "sample2.md"])
     cargo_run(["check"])

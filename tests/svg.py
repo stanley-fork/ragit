@@ -17,6 +17,7 @@ def svg(test_model: str):
     mk_and_cd_tmp_dir()
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
 
     # (name, is_valid)
     svg_files = [

@@ -21,6 +21,7 @@ def pdf(test_model: str):
         cargo_run(["add", "landscape.pdf", "portrait.pdf"])
         cargo_run(["config", "--set", "model", test_model])
         cargo_run(["config", "--set", "dump_log", "true"])
+        cargo_run(["config", "--set", "summary_after_build", "false"])
 
         # make sure that it doesn't work without "pdf" feature
         assert "FeatureNotEnabled" in cargo_run(["build"], features=[], stdout=True)

@@ -33,6 +33,7 @@ def prompts(test_model: str):
     cargo_run(["config", "--set", "slide_len", "200"])
     cargo_run(["config", "--set", "model", test_model])
     cargo_run(["config", "--set", "dump_log", "true"])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
     cargo_run(["add", "sample.md", "main.rs"])
     cargo_run(["check"])
 

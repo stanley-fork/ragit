@@ -29,6 +29,7 @@ def orphan_process(test_model: str):
         # step 1: initialize workers and kill their parent before they finish their job
         cargo_run(["config", "--set", "model", test_model])
         cargo_run(["config", "--set", "sleep_after_llm_call", "20000"])
+        cargo_run(["config", "--set", "summary_after_build", "false"])
 
         try:
             # NOTE: workers must finish creating a chunk in 6 seconds. please use a fast model

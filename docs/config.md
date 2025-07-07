@@ -57,6 +57,9 @@ A recommended way of reading/writing config is `rag config` command.
 - compression_level: int
     - default: 3
     - range: 0 ~ 9
+- summary_after_build: bool
+    - default: true
+    - If it's set, it runs `rag summary` after `rag build` is complete.
 - max_titles: int
     - default: 32
     - It's deprecated and not used anymore.

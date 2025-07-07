@@ -21,6 +21,7 @@ def audit(test_model: str):
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", test_model])
     cargo_run(["config", "--set", "dump_api_usage", "false"])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
     cargo_run(["query", "Why is the sky blue?"])
 
     # nothing's dumped

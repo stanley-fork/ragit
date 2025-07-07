@@ -11,6 +11,7 @@ pub struct PartialBuildConfig {
     pub strict_file_reader: Option<bool>,
     pub compression_threshold: Option<u64>,
     pub compression_level: Option<u32>,
+    pub summary_after_build: Option<bool>,
 }
 
 impl PartialBuildConfig {
@@ -39,6 +40,9 @@ impl PartialBuildConfig {
         }
         if let Some(compression_level) = self.compression_level {
             config.compression_level = compression_level;
+        }
+        if let Some(summary_after_build) = self.summary_after_build {
+            config.summary_after_build = summary_after_build;
         }
     }
 }
@@ -74,6 +78,14 @@ pub struct BuildConfig {
 
     /// 0 ~ 9
     pub compression_level: u32,
+
+    /// If it's set, it runs `rag summary` after `rag build` is complete.
+    #[serde(default = "_true")]
+    pub summary_after_build: bool,
+}
+
+fn _true() -> bool {
+    true
 }
 
 impl Default for BuildConfig {
@@ -87,6 +99,7 @@ impl Default for BuildConfig {
             strict_file_reader: false,
             compression_threshold: 2048,
             compression_level: 3,
+            summary_after_build: true,
         }
     }
 }

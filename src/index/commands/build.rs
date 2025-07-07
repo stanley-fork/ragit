@@ -40,7 +40,7 @@ impl Index {
         // return on error but pushes the errors to `result.errors`.
         // Still, there're unrecoverable errors. They just kill all the workers and return immediately.
         // That's why the code is messy with `?` and `match _ { Err(_) => {} }`
-        match self.build_worker(&mut workers, started_at, quiet) {
+        match self.build_worker(&mut workers, started_at, quiet).await {
             Ok(result) => {
                 if !quiet {
                     let elapsed_time = Instant::now().duration_since(started_at).as_secs();
@@ -80,7 +80,7 @@ impl Index {
         }
     }
 
-    fn build_worker(
+    async fn build_worker(
         &mut self,
         workers: &mut Vec<Channel>,
         started_at: Instant,
@@ -337,6 +337,15 @@ impl Index {
 
         self.curr_processing_file = None;
         self.save_to_file()?;
+
+        if self.build_config.summary_after_build {
+            if !quiet {
+                println!("Creating a summay of the knowledge-base...");
+            }
+
+            self.summary(None).await?;
+        }
+
         Ok(BuildResult {
             success,
             errors,
