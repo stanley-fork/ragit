@@ -16,7 +16,7 @@ use ragit_pdl::{
 };
 use serde::Serialize;
 use serde_json::Value;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 mod action;
 mod file_tree;
@@ -198,6 +198,8 @@ impl AgentResponse {
                 | ActionResult::ReadDir(_)
                 | ActionResult::NoSuchDir { .. }
                 | ActionResult::Search { .. }
+                | ActionResult::GetMeta { .. }
+                | ActionResult::NoSuchMeta { .. }
                 | ActionResult::GetSummary(_) => {},
             }
         }
@@ -223,6 +225,13 @@ impl Index {
         if self.get_summary().is_none() {
             actions = actions.into_iter().filter(
                 |action| *action != Action::GetSummary
+            ).collect();
+        }
+
+        // It cannot get metadata if there's no metadata.
+        if self.get_all_meta().unwrap_or_else(|_| HashMap::new()).is_empty() {
+            actions = actions.into_iter().filter(
+                |action| *action != Action::GetMeta
             ).collect();
         }
 

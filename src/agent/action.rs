@@ -17,6 +17,9 @@ pub enum Action {
     SearchExact,
     SearchTfidf,
 
+    /// This action will be filtered out if there's no metadata.
+    GetMeta,
+
     /// This action will be filtered out if there's no summary.
     /// Please make sure to run `rag summary` if you want to
     /// use this action.
@@ -33,6 +36,7 @@ impl Action {
             Action::ReadDir,
             Action::SearchExact,
             Action::SearchTfidf,
+            Action::GetMeta,
             Action::GetSummary,
             Action::SimpleRag,
         ]
@@ -40,15 +44,21 @@ impl Action {
 
     // If this action requires an argument, the instruction must be "Give me an argument. The argument must be...".
     // If it doesn't require an argument, an AI will always reply "okay" to the instruction (I'll push a fake turn).
-    pub(crate) fn get_instruction(&self) -> String {
-        match self {
-            Action::ReadFile => "Give me an exact path of a file that you want to read. Don't say anything other than the path of the file.",
-            Action::ReadDir => "Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory.",
-            Action::SearchExact => "Give me a keyword that you want to search for. It's not a pattern, just a keyword (case-sensitive). I'll use exact-text-matching to search. Don't say anything other than the keyword.",
-            Action::SearchTfidf => "Give me a comma-separated list of keywords that you want to search for. Don't say anything other than the keywords.",
-            Action::GetSummary => "I'll give you the summary. Hold on.",
-            Action::SimpleRag => "Give me a simple factual question. Don't say anything other than the question.",
-        }.to_string()
+    pub(crate) fn get_instruction(&self, index: &Index) -> Result<String, Error> {
+        let s = match self {
+            Action::ReadFile => String::from("Give me an exact path of a file that you want to read. Don't say anything other than the path of the file."),
+            Action::ReadDir => String::from("Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory."),
+            Action::SearchExact => String::from("Give me a keyword that you want to search for. It's not a pattern, just a keyword (case-sensitive). I'll use exact-text-matching to search. Don't say anything other than the keyword."),
+            Action::SearchTfidf => String::from("Give me a comma-separated list of keywords that you want to search for. Don't say anything other than the keywords."),
+            Action::GetMeta => format!(
+                "Below is a list of keys in the metadata. Choose a key that you want to see. Don't say anything other than the key.\n\n{:?}",
+                index.get_all_meta()?.keys().collect::<Vec<_>>(),
+            ),
+            Action::GetSummary => String::from("I'll give you the summary. Hold on."),
+            Action::SimpleRag => String::from("Give me a simple factual question. Don't say anything other than the question."),
+        };
+
+        Ok(s)
     }
 
     pub(crate) fn requires_argument(&self) -> bool {
@@ -57,6 +67,7 @@ impl Action {
             Action::ReadDir => true,
             Action::SearchExact => true,
             Action::SearchTfidf => true,
+            Action::GetMeta => true,
             Action::GetSummary => false,
             Action::SimpleRag => true,
         }
@@ -74,6 +85,7 @@ impl Action {
             Action::ReadDir => "See a list of files in a directory: if you give me the exact path of a directory, I'll show you a list of the files in the directory.",
             Action::SearchExact => "Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.",
             Action::SearchTfidf => "Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.",
+            Action::GetMeta => "Get metadata: a knowledge-base has metadata, which is a key-value store. If you give me a key of a metadata, I'll give you what value the metadata has.",
             Action::GetSummary => "Get summary of the entire knowledge-base.",
             Action::SimpleRag => "Call a simple RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.",
         }.to_string()
@@ -234,6 +246,58 @@ impl Action {
                     chunks,
                 }
             },
+            Action::GetMeta => {
+                let mut candidates = vec![
+                    argument.to_string(),
+                ];
+
+                // small QoL: the AI might wrap the key with quotation marks
+                if argument.starts_with("\"") {
+                    if let Ok(serde_json::Value::String(s)) = serde_json::from_str(&argument) {
+                        candidates.push(s.to_string());
+                    }
+                }
+
+                let mut result = None;
+
+                for candidate in candidates.iter() {
+                    if let Some(value) = index.get_meta_by_key(candidate.to_string())? {
+                        result = Some((candidate.to_string(), value));
+                        break;
+                    }
+                }
+
+                if let Some((key, value)) = result {
+                    ActionResult::GetMeta {
+                        key,
+                        value,
+                    }
+                }
+
+                else {
+                    let mut similar_keys = vec![];
+
+                    for key in index.get_all_meta()?.keys() {
+                        let dist = substr_edit_distance(argument.as_bytes(), key.as_bytes());
+
+                        if dist < 3 {
+                            similar_keys.push((key.to_string(), dist));
+                        }
+                    }
+
+                    similar_keys.sort_by_key(|(_, d)| *d);
+
+                    if similar_keys.len() > 10 {
+                        similar_keys = similar_keys[..10].to_vec();
+                    }
+
+                    let similar_keys = similar_keys.into_iter().map(|(f, _)| f).collect::<Vec<_>>();
+                    ActionResult::NoSuchMeta {
+                        key: argument.to_string(),
+                        similar_keys,
+                    }
+                }
+            },
             Action::GetSummary => {
                 // The summary must exist. Otherwise, this action should have been filtered out.
                 let summary = index.get_summary().unwrap();
@@ -277,6 +341,14 @@ pub enum ActionResult {
         keyword: String,
         chunks: Vec<Chunk>,
     },
+    GetMeta {
+        key: String,
+        value: String,
+    },
+    NoSuchMeta {
+        key: String,
+        similar_keys: Vec<String>,
+    },
     GetSummary(String),
     SimpleRag(QueryResponse),
 }
@@ -290,10 +362,12 @@ impl ActionResult {
             | ActionResult::ReadFileLong(_)
             | ActionResult::ReadDir(_)
             | ActionResult::Search { .. }
+            | ActionResult::GetMeta { .. }
             | ActionResult::GetSummary(_)
             | ActionResult::SimpleRag(_) => true,
             ActionResult::NoSuchFile { .. }
-            | ActionResult::NoSuchDir { .. } => false,
+            | ActionResult::NoSuchDir { .. }
+            | ActionResult::NoSuchMeta { .. } => false,
         }
     }
 
@@ -359,6 +433,15 @@ impl ActionResult {
                     )
                 }
             },
+            ActionResult::GetMeta { value, .. } => value.clone(),
+            ActionResult::NoSuchMeta { key, similar_keys } => format!(
+                "There's no such key in metadata: `{key}`{}",
+                if !similar_keys.is_empty() {
+                    format!("\nThere are similar keys:\n\n{similar_keys:?}")
+                } else {
+                    String::new()
+                },
+            ),
             ActionResult::GetSummary(summary) => summary.clone(),
             ActionResult::SimpleRag(response) => response.response.clone(),
         }
@@ -432,7 +515,7 @@ impl ActionState {
             let n = input.as_u64().unwrap_or(1) as usize;
             let action = self.actions[n - 1];  // AI uses 1-based index
             self.index = Some(n);
-            self.instruction = Some(action.get_instruction());
+            self.instruction = Some(action.get_instruction(index)?);
 
             if !action.requires_argument() {
                 // See comments in `Action::get_instruction`
@@ -447,7 +530,7 @@ impl ActionState {
                 // If it's not complete, we have to give the instruction again so that the AI
                 // will generate the argument.
                 else {
-                    result_rendered = format!("{result_rendered}\n\n{}", action.get_instruction());
+                    result_rendered = format!("{result_rendered}\n\n{}", action.get_instruction(index)?);
                 }
 
                 self.argument_turns.push(ArgumentTurn {
@@ -479,7 +562,7 @@ impl ActionState {
             }
 
             else {
-                result_rendered = format!("{result_rendered}\n\n{}", action.get_instruction());
+                result_rendered = format!("{result_rendered}\n\n{}", action.get_instruction(index)?);
             }
 
             self.argument_turns.push(ArgumentTurn {

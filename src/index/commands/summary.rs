@@ -185,6 +185,7 @@ impl Index {
             }
         }
 
+        let metadata_len = self.get_all_meta()?.len();
         let mut count_by_extension = count_by_extension.into_iter().collect::<Vec<_>>();
         count_by_extension.sort_by_key(|(_, count)| *count);
 
@@ -205,12 +206,13 @@ impl Index {
         };
 
         Ok(format!(
-            "This knowledge-base consists of {} files ({} characters of text and {} images). {}\nBelow is the list of the files and directories in the knowledge-base.\n\n{}",
+            "This knowledge-base consists of {} files ({} characters of text and {} images). {}\nBelow is the list of the files and directories in the knowledge-base.\n\n{}{}",
             self.processed_files.len(),
             char_len,
             image_uids.len(),
             common_extensions,
             file_tree.render(),
+            if metadata_len > 0 { format!("\n\nThe knowledge-base has a key-value store for metadata, and it has {metadata_len} keys.") } else { String::new() },
         ))
     }
 }
