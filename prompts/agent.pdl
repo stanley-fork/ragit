@@ -4,7 +4,7 @@ You're a RAG agent. A user will ask you a question, and you have to answer the q
 
 The user question is:
 
-{{question|safe}}
+{{question}}
 
 {% if single_paragraph %}
 The user wants you to write a single paragraph that answers the question.
@@ -17,7 +17,7 @@ The user wants you to write multiple paragraphs that answer the question.
 Below is the information you gathered from the knowledge-base so far.
 
 {# The initial context is code-generated. If it's a knowledge-base-summarizer, it's a file tree of the root dir. #}
-{{context|safe}}
+{{context}}
 
 <|assistant|>
 
@@ -54,14 +54,14 @@ In order to write the paragraph{% if not single_paragraph %}s{% endif %}, what m
 {% if needed_information %}
 <|assistant|>
 
-{{needed_information|safe}}
+{{needed_information}}
 
 {% for action in action_states %}
 <|user|>
 
 Below are the actions that you can do. Choose an action that would help get the information that you need.
 
-{{action_prompt|safe}}
+{{action_prompt}}
 
 Please choose which action to run (give me a number). Then I'll give you a further instruction.
 
@@ -72,16 +72,16 @@ Please choose which action to run (give me a number). Then I'll give you a furth
 
 <|user|>
 
-{{action.instruction|safe}}
+{{action.instruction}}
 
 {% for t in action.argument_turns %}
 <|assistant|>
 
-{{t.assistant|safe}}
+{{t.assistant}}
 
 <|user|>
 
-{{t.user|safe}}
+{{t.user}}
 {% endfor %}
 
 {% if action.complete %}
@@ -104,13 +104,13 @@ What *new* information did you get from the actions? List the new information th
 {% if new_information %}
 <|assistant|>
 
-{{new_information|safe}}
+{{new_information}}
 
 <|user|>
 
 Below is the information you gathered before you do the actions. Update it with the new information.
 
-{{context|safe}}
+{{context}}
 
 {# When this point is reached, we update the context with its response and continue the loop. #}
 {% endif %}  {# new_information #}

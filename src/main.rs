@@ -1773,7 +1773,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("pdl") => {
             let parsed_args = ArgParser::new()
                 .flag_with_default(&["--strict", "--no-strict"])
-                .optional_flag(&["--escape"])
                 .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--models", ArgType::Path)
                 .optional_arg_flag("--context", ArgType::Path)
@@ -1791,7 +1790,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = root_dir.map(|root_dir| Index::load(root_dir, LoadMode::OnlyJson));
             let pdl_at = parsed_args.get_args_exact(1)?[0].clone();
             let strict_mode = parsed_args.get_flag(0).unwrap() == "--strict";
-            let escape = parsed_args.get_flag(1).unwrap_or(String::new()) == "--escape";
             let models = match parsed_args.arg_flags.get("--models") {
                 Some(path) => {
                     let m = read_string(path)?;
@@ -1868,7 +1866,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 &pdl_at,
                 &tera::Context::from_value(context)?,
                 strict_mode,
-                escape,
             )?;
             let schema = match (pdl_schema, arg_schema) {
                 (_, Some(schema)) => Some(schema),

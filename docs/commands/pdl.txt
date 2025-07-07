@@ -9,7 +9,7 @@ SYNOPSIS
 --------
 [verse]
 'rag pdl' <file> [--model <model>] [--models <file>] [--context <file>]
-            [--[no-]strict] [--escape] [--log <dir>] [--schema <schema>]
+            [--[no-]strict] [--log <dir>] [--schema <schema>]
 
 DESCRIPTION
 -----------
@@ -49,14 +49,6 @@ OPTIONS
         in the context, it doesn't call LLM and exits with an error.
         If `--no-strict` is set, it turns off the tera renderer and treats
         `{{ name }}` like a literal string.
-
---escape::
-        There are some special syntaxes that pdl use. For example, `<|user|>`
-        indicates a beginning of a user turn. You might want to include the
-        string `<|user|>` in the prompt, instead of using it as a marker. In
-        that case, you can write `&lt;|user|>` instead of `<|user|>`, then
-        enable this flag. The string won't be parsed by the pdl engine and
-        later converted to `<|user|>`.
 
 --log::
         A directory to dump logs. If it's not set, it doesn't dump any log.

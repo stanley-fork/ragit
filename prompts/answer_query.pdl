@@ -4,7 +4,7 @@ You're a kind chatbot. Answer the user's query. You'll be given documents that h
 
 <|user|>
 
-{{query|safe}}
+{{query}}
 
 <|assistant|>
 
@@ -14,7 +14,7 @@ I can give you a better answer if you provide me documents that are related to y
 
 <|user|>
 
-source: {{chunk.source|safe}}
+source: {{chunk.source}}
 
 {{chunk.data|safe}}
 
@@ -34,6 +34,6 @@ Okay, could you remind me what the query is?
 
 <|user|>
 
-{{query|safe}}
+{{query}}
 
 <|assistant|>

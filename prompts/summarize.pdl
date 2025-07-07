@@ -18,7 +18,7 @@ Make sure to always use English, no matter what language the chunk uses.
 
 <|assistant|>
 
-{{previous_response|safe}}
+{{previous_response}}
 
 {% endif %}
 

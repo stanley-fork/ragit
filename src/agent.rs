@@ -266,7 +266,6 @@ impl Index {
             &into_context(&state)?,
             "/",  // TODO: `<|media|>` is not supported for this prompt
             true,
-            true,
         )?;
         let request = Request {
             messages,

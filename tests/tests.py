@@ -40,6 +40,7 @@ from orphan_process import orphan_process
 from outside import outside
 from pdf import pdf
 from pdl import pdl
+from pdl_escape import pdl_escape
 from prompts import prompts
 from pull import pull
 from pull_ragithub import pull_ragithub
@@ -298,6 +299,11 @@ Commands
 
     pdl [model]                 run `pdl` test
                                 It tests `rag pdl` command.
+
+    pdl_escape                  run `pdl_escape` test
+                                The pdl engine uses tera under the hood. The pdl engine
+                                modifies tera's default escape function. It tests whether
+                                the escape function works.
 
     svg [model]                 run `svg` test
                                 It tests the svg reader.
@@ -570,6 +576,9 @@ if __name__ == "__main__":
 
             pdl(test_model=test_model)
 
+        elif command == "pdl_escape":
+            pdl_escape()
+
         elif command == "svg":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -673,6 +682,7 @@ if __name__ == "__main__":
                 ("archive", archive),
                 ("many_chunks", many_chunks),
                 ("erroneous_llm", erroneous_llm),
+                ("pdl_escape", pdl_escape),
                 ("many_jobs", many_jobs),
                 ("ls", ls),
                 ("meta", meta),

@@ -12,12 +12,12 @@ Think as much as possible before you answer. Then give me the list of the indexe
 
 Give me the indexes of the documents that are relevant to the user's query. Below is the query and the documents. The query is wrapped in triple quotation marks.
 
-{{entries|safe}}
+{{entries}}
 
 Query
 
 '''
-{{query|safe}}
+{{query}}
 '''
 
 <|assistant|>

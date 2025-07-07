@@ -6,7 +6,7 @@ use crate::index::Index;
 use crate::query::QueryResponse;
 use crate::uid::Uid;
 use ragit_cli::substr_edit_distance;
-use ragit_pdl::{Schema, escape_pdl_tokens};
+use ragit_pdl::Schema;
 use serde::Serialize;
 use serde_json::Value;
 
@@ -307,8 +307,8 @@ impl ActionResult {
                     |(index, chunk)| format!(
                         "{}. {}\nsummary: {}",
                         index + 1,
-                        escape_pdl_tokens(&chunk.render_source()),
-                        escape_pdl_tokens(&chunk.summary),
+                        chunk.render_source(),
+                        chunk.summary,
                     )
                 ).collect::<Vec<_>>().join("\n\n"),
             ),
@@ -352,8 +352,8 @@ impl ActionResult {
                             |(index, chunk)| format!(
                                 "{}. {}\nsummary: {}",
                                 index + 1,
-                                escape_pdl_tokens(&chunk.render_source()),
-                                escape_pdl_tokens(&chunk.summary),
+                                chunk.render_source(),
+                                chunk.summary,
                             )
                         ).collect::<Vec<_>>().join("\n\n")
                     )

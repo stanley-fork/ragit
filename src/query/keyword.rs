@@ -4,7 +4,6 @@ use crate::index::tfidf::tokenize;
 use ragit_api::Request;
 use ragit_pdl::{
     Pdl,
-    escape_pdl_tokens,
     parse_pdl,
 };
 use serde::{Deserialize, Serialize};
@@ -69,13 +68,12 @@ impl Index {
         query: &str,
     ) -> Result<Keywords, Error> {
         let mut context = tera::Context::new();
-        context.insert("query", &escape_pdl_tokens(&query));
+        context.insert("query", &query);
 
         let Pdl { messages, schema } = parse_pdl(
             &self.get_prompt("extract_keyword")?,  // TODO: function name and prompt name are not matching
             &context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
-            true,
             true,
         )?;
 

@@ -5,7 +5,6 @@ use ragit_api::Request;
 use ragit_pdl::{
     Pdl,
     Schema,
-    escape_pdl_tokens,
     parse_pdl,
     render_pdl_schema,
 };
@@ -170,15 +169,15 @@ impl Index {
                 |(index, chunk)| format!(
                     "{}. {}\nsource: {}\nsummary: {}",
                     index + 1,
-                    escape_pdl_tokens(&chunk.title),
-                    escape_pdl_tokens(&chunk.render_source()),
-                    escape_pdl_tokens(&chunk.summary),
+                    chunk.title,
+                    chunk.render_source(),
+                    chunk.summary,
                 )
             ).collect::<Vec<_>>().join("\n\n"),
         );
         tera_context.insert(
             "query",
-            &escape_pdl_tokens(&query),
+            &query,
         );
         tera_context.insert(
             "max_retrieval",
@@ -193,7 +192,6 @@ impl Index {
             &self.get_prompt("rerank_summary")?,
             &tera_context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
-            true,
             true,
         )?;
         let request = Request {
@@ -229,18 +227,17 @@ impl Index {
         let mut tera_context = tera::Context::new();
         tera_context.insert(
             "chunks",
-            &chunks,  // it's already escaped
+            &chunks,
         );
         tera_context.insert(
             "query",
-            &escape_pdl_tokens(&query),
+            &query,
         );
 
         let Pdl { messages, .. } = parse_pdl(
             &self.get_prompt("answer_query")?,
             &tera_context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
-            true,
             true,
         )?;
 
@@ -273,7 +270,7 @@ impl Index {
         &self,
         turns: Vec<String>,
     ) -> Result<MultiTurnSchema, Error> {
-        let turns_json = Value::Array(turns.iter().map(|turn| Value::String(escape_pdl_tokens(turn))).collect());
+        let turns_json = Value::Array(turns.iter().map(|turn| Value::String(turn.to_string())).collect());
         let turns_json = serde_json::to_string_pretty(&turns_json)?;
         let mut tera_context = tera::Context::new();
         tera_context.insert("turns", &turns_json);
@@ -282,7 +279,6 @@ impl Index {
             &self.get_prompt("multi_turn")?,
             &tera_context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
-            true,
             true,
         )?;
 
@@ -312,14 +308,13 @@ impl Index {
         schema: Option<Schema>,
     ) -> Result<String, Error> {
         let mut tera_context = tera::Context::new();
-        tera_context.insert("query", &escape_pdl_tokens(&query));
-        tera_context.insert("history", &history.iter().map(|h| escape_pdl_tokens(h)).collect::<Vec<_>>());
+        tera_context.insert("query", &query);
+        tera_context.insert("history", &history);
 
         let Pdl { messages, .. } = parse_pdl(
             &self.get_prompt("raw")?,
             &tera_context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
-            true,
             true,
         )?;
         let request = Request {

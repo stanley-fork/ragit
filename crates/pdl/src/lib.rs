@@ -104,16 +104,12 @@ pub fn parse_pdl_from_file(
 
     // If it's not set, it would never return `Err`.
     strict_mode: bool,
-
-    // If it's set, it unescapes characters in `s`.
-    is_escaped: bool,
 ) -> Result<Pdl, Error> {
     parse_pdl(
         &read_string(path)?,
         context,
         &parent(path)?,
         strict_mode,
-        is_escaped,
     )
 }
 
@@ -124,11 +120,12 @@ pub fn parse_pdl(
 
     // If it's not set, it would never return `Err`.
     strict_mode: bool,
-
-    // If it's set, it unescapes characters in `s`.
-    is_escaped: bool,
 ) -> Result<Pdl, Error> {
-    let tera_rendered = match tera::Tera::one_off(s, context, true) {
+    let mut renderer = tera::Tera::default();
+    renderer.autoescape_on(vec!["__tera_one_off"]);
+    renderer.set_escape_fn(escape_pdl_tokens);
+
+    let tera_rendered = match renderer.render_str(s, context) {
         Ok(t) => t,
         Err(e) => if strict_mode {
             return Err(e.into());
@@ -195,7 +192,7 @@ pub fn parse_pdl(
                                     },
                                 };
 
-                                match into_message_contents(&raw_contents, is_escaped, curr_dir) {
+                                match into_message_contents(&raw_contents, curr_dir) {
                                     Ok(t) => {
                                         messages.push(Message {
                                             role: role.into(),
@@ -256,15 +253,15 @@ pub fn parse_pdl(
     Ok(result)
 }
 
-pub fn escape_pdl_tokens(s: &str) -> String {  // TODO: use `Cow` type
-    s.replace("&", "&amp;").replace("<|", "&lt;|")
+pub fn escape_pdl_tokens(s: &str) -> String {
+    s.replace("&", "&amp;").replace("|>", "|&gt;").replace("<|", "&lt;|")
 }
 
 pub fn unescape_pdl_tokens(s: &str) -> String {  // TODO: use `Cow` type
-    s.replace("&lt;", "<").replace("&amp;", "&")
+    s.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
 }
 
-fn into_message_contents(s: &str, is_escaped: bool, curr_dir: &str) -> Result<Vec<MessageContent>, Error> {
+fn into_message_contents(s: &str, curr_dir: &str) -> Result<Vec<MessageContent>, Error> {
     let bytes = s.as_bytes().iter().map(|b| *b).collect::<Vec<_>>();
     let mut index = 0;
     let mut result = vec![];
@@ -277,13 +274,7 @@ fn into_message_contents(s: &str, is_escaped: bool, curr_dir: &str) -> Result<Ve
                     if !string_buffer.is_empty() {
                         match String::from_utf8(string_buffer.clone()) {
                             Ok(s) => {
-                                if is_escaped {
-                                    result.push(MessageContent::String(unescape_pdl_tokens(&s)));
-                                }
-
-                                else {
-                                    result.push(MessageContent::String(s));
-                                }
+                                result.push(MessageContent::String(unescape_pdl_tokens(&s)));
                             },
                             Err(e) => {
                                 return Err(e.into());
@@ -310,13 +301,7 @@ fn into_message_contents(s: &str, is_escaped: bool, curr_dir: &str) -> Result<Ve
                 if !string_buffer.is_empty() {
                     match String::from_utf8(string_buffer) {
                         Ok(s) => {
-                            if is_escaped {
-                                result.push(MessageContent::String(unescape_pdl_tokens(&s)));
-                            }
-
-                            else {
-                                result.push(MessageContent::String(s));
-                            }
+                            result.push(MessageContent::String(unescape_pdl_tokens(&s)));
                         },
                         Err(e) => {
                             return Err(e.into());

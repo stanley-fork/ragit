@@ -6,12 +6,12 @@ You're a kind chatbot.
 
 {% if loop.index0 % 2 == 0 %}<|user|>{% else %}<|assistant|>{% endif %}
 
-{{h|safe}}
+{{h}}
 
 {% endfor %}
 
 <|user|>
 
-{{query|safe}}
+{{query}}
 
 <|assistant|>

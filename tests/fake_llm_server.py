@@ -45,6 +45,27 @@ def chat():
             fail = lambda: (random.randint(1, 100) <= int(r.group(1)))
         )
 
+    elif (r := re.match(r"dummy-([0-9a-zA-Z]+)", model)) is not None:
+        bytes_hex = r.group(1)
+        bytes_list = []
+        i = 0
+
+        while i < len(bytes_hex):
+            bytes_list.append(eval(f"0x{bytes_hex[i]}{bytes_hex[i + 1]}"))
+            i += 2
+
+        response = bytes(bytes_list).decode("utf-8")
+        return worker(
+            request = j,
+            output_gen = lambda _: response,
+        )
+
+    elif model == "repeat-after-me":
+        return worker(
+            request = j,
+            output_gen = get_last_turn,
+        )
+
     else:
         return worker(j)
 
@@ -140,6 +161,23 @@ def host_fake_llm_server():
     goto_root()
     server_process = subprocess.Popen(["python3", "./tests/fake_llm_server.py"])
     return server_process
+
+def get_last_turn(request: dict) -> str:
+    content = request["messages"][-1]["content"]
+
+    if isinstance(content, str):
+        return content
+
+    result = ""
+
+    for c in content:
+        if "text" in c:
+            result += c["text"]
+
+        else:
+            result += "(image)"
+
+    return result
 
 if __name__ == "__main__":
     # ollama's port number is 11434, so we're using +1

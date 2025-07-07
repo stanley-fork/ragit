@@ -82,6 +82,6 @@ If the last turn of the conversation is not a query, set the "is_query" field to
 
 <|user|>
 
-{{turns|safe}}
+{{turns}}
 
 <|assistant|>

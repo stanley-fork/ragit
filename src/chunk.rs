@@ -213,7 +213,6 @@ impl Chunk {
             &context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
             true,
-            true,
         )?;
         let mut data = vec![];  // data that's actually saved to the chunk file
         let mut images = vec![];
@@ -474,8 +473,8 @@ impl ChunkSchema {
     \"summary\": {:?}
 {}",
             '{',
-            escape_pdl_tokens(&self.title),
-            escape_pdl_tokens(&self.summary),
+            self.title,
+            self.summary,
             '}',
         )
     }

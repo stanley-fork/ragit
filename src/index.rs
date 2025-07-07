@@ -540,7 +540,6 @@ impl Index {
             &context,
             "/",  // TODO: `<|media|>` is not supported for this prompt
             true,
-            true,
         )?;
 
         let request = Request {

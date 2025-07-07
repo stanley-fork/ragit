@@ -54,6 +54,10 @@ Each turn must starts with a turn-separator: `<|user|>`, `<|assistant|>`, `<|sys
 
 You can write a pragmatic prompt with [tera](https://keats.github.io/tera/) template engine. When the engine parses a pdl file, the file first goes through the engine. That means [tera](https://keats.github.io/tera/) syntax is applied before any pdl syntax. You can create or remove a turn using tera syntax, or create a templated schema. You can also write comments with its syntax.
 
+### Escape Rules
+
+If you want to use `<|user|>` as a literal string, not a turn-separator, you can use `&lt;|user|&gt;`. If `<|user|>` is in a tera context, it'll be escaped and handled by the pdl engine, you don't have to worry about that.
+
 ## Images
 
 There're 2 special syntaxes in pdl that allows you to embed images: `<|media(path/to/media.png)|>` and `<|raw_media(png:Base64OfYourImageFile)|>`.
