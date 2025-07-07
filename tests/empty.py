@@ -34,3 +34,12 @@ def empty(test_model: str):
 
     assert count_files() == (0, 0, 0)
     assert count_chunks() == 0
+
+    assert "empty" in cargo_run(["summary"], stdout=True)
+
+    # If we set metadata, it's not an empty knowledge-base.
+    # A summary of an empty knowledge-base is hard-coded, so a dummy model can
+    # generate one. But if it's not empty, the dummy model cannot do anything.
+    cargo_run(["config", "--set", "model", "dummy"])
+    cargo_run(["meta", "--set", "key", "value"])
+    assert "empty" not in cargo_run(["summary"], stdout=True)

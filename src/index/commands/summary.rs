@@ -17,6 +17,9 @@ pub struct Summary {
     /// the uid of the summary.
     pub uid: Uid,
     pub summary: String,
+
+    // TODO: how about adding more metadata to summary?
+    //       I have to decide this before 0.4.2.
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
@@ -58,19 +61,23 @@ impl Index {
             },
         }
 
-        let mut actions = AgentAction::all_actions();
+        let summary = if self.chunk_count > 0 || !self.get_all_meta()?.is_empty() {
+            let mut actions = AgentAction::all_actions();
 
-        // If we don't filter this out, the AI is likely to copy-paste the previous version of summary.
-        actions = actions.into_iter().filter(
-            |action| *action != AgentAction::GetSummary
-        ).collect();
+            // If we don't filter this out, the AI is likely to copy-paste the previous version of summary.
+            actions = actions.into_iter().filter(
+                |action| *action != AgentAction::GetSummary
+            ).collect();
 
-        let summary = self.agent(
-            "Give me a summary of the knowledge-base.",
-            true,  // single paragraph
-            self.get_rough_summary()?,  // initial context
-            actions,
-        ).await?.response;
+            self.agent(
+                "Give me a summary of the knowledge-base.",
+                true,  // single paragraph
+                self.get_rough_summary()?,  // initial context
+                actions,
+            ).await?.response
+        } else {
+            String::from("This is an empty knowledge-base.")
+        };
 
         // We have to make sure that `self.calculate_uid` calculates uid
         // without any summary.
