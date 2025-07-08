@@ -45,6 +45,18 @@ def server_file_tree():
             repo="ragit",
             expected_status_code=404,
         )
+
+        assert set([c["path"] for c in get_json(
+            url="file-content",
+            query={ "path": "" },
+            repo="ragit",
+        )["children"]]) == { "src/", "RelNotes/", "prompts/" }
+        assert set([c["path"] for c in get_json(
+            url="file-content",
+            query={ "path": "/" },
+            repo="ragit",
+        )["children"]]) == { "src/", "RelNotes/", "prompts/" }
+
         c = get_json(
             url="file-content",
             query={ "path": "prompts/rerank_summary.pdl" },
