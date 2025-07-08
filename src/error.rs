@@ -113,7 +113,7 @@ pub enum Error {
     /// see <https://docs.rs/png/latest/png/enum.EncodingError.html>
     PngEncodingError(png::EncodingError),
 
-    /// https://docs.rs/tera/latest/tera/struct.Error.html
+    /// <https://docs.rs/tera/latest/tera/struct.Error.html>
     TeraError(tera::Error),
 
     FileError(FileError),
