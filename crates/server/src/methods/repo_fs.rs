@@ -399,6 +399,10 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
             }
         }
 
+        if children.is_empty() {
+            return Err((404, format!("No such dir: {path}")));
+        }
+
         FileDetail {
             r#type: FileType::Directory,
             content: None,

@@ -286,6 +286,7 @@ def rest_api(
     api_key: Optional[str] = None,
     expected_status_code: Optional[int] = 200,
     parse_response: bool = False,
+    query: Optional[dict[str, str]] = None,
 ):
     kwargs = {}
     headers = {} if api_key is None else { "x-api-key": api_key }
@@ -296,9 +297,15 @@ def rest_api(
     if body is not None:
         kwargs["json"] = body
 
+    url = os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url
+
+    if query:
+        query_str = "&".join([f"{key}={value}" for key, value in query.items()])
+        url += f"?{query_str}"
+
     response = requests.request(
         method,
-        os.path.join(f"http://127.0.0.1:41127/{user}/{repo}", url) if not raw_url else url,
+        url,
         **kwargs,
     )
 
@@ -316,6 +323,7 @@ def get_json(
     api_key: Optional[str] = None,
     expected_status_code: Optional[int] = 200,
     parse_response: bool = True,
+    query: Optional[dict[str, str]] = None,
 ):
     return rest_api(
         method="GET",
@@ -327,6 +335,7 @@ def get_json(
         api_key=api_key,
         expected_status_code=expected_status_code,
         parse_response=parse_response,
+        query=query,
     )
 
 def post_json(
@@ -338,6 +347,7 @@ def post_json(
     api_key: Optional[str] = None,
     expected_status_code: Optional[int] = 200,
     parse_response: bool = False,
+    query: Optional[dict[str, str]] = None,
 ):
     return rest_api(
         method="POST",
@@ -349,6 +359,7 @@ def post_json(
         api_key=api_key,
         expected_status_code=expected_status_code,
         parse_response=parse_response,
+        query=query,
     )
 
 def put_json(
@@ -360,6 +371,7 @@ def put_json(
     api_key: Optional[str] = None,
     expected_status_code: Optional[int] = 200,
     parse_response: bool = False,
+    query: Optional[dict[str, str]] = None,
 ):
     return rest_api(
         method="PUT",
@@ -371,6 +383,7 @@ def put_json(
         api_key=api_key,
         expected_status_code=expected_status_code,
         parse_response=parse_response,
+        query=query,
     )
 
 def assert_eq_json(path: str, value):

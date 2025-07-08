@@ -53,6 +53,7 @@ from recover import recover
 from server import server
 from server_ai_model import server_ai_model
 from server_chat import server_chat
+from server_file_tree import server_file_tree
 from server_permission import server_permission
 from subdir import subdir
 from summary import summary
@@ -173,6 +174,9 @@ Commands
 
     server_chat [model]         run `server_chat` test
                                 It tests chat-related endpoints of ragit-server.
+
+    server_file_tree            run `server_file_tree` test
+                                It tests `/{user}/{repo}/file-content` api of ragit-server.
 
     server_permission           run `server_permission` test
                                 It creates users and repositories with different permissions
@@ -448,6 +452,9 @@ if __name__ == "__main__":
 
             server_chat(test_model=test_model)
 
+        elif command == "server_file_tree":
+            server_file_tree()
+
         elif command == "server_permission":
             server_permission()
 
@@ -676,6 +683,7 @@ if __name__ == "__main__":
                 ("server", server),
                 ("server_ai_model", server_ai_model),
                 ("server_permission", server_permission),
+                ("server_file_tree", server_file_tree),
                 ("fetch_models", fetch_models),
                 ("cli", cli),
                 ("outside", outside),
