@@ -30,7 +30,7 @@ impl RenderedChunk {
 }
 
 impl Chunk {
-    pub fn into_renderable(self, index: &Index) -> Result<RenderedChunk, Error> {
+    pub fn render(self, index: &Index) -> Result<RenderedChunk, Error> {
         let human_data = self.data.clone();
         let raw_data = into_multi_modal_contents(&self.data, &self.images);
         let mut pdl_data = vec![];

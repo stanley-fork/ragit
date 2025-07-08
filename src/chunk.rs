@@ -203,7 +203,7 @@ impl Chunk {
         );
 
         if let Some((previous_chunk, previous_schema)) = &previous_turn {
-            let previous_request = previous_chunk.clone().into_renderable(index)?;
+            let previous_request = previous_chunk.clone().render(index)?;
             context.insert("previous_request", &previous_request.pdl_data);
             context.insert("previous_response", &previous_schema.render());
         }
@@ -360,11 +360,11 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
     let mut result = Vec::with_capacity(curr_chunks.len());
 
     for chunk in unmergeable_chunks.into_iter() {
-        result.push(chunk.into_renderable(index)?);
+        result.push(chunk.render(index)?);
     }
 
     for chunk in curr_chunks.into_iter() {
-        result.push(chunk.into_renderable(index)?);
+        result.push(chunk.render(index)?);
     }
 
     Ok(result)

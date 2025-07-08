@@ -118,7 +118,7 @@ impl Action {
                     // NOTE: Even an empty file has a chunk. So `.len()` must be greater than 0.
                     match chunk_uids.len() {
                         1 => {
-                            let chunk = index.get_chunk_by_uid(chunk_uids[0])?.into_renderable(index)?;
+                            let chunk = index.get_chunk_by_uid(chunk_uids[0])?.render(index)?;
                             ActionResult::ReadFileShort {
                                 chunk_uids,
                                 rendered: chunk,
