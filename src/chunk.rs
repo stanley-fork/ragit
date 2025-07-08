@@ -28,7 +28,7 @@ use std::io::Read;
 
 mod build_info;
 mod multi_modal;
-mod renderable;
+mod render;
 mod source;
 
 #[cfg(test)]
@@ -36,7 +36,7 @@ mod tests;
 
 pub use build_info::ChunkBuildInfo;
 pub use multi_modal::{MultiModalContent, into_multi_modal_contents};
-pub use renderable::RenderedChunk;
+pub use render::RenderedChunk;
 pub use source::ChunkSource;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
