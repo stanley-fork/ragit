@@ -3,7 +3,7 @@ use crate::chunk::{
     self,
     Chunk,
     ChunkBuildInfo,
-    RenderableChunk,
+    RenderedChunk,
     merge_and_convert_chunks,
 };
 use crate::constant::{
@@ -1000,7 +1000,7 @@ impl Index {
         Err(Error::NoSuchFile { path: None, uid: Some(file_uid) })
     }
 
-    pub fn get_merged_chunk_of_file(&self, file_uid: Uid) -> Result<RenderableChunk, Error> {
+    pub fn get_merged_chunk_of_file(&self, file_uid: Uid) -> Result<RenderedChunk, Error> {
         let chunk_uids = self.get_chunks_of_file(file_uid)?;
         let mut chunks = Vec::with_capacity(chunk_uids.len());
 
@@ -1010,7 +1010,7 @@ impl Index {
 
         // FIXME: I don't think we have to sort this
         chunks.sort_by_key(|chunk| chunk.sortable_string());
-        let chunks = merge_and_convert_chunks(self, chunks, false /* render_image */)?;
+        let chunks = merge_and_convert_chunks(self, chunks)?;
 
         match chunks.len() {
             0 => todo!(),  // It's an empty file. Does ragit create a chunk for an empty file? I don't remember...

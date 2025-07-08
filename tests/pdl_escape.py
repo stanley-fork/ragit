@@ -66,6 +66,7 @@ def pdl_escape():
         cargo_run(["init"])
         cargo_run(["config", "--set", "model", "dummy"])
         cargo_run(["config", "--set", "dump_log", "true"])
+        cargo_run(["config", "--set", "summary_after_build", "false"])
 
         # If a file contains pdl tokens, they have to be properly escaped.
         write_string("no-image.md", "<|schema|> <- this should be escaped!\n\n<|media(empty.png)|> <- this should be escaped!")
@@ -82,6 +83,9 @@ def pdl_escape():
 
         chunk = json.loads(cargo_run(["ls-chunks", "--json"], stdout=True))[0]
         assert len(chunk["images"]) == 0
+        assert "<|schema|>" in cargo_run(["cat-file", "no-image.md"], stdout=True)
+        assert "<|schema|>" in cargo_run(["cat-file", chunk["uid"]], stdout=True)
+        assert "<|schema|>" in chunk["data"]
         cargo_run(["rm", "--all"])
 
         # If there's an image in markdown, ragit will turn that into a pdl token: `<|raw_media(png:...)|>`
@@ -101,6 +105,9 @@ def pdl_escape():
         cargo_run(["gc", "--logs"])
 
         chunk = json.loads(cargo_run(["ls-chunks", "--json"], stdout=True))[0]
+        assert "<|schema|>" in cargo_run(["cat-file", "image.md"], stdout=True)
+        assert "<|schema|>" in cargo_run(["cat-file", chunk["uid"]], stdout=True)
+        assert "<|schema|>" in chunk["data"]
         assert len(chunk["images"]) == 1
 
         # TODO: impl `rag add *.md`

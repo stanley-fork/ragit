@@ -442,14 +442,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             else if let Some((_, uid)) = query_result.get_processed_file() {
                 let chunk = index.get_merged_chunk_of_file(uid)?;
-                let images = index.get_images_of_file(uid)?;
 
                 if json_mode {
-                    println!("{}", serde_json::to_string_pretty(&into_multi_modal_contents(&chunk.data, &images))?);
+                    println!("{}", serde_json::to_string_pretty(&chunk.raw_data)?);
                 }
 
                 else {
-                    println!("{}", chunk.data);
+                    println!("{}", chunk.human_data);
                 }
             }
 

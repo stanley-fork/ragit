@@ -16,7 +16,7 @@ I can give you a better answer if you provide me documents that are related to y
 
 source: {{chunk.source}}
 
-{{chunk.data|safe}}
+{{chunk.pdl_data|safe}}
 
 <|assistant|>
 

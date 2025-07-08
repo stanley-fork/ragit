@@ -1,4 +1,4 @@
-use crate::chunk::{Chunk, RenderableChunk, merge_and_convert_chunks};
+use crate::chunk::{Chunk, merge_and_convert_chunks};
 use crate::error::Error;
 use crate::index::Index;
 use ragit_api::Request;
@@ -144,7 +144,7 @@ impl Index {
         } else {
             self.answer_query_with_chunks(
                 &rephrased_query,
-                merge_and_convert_chunks(self, chunks.clone(), true /* render image */)?,
+                chunks.clone(),
                 schema,
             ).await?
         };
@@ -221,9 +221,10 @@ impl Index {
     pub async fn answer_query_with_chunks(
         &self,
         query: &str,
-        chunks: Vec<RenderableChunk>,
+        chunks: Vec<Chunk>,
         schema: Option<Schema>,
     ) -> Result<String, Error> {
+        let chunks = merge_and_convert_chunks(self, chunks)?;
         let mut tera_context = tera::Context::new();
         tera_context.insert(
             "chunks",

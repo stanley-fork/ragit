@@ -1,4 +1,4 @@
-use crate::chunk::{Chunk, ChunkSource, RenderableChunk};
+use crate::chunk::{Chunk, ChunkSource};
 use crate::index::Index;
 use super::merge_and_convert_chunks;
 
@@ -50,12 +50,17 @@ fn test_merge_and_convert_chunks() {
     let index = Index::dummy();
 
     for (sample, answer) in samples.into_iter() {
-        let result = merge_and_convert_chunks(&index, sample, true).unwrap();
+        let result = merge_and_convert_chunks(&index, sample).unwrap().into_iter().map(
+            |c| (
+                c.human_data.to_string(),
+                c.source.to_string(),
+            )
+        ).collect::<Vec<_>>();
         let answer = answer.into_iter().map(
-            |(data, file, index)| RenderableChunk {
-                data: data.to_string(),
-                source: ChunkSource::File { path: file.to_string(), index, page: None }.render(),
-            }
+            |(data, file, index)| (
+                data.to_string(),
+                ChunkSource::File { path: file.to_string(), index, page: None }.render(),
+            )
         ).collect::<Vec<_>>();
 
         assert_eq!(result, answer);

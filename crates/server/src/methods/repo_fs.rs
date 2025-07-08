@@ -165,26 +165,25 @@ async fn get_content_(user: String, repo: String, uid: String, api_key: Option<S
     let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
     let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
 
-    let (cat_file, image_uids) = if query.has_multiple_matches() {
+    let data = if query.has_multiple_matches() {
         return Err((400, format!("There are multiple file/chunk that match `{uid}`.")));
     }
 
     else if let Some(uid) = query.get_chunk_uid() {
         let chunk = index.get_chunk_by_uid(uid).handle_error(500)?;
-        (chunk.data.clone(), chunk.images)
+        into_multi_modal_contents(&chunk.data, &chunk.images)
     }
 
     else if let Some((_, uid)) = query.get_processed_file() {
         let chunk = index.get_merged_chunk_of_file(uid).handle_error(500)?;
-        let image_uids = index.get_images_of_file(uid).handle_error(500)?;
-        (chunk.data, image_uids)
+        chunk.raw_data
     }
 
     else {
         return Err((404, format!("There's no file/chunk that matches `{uid}`")));
     };
 
-    Ok(Box::new(json(&into_multi_modal_contents(&cat_file, &image_uids))))
+    Ok(Box::new(json(&data)))
 }
 
 pub async fn get_cat_file(user: String, repo: String, uid: String, api_key: Option<String>) -> Box<dyn Reply> {
@@ -221,7 +220,7 @@ async fn get_cat_file_(user: String, repo: String, uid: String, api_key: Option<
     else if let Some((_, uid)) = query.get_processed_file() {
         let chunk = index.get_merged_chunk_of_file(uid).handle_error(500)?;
         Ok(Box::new(with_header(
-            chunk.data,
+            chunk.human_data,
             "Content-Type",
             "text/plain; charset=utf-8",
         )))
@@ -315,11 +314,10 @@ async fn get_file_content_(user: String, repo: String, query: HashMap<String, St
     let result = if let Some(uid) = index.processed_files.get(&path) {
         let chunk = index.get_merged_chunk_of_file(*uid).handle_error(500)?;
         let chunk_uids = index.get_chunks_of_file(*uid).handle_error(500)?;
-        let image_uids = index.get_images_of_file(*uid).handle_error(500)?;
 
         FileDetail {
             r#type: FileType::File,
-            content: Some(into_multi_modal_contents(&chunk.data, &image_uids)),
+            content: Some(chunk.raw_data),
             uid: Some(uid.to_string()),
             path: path.to_string(),
             chunks: Some(chunk_uids.iter().map(|chunk| chunk.to_string()).collect()),

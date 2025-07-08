@@ -36,7 +36,7 @@ mod tests;
 
 pub use build_info::ChunkBuildInfo;
 pub use multi_modal::{MultiModalContent, into_multi_modal_contents};
-pub use renderable::RenderableChunk;
+pub use renderable::RenderedChunk;
 pub use source::ChunkSource;
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -203,8 +203,8 @@ impl Chunk {
         );
 
         if let Some((previous_chunk, previous_schema)) = &previous_turn {
-            let previous_request = previous_chunk.clone().into_renderable(index, true /* render image */)?.data;
-            context.insert("previous_request", &previous_request);
+            let previous_request = previous_chunk.clone().into_renderable(index)?;
+            context.insert("previous_request", &previous_request.pdl_data);
             context.insert("previous_response", &previous_schema.render());
         }
 
@@ -304,14 +304,8 @@ impl Chunk {
 /// It does some preprocessing on chunks, before fed to LLMs.
 ///
 /// 1. If there are multiple chunks from the same file, it sorts the chunks.
-///    If `chunks` have `ChunkSource::Chunks` and `ChunkSource::File`,
-///    `Chunks` will come after `File` in the result. This isn't intentional
-///    but still makes sense because `chunk.sortable_string` will sort the chunks
-///    in that order.
 /// 2. If there are consecutive chunks, it merges them. It handles sliding windows.
-/// 3. It might merge 2 chunks that are from the same file but from different pages (chunks from pdfs
-///    have page numbers), if they're from consecutive pages.
-pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image: bool) -> Result<Vec<RenderableChunk>, Error> {
+pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderedChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
     let mut unmergeable_chunks = vec![];
@@ -325,6 +319,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
             ChunkSource::File { path, index, page: _ } => {
                 curr_chunks.insert((path.clone(), *index), chunk);
             },
+            // NOTE: there used to be another `ChunkSource`
             _ => { unmergeable_chunks.push(chunk); },
         }
     }
@@ -343,7 +338,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
                 unmergeable_chunks,
             ].concat();
 
-            return merge_and_convert_chunks(index, curr_chunks_vec, render_image);
+            return merge_and_convert_chunks(index, curr_chunks_vec);
         }
     }
 
@@ -365,11 +360,11 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>, render_image:
     let mut result = Vec::with_capacity(curr_chunks.len());
 
     for chunk in unmergeable_chunks.into_iter() {
-        result.push(chunk.into_renderable(index, render_image)?);
+        result.push(chunk.into_renderable(index)?);
     }
 
     for chunk in curr_chunks.into_iter() {
-        result.push(chunk.into_renderable(index, render_image)?);
+        result.push(chunk.into_renderable(index)?);
     }
 
     Ok(result)

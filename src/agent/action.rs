@@ -1,6 +1,6 @@
 use super::FileTree;
 use crate::Keywords;
-use crate::chunk::{Chunk, RenderableChunk};
+use crate::chunk::{Chunk, RenderedChunk};
 use crate::error::Error;
 use crate::index::Index;
 use crate::query::QueryResponse;
@@ -118,7 +118,7 @@ impl Action {
                     // NOTE: Even an empty file has a chunk. So `.len()` must be greater than 0.
                     match chunk_uids.len() {
                         1 => {
-                            let chunk = index.get_chunk_by_uid(chunk_uids[0])?.into_renderable(index, false  /* render_image */)?;
+                            let chunk = index.get_chunk_by_uid(chunk_uids[0])?.into_renderable(index)?;
                             ActionResult::ReadFileShort {
                                 chunk_uids,
                                 rendered: chunk,
@@ -323,7 +323,7 @@ pub enum ActionResult {
     // If the file is short enough, it'll merge its chunks into one.
     ReadFileShort {
         chunk_uids: Vec<Uid>,
-        rendered: RenderableChunk,
+        rendered: RenderedChunk,
     },
     ReadFileLong(Vec<Chunk>),
     NoSuchFile {
@@ -374,7 +374,7 @@ impl ActionResult {
     // This is exactly what the AI sees (a turn).
     pub fn render(&self) -> String {
         match self {
-            ActionResult::ReadFileShort { rendered, .. } => rendered.data.clone(),
+            ActionResult::ReadFileShort { rendered, .. } => rendered.human_data.clone(),
             ActionResult::ReadFileLong(chunks) => format!(
                 "The file is too long to show you. Instead, I'll show you the summaries of the chunks of the file.\n\n{}",
                 chunks.iter().enumerate().map(
