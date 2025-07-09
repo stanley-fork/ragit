@@ -28,18 +28,18 @@ run `rag audit -c pdl` to see the usage
 
 OPTIONS
 -------
---model::
+--model <model>::
         An LLM model to run the prompt with. If the model's not set, it tries
         to guess the model. If it's inside a knowledge-base, it reads the
         configuration of the knowledge-base and uses the default model of the
         knowledge-base.
 
---models::
+--models <file>::
         Path to `models.json` file. If it's not given, ragit will try to find
         one. If it's inside a knowledge-base, it'll use `.ragit/models.json`.
         If `~/.config/ragit/models.json` is found, it'll use the file.
 
---context::
+--context <file>::
         Path to a json file which adds a context to the prompt. A pdl file is
         pragmatic: you can parameterize your prompt using tera template engine.
 
@@ -50,10 +50,10 @@ OPTIONS
         If `--no-strict` is set, it turns off the tera renderer and treats
         `{{ name }}` like a literal string.
 
---log::
+--log <dir>::
         A directory to dump logs. If it's not set, it doesn't dump any log.
         If the directory does not exist, it creates one.
 
---schema::
+--schema <schema>::
         It overrides `<|schema|>` in the pdl file. Run `rag help pdl-format`
         to learn about pdl schemas.

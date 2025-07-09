@@ -774,7 +774,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!("{}", include_str!("../docs/pdl_format.md"));
                 },
                 Some("pipeline") => {
-                    println!("{}", include_str!("../docs/config.md"));
+                    println!("{}", include_str!("../docs/pipeline.md"));
                 },
                 Some("quick-guide") => {
                     println!("{}", include_str!("../docs/quick_guide.md"));

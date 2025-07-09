@@ -47,7 +47,7 @@ This feature is still under construction.
 
 OPTIONS
 -------
---prefix::
+--prefix <path>::
         It adds a prefix to the files in the other knowledge-base. For
         example, if there's a file `/src/doc.txt` in the other
         knowledge-base, and `--prefix=other`, the file will be saved at
