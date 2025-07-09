@@ -4,7 +4,7 @@ use crate::chunk::{Chunk, RenderedChunk};
 use crate::error::Error;
 use crate::index::Index;
 use crate::query::QueryResponse;
-use crate::uid::Uid;
+use crate::uid::{Uid, UidQueryConfig};
 use ragit_cli::substr_edit_distance;
 use ragit_pdl::Schema;
 use serde::Serialize;
@@ -14,6 +14,7 @@ use serde_json::Value;
 pub enum Action {
     ReadFile,
     ReadDir,
+    ReadChunk,
     SearchExact,
     SearchTfidf,
 
@@ -34,6 +35,7 @@ impl Action {
         vec![
             Action::ReadFile,
             Action::ReadDir,
+            Action::ReadChunk,
             Action::SearchExact,
             Action::SearchTfidf,
             Action::GetMeta,
@@ -48,6 +50,7 @@ impl Action {
         let s = match self {
             Action::ReadFile => String::from("Give me an exact path of a file that you want to read. Don't say anything other than the path of the file."),
             Action::ReadDir => String::from("Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory."),
+            Action::ReadChunk => String::from("Give me an exact uid of a chunk that you want to read. A uid is a hexadecimal string that uniquely identifies a chunk. Don't say anything other than the uid of the chunk."),
             Action::SearchExact => String::from("Give me a keyword that you want to search for. It's not a pattern, just a keyword (case-sensitive). I'll use exact-text-matching to search. Don't say anything other than the keyword."),
             Action::SearchTfidf => String::from("Give me a comma-separated list of keywords that you want to search for. Don't say anything other than the keywords."),
             Action::GetMeta => format!(
@@ -65,6 +68,7 @@ impl Action {
         match self {
             Action::ReadFile => true,
             Action::ReadDir => true,
+            Action::ReadChunk => true,
             Action::SearchExact => true,
             Action::SearchTfidf => true,
             Action::GetMeta => true,
@@ -83,6 +87,7 @@ impl Action {
         match self {
             Action::ReadFile => "Read a file: if you give me the exact path of a file, I'll show you the content of the file.",
             Action::ReadDir => "See a list of files in a directory: if you give me the exact path of a directory, I'll show you a list of the files in the directory.",
+            Action::ReadChunk => "Read a chunk: if you know a uid of a chunk, you can get the content of the chunk.",
             Action::SearchExact => "Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.",
             Action::SearchTfidf => "Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.",
             Action::GetMeta => "Get metadata: a knowledge-base has metadata, which is a key-value store. If you give me a key of a metadata, I'll give you what value the metadata has.",
@@ -169,7 +174,7 @@ impl Action {
                 },
             },
             Action::ReadDir => {
-                if !argument.ends_with("/") {
+                if !argument.ends_with("/") && argument != "" {
                     argument = format!("{argument}/");
                 }
 
@@ -193,6 +198,37 @@ impl Action {
 
                 else {
                     ActionResult::ReadDir(file_tree)
+                }
+            },
+            Action::ReadChunk => {
+                if !Uid::is_valid_prefix(&argument) {
+                    ActionResult::NoSuchChunk(argument.to_string())
+                }
+
+                else {
+                    let query = index.uid_query(&[argument.to_string()], UidQueryConfig::new().chunk_only())?;
+                    let chunk_uids = query.get_chunk_uids();
+
+                    match chunk_uids.len() {
+                        0 => ActionResult::NoSuchChunk(argument.to_string()),
+                        1 => ActionResult::ReadChunk(index.get_chunk_by_uid(chunk_uids[0])?),
+                        2..=10 => {
+                            let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+                            for chunk_uid in chunk_uids.iter() {
+                                chunks.push(index.get_chunk_by_uid(*chunk_uid)?);
+                            }
+
+                            ActionResult::ReadChunkAmbiguous {
+                                query: argument.to_string(),
+                                chunks,
+                            }
+                        },
+                        _ => ActionResult::ReadChunkTooMany {
+                            query: argument.to_string(),
+                            chunk_uids: chunk_uids.len(),
+                        },
+                    }
                 }
             },
             Action::SearchExact | Action::SearchTfidf => {
@@ -336,6 +372,16 @@ pub enum ActionResult {
         dir: String,
         similar_dirs: Vec<String>,
     },
+    ReadChunk(Chunk),
+    NoSuchChunk(String),
+    ReadChunkAmbiguous {
+        query: String,
+        chunks: Vec<Chunk>,
+    },
+    ReadChunkTooMany {
+        query: String,
+        chunk_uids: usize,
+    },
     Search {
         r#type: SearchType,
         keyword: String,
@@ -356,18 +402,22 @@ pub enum ActionResult {
 impl ActionResult {
     // If it's ok, the AI can update the context with information from `self.render()`.
     // If it's not ok, `self.render()` will instruct the AI how to generate a valid argument.
-    pub fn is_ok(&self) -> bool {
+    pub fn has_to_retry(&self) -> bool {
         match self {
             ActionResult::ReadFileShort { .. }
             | ActionResult::ReadFileLong(_)
             | ActionResult::ReadDir(_)
+            | ActionResult::ReadChunk(_)
+            | ActionResult::ReadChunkTooMany { .. }  // There's nothing AI can do
             | ActionResult::Search { .. }
             | ActionResult::GetMeta { .. }
             | ActionResult::GetSummary(_)
-            | ActionResult::SimpleRag(_) => true,
+            | ActionResult::SimpleRag(_) => false,
             ActionResult::NoSuchFile { .. }
             | ActionResult::NoSuchDir { .. }
-            | ActionResult::NoSuchMeta { .. } => false,
+            | ActionResult::NoSuchChunk(_)
+            | ActionResult::ReadChunkAmbiguous { .. }
+            | ActionResult::NoSuchMeta { .. } => true,
         }
     }
 
@@ -376,12 +426,13 @@ impl ActionResult {
         match self {
             ActionResult::ReadFileShort { rendered, .. } => rendered.human_data.clone(),
             ActionResult::ReadFileLong(chunks) => format!(
-                "The file is too long to show you. Instead, I'll show you the summaries of the chunks of the file.\n\n{}",
+                "The file is too long to show you. Instead, I'll show you the summaries of the chunks of the file. You can get the content of the chunks with their uid.\n\n{}",
                 chunks.iter().enumerate().map(
                     |(index, chunk)| format!(
-                        "{}. {}\nsummary: {}",
+                        "{}. {}\nuid: {}\nsummary: {}",
                         index + 1,
                         chunk.render_source(),
+                        chunk.uid.abbrev(9),
                         chunk.summary,
                     )
                 ).collect::<Vec<_>>().join("\n\n"),
@@ -403,6 +454,39 @@ impl ActionResult {
                     String::new()
                 },
             ),
+            ActionResult::ReadChunk(chunk) => chunk.data.clone(),
+            ActionResult::NoSuchChunk(query) => {
+                if !Uid::is_valid_prefix(&query) {
+                    format!("{query:?} is not a valid uid. A uid is a 9 ~ 64 characters long hexadecimal string that uniquely identifies a chunk.")
+                }
+
+                else {
+                    format!("There's no chunk that has uid `{query}`.")
+                }
+            },
+            ActionResult::ReadChunkAmbiguous { query, chunks } => {
+                let chunks = chunks.iter().enumerate().map(
+                    |(index, chunk)| format!(
+                        "{}. {}\nuid: {}\ntitle: {}\nsummary: {}",
+                        index + 1,
+                        chunk.render_source(),
+                        chunk.uid.abbrev(query.len() + 4),
+                        chunk.title,
+                        chunk.summary,
+                    )
+                ).collect::<Vec<_>>().join("\n\n");
+                format!("There are multiple chunks whose uid starts with `{query}`. Please give me a longer uid so that I can uniquely identify the chunk.\n\n{chunks}")
+            },
+            ActionResult::ReadChunkTooMany { query, chunk_uids } => {
+                // `Action::ReadChunk`'s default abbrev is 9.
+                if query.len() >= 9 {
+                    format!("I'm sorry, but you're very unlucky. There're {chunk_uids} chunks whose uid starts with `{query}`. I can't help it.")
+                }
+
+                else {
+                    format!("Your query `{query}` is too ambiguous. There are {chunk_uids} chunks whose uid starts with `{query}`. Please give me a longer uid so that I can uniquely identify the chunk.")
+                }
+            },
             ActionResult::Search { r#type, keyword, chunks } => {
                 if chunks.is_empty() {
                     match r#type {
@@ -424,9 +508,10 @@ impl ActionResult {
                         "{header}\n\n{}",
                         chunks.iter().enumerate().map(
                             |(index, chunk)| format!(
-                                "{}. {}\nsummary: {}",
+                                "{}. {}\nuid: {}\nsummary: {}",
                                 index + 1,
                                 chunk.render_source(),
+                                chunk.uid.abbrev(9),
                                 chunk.summary,
                             )
                         ).collect::<Vec<_>>().join("\n\n")
@@ -443,7 +528,20 @@ impl ActionResult {
                 },
             ),
             ActionResult::GetSummary(summary) => summary.clone(),
-            ActionResult::SimpleRag(response) => response.response.clone(),
+            ActionResult::SimpleRag(response) => format!(
+                "{}{}",
+                response.response.clone(),
+                if response.retrieved_chunks.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "\n\n---- referenced chunks ----\n{}",
+                        response.retrieved_chunks.iter().map(
+                            |c| format!("{} (uid: {})", c.render_source(), c.uid.abbrev(9))
+                        ).collect::<Vec<_>>().join("\n"),
+                    )
+                },
+            ),
         }
     }
 }
@@ -523,7 +621,7 @@ impl ActionState {
                 let result = action.run("", index).await?;
                 let mut result_rendered = result.render();
 
-                if result.is_ok() {
+                if !result.has_to_retry() {
                     self.complete = true;
                 }
 
@@ -557,7 +655,7 @@ impl ActionState {
             // Some AIs are not smart enough to generate a valid argument.
             // If the AI fails to generate valid argument more than once,
             // it just breaks.
-            if result.is_ok() || self.argument_turns.len() > 0 {
+            if !result.has_to_retry() || self.argument_turns.len() > 0 {
                 self.complete = true;
             }
 

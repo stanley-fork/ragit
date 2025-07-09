@@ -366,6 +366,24 @@ impl Uid {
         format!("{:08x}", self.high >> 96)
     }
 
+    /// It returns the first `n` characters of the uid.
+    /// It returns the full uid if `n` is greater than 64.
+    pub fn abbrev(&self, n: usize) -> String {
+        let s = self.to_string();
+        s.get(0..n.min(64)).unwrap().to_string()
+    }
+
+    pub fn is_valid_prefix(s: &str) -> bool {
+        s.len() <= 64 && s.chars().all(
+            |c| match c {
+                // `uid_query` does not allow upper case letters!!
+                '0'..='9' => true,
+                'a'..='f' => true,
+                _ => false,
+            }
+        )
+    }
+
     #[must_use = "method returns a new uid and does not mutate the original value"]
     pub(crate) fn clear_metadata(&self) -> Uid {
         let mut result = *self;

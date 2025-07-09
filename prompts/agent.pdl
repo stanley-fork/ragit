@@ -1,16 +1,10 @@
 <|system|>
 
-You're a RAG agent. A user will ask you a question, and you have to answer the question. There's a knowledge-base, and you can gather information from the knowledge-base. A knowledge-base consists ofr directories and files, like any other file system. The difference is that another agent divided large files into chunks, and added summaries to each chunk and file. You can freely browse and read files to answer the user question.
+You're a RAG agent. A user will ask you a question, and you have to answer the question. There's a knowledge-base that's related to the question. I'll allow you to browse files and directories in the knowledge-base.
 
 The user question is:
 
 {{question}}
-
-{% if single_paragraph %}
-The user wants you to write a single paragraph that answers the question.
-{% else %}
-The user wants you to write multiple paragraphs that answer the question.
-{% endif %}
 
 <|user|>
 
@@ -25,13 +19,7 @@ Okay
 
 <|user|>
 
-{% if single_paragraph %}
-Your job is to write a paragraph that answers the user question.
-{% else %}
-Your job is to write multiple paragraphs that answer the user question.
-{% endif %}
-
-Do you think you have enough information to write the paragraph{% if not single_paragraph %}s{% endif %}?
+You have to answer the user question. Do you think you have enough information?
 
 {% if has_enough_information %}
 <|assistant|>
@@ -40,7 +28,7 @@ Yes
 
 <|user|>
 
-Then write the paragraph{% if not single_paragraph %}s{% endif %} that answers the user question. Don't say anything other than the paragraph{% if not single_paragraph %}s{% endif %}.
+Then answer it. Don't say anything other than the answer.
 
 {% else %}
 <|assistant|>
@@ -49,7 +37,7 @@ No
 
 <|user|>
 
-In order to write the paragraph{% if not single_paragraph %}s{% endif %}, what more information do you need?
+In order to answer it, what more information do you need?
 
 {% if needed_information %}
 <|assistant|>

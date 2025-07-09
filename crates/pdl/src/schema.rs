@@ -84,7 +84,8 @@ pub enum SchemaError {
     RangeError {
         s1: String,  // small | big | short | long
         s2: String,  // is at least | is as most | has at least | has at most
-        s3: String,  // N | N characters | N elements
+        s3: String,  // N | N characters | N elements  (constraint)
+        s4: Option<String>,  // N characters | N elements (current)
     },
     MissingKeys(Vec<String>),
     UnnecessaryKeys(Vec<String>),
@@ -108,7 +109,10 @@ impl SchemaError {
     // compiler error messages.
     pub fn prettify(&self, schema: &Schema) -> String {
         match self {
-            SchemaError::RangeError { s1, s2, s3 } => format!("Your output is too {s1}. Make sure that the output {s2} {s3}."),
+            SchemaError::RangeError { s1, s2, s3, s4 } => format!(
+                "Your output is too {s1}. Make sure that the output {s2} {s3}.{}",
+                if let Some(s4) = s4 { format!(" Currently, it has {s4}.") } else { String::new() },
+            ),
             SchemaError::MissingKeys(keys) => {
                 let schema_keys = schema.unwrap_keys();
 
@@ -135,8 +139,9 @@ impl SchemaError {
                 )
             },
             SchemaError::ErrorInObject { key, error } => match error.as_ref() {
-                SchemaError::RangeError { s1, s2, s3 } => format!(
-                    "Field `{key}` of your output is too {s1}. Make sure that the field {s2} {s3}.",
+                SchemaError::RangeError { s1, s2, s3, s4 } => format!(
+                    "Field `{key}` of your output is too {s1}. Make sure that the field {s2} {s3}.{}",
+                    if let Some(s4) = s4 { format!(" Currently, it has {s4}.") } else { String::new() },
                 ),
                 SchemaError::TypeError { expected, got } => format!(
                     "Field `{key}` of your output has a wrong type. Make sure that the field is `{}`, not `{}`.",
@@ -148,8 +153,8 @@ impl SchemaError {
                 _ => String::from("Please make sure that your output has a correct schema."),
             },
             SchemaError::ErrorInArray { index, error } => match error.as_ref() {
-                SchemaError::RangeError { s1, s2, s3 } => format!(
-                    "The {} value of your output is too {s1}. Make sure that the value {s2} {s3}.",
+                SchemaError::RangeError { s1, s2, s3, s4 } => format!(
+                    "The {} value of your output is too {s1}. Make sure that the value {s2} {s3}.{}",
                     match index {
                         0 => String::from("first"),
                         1 => String::from("second"),
@@ -158,6 +163,7 @@ impl SchemaError {
                         4 => String::from("fifth"),
                         n => format!("{}th", n + 1),
                     },
+                    if let Some(s4) = s4 { format!(" Currently, it has {s4}.") } else { String::new() },
                 ),
                 SchemaError::TypeError { expected, got } => format!(
                     "The {} value of your output has a wrong type. Make sure all the elements are `{}`, not `{}`.",
@@ -381,6 +387,17 @@ impl Schema {
         }
     }
 
+    /// Both inclusive
+    pub fn string_length_between(min: Option<usize>, max: Option<usize>) -> Self {
+        Schema {
+            r#type: SchemaType::String,
+            constraint: Some(Constraint {
+                min: min.map(|n| n.to_string()),
+                max: max.map(|n| n.to_string()),
+            }),
+        }
+    }
+
     pub fn default_array(r#type: Option<Schema>) -> Self {
         Schema {
             r#type: SchemaType::Array(r#type.map(|t| Box::new(t))),
@@ -588,6 +605,7 @@ fn check_range<T: PartialOrd + FromStr + ToString + Display>(schema: SchemaType,
                     s1: String::from(if schema.is_number() { "small" } else { "short" }),
                     s2: String::from(if schema.is_number() { "is at least" } else { "has at least" }),
                     s3: if schema.is_number() { min.to_string() } else if schema.is_array() { format!("{min} elements") } else { format!("{min} characters") },
+                    s4: if schema.is_number() { None } else if schema.is_array() { Some(format!("{n} elements")) } else { Some(format!("{n} characters")) },
                 });
             }
         }
@@ -600,6 +618,7 @@ fn check_range<T: PartialOrd + FromStr + ToString + Display>(schema: SchemaType,
                     s1: String::from(if schema.is_number() { "big" } else { "long" }),
                     s2: String::from(if schema.is_number() { "is at most" } else { "has at most" }),
                     s3: if schema.is_number() { max.to_string() } else if schema.is_array() { format!("{max} elements") } else { format!("{max} characters") },
+                    s4: if schema.is_number() { None } else if schema.is_array() { Some(format!("{n} elements")) } else { Some(format!("{n} characters")) },
                 });
             }
         }

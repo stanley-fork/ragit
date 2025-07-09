@@ -8,36 +8,85 @@ rag-query - Query on knowledge-bases
 SYNOPSIS
 --------
 [verse]
-'rag query' <query> [--json | -j] [--model <model>] [--schema <schema>]
-            [--max-summaries <n>] [--max-retrieval <n>] [--enable-ii | --disable-ii]
-            [--enable-rag | --disable-rag] [--super-rerank | --no-super-rerank]
+'rag query' <query> [<options>]
 
-'rag query' --interactive | -i | --multi-turn [--model <model>] [--max-summaries <n>]
-            [--max-retrieval <n>] [--enable-ii | --disable-ii] [--enable-rag | --disable-rag]
-            [--super-rerank | --no-super-rerank]
+'rag query --interactive | -i | --multi-turn' [<options>]
+
+'rag query --agent' <query> [<options>]
 
 DESCRIPTION
 -----------
 Ask AI about the knowledge-base.
 
-You can override the query configurations with cli options. For example,
-if you run `rag query --max-retrieval=5 <QUERY>`, it will retrieve at most
-5 chunks regardless of the configuration. It's temporary, it doesn't write
-to the config file.
+There're 3 modes: normal, `--interactive` and `--agent`.
 
-If `--json` is set, it dumps the result as a json. The json contains AI's
-response and retrieved chunks. `--json` option and `--schema` option are
-very different. In most cases, you don't need `--json` when `--schema` is
-enabled.
+In normal mode, it runs a normal pipeline. It's the simplest way to get an
+answer, but still powerful. Run `rag help pipeline` to learn more.
 
-`--schema` allows you to use pdl schemas with this command. Run
-`rag help pdl-format` to learn more about pdl schemas. It forces LLM's output
-schema. For example, `rag query <query> --schema="[int]"` will dump an array
-of integers to stdout. You can pipe that array to another program.
-If `--schema` is enabled and the schema is json, like `[int]` or
-`{ name: str, age: int }`, you can always pipe stdout to a json processor.
+In `--interactive` mode, it'll open an interactive shell in a terminal. You
+can have conversations with the model in the terminal. In the interative mode,
+you have to press Ctrl+D to enter an input.
 
-If the LLM is not smart enough or request is not clear, it may fail to
-generate a response with valid schema. In that case, it'll dump `null`
-to stdout, which is still a valid json. You always have to check the output
-because LLMs can always fail.
+In `--agent` mode, an agent browses files and tries to answer your question.
+It's the strongest and the most expensive way to get an answer. You might want
+to run `rag gc --audit` before running an agent and run `rag audit` to see how
+much it costs. It's an overkill to use an agent for a simple question.
+
+OPTIONS
+-------
+--model <model>::
+        An LLM model to query. If it's not set, it's default to `config.model`.
+
+--schema <schema>::
+        `--schema` allows you to use pdl schemas with this command. Run
+        `rag help pdl-format` to learn more about pdl schemas. It helps the
+        model generate an output that follows this schema. For example,
+        `rag query <query> --schema="[int]"` will dump an array of integers to
+        stdout. You can pipe that array to another program. If `--schema` is
+        enabled and the schema is json, like `[int]` or
+        `{ name: str, age: int }`, you can always pipe stdout to a json
+        processor.
+
+        Please note that it *helps* the model follow the schema, not *forces*
+        it. You have to write a nice prompt that asks it to follow the schema.
+        The output is largely dependent on the prompt, and `--schema` can only
+        correct small mistakes.
+
+        If the model isn't smart enough or the prompt is not clear, it may fail
+        to generate a response with valid schema. In that case, it'll dump a
+        string "null" to stdout, which is still a valid json. You always have
+        to check the output because LLMs can always fail.
+
+        You cannot use `--schema` option in `--interactive` mode.
+
+--json::
+        If `--json` is set, it dumps the result as a json. The json contains
+        AI's response and retrieved chunks. `--json` option and `--schema`
+        option are very different. Unlike `--schema`, this option does not
+        affect how LLM generates responses. In most cases, you don't need
+        `--json` when `--schema` is enabled.
+
+--max-summaries <n>::
+        It overrides `max_summaries` config. It's temporary and it doesn't
+        write to the config files. Run `rag help config-reference` to learn
+        more about it.
+
+--max-retrieval <n>::
+        It overrides `max_retrieval` config. It's temporary and it doesn't
+        write to the config files. Run `rag help config-reference` to learn
+        more about it.
+
+--enable-ii | --disable-ii::
+        It overrides `enable_ii` config. It's temporary and it doesn't
+        write to the config files. Run `rag help config-reference` to learn
+        more about it.
+
+--enable-rag | --disable-rag::
+        It overrides `enable_rag` config. It's temporary and it doesn't
+        write to the config files. Run `rag help config-reference` to learn
+        more about it.
+
+--[no-]super-rerank::
+        It overrides `super_rerank` config. It's temporary and it doesn't
+        write to the config files. Run `rag help config-reference` to learn
+        more about it.

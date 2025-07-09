@@ -2025,12 +2025,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let agent_mode = parsed_args.get_flag(5).is_some();
 
             match (agent_mode, interactive_mode, json_mode, &schema) {
-                (true, false, json_mode, None) => {
+                (true, false, json_mode, schema) => {
                     let response = index.agent(
                         &parsed_args.get_args_exact(1)?[0],
-                        false,
                         String::from("There's no information yet."),
                         AgentAction::all_actions(),
+                        schema.clone(),
                     ).await?;
 
                     if json_mode {
@@ -2053,12 +2053,6 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 (true, true, _, _) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot query interactively in an agent mode."),
-                        span: (String::new(), 0, 0),  // TODO
-                    });
-                },
-                (true, _, _, Some(_)) => {
-                    return Err(Error::CliError {
-                        message: String::from("You cannot set schema in an agent mode."),
                         span: (String::new(), 0, 0),  // TODO
                     });
                 },
@@ -2675,6 +2669,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     "remove", "rm",
                     "retrieve-chunks",
                     "status",
+                    "summary",
                     "tfidf",
                     "version",
                 ].iter().map(|s| s.to_string()).collect::<Vec<_>>(),

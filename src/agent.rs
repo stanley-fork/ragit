@@ -35,7 +35,6 @@ pub use file_tree::FileTree;
 #[derive(Debug, Serialize)]
 struct AgentState {
     question: String,
-    single_paragraph: bool,
     context: String,
     needed_information: Option<String>,
     action_states: Vec<ActionState>,
@@ -47,6 +46,10 @@ struct AgentState {
     #[serde(skip)]
     actions: Vec<Action>,
 
+    // The final response must be in this schema.
+    #[serde(skip)]
+    response_schema: Option<Schema>,
+
     // It's generated from `actions`.
     // It's fed to the AI's context.
     action_prompt: String,
@@ -57,15 +60,15 @@ struct AgentState {
     new_context: Option<String>,
 
     // when it `has_enough_information` it writes the
-    // final result to `result` field and break
+    // final result to `response` field and break
     has_enough_information: bool,
-    result: Option<String>,
+    response: Option<String>,
 }
 
 impl AgentState {
     pub fn get_schema(&self) -> Option<Schema> {
         if self.has_enough_information {
-            None
+            self.response_schema.clone()
         }
 
         else if self.needed_information.is_none() {
@@ -88,7 +91,7 @@ impl AgentState {
         action_traces: &mut Vec<ActionTrace>,
     ) -> Result<(), Error> {
         if self.has_enough_information {
-            self.result = Some(input.as_str().unwrap().to_string());
+            self.response = Some(input.as_str().unwrap().to_string());
         }
 
         else if self.needed_information.is_none() {
@@ -135,7 +138,7 @@ impl AgentState {
         self.new_information = None;
         self.new_context = None;
         self.has_enough_information = false;
-        self.result = None;
+        self.response = None;
     }
 
     fn has_action_to_run(&self) -> bool {
@@ -153,17 +156,17 @@ impl Default for AgentState {
     fn default() -> Self {
         AgentState {
             question: String::new(),
-            single_paragraph: false,
             context: String::new(),
             needed_information: None,
             actions: vec![],
+            response_schema: None,
             action_prompt: String::new(),
             action_states: vec![],
             is_actions_complete: false,
             new_information: None,
             new_context: None,
             has_enough_information: false,
-            result: None,
+            response: None,
         }
     }
 }
@@ -176,27 +179,34 @@ pub struct AgentResponse {
 
 impl AgentResponse {
     pub fn retrieved_chunks(&self, index: &Index) -> Result<Vec<Chunk>, Error> {
-        let mut chunks = vec![];
+        let mut chunks = HashMap::new();
 
         for action in self.actions.iter() {
             match &action.result {
                 ActionResult::ReadFileShort { chunk_uids, .. } => {
                     for chunk_uid in chunk_uids.iter() {
-                        chunks.push(index.get_chunk_by_uid(*chunk_uid)?);
+                        chunks.insert(*chunk_uid, index.get_chunk_by_uid(*chunk_uid)?);
                     }
                 },
                 ActionResult::SimpleRag(rag) => {
                     for chunk in rag.retrieved_chunks.iter() {
-                        chunks.push(chunk.clone());
+                        chunks.insert(chunk.uid, chunk.clone());
                     }
                 },
+                ActionResult::ReadChunk(chunk) => {
+                    chunks.insert(chunk.uid, chunk.clone());
+                },
 
-                // `ReadFileLong` and `Search` have chunks, but I'm not sure
-                // whether I have to include them in `retrieved_chunks`.
+                // `ReadFileLong` and `Search` have chunks, but many of them are
+                // irrelevant. The AI will likely to choose relevant ones from them
+                // and call `Action::ReadChunk`, which will be counted.
                 ActionResult::ReadFileLong(_)
                 | ActionResult::NoSuchFile { .. }
                 | ActionResult::ReadDir(_)
                 | ActionResult::NoSuchDir { .. }
+                | ActionResult::NoSuchChunk(_)
+                | ActionResult::ReadChunkAmbiguous { .. }
+                | ActionResult::ReadChunkTooMany { .. }
                 | ActionResult::Search { .. }
                 | ActionResult::GetMeta { .. }
                 | ActionResult::NoSuchMeta { .. }
@@ -204,7 +214,7 @@ impl AgentResponse {
             }
         }
 
-        Ok(chunks)
+        Ok(chunks.into_values().collect())
     }
 }
 
@@ -212,11 +222,13 @@ impl Index {
     pub async fn agent(
         &self,
         question: &str,
-        single_paragraph: bool,
         initial_context: String,
 
         // list of available actions
         mut actions: Vec<Action>,
+
+        // You can set the schema of the response.
+        schema: Option<Schema>,
     ) -> Result<AgentResponse, Error> {
         // dedup
         actions = actions.into_iter().collect::<HashSet<_>>().into_iter().collect();
@@ -236,11 +248,11 @@ impl Index {
         }
 
         let mut state = AgentState::default();
-        state.single_paragraph = single_paragraph;
         state.question = question.to_string();
         state.context = initial_context;
         state.actions = actions.clone();
         state.action_prompt = Action::write_prompt(&actions);
+        state.response_schema = schema.clone();
         let mut context_update = 0;
         let mut action_traces = vec![];
 
@@ -249,7 +261,7 @@ impl Index {
 
             if state.has_enough_information {
                 return Ok(AgentResponse {
-                    response: state.result.unwrap(),
+                    response: state.response.unwrap(),
                     actions: action_traces,
                 });
             }

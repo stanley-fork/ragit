@@ -6,6 +6,7 @@ use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
 use ragit_fs::extension;
+use ragit_pdl::Schema;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -37,6 +38,8 @@ impl SummaryMode {
         }
     }
 }
+
+const SUMMARY_PROMPT: &str = "Give me a summary of the knowledge-base. First, you have to tell me what the knowledge-base is made from. It can be a source code of a program, bunch of documentation files, news articles, papers, or whatever. Then, tell me a brief summary of the contents. If it's a source code, you have to tell me what the program is about and how it's implemented. If it's document files, tell me what it's describing. Lastly, tell me how the files are structured. Please make sure that the summary has less than 1000 characters.";
 
 impl Index {
     pub async fn summary(
@@ -70,10 +73,10 @@ impl Index {
             ).collect();
 
             self.agent(
-                "Give me a summary of the knowledge-base.",
-                true,  // single paragraph
+                SUMMARY_PROMPT,
                 self.get_rough_summary()?,  // initial context
                 actions,
+                Some(Schema::string_length_between(None, Some(1000))),
             ).await?.response
         } else {
             String::from("This is an empty knowledge-base.")
@@ -123,9 +126,8 @@ impl Index {
                 let uid_without_summary = summary.uid;
                 let summary_uid = Uid::new_summary(&summary.summary);
 
-                // TODO: what if `uid_without_summary` has exactly 0xffff_ffff uids?
                 if (summary_uid + uid_without_summary).clear_metadata() == uid.clear_metadata()
-                && uid_without_summary.get_data_size() + 1 == uid.get_data_size() {
+                && (uid_without_summary.get_data_size() + 1) & 0xffff_ffff == uid.get_data_size() {
                     Some(&summary.summary)
                 }
 
