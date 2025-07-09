@@ -14,6 +14,7 @@ def summary():
 
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
+    cargo_run(["config", "--set", "summary_after_build", "false"])
     uid_empty = get_uid()
 
     # I wish `rag summary` works with an empty knowledge-base
