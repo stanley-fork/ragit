@@ -155,5 +155,7 @@ def end_to_end(test_model: str):
 
     # step 10: query
     cargo_run(["gc", "--logs"])
-    cargo_run(["query", "What makes ragit special?"])
-    cargo_run(["query", "--super-rerank", "What makes ragit special?"])
+    query = cargo_run(["query", "What makes ragit special?"], stdout=True)
+    send_message(f"--- What makes ragit special? ---\n\n{query}")
+    query = cargo_run(["query", "--super-rerank", "What makes ragit special?"], stdout=True)
+    send_message(f"--- What makes ragit special? (super rerank mode) ---\n\n{query}")
