@@ -18,6 +18,7 @@ pub enum Error {
     FileError(FileError),
     ApiKeyNotFound { env_var: Option<String> },
     StdIoError(std::io::Error),
+    CannotReadImage(String /* model name */),
 
     /// If you see this error, there must be a bug in this library
     NoTry,

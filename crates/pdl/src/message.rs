@@ -30,6 +30,10 @@ impl Message {
     pub fn is_assistant_prompt(&self) -> bool {
         self.role == Role::Assistant
     }
+
+    pub fn has_image(&self) -> bool {
+        self.content.iter().any(|content| matches!(content, MessageContent::Image { .. }))
+    }
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

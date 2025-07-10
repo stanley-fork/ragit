@@ -410,6 +410,16 @@ impl Request {
                                 );
                             }
                         }
+
+                        // There are 2 cases.
+                        // 1. `self.model.can_read_images` is false, but it can actually read images.
+                        //   - Maybe `self.model` is outdated.
+                        //   - That's why it tries once even though there is an image.
+                        // 2. `self.model.can_read_images` is false, and it cannot read images.
+                        //   - There's no point in retrying, so it just escapes immediately with a better error.
+                        if !self.model.can_read_images && self.messages.iter().any(|message| message.has_image()) {
+                            return Err(Error::CannotReadImage(self.model.name.clone()));
+                        }
                     },
                 },
                 Err(e) => {
