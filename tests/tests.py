@@ -3,6 +3,7 @@ from add_and_rm2 import add_and_rm2
 from archive import archive
 from audit import audit
 from erroneous_llm import erroneous_llm
+from cannot_read_images import cannot_read_images
 from cargo_tests import cargo_tests
 from cargo_features import cargo_features
 from cat_file import cat_file
@@ -143,6 +144,11 @@ Commands
                                 It checks whether 1) `rag check` fails on a broken
                                 knowledge-base and 2) `rag check --recover` can fix a broken
                                 knowledge-base.
+
+    cannot_read_images          run `cannot_read_images` test
+                                Some models can read images while some cannot. It tests what
+                                happens when a model that cannot read images tries to manage
+                                a knowledge-base with an image.
 
     clone                       run `clone` test
                                 It creates a knowledge-base, pushes, clones and checks it.
@@ -427,6 +433,9 @@ if __name__ == "__main__":
         elif command == "recover":
             recover()
 
+        elif command == "cannot_read_images":
+            cannot_read_images()
+
         elif command == "clone":
             clone()
 
@@ -676,6 +685,7 @@ if __name__ == "__main__":
                 ("add_and_rm2", add_and_rm2),
                 ("ignore", ignore),
                 ("recover", recover),
+                ("cannot_read_images", cannot_read_images),
                 ("clone", clone),
                 ("clone_empty", clone_empty),
                 ("pull", pull),

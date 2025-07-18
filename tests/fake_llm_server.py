@@ -60,6 +60,12 @@ def chat():
             output_gen = lambda _: response,
         )
 
+    elif model == "text-only":
+        return worker(
+            request = j,
+            can_read_images = False,
+        )
+
     elif model == "repeat-after-me":
         return worker(
             request = j,
@@ -73,6 +79,7 @@ def chat():
 #          {'messages': [{'content': [{'type': 'input_text', 'text': '...'}, {'type': 'input_image', 'image_url': '...'}], ...}]}
 def worker(
     request: dict,
+    can_read_images: bool = True,
 
     # func(request: dict) -> str
     # If it's None, it returns a string "dummy".
@@ -110,6 +117,13 @@ def worker(
     output_gen = output_gen or (lambda _: "dummy")
     messages = request["messages"]
     input_tokens = 0
+
+    if not can_read_images:
+        for message in messages:
+            if isinstance(content := message["content"], list):
+                for c in content:
+                    if c["type"] != "text":
+                        return {}, 400
 
     # let's make it as close to real models as possible
     for message in messages:
