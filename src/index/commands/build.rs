@@ -337,10 +337,16 @@ impl Index {
 
         self.curr_processing_file = None;
         self.save_to_file()?;
+        self.calculate_and_save_uid()?;
 
-        if self.build_config.summary_after_build {
+        // 1. If there's an error, the knowledge-base is incomplete. We should not create a summary.
+        // 2. If there's no success and no error and we already have a summary, then
+        //    `self.get_summary().is_none()` would be false, and we'll not create a summary.
+        // 3. If there's no success and no error but we don't have a summary yet, we have to create one
+        //    because a successful `rag build` must create a summary.
+        if self.build_config.summary_after_build && self.get_summary().is_none() && errors.is_empty() {
             if !quiet {
-                println!("Creating a summay of the knowledge-base...");
+                println!("Creating a summary of the knowledge-base...");
             }
 
             self.summary(None).await?;

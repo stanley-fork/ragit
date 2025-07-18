@@ -1,3 +1,4 @@
+import shutil
 from utils import (
     cargo_run,
     goto_root,
@@ -65,6 +66,27 @@ def summary():
     cargo_run(["summary", "--remove"])
     cargo_run(["check"])
     assert uid_without_summary == get_uid()
+    assert cargo_run(["summary", "--cached"], check=False) != 0
+    cargo_run(["summary", "--set", "whatever"])
+
+    # some tests with `rag build` and summary
+    cargo_run(["config", "--set", "summary_after_build", "true"])
+
+    # an empty build: nothing happens to the summary
+    cargo_run(["build"])
+    cargo_run(["summary", "--cached"])
+
+    # an empty build, but without summary: it will create a new summary
+    cargo_run(["summary", "--remove"])
+    cargo_run(["build"])
+    cargo_run(["summary", "--cached"])
+
+    # if there's an error in `rag build`, it will not create a summary
+    write_string("b.txt", "Hello, World!!")
+    shutil.copyfile("../tests/images/red.jpg", "invalid-utf8.txt")
+    cargo_run(["add", "invalid-utf8.txt"])
+    cargo_run(["add", "b.txt"])
+    cargo_run(["build"])
     assert cargo_run(["summary", "--cached"], check=False) != 0
 
 def get_uid():
