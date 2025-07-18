@@ -118,7 +118,7 @@ pub enum Error {
 
     FileError(FileError),
     StdIoError(std::io::Error),
-    Utf8Error(FromUtf8Error),
+    FromUtf8Error,
 
     // I'm too lazy to add all the variants of ragit_api::Error
     ApiError(ApiError),
@@ -165,8 +165,8 @@ impl From<std::io::Error> for Error {
 }
 
 impl From<FromUtf8Error> for Error {
-    fn from(e: FromUtf8Error) -> Error {
-        Error::Utf8Error(e)
+    fn from(_: FromUtf8Error) -> Error {
+        Error::FromUtf8Error
     }
 }
 
