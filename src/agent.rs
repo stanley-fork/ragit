@@ -50,6 +50,11 @@ struct AgentState {
     #[serde(skip)]
     response_schema: Option<Schema>,
 
+    // A summary of the knowledge-base
+    // If there's no up-to-date summary, it doesn't create a new one. You have
+    // to run `rag summary` to create a new one.
+    summary: Option<String>,
+
     // It's generated from `actions`.
     // It's fed to the AI's context.
     action_prompt: String,
@@ -160,6 +165,7 @@ impl Default for AgentState {
             needed_information: None,
             actions: vec![],
             response_schema: None,
+            summary: None,
             action_prompt: String::new(),
             action_states: vec![],
             is_actions_complete: false,
@@ -209,8 +215,7 @@ impl AgentResponse {
                 | ActionResult::ReadChunkTooMany { .. }
                 | ActionResult::Search { .. }
                 | ActionResult::GetMeta { .. }
-                | ActionResult::NoSuchMeta { .. }
-                | ActionResult::GetSummary(_) => {},
+                | ActionResult::NoSuchMeta { .. } => {},
             }
         }
 
@@ -229,16 +234,13 @@ impl Index {
 
         // You can set the schema of the response.
         schema: Option<Schema>,
+
+        // When running `rag summary`, we have to hide the summary.
+        // Otherwise, the AI would just copy-paste the summary.
+        hide_summary: bool,
     ) -> Result<AgentResponse, Error> {
         // dedup
         actions = actions.into_iter().collect::<HashSet<_>>().into_iter().collect();
-
-        // It cannot get summary if there's no summary.
-        if self.get_summary().is_none() {
-            actions = actions.into_iter().filter(
-                |action| *action != Action::GetSummary
-            ).collect();
-        }
 
         // It cannot get metadata if there's no metadata.
         if self.get_all_meta().unwrap_or_else(|_| HashMap::new()).is_empty() {
@@ -253,6 +255,11 @@ impl Index {
         state.actions = actions.clone();
         state.action_prompt = Action::write_prompt(&actions);
         state.response_schema = schema.clone();
+
+        if !hide_summary {
+            state.summary = self.get_summary().map(|s| s.to_string());
+        }
+
         let mut context_update = 0;
         let mut action_traces = vec![];
 

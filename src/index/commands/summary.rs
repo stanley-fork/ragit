@@ -65,18 +65,14 @@ impl Index {
         }
 
         let summary = if self.chunk_count > 0 || !self.get_all_meta()?.is_empty() {
-            let mut actions = AgentAction::all_actions();
-
-            // If we don't filter this out, the AI is likely to copy-paste the previous version of summary.
-            actions = actions.into_iter().filter(
-                |action| *action != AgentAction::GetSummary
-            ).collect();
+            let actions = AgentAction::all_actions();
 
             self.agent(
                 SUMMARY_PROMPT,
                 self.get_rough_summary()?,  // initial context
                 actions,
                 Some(Schema::string_length_between(None, Some(1000))),
+                true,  // hide summary
             ).await?.response
         } else {
             String::from("This is an empty knowledge-base.")

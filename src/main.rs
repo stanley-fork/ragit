@@ -2036,6 +2036,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         String::from("There's no information yet."),
                         AgentAction::all_actions(),
                         schema.clone(),
+                        false,  // don't hide_summary
                     ).await?;
 
                     if json_mode {

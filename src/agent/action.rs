@@ -21,11 +21,6 @@ pub enum Action {
     /// This action will be filtered out if there's no metadata.
     GetMeta,
 
-    /// This action will be filtered out if there's no summary.
-    /// Please make sure to run `rag summary` if you want to
-    /// use this action.
-    GetSummary,
-
     /// I'm using the term "simple" because I want to make sure that it's not an agentic RAG.
     SimpleRag,
 }
@@ -39,7 +34,6 @@ impl Action {
             Action::SearchExact,
             Action::SearchTfidf,
             Action::GetMeta,
-            Action::GetSummary,
             Action::SimpleRag,
         ]
     }
@@ -49,7 +43,7 @@ impl Action {
     pub(crate) fn get_instruction(&self, index: &Index) -> Result<String, Error> {
         let s = match self {
             Action::ReadFile => String::from("Give me an exact path of a file that you want to read. Don't say anything other than the path of the file."),
-            Action::ReadDir => String::from("Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory."),
+            Action::ReadDir => String::from("Give me an exact path of a directory that you want to read. Don't say anything other than the path of the directory. If you want to browse the root directory, just say \"/\"."),
             Action::ReadChunk => String::from("Give me an exact uid of a chunk that you want to read. A uid is a hexadecimal string that uniquely identifies a chunk. Don't say anything other than the uid of the chunk."),
             Action::SearchExact => String::from("Give me a keyword that you want to search for. It's not a pattern, just a keyword (case-sensitive). I'll use exact-text-matching to search. Don't say anything other than the keyword."),
             Action::SearchTfidf => String::from("Give me a comma-separated list of keywords that you want to search for. Don't say anything other than the keywords."),
@@ -57,13 +51,14 @@ impl Action {
                 "Below is a list of keys in the metadata. Choose a key that you want to see. Don't say anything other than the key.\n\n{:?}",
                 index.get_all_meta()?.keys().collect::<Vec<_>>(),
             ),
-            Action::GetSummary => String::from("I'll give you the summary. Hold on."),
             Action::SimpleRag => String::from("Give me a simple factual question. Don't say anything other than the question."),
         };
 
         Ok(s)
     }
 
+    // There used to be an action that requires no argument (`Action::GetSummary`),
+    // but it's deprecated.
     pub(crate) fn requires_argument(&self) -> bool {
         match self {
             Action::ReadFile => true,
@@ -72,7 +67,6 @@ impl Action {
             Action::SearchExact => true,
             Action::SearchTfidf => true,
             Action::GetMeta => true,
-            Action::GetSummary => false,
             Action::SimpleRag => true,
         }
     }
@@ -91,7 +85,6 @@ impl Action {
             Action::SearchExact => "Search by a keyword (exact): if you give me a keyword, I'll give you a list of files that contain the exact keyword in their contents.",
             Action::SearchTfidf => "Search by keywords (tfidf): if you give me keywords, I'll give you a tfidf search result. It tries to search for files that contain any of the keywords, even though there's no exact match.",
             Action::GetMeta => "Get metadata: a knowledge-base has metadata, which is a key-value store. If you give me a key of a metadata, I'll give you what value the metadata has.",
-            Action::GetSummary => "Get summary of the entire knowledge-base.",
             Action::SimpleRag => "Call a simple RAG agent: if you ask a simple factual question, a RAG agent will read the files and answer your question. You can only ask a simple factual question, not complex reasoning questions.",
         }.to_string()
     }
@@ -334,11 +327,6 @@ impl Action {
                     }
                 }
             },
-            Action::GetSummary => {
-                // The summary must exist. Otherwise, this action should have been filtered out.
-                let summary = index.get_summary().unwrap();
-                ActionResult::GetSummary(summary.to_string())
-            },
             Action::SimpleRag => {
                 let response = index.query(
                     &argument,
@@ -395,7 +383,6 @@ pub enum ActionResult {
         key: String,
         similar_keys: Vec<String>,
     },
-    GetSummary(String),
     SimpleRag(QueryResponse),
 }
 
@@ -411,7 +398,6 @@ impl ActionResult {
             | ActionResult::ReadChunkTooMany { .. }  // There's nothing AI can do
             | ActionResult::Search { .. }
             | ActionResult::GetMeta { .. }
-            | ActionResult::GetSummary(_)
             | ActionResult::SimpleRag(_) => false,
             ActionResult::NoSuchFile { .. }
             | ActionResult::NoSuchDir { .. }
@@ -527,7 +513,6 @@ impl ActionResult {
                     String::new()
                 },
             ),
-            ActionResult::GetSummary(summary) => summary.clone(),
             ActionResult::SimpleRag(response) => format!(
                 "{}{}",
                 response.response.clone(),

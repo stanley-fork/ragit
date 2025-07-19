@@ -2,6 +2,12 @@
 
 You're a RAG agent. A user will ask you a question, and you have to answer the question. There's a knowledge-base that's related to the question. I'll allow you to browse files and directories in the knowledge-base.
 
+{% if summary %}
+Below is a summary of the knowledge-base. I hope you can find relevant information from the knowledge-base!
+
+{{summary}}
+{% endif %}
+
 The user question is:
 
 {{question}}
