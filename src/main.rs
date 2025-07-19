@@ -725,7 +725,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("gc") => {
             let parsed_args = ArgParser::new()
-                .flag(&["--logs", "--images", "--audit"])
+                .flag(&["--logs", "--images", "--audit", "--all"])
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -733,21 +733,26 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 return Ok(());
             }
 
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+
             match parsed_args.get_flag(0).unwrap().as_str() {
                 "--logs" => {
-                    let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_logs()?;
                     println!("removed {removed} log files");
                 },
                 "--images" => {
-                    let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     let removed = index.gc_images()?;
-                    println!("removed {removed} files");
+                    println!("removed {removed} images");
                 },
                 "--audit" => {
-                    let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
                     index.gc_audit()?;
                     println!("removed audit logs");
+                },
+                "--all" => {
+                    let removed_logs = index.gc_logs()?;
+                    let removed_images = index.gc_images()?;
+                    index.gc_audit()?;
+                    println!("removed {removed_logs} log files, {removed_images} images and audit logs");
                 },
                 _ => unreachable!(),
             }
