@@ -110,15 +110,15 @@ impl Index {
                 result.created_tfidfs += 1;
             }
 
-            if let ChunkSource::File { path, index, page: _ } = &chunk_.source {
-                match processed_files.get_mut(path) {
-                    Some(chunks) => {
-                        chunks.push((chunk_.uid, *index));
-                    },
-                    None => {
-                        processed_files.insert(path.clone(), vec![(chunk_.uid, *index)]);
-                    },
-                }
+            let ChunkSource::File { path, index, page: _ } = &chunk_.source;
+
+            match processed_files.get_mut(path) {
+                Some(chunks) => {
+                    chunks.push((chunk_.uid, *index));
+                },
+                None => {
+                    processed_files.insert(path.clone(), vec![(chunk_.uid, *index)]);
+                },
             }
 
             chunk_count += 1;

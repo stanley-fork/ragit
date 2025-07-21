@@ -308,7 +308,7 @@ impl Chunk {
 pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec<RenderedChunk>, Error> {
     let mut merge_candidates = HashSet::new();
     let mut curr_chunks = HashMap::new();
-    let mut unmergeable_chunks = vec![];
+    let unmergeable_chunks = vec![];
 
     for chunk in chunks.into_iter() {
         match &chunk.source {
@@ -320,7 +320,7 @@ pub fn merge_and_convert_chunks(index: &Index, chunks: Vec<Chunk>) -> Result<Vec
                 curr_chunks.insert((path.clone(), *index), chunk);
             },
             // NOTE: there used to be another `ChunkSource`
-            _ => { unmergeable_chunks.push(chunk); },
+            // _ => { unmergeable_chunks.push(chunk); },
         }
     }
 
@@ -375,12 +375,12 @@ fn merge_chunks(pre: Chunk, post: Chunk) -> Chunk {
         path: pre_path,
         index: pre_index,
         page: pre_page,
-    } = pre.source.clone() else { unreachable!() };
+    } = pre.source.clone();
     let ChunkSource::File {
         path: post_path,
         index: post_index,
         page: post_page,
-    } = post.source.clone() else { unreachable!() };
+    } = post.source.clone();
     assert_eq!(pre_path, post_path);
     assert_eq!(pre_index + 1, post_index);
     let page_no = if pre_page == post_page {

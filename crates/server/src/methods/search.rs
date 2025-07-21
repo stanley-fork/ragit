@@ -74,7 +74,7 @@ pub async fn search_(user: String, repo: String, query: HashMap<String, String>,
             chunks = chunks.into_iter().filter(
                 |chunk| match &chunk.source {
                     ChunkSource::File { path, .. } => path == &file || path.starts_with(&dir),
-                    _ => false,
+                    // _ => false,
                 }
             ).collect();
         }
