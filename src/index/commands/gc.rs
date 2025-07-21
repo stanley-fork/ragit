@@ -61,7 +61,7 @@ impl Index {
             if !all_images.contains(&uid) {
                 remove_file(&image_file)?;
                 remove_file(&set_extension(&image_file, "json")?)?;
-                count += 2;
+                count += 1;
             }
         }
 

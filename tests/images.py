@@ -62,5 +62,5 @@ def images():
     assert count_images() == 3
     cargo_run(["rm", "sample.md"])
     assert count_images() == 3
-    assert "removed 6 files" in cargo_run(["gc", "--images"], stdout=True)  # 3 images and 3 descriptions
+    assert "removed 3 images" in cargo_run(["gc", "--images"], stdout=True)
     assert count_images() == 0
