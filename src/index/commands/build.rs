@@ -15,6 +15,7 @@ use ragit_fs::{
     exists,
     parent,
     remove_file,
+    set_extension,
     try_create_dir,
     write_bytes,
 };
@@ -219,6 +220,11 @@ impl Index {
                                         Some("chunk"),
                                     )?;
                                     remove_file(&chunk_path)?;
+                                    let tfidf_path = set_extension(&chunk_path, "tfidf")?;
+
+                                    if exists(&tfidf_path) {
+                                        remove_file(&tfidf_path)?;
+                                    }
                                 }
 
                                 buffered_chunk_count -= chunk_uids.len();

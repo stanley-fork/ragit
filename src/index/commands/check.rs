@@ -6,6 +6,7 @@ use crate::index::{BuildConfig, ImageDescription, tfidf};
 use crate::uid::{self, Uid};
 use ragit_fs::{
     basename,
+    exists,
     file_name,
     parent,
     read_bytes,
@@ -70,6 +71,14 @@ impl Index {
 
             let tfidf_file = set_extension(&chunk_file, "tfidf")?;
             tfidf::load_from_file(&tfidf_file)?;
+        }
+
+        for tfidf_file in self.get_all_tfidf_files()? {
+            let chunk_file = set_extension(&tfidf_file, "chunk")?;
+
+            if !exists(&chunk_file) {
+                return Err(Error::BrokenIndex(format!("`{tfidf_file}` exists, but `{chunk_file}` doesn't.")));
+            }
         }
 
         for processed_file in processed_files.iter() {
