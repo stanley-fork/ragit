@@ -4,6 +4,7 @@ use crate::constant::{
     CHUNK_DIR_NAME,
     CONFIG_DIR_NAME,
     FILE_INDEX_DIR_NAME,
+    II_DIR_NAME,
     IMAGE_DIR_NAME,
     INDEX_DIR_NAME,
     INDEX_FILE_NAME,
@@ -63,7 +64,30 @@ impl Index {
             tmp_clone_dir = format!("tmp-clone-dir-{tmp_no}");
         }
 
-        let cloned_blocks = Index::clone(repo_url, Some(tmp_clone_dir.clone()), quiet).await?;
+        let result = self.pull_worker(
+            repo_url,
+            &tmp_clone_dir,
+            include_configs,
+            include_prompts,
+            quiet,
+        ).await;
+
+        if exists(&tmp_clone_dir) {
+            remove_dir_all(&tmp_clone_dir)?;
+        }
+
+        result
+    }
+
+    async fn pull_worker(
+        &self,
+        repo_url: String,
+        tmp_clone_dir: &str,
+        include_configs: bool,
+        include_prompts: bool,
+        quiet: bool,
+    ) -> Result<PullResult, Error> {
+        let cloned_blocks = Index::clone(repo_url, Some(tmp_clone_dir.to_string()), quiet).await?;
         let cloned_configs = cloned_blocks.get(&BlockType::Config).map(|n| *n).unwrap_or(0) > 1;
         let cloned_prompts = cloned_blocks.get(&BlockType::Prompt).map(|n| *n).unwrap_or(0) > 1;
 
@@ -96,7 +120,7 @@ impl Index {
             &join(&curr_index_dir, INDEX_FILE_NAME)?,
         )?;
 
-        if exists(METADATA_FILE_NAME) {
+        if exists(&join(&new_index_dir, METADATA_FILE_NAME)?) {
             rename(
                 &join(&new_index_dir, METADATA_FILE_NAME)?,
                 &join(&curr_index_dir, METADATA_FILE_NAME)?,
@@ -116,6 +140,14 @@ impl Index {
             rename(
                 &join(&new_index_dir, PROMPT_DIR_NAME)?,
                 &join(&curr_index_dir, PROMPT_DIR_NAME)?,
+            )?;
+        }
+
+        if exists(&join(&new_index_dir, II_DIR_NAME)?) {
+            remove_dir_all(&join(&curr_index_dir, II_DIR_NAME)?)?;
+            rename(
+                &join(&new_index_dir, II_DIR_NAME)?,
+                &join(&curr_index_dir, II_DIR_NAME)?,
             )?;
         }
 

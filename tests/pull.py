@@ -10,6 +10,7 @@ from utils import (
     cargo_run,
     goto_root,
     mk_and_cd_tmp_dir,
+    rand_word,
     write_string,
 )
 
@@ -100,6 +101,9 @@ def pull():
         cargo_run(["add", "sample2.md"])
         cargo_run(["build"])
 
+        magic_word = rand_word()
+        cargo_run(["meta", "--set", "magic_word", magic_word])
+
         # read uid of A: u5
         u5 = cargo_run(["uid"], stdout=True).strip()
 
@@ -109,6 +113,8 @@ def pull():
         # pull B -> check if it's successfully pulled
         os.chdir("../B")
         assert "Already up to date" not in cargo_run(["pull"], stdout=True).strip()
+
+        assert magic_word in cargo_run(["meta", "--get", "magic_word"], stdout=True)
 
         # `rag pull` builds an inverted-index
         assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
