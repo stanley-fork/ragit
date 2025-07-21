@@ -21,8 +21,8 @@ use std::collections::{HashMap, HashSet};
 mod action;
 mod file_tree;
 
-pub use action::{Action, ActionResult};
-use action::{ActionState, ActionTrace};
+pub use action::{Action, ActionResult, ActionTrace};
+use action::ActionState;
 pub use file_tree::FileTree;
 
 // `derive(Serialize) for AgentState` has 2 purposes.
@@ -224,6 +224,12 @@ impl AgentResponse {
 }
 
 impl Index {
+    /// You can call an agent that browses files in the knowledge-base and answers your question.
+    /// `actions` is a list of available actions. If you're not sure, just use `Action::all_actions()`.
+    /// With `schema`, you can set the schema of the response. If you just want a natural language
+    /// output, set it to `None`.
+    /// `hide_summary` is only for `rag summary` command. It doesn't allow the agent to read the
+    /// summary of the knowledge-base.
     pub async fn agent(
         &self,
         question: &str,

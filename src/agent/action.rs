@@ -536,7 +536,7 @@ impl ActionResult {
 
 // The primary goal of this struct is to render `agent.pdl`.
 #[derive(Debug, Default, Serialize)]
-pub struct ActionState {
+pub(crate) struct ActionState {
     // A set of actions that it can run.
     #[serde(skip)]
     pub actions: Vec<Action>,
@@ -682,7 +682,7 @@ impl ActionState {
 }
 
 #[derive(Debug, Serialize)]
-struct ArgumentTurn {
+pub(crate) struct ArgumentTurn {
     // An argument of an action, that AI generated
     assistant: String,
 
@@ -699,7 +699,7 @@ pub struct ActionTrace {
 }
 
 #[derive(Clone, Debug, Serialize)]
-enum SearchType {
+pub enum SearchType {
     Exact,
     Tfidf,
 }

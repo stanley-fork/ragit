@@ -13,7 +13,12 @@ pub mod schema;
 mod tree;
 mod uid;
 
-pub use agent::Action as AgentAction;
+pub use agent::{
+    ActionResult,
+    ActionTrace,
+    Action as AgentAction,
+    AgentResponse,
+};
 pub use api_config::ApiConfig;
 pub use chunk::{
     Chunk,
