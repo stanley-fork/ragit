@@ -28,10 +28,13 @@ def ii():
     cargo_run(["config", "--set", "chunk_size", "512"])
     cargo_run(["config", "--set", "slide_len", "128"])
     cargo_run(["config", "--set", "enable_ii", "false"])
-    assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
     cargo_run(["add", *(ls_recursive("rs") + ls_recursive("txt"))])
 
     cargo_run(["build"])
+    # `rag build` builds an inverted-index
+    assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
+    # we have to reset ii in order to run `ii_worker`
+    cargo_run(["ii-reset"])
     assert cargo_run(["ii-status"], stdout=True).strip() == "not initialized"
     ii_worker()
     os.chdir("..")

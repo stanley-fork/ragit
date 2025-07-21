@@ -109,7 +109,9 @@ impl Index {
             IIStatus::Complete => {
                 return Ok(());
             },
-            // TODO: resuming `Ongoing` ii-build is not implemented yet
+            // It used to distinguish `Outdated` and `Ongoing` because
+            // I wanted it to resume an ongoing ii-build. But that's
+            // not possible anymore.
             IIStatus::Outdated | IIStatus::Ongoing(_) => {
                 self.reset_ii()?;
             },
@@ -149,6 +151,12 @@ impl Index {
 
         if !buffer.is_empty() {
             self.flush_ii_buffer(buffer)?;
+
+            // I want the final state of the ii_build_dashboard
+            // to be clean!
+            state.buffer_term = 0;
+            state.buffer_uid = 0;
+            state.buffer_flush += 1;
         }
 
         if !quiet {
@@ -166,6 +174,12 @@ impl Index {
             INDEX_DIR_NAME,
             II_DIR_NAME,
         )?;
+
+        // It's kinda WAL.
+        // It might fail while `reset_ii`. In that case,
+        // it has to mark that the ii is dirty.
+        self.ii_status = IIStatus::Outdated;
+        self.save_to_file()?;
 
         for dir in read_dir(&ii_path, false)? {
             if is_dir(&dir) {

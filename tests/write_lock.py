@@ -50,6 +50,7 @@ def write_lock(test_model: str):
     os.chdir("git")
     cargo_run(["config", "--set", "model", "dummy"])
 
+    cargo_run(["ii-reset"])
     assert cargo_run(["ii-status"], stdout=True) != "complete"
 
     garbage_files = []

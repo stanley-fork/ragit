@@ -276,6 +276,8 @@ impl Index {
             );
         }
 
+        index.reset_ii()?;
+        index.build_ii(quiet)?;
         Ok(status.block_count)
     }
 

@@ -110,6 +110,10 @@ def pull():
         os.chdir("../B")
         assert "Already up to date" not in cargo_run(["pull"], stdout=True).strip()
 
+        # `rag pull` builds an inverted-index
+        assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
+        cargo_run(["check"])
+
         # read uid of B: u6
         u6 = cargo_run(["uid"], stdout=True).strip()
 

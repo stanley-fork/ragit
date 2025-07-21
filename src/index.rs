@@ -246,7 +246,9 @@ impl Index {
             api_config,
             root_dir,
             repo_url: None,
-            ii_status: IIStatus::None,
+
+            // If there's no chunk, an empty ii is a complete ii!
+            ii_status: IIStatus::Complete,
             uid: None,
             summary: None,
             prompts: PROMPTS.clone(),

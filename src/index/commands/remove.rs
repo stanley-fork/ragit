@@ -136,9 +136,13 @@ impl Index {
                 }
             }
 
-            // FIXME: why does it save to file twice? is it intentional?
-            self.reset_uid(true /* save_to_file */)?;
+            self.reset_uid(false /* save_to_file */)?;
             self.save_to_file()?;
+
+            // If there's no chunk, an empty ii is a complete ii!
+            if self.chunk_count == 0 {
+                self.ii_status = IIStatus::Complete;
+            }
         }
 
         Ok(RemoveResult {

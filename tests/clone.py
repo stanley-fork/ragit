@@ -108,6 +108,8 @@ def clone(base2_size: int = 600):
             assert get_repo_stat(user="test-user", repo=base) == (1, 1)
             os.chdir(base)
             cargo_run(["check"])
+            # `rag clone` builds an inverted-index
+            assert cargo_run(["ii-status"], stdout=True).strip() == "complete"
             os.chdir("..")
 
     finally:
