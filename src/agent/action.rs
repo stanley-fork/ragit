@@ -249,7 +249,10 @@ impl Action {
                     }
 
                     for chunk in chunks.iter() {
-                        if chunk.data.contains(&argument) {
+                        if chunk.title.contains(&argument)
+                        || chunk.summary.contains(&argument)
+                        || chunk.data.contains(&argument)
+                        || chunk.render_source().contains(&argument) {
                             chunks_exact_match.push(chunk.clone());
 
                             if chunks_exact_match.len() == 10 {
