@@ -50,6 +50,7 @@ use ragit_pdl::{
     render_pdl_schema,
 };
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 use std::env;
 use std::io::Write;
 
@@ -1167,14 +1168,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             } else {
                 let query = index.uid_query(&args, UidQueryConfig::new())?;
                 let mut image_uids = vec![];
+                let mut matched_files = false;
+                let mut matched_chunks = false;
 
                 for (_, uid) in query.get_processed_files() {
+                    matched_files = true;
+
                     for image_uid in index.get_images_of_file(uid)? {
                         image_uids.push(image_uid);
                     }
                 }
 
                 for uid in query.get_chunk_uids() {
+                    matched_chunks = true;
                     let chunk = index.get_chunk_by_uid(uid)?;
 
                     for image_uid in chunk.images {
@@ -1187,9 +1193,21 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 if image_uids.is_empty() {
-                    return Err(Error::UidQueryError(format!("There's no chunk/file/image that matches `{}`.", args.join(" "))));
+                    if matched_files {
+                        return Err(Error::UidQueryError(format!("There is a file that matches `{}`, but it has no images.", args.join(" "))));
+                    }
+
+                    else if matched_chunks {
+                        return Err(Error::UidQueryError(format!("There is a chunk that matches `{}`, but it has no images.", args.join(" "))));
+                    }
+
+                    else {
+                        return Err(Error::UidQueryError(format!("There's no chunk/file/image that matches `{}`.", args.join(" "))));
+                    }
                 }
 
+                // dedup
+                image_uids = image_uids.into_iter().collect::<HashSet<_>>().into_iter().collect();
                 let mut result = Vec::with_capacity(image_uids.len());
 
                 for image_uid in image_uids.iter() {

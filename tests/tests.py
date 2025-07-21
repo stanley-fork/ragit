@@ -28,6 +28,7 @@ from images3 import images3
 from korean import korean
 from logs import logs
 from ls import ls
+from ls_dedup import ls_dedup
 from many_chunks import many_chunks
 from many_jobs import many_jobs
 from markdown_reader import markdown_reader
@@ -249,8 +250,14 @@ Commands
                                 You'd better run it on a machine with many cores.
 
     ls                          run `ls` test
-                                It runs `ls-files`, `ls-chunks`, and `tfidf` with bunch
-                                of different options.
+                                It runs `ls-chunks`, `ls-files`, `ls-images`, `ls-terms` and
+                                `tfidf` with bunch of different options.
+
+    ls_dedup                    run `ls_dedup` test
+                                Some commands match chunk uid and file uid at the same time.
+                                There's a possibility that a chunk and a file have the same
+                                uid prefix. It tests whether ragit can deduplicate the same
+                                uids in such cases.
 
     logs [model]                run `logs` test
                                 It checks if `rag config --set dump_log true` and
@@ -532,6 +539,9 @@ if __name__ == "__main__":
         elif command == "ls":
             ls()
 
+        elif command == "ls_dedup":
+            ls_dedup()
+
         elif command == "logs":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -703,6 +713,7 @@ if __name__ == "__main__":
                 ("pdl_escape", pdl_escape),
                 ("many_jobs", many_jobs),
                 ("ls", ls),
+                ("ls_dedup", ls_dedup),
                 ("meta", meta),
                 ("symlink", symlink),
                 ("gh_issue_20", gh_issue_20),
