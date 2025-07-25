@@ -14,23 +14,26 @@ SYNOPSIS
 
 DESCRIPTION
 -----------
-It runs a summary agent and dumps a summary of the knowledge-base to stdout.
-The summary is saved to disk and reused unless you edit the knowledge-base. It
-checks whether the knowledge-base was edited or not by comparing its uid.
+It shows you the summary of the knowledge-base. The summary is created by a
+summary agent, and is cached and reused unless you edit the knowledge-base.
+By default, `rag build` command calls the summary agent so you don't have to
+care about it. You can turn this behavior off with
+`rag config --set summary_after_build false`.
 
-If `--force` is set, it will always run the summary agent whether or not there
-is a cached summary.
+If the summary is outdated or you haven't created one, this command will call
+the summary agent. It takes time and money to create a summary. If you don't
+want this behavior, use `--cached` option. It will show you the summary if it's
+cached, otherwise die.
 
-If `--cached` is set, it will always use the summary on disk. If there isn't it
-throws an error.
+If you want to remove the cached summary and create a new one, you can either
+use `rag summary --remove; rag summary` or more simply `rag summary --force`.
 
-Run `rag summary --remove` to remove the cached summary. If there isn't cached
-summary, nothing happens.
+If you're still not satisfied with the AI-generated summary, you can write one
+on your own! Use `rag summary --set` command to set the summary of the
+knowledge-base manually.
 
-The cached summary is used by other agents. For example, `rag query` agent
-might read the summary if it wants to.
+For now, the summary is used in 2 places.
 
-If you already have a summary of the knowledge-base, or not satisfied with
-the AI-generated summary, you can save your own summary with
-`rag summary --set <your_summary>`. Having a good summary of the knowledge-base
-is always helpful because other agents use it.
+1. When the user wants to know about the knowledge-base, they can run
+   `rag summary` to get one.
+2. `rag query --agent` may read the summary to understand the knowledge-base.
