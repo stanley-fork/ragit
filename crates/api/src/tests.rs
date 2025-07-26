@@ -43,15 +43,13 @@ What do you see in this picture?
     let Pdl { messages: messages1, .. } = parse_pdl_from_file(
         "__tmp_pdl_test/pdl/sample1.pdl",
         &tera::Context::new(),
-        true,
-        true,
+        true,  // strict mode
     ).unwrap();
     let Pdl { messages: messages2, .. } = parse_pdl(
         pdl2,
         &tera::Context::new(),
         &current_dir().unwrap(),
-        true,
-        true,
+        true,  // strict mode
     ).unwrap();
 
     for messages in [messages1, messages2] {
@@ -184,9 +182,8 @@ async fn run_pdl<T: Serialize, U: Default + DeserializeOwned>(pdl: &str, context
     let Pdl { messages, schema } = parse_pdl(
         pdl,
         &context,
-        ".",  // no media files
-        true,
-        true,
+        ".",   // no media files
+        true,  // strict mode
     ).unwrap();
     let request = Request {
         model: (&ModelRaw::gpt_4o_mini()).try_into().unwrap(),
