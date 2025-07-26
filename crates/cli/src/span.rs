@@ -1,14 +1,25 @@
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Span {
     Exact(usize),  // including flags and args
     FirstArg,
     End,
     NthArg(usize),  // including args, not including flags
-    Rendered((String, usize, usize)),
+    None,
+}
+
+#[derive(Clone, Debug)]
+pub struct RenderedSpan {
+    pub args: String,
+    pub underline_start: usize,
+    pub underline_end: usize,
 }
 
 impl Span {
-    pub fn render(&self, args: &[String], skip_first_n: usize) -> Self {
+    pub fn render(&self, args: &[String], skip_first_n: usize) -> Option<RenderedSpan> {
+        if let Span::None = self {
+            return None;
+        }
+
         let mut rendered_args = Vec::with_capacity(args.len());
         let mut arg_indices = vec![];
 
@@ -59,26 +70,20 @@ impl Span {
             }
         };
 
-        Span::Rendered((
-            joined_args,
-            start,
-            end,
-        ))
-    }
-
-    pub fn unwrap_rendered(&self) -> (String, usize, usize) {
-        match self {
-            Span::Rendered((span, start, end)) => (span.to_string(), *start, *end),
-            _ => panic!(),
-        }
+        Some(RenderedSpan {
+            args: joined_args,
+            underline_start: start,
+            underline_end: end,
+        })
     }
 }
 
-pub fn underline_span(args: &str, start: usize, end: usize) -> String {
+pub fn underline_span(s: &RenderedSpan) -> String {
     format!(
-        "{args}\n{}{}{}",
-        " ".repeat(start),
-        "^".repeat(end - start),
-        " ".repeat(args.len() - end),
+        "{}\n{}{}{}",
+        s.args,
+        " ".repeat(s.underline_start),
+        "^".repeat(s.underline_end - s.underline_start),
+        " ".repeat(s.args.len() - s.underline_end),
     )
 }

@@ -1,6 +1,12 @@
-use crate::{ArgCount, ArgType, Span};
+use crate::{ArgCount, ArgType};
+use crate::span::{RenderedSpan, Span};
 
 pub struct Error {
+    pub span: Option<RenderedSpan>,
+    pub kind: ErrorKind,
+}
+
+pub struct RawError {
     pub span: Span,
     pub kind: ErrorKind,
 }
@@ -9,10 +15,14 @@ pub enum ErrorKind {
     /// see <https://doc.rust-lang.org/stable/std/num/struct.ParseIntError.html>
     ParseIntError(std::num::ParseIntError),
 
-    IntegerNotInRange {
-        min: Option<i128>,
-        max: Option<i128>,
-        n: i128,
+    /// see <https://doc.rust-lang.org/stable/std/num/struct.ParseFloatError.html>
+    ParseFloatError(std::num::ParseFloatError),
+
+    ParseFileSizeError,
+    NumberNotInRange {
+        min: Option<String>,
+        max: Option<String>,
+        n: String,
     },
 
     /// (prev_flag, curr_flag)
@@ -30,13 +40,19 @@ pub enum ErrorKind {
         flag: String,
         similar_flag: Option<String>,
     },
+    UnknownVariant {
+        variant: String,
+        similar_variant: Option<String>,
+    },
 }
 
 impl ErrorKind {
     pub fn render(&self) -> String {
         match self {
             ErrorKind::ParseIntError(_) => String::from("Cannot parse int."),
-            ErrorKind::IntegerNotInRange { min, max, n } => match (min, max) {
+            ErrorKind::ParseFloatError(_) => String::from("Cannot parse float."),
+            ErrorKind::ParseFileSizeError => String::from("Cannot parse file size."),
+            ErrorKind::NumberNotInRange { min, max, n } => match (min, max) {
                 (Some(min), Some(max)) => format!("N is supposed to be between {min} and {max}, but is {n}."),
                 (Some(min), None) => format!("N is supposed to be at least {min}, but is {n}."),
                 (None, Some(max)) => format!("N is supposed to be at most {max}, but is {n}."),
@@ -66,6 +82,14 @@ impl ErrorKind {
                 "Unknown flag: `{flag}`.{}",
                 if let Some(flag) = similar_flag {
                     format!(" There is a similar flag: `{flag}`.")
+                } else {
+                    String::new()
+                },
+            ),
+            ErrorKind::UnknownVariant { variant, similar_variant } => format!(
+                "Unknown variant: `{variant}`.{}",
+                if let Some(variant) = similar_variant {
+                    format!(" There is a similar variant: `{variant}`.")
                 } else {
                     String::new()
                 },

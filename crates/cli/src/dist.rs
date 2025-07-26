@@ -58,6 +58,10 @@ pub fn get_closest_string(
         // Different strings can have 0-distance, since it does a case-insensitive comparison
         if dist <= input.len().min(c.len()) / 3 {
             close_strings.push((c.to_string(), dist));
+
+            if dist == 0 {
+                break;
+            }
         }
     }
 

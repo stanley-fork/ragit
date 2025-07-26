@@ -27,7 +27,7 @@ pub enum Error {
     CorruptedFile { path: Path, message: Option<String> },
     CliError {
         message: String,
-        span: (String, usize, usize),  // (args, error_from, error_to)
+        span: Option<ragit_cli::RenderedSpan>,
     },
     UidQueryError(String),
     BrokenHash(String),
@@ -240,7 +240,7 @@ impl From<ragit_cli::Error> for Error {
     fn from(e: ragit_cli::Error) -> Self {
         Error::CliError {
             message: e.kind.render(),
-            span: e.span.unwrap_rendered(),
+            span: e.span,
         }
     }
 }

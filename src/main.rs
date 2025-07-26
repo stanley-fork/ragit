@@ -116,11 +116,13 @@ async fn main() {
                     eprintln!("Config `{key}` is deprecated!\n{message}");
                 },
                 Error::CliError { message, span } => {
-                    eprintln!("cli error: {message}\n\n{}", ragit_cli::underline_span(
-                        &span.0,
-                        span.1,
-                        span.2,
-                    ));
+                    eprintln!("cli error: {message}{}",
+                        if let Some(span) = span {
+                            format!("\n\n{}", ragit_cli::underline_span(&span))
+                        } else {
+                            String::new()
+                        },
+                    );
                 },
                 Error::DirtyKnowledgeBase => {
                     eprintln!("The knowledge-base is dirty. Run `rag check --recover`.");
@@ -155,7 +157,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--all"])
                 .optional_flag(&["--dry-run"])
                 .short_flag(&["--force"])
-                .args(ArgType::Path, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // paths
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -176,7 +178,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if !files.is_empty() {
                     return Err(Error::CliError {
                         message: String::from("You cannot use `--all` option with paths."),
-                        span: (String::new(), 0, 0),  // TODO
+                        span: None,
                     });
                 }
 
@@ -186,7 +188,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             else if files.is_empty() {
                 return Err(Error::CliError {
                     message: String::from("Please specify which files to add."),
-                    span: Span::End.render(&args, 2).unwrap_rendered(),
+                    span: Span::End.render(&args, 2),
                 });
             }
 
@@ -207,9 +209,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("archive-create") | Some("create-archive") | Some("archive") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
-                .optional_arg_flag("--size-limit", ArgType::IntegerBetween { min: Some(0), max: None })
-                .arg_flag("--output", ArgType::Path)
+                .arg_flag_with_default("--jobs", "4", ArgType::uinteger())
+                .optional_arg_flag("--size-limit", ArgType::file_size_between(Some(4096), None))
+                .arg_flag("--output", ArgType::String)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--force"])
@@ -242,12 +244,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("archive-extract") | Some("extract-archive") | Some("extract") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "4", ArgType::IntegerBetween { min: Some(0), max: None })
-                .arg_flag("--output", ArgType::Path)
+                .arg_flag_with_default("--jobs", "4", ArgType::uinteger())
+                .arg_flag("--output", ArgType::String)
                 .optional_flag(&["--force"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--force", "--output", "--quiet"])
-                .args(ArgType::Path, ArgCount::Geq(1))
+                .args(ArgType::String, ArgCount::Geq(1))
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -270,7 +272,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("build") => {
             let parsed_args = ArgParser::new()
-                .arg_flag_with_default("--jobs", "8", ArgType::IntegerBetween { min: Some(0), max: None })
+                .arg_flag_with_default("--jobs", "8", ArgType::uinteger())
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .parse(&args, 2)?;
@@ -321,7 +323,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     None => {
                         return Err(Error::CliError {
                             message: format!("`{category}` is an invalid category."),
-                            span: (String::new(), 0, 0),  // TODO
+                            span: None,
                         });
                     },
                 };
@@ -412,7 +414,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::UidOrPath, ArgCount::Exact(1))
+                .args(ArgType::String, ArgCount::Exact(1))  // uid or path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -530,7 +532,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
-                .args(ArgType::Url, ArgCount::Geq(1))
+                .args(ArgType::String, ArgCount::Geq(1))  // url and path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -655,13 +657,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Some(flag) => {
                     return Err(Error::CliError {
                         message: format!("Unknown flag: `{flag}`. Valid flags are --get | --get-all | --set."),
-                        span: Span::Exact(2).render(&args, 2).unwrap_rendered(),
+                        span: Span::Exact(2).render(&args, 2),
                     });
                 },
                 None => {
                     return Err(Error::CliError {
                         message: String::from("Flag `--get | --get-all | --set` is missing."),
-                        span: Span::End.render(&args, 2).unwrap_rendered(),
+                        span: Span::End.render(&args, 2),
                     });
                 },
             }
@@ -671,7 +673,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--full-schema"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Exact(1))
+                .args(ArgType::String, ArgCount::Exact(1))  // query
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -761,7 +763,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         // It matches `rag help` and `rag --help`.
         Some("help" | "--help") => {
             let parsed_args = ArgParser::new()
-                .args(ArgType::Command, ArgCount::Leq(1))
+                .args(ArgType::String, ArgCount::Leq(1))  // command
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -861,7 +863,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::UidOrPath, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // uid or path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -979,7 +981,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
                 .alias("--cached", "--staged")
-                .args(ArgType::UidOrPath, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // uid or path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1143,7 +1145,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::UidOrPath, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // uid or path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1302,7 +1304,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if !args.is_empty() {
                     return Err(Error::CliError {
                         message: String::from("You cannot use `--selected` option with a model name."),
-                        span: (String::new(), 0, 0),  // TODO
+                        span: None,
                     });
                 }
 
@@ -1386,7 +1388,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--term-only", "--stat-only"])
                 .optional_flag(&["--json"])
                 .short_flag(&["--json"])
-                .args(ArgType::UidOrPath, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // uid or path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1438,10 +1440,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--ignore", "--force", "--interactive", "--reject"])
                 .optional_flag(&["--dry-run"])
-                .optional_arg_flag("--prefix", ArgType::Path)
+                .optional_arg_flag("--prefix", ArgType::String)
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--force", "--quiet"])
-                .args(ArgType::Path, ArgCount::Geq(1))
+                .args(ArgType::String, ArgCount::Geq(1))  // path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1586,13 +1588,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 Some(flag) => {
                     return Err(Error::CliError {
                         message: format!("Unknown flag: `{flag}`. Valid flags are --get | --get-all | --set | --remove | --remove-all."),
-                        span: Span::Exact(2).render(&args, 2).unwrap_rendered(),
+                        span: Span::Exact(2).render(&args, 2),
                     });
                 },
                 None => {
                     return Err(Error::CliError {
                         message: String::from("Flag `--get | --get-all | --set | --remove | --remove-all` is missing."),
-                        span: Span::End.render(&args, 2).unwrap_rendered(),
+                        span: Span::End.render(&args, 2),
                     });
                 },
             }
@@ -1633,7 +1635,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             match args.get(2).map(|s| s.as_str()) {
                 Some("--search") => {
                     let parsed_args = ArgParser::new()
-                        .arg_flag_with_default("--remote", "https://ragit.baehyunsol.com", ArgType::Path)
+                        .arg_flag_with_default("--remote", "https://ragit.baehyunsol.com", ArgType::String)
                         .optional_flag(&["--name-only", "--stat-only"])
                         .optional_flag(&["--json"])
                         .short_flag(&["--json"])
@@ -1703,7 +1705,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 },
                 Some("--fetch") => {
                     let parsed_args = ArgParser::new()
-                        .arg_flag_with_default("--remote", "https://ragit.baehyunsol.com", ArgType::Path)
+                        .arg_flag_with_default("--remote", "https://ragit.baehyunsol.com", ArgType::String)
                         .optional_flag(&["--all"])
                         .optional_flag(&["--existing-only"])
                         .optional_flag(&["--quiet"])
@@ -1722,7 +1724,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         if all {
                             return Err(Error::CliError {
                                 message: String::from("You cannot use `--all` option with a model name."),
-                                span: (String::new(), 0, 0),  // TODO
+                                span: None,
                             });
                         }
 
@@ -1736,7 +1738,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     else {
                         return Err(Error::CliError {
                             message: String::from("Please specify which model to fetch."),
-                            span: Span::End.render(&args, 2).unwrap_rendered(),
+                            span: Span::End.render(&args, 2),
                         });
                     };
 
@@ -1759,7 +1761,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         if all {
                             return Err(Error::CliError {
                                 message: String::from("You cannot use `--all` option with a model name."),
-                                span: (String::new(), 0, 0),  // TODO
+                                span: None,
                             });
                         }
 
@@ -1773,20 +1775,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     else {
                         return Err(Error::CliError {
                             message: String::from("Please specify which model to remove."),
-                            span: Span::End.render(&args, 2).unwrap_rendered(),
+                            span: Span::End.render(&args, 2),
                         });
                     }
                 },
                 Some(flag) => {
                     return Err(Error::CliError {
                         message: format!("Unknown flag: `{flag}`. Valid flags are --search | --update | --remove."),
-                        span: Span::Exact(2).render(&args, 2).unwrap_rendered(),
+                        span: Span::Exact(2).render(&args, 2),
                     });
                 },
                 None => {
                     return Err(Error::CliError {
                         message: String::from("Flag `--search | --update | --remove` is missing."),
-                        span: Span::End.render(&args, 2).unwrap_rendered(),
+                        span: Span::End.render(&args, 2),
                     });
                 },
             }
@@ -1796,11 +1798,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .flag_with_default(&["--strict", "--no-strict"])
                 .optional_arg_flag("--model", ArgType::String)
-                .optional_arg_flag("--models", ArgType::Path)
-                .optional_arg_flag("--context", ArgType::Path)
-                .optional_arg_flag("--log", ArgType::Path)
+                .optional_arg_flag("--models", ArgType::String)
+                .optional_arg_flag("--context", ArgType::String)
+                .optional_arg_flag("--log", ArgType::String)
                 .optional_arg_flag("--schema", ArgType::String)
-                .args(ArgType::Path, ArgCount::Exact(1))
+                .args(ArgType::String, ArgCount::Exact(1))  // path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -1959,7 +1961,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         },
         Some("push") => {
             let parsed_args = ArgParser::new()
-                .optional_arg_flag("--remote", ArgType::Path)
+                .optional_arg_flag("--remote", ArgType::String)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--quiet"])
@@ -1998,12 +2000,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--enable-rag", "--disable-rag"])
                 .optional_flag(&["--super-rerank", "--no-super-rerank"])
                 .optional_arg_flag("--model", ArgType::String)
-                .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
-                .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
+                .optional_arg_flag("--max-summaries", ArgType::uinteger())
+                .optional_arg_flag("--max-retrieval", ArgType::uinteger())
                 .optional_arg_flag("--schema", ArgType::String)
                 .optional_flag(&["--agent"])
                 .short_flag(&["--interactive", "--json"])
-                .args(ArgType::Query, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // query
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -2077,19 +2079,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 (true, true, _, _) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot query interactively in an agent mode."),
-                        span: (String::new(), 0, 0),  // TODO
+                        span: None,
                     });
                 },
                 (_, true, _, Some(_)) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot set schema in an interactive mode."),
-                        span: (String::new(), 0, 0),  // TODO
+                        span: None,
                     });
                 },
                 (_, true, true, _) => {
                     return Err(Error::CliError {
                         message: String::from("You cannot query interactively in a json mode."),
-                        span: (String::new(), 0, 0),  // TODO
+                        span: None,
                     });
                 },
                 (_, true, _, _) => {
@@ -2147,7 +2149,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--staged", "--processed"])
                 .short_flag(&["--recursive"])
                 .alias("--cached", "--staged")
-                .args(ArgType::Path, ArgCount::Any)
+                .args(ArgType::String, ArgCount::Any)  // path
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -2170,7 +2172,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if !files.is_empty() {
                     return Err(Error::CliError {
                         message: String::from("You cannot use `--all` options with paths."),
-                        span: (String::new(), 0, 0),  // TODO
+                        span: None,
                     });
                 }
 
@@ -2186,7 +2188,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             else if files.is_empty() {
                 return Err(Error::CliError {
                     message: String::from("Please specify which files to remove."),
-                    span: Span::End.render(&args, 2).unwrap_rendered(),
+                    span: Span::End.render(&args, 2),
                 });
             }
 
@@ -2225,10 +2227,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--rerank", "--no-rerank"])
-                .optional_arg_flag("--max-retrieval", ArgType::IntegerBetween { min: Some(0), max: None })
-                .optional_arg_flag("--max-summaries", ArgType::IntegerBetween { min: Some(0), max: None })
+                .optional_arg_flag("--max-retrieval", ArgType::uinteger())
+                .optional_arg_flag("--max-summaries", ArgType::uinteger())
                 .short_flag(&["--json"])
-                .args(ArgType::Query, ArgCount::Exact(1))
+                .args(ArgType::String, ArgCount::Exact(1))  // query
                 .parse(&args, 2)?;
 
             if parsed_args.show_help() {
@@ -2471,7 +2473,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--keyword", "--query"])
-                .arg_flag_with_default("--limit", "10", ArgType::IntegerBetween { min: Some(0), max: None })
+                .arg_flag_with_default("--limit", "10", ArgType::uinteger())
                 .short_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Exact(1))
                 .parse(&args, 2)?;
@@ -2686,6 +2688,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     "merge",
                     "meta",
                     "migrate",
+                    "model",
                     "pdl",
                     "pull",
                     "push",
@@ -2709,13 +2712,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         String::from("Run `rag help` to get help.")
                     },
                 ),
-                span: Span::NthArg(0).render(&args, 1).unwrap_rendered(),
+                span: Span::NthArg(0).render(&args, 1),
             });
         },
         None => {
             return Err(Error::CliError {
                 message: String::from("Command is missing. Run `rag help` to get help."),
-                span: Span::End.render(&args, 2).unwrap_rendered(),
+                span: Span::End.render(&args, 2),
             });
         },
     }

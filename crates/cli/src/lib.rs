@@ -2,11 +2,13 @@ use std::collections::HashMap;
 
 mod dist;
 mod error;
+mod file_size;
 mod span;
 
 pub use dist::{get_closest_string, substr_edit_distance};
-pub use error::{Error, ErrorKind};
-pub use span::{Span, underline_span};
+pub use error::{Error, ErrorKind, RawError};
+use file_size::parse_file_size;
+pub use span::{RenderedSpan, Span, underline_span};
 
 pub struct ArgParser {
     arg_count: ArgCount,
@@ -113,14 +115,14 @@ impl ArgParser {
     /// the flags (the last 3 args). In this case, you set `skip_first_n` to 2.
     pub fn parse(&self, raw_args: &[String], skip_first_n: usize) -> Result<ParsedArgs, Error> {
         self.parse_worker(raw_args, skip_first_n).map_err(
-            |mut e| {
-                e.span = e.span.render(raw_args, skip_first_n);
-                e
+            |e| Error {
+                span: e.span.render(raw_args, skip_first_n),
+                kind: e.kind,
             }
         )
     }
 
-    fn parse_worker(&self, raw_args: &[String], skip_first_n: usize) -> Result<ParsedArgs, Error> {
+    fn parse_worker(&self, raw_args: &[String], skip_first_n: usize) -> Result<ParsedArgs, RawError> {
         let mut args = vec![];
         let mut flags = vec![None; self.flags.len()];
         let mut arg_flags = HashMap::new();
@@ -146,7 +148,7 @@ impl ArgParser {
 
             if raw_arg == "--" {
                 if let Some(arg_flag) = expecting_flag_arg {
-                    return Err(Error {
+                    return Err(RawError {
                         span: Span::End,
                         kind: ErrorKind::MissingArgument(arg_flag.flag.to_string(), arg_flag.arg_type),
                     });
@@ -158,10 +160,10 @@ impl ArgParser {
 
             if let Some(arg_flag) = expecting_flag_arg {
                 expecting_flag_arg = None;
-                arg_flag.arg_type.parse(&raw_arg, Span::Exact(arg_index + skip_first_n))?;
+                let flag_arg = arg_flag.arg_type.parse(&raw_arg, Span::Exact(arg_index + skip_first_n))?;
 
-                if let Some(_) = arg_flags.insert(arg_flag.flag.clone(), raw_arg.to_string()) {
-                    return Err(Error {
+                if let Some(_) = arg_flags.insert(arg_flag.flag.clone(), flag_arg) {
+                    return Err(RawError {
                         span: Span::Exact(arg_index + skip_first_n),
                         kind: ErrorKind::SameFlagMultipleTimes(
                             arg_flag.flag.clone(),
@@ -184,7 +186,7 @@ impl ArgParser {
                         }
 
                         else {
-                            return Err(Error {
+                            return Err(RawError {
                                 span: Span::Exact(arg_index + skip_first_n),
                                 kind: ErrorKind::SameFlagMultipleTimes(
                                     flags[flag_index].as_ref().unwrap().to_string(),
@@ -206,10 +208,10 @@ impl ArgParser {
                     let flag_arg = splitted[1];
 
                     if let Some(arg_flag) = self.arg_flags.get(&flag) {
-                        arg_flag.arg_type.parse(flag_arg, Span::Exact(arg_index + skip_first_n))?;
+                        let flag_arg = arg_flag.arg_type.parse(flag_arg, Span::Exact(arg_index + skip_first_n))?;
 
-                        if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg.to_string()) {
-                            return Err(Error {
+                        if let Some(_) = arg_flags.insert(flag.to_string(), flag_arg) {
+                            return Err(RawError {
                                 span: Span::Exact(arg_index + skip_first_n),
                                 kind: ErrorKind::SameFlagMultipleTimes(
                                     flag.to_string(),
@@ -222,7 +224,7 @@ impl ArgParser {
                     }
 
                     else {
-                        return Err(Error {
+                        return Err(RawError {
                             span: Span::Exact(arg_index + skip_first_n),
                             kind: ErrorKind::UnknownFlag {
                                 flag: flag.to_string(),
@@ -232,7 +234,7 @@ impl ArgParser {
                     }
                 }
 
-                return Err(Error {
+                return Err(RawError {
                     span: Span::Exact(arg_index + skip_first_n),
                     kind: ErrorKind::UnknownFlag {
                         flag: raw_arg.to_string(),
@@ -247,7 +249,7 @@ impl ArgParser {
         }
 
         if let Some(arg_flag) = expecting_flag_arg {
-            return Err(Error {
+            return Err(RawError {
                 span: Span::End,
                 kind: ErrorKind::MissingArgument(arg_flag.flag.to_string(), arg_flag.arg_type),
             });
@@ -260,7 +262,7 @@ impl ArgParser {
                 }
 
                 else if !self.flags[i].optional {
-                    return Err(Error {
+                    return Err(RawError {
                         span: Span::End,
                         kind: ErrorKind::MissingFlag(self.flags[i].values.join(" | ")),
                     });
@@ -278,7 +280,7 @@ impl ArgParser {
                 _ => { break; },
             };
 
-            return Err(Error {
+            return Err(RawError {
                 span,
                 kind: ErrorKind::WrongArgCount {
                     expected: self.arg_count,
@@ -293,11 +295,11 @@ impl ArgParser {
             }
 
             else if let Some(default) = &arg_flag.default {
-                arg_flags.insert(flag.to_string(), default.to_string());
+                arg_flags.insert(flag.to_string(), arg_flag.arg_type.parse(default, Span::None)?);
             }
 
             else if !arg_flag.optional {
-                return Err(Error {
+                return Err(RawError {
                     span: Span::End,
                     kind: ErrorKind::MissingFlag(flag.to_string()),
                 });
@@ -340,70 +342,210 @@ pub enum ArgCount {
     None,
 }
 
-/// `ArgType` doesn't do much. Only `Integer` and
-/// `IntegerBetween` variants do extra checks. The
-/// other variants are more like type signatures
-/// which clarifies the intent of the code.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub enum ArgType {
+    /// Any string
     String,
-    Path,
-    Command,
-    Query,
-    UidOrPath,
-    Integer,
-    Url,
 
-    /// Both inclusive
-    IntegerBetween {
+    /// The argument must be one of the variants.
+    Enum(Vec<String>),
+
+    /// I recommend you use `Self::integer()`, `Self::uinteger()`
+    /// or `Self::integer_between()`.
+    Integer {
         min: Option<i128>,
         max: Option<i128>,
+    },
+
+    /// I recommend you use `Self::float()` or `Self::float_between()`.
+    Float {
+        min: Option<f64>,
+        max: Option<f64>,
+    },
+
+    /// I recommend you use `Self::file_size()` or `Self::file_size_between()`.
+    /// It's in bytes.
+    FileSize {
+        min: Option<u64>,
+        max: Option<u64>,
     },
 }
 
 impl ArgType {
-    pub fn parse(&self, arg: &str, span: Span) -> Result<String, Error> {
+    pub fn integer() -> Self {
+        ArgType::Integer {
+            min: None,
+            max: None,
+        }
+    }
+
+    pub fn uinteger() -> Self {
+        ArgType::Integer {
+            min: Some(0),
+            max: None,
+        }
+    }
+
+    /// Both inclusive
+    pub fn integer_between(min: Option<i128>, max: Option<i128>) -> Self {
+        ArgType::Integer { min, max }
+    }
+
+    pub fn float() -> Self {
+        ArgType::Float {
+            min: None,
+            max: None,
+        }
+    }
+
+    /// Both inclusive
+    pub fn float_between(min: Option<f64>, max: Option<f64>) -> Self {
+        ArgType::Float { min, max }
+    }
+
+    pub fn enum_(variants: &[&str]) -> Self {
+        ArgType::Enum(variants.iter().map(|v| v.to_string()).collect())
+    }
+
+    pub fn file_size() -> Self {
+        ArgType::FileSize {
+            min: None,
+            max: None,
+        }
+    }
+
+    pub fn file_size_between(min: Option<u64>, max: Option<u64>) -> Self {
+        ArgType::FileSize { min, max }
+    }
+
+    pub fn parse(&self, arg: &str, span: Span) -> Result<String, RawError> {
         match self {
-            ArgType::Integer => match arg.parse::<i128>() {
-                Ok(_) => Ok(arg.to_string()),
-                Err(e) => Err(Error {
-                    span,
-                    kind: ErrorKind::ParseIntError(e),
-                }),
-            },
-            ArgType::IntegerBetween { min, max } => match arg.parse::<i128>() {
+            ArgType::Integer { min, max } => match arg.parse::<i128>() {
                 Ok(n) => {
                     if let Some(min) = *min {
                         if n < min {
-                            return Err(Error{
+                            return Err(RawError{
                                 span,
-                                kind: ErrorKind::IntegerNotInRange { min: Some(min), max: *max, n },
+                                kind: ErrorKind::NumberNotInRange {
+                                    min: Some(min.to_string()),
+                                    max: max.map(|n| n.to_string()),
+                                    n: n.to_string(),
+                                },
                             });
                         }
                     }
 
                     if let Some(max) = *max {
                         if n > max {
-                            return Err(Error{
+                            return Err(RawError{
                                 span,
-                                kind: ErrorKind::IntegerNotInRange { min: *min, max: Some(max), n },
+                                kind: ErrorKind::NumberNotInRange {
+                                    min: min.map(|n| n.to_string()),
+                                    max: Some(max.to_string()),
+                                    n: n.to_string(),
+                                },
                             });
                         }
                     }
 
                     Ok(arg.to_string())
                 },
-                Err(e) => Err(Error {
+                Err(e) => Err(RawError {
                     span,
                     kind: ErrorKind::ParseIntError(e),
                 }),
             },
-            ArgType::String
-            | ArgType::Path
-            | ArgType::Url
-            | ArgType::UidOrPath
-            | ArgType::Command
-            | ArgType::Query => Ok(arg.to_string()),
+            ArgType::Float { min, max } => match arg.parse::<f64>() {
+                Ok(n) => {
+                    if let Some(min) = *min {
+                        if n < min {
+                            return Err(RawError{
+                                span,
+                                kind: ErrorKind::NumberNotInRange {
+                                    min: Some(min.to_string()),
+                                    max: max.map(|n| n.to_string()),
+                                    n: n.to_string(),
+                                },
+                            });
+                        }
+                    }
+
+                    if let Some(max) = *max {
+                        if n > max {
+                            return Err(RawError{
+                                span,
+                                kind: ErrorKind::NumberNotInRange {
+                                    min: min.map(|n| n.to_string()),
+                                    max: Some(max.to_string()),
+                                    n: n.to_string(),
+                                },
+                            });
+                        }
+                    }
+
+                    Ok(arg.to_string())
+                },
+                Err(e) => Err(RawError {
+                    span,
+                    kind: ErrorKind::ParseFloatError(e),
+                }),
+            },
+            ArgType::Enum(variants) => {
+                let mut matched = false;
+
+                for variant in variants.iter() {
+                    if variant == arg {
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if matched {
+                    Ok(arg.to_string())
+                }
+
+                else {
+                    Err(RawError {
+                        span,
+                        kind: ErrorKind::UnknownVariant {
+                            variant: arg.to_string(),
+                            similar_variant: get_closest_string(variants, arg),
+                        },
+                    })
+                }
+            },
+            ArgType::FileSize { min, max } => {
+                let file_size = parse_file_size(arg, span)?;
+
+                if let Some(min) = *min {
+                    if file_size < min {
+                        return Err(RawError {
+                            span,
+                            kind: ErrorKind::NumberNotInRange {
+                                min: Some(min.to_string()),
+                                max: max.map(|n| n.to_string()),
+                                n: file_size.to_string(),
+                            },
+                        });
+                    }
+                }
+
+                if let Some(max) = *max {
+                    if file_size > max {
+                        return Err(RawError {
+                            span,
+                            kind: ErrorKind::NumberNotInRange {
+                                min: min.map(|n| n.to_string()),
+                                max: Some(max.to_string()),
+                                n: file_size.to_string(),
+                            },
+                        });
+                    }
+                }
+
+                Ok(file_size.to_string())
+            },
+            ArgType::String => Ok(arg.to_string()),
         }
     }
 }
@@ -500,8 +642,8 @@ pub fn parse_pre_args(args: &[String]) -> Result<(Vec<String>, ParsedArgs), Erro
                 ))
             },
             None => Err(Error {
-                span: Span::Exact(2),
-                kind: ErrorKind::MissingArgument(String::from("-C"), ArgType::Path),
+                span: Span::Exact(2).render(args, 0),
+                kind: ErrorKind::MissingArgument(String::from("-C"), ArgType::String),
             }),
         },
         _ => Ok((args.to_vec(), ParsedArgs::new())),

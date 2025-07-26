@@ -72,4 +72,8 @@ def cli():
     # integer ranges
     assert_cli_error(["query", "--max-summaries=-1"], error_message="at least 0")
 
+    # 2.5KiB is 2560 bytes, but the limit is 4096 bytes
+    assert_cli_error(["archive-create", "--size-limit=2.5KiB", "--output=whatever"], error_message="2560")
+    assert_cli_error(["archive-create", "--size-limit=2.5KiB", "--output=whatever"], error_message="4096")
+
     # TODO: more tests...
