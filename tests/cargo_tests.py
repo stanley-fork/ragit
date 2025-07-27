@@ -17,7 +17,12 @@ def cargo_tests():
 
     for crate in ["api", "cli", "fs", "ignore", "korean", "pdl", "server"]:
         os.chdir(crate)
-        errors += run_cargo_test(crate)
+        errors += run_cargo_test(
+            location=crate,
+
+            # build artifacts take more than 20GiB
+            additional_actions=[["cargo", "clean"]],
+        )
         os.chdir("..")
 
     if len(errors) > 0:
