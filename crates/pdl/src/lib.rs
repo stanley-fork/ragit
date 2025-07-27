@@ -425,8 +425,7 @@ Write me a sudoku-solver.
         let Pdl { messages, schema } = parse_pdl_from_file(
             &tmp_path,
             &tera::Context::new(),
-            true,
-            true,
+            true,  // strict mode
         ).unwrap();
 
         assert_eq!(
@@ -462,8 +461,7 @@ Write me a sudoku-solver.
 ",
             &tera::Context::new(),
             ".",  // there's no `<|media|>`
-            true,
-            true,
+            true,  // strict mode
         ).unwrap();
 
         assert_eq!(
