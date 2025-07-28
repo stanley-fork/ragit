@@ -31,6 +31,7 @@ impl Index {
         &self,
         include_configs: bool,
         include_prompts: bool,
+        ii: bool,
         quiet: bool,
     ) -> Result<PullResult, Error> {
         let Some(repo_url) = self.repo_url.clone() else {
@@ -69,6 +70,7 @@ impl Index {
             &tmp_clone_dir,
             include_configs,
             include_prompts,
+            ii,
             quiet,
         ).await;
 
@@ -85,9 +87,10 @@ impl Index {
         tmp_clone_dir: &str,
         include_configs: bool,
         include_prompts: bool,
+        ii: bool,
         quiet: bool,
     ) -> Result<PullResult, Error> {
-        let cloned_blocks = Index::clone(repo_url, Some(tmp_clone_dir.to_string()), quiet).await?;
+        let cloned_blocks = Index::clone(repo_url, Some(tmp_clone_dir.to_string()), ii, quiet).await?;
         let cloned_configs = cloned_blocks.get(&BlockType::Config).map(|n| *n).unwrap_or(0) > 1;
         let cloned_prompts = cloned_blocks.get(&BlockType::Prompt).map(|n| *n).unwrap_or(0) > 1;
 

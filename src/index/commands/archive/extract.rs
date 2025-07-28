@@ -51,6 +51,7 @@ impl Index {
         archives: Vec<String>,
         workers: usize,
         force: bool,
+        ii: bool,
         quiet: bool,
     ) -> Result<HashMap<BlockType, usize>, Error> {
         if exists(root_dir) {
@@ -71,6 +72,7 @@ impl Index {
             root_dir,
             archives,
             &workers,
+            ii,
             quiet,
         ) {
             Ok(result) => Ok(result),
@@ -92,6 +94,7 @@ impl Index {
         root_dir: &str,
         mut archives: Vec<String>,
         workers: &[Channel],
+        ii: bool,
         quiet: bool,
     ) -> Result<HashMap<BlockType, usize>, Error> {
         let mut killed_workers = vec![];
@@ -276,8 +279,11 @@ impl Index {
             );
         }
 
-        index.reset_ii()?;
-        index.build_ii(quiet)?;
+        if ii {
+            index.reset_ii()?;
+            index.build_ii(quiet)?;
+        }
+
         Ok(status.block_count)
     }
 

@@ -108,8 +108,9 @@ async fn post_finalize_push_(user: String, repo: String, body: Bytes) -> RawResp
         &root_dir,
         archives.clone(),
         4,
-        true,  // --force
-        true,  // quiet
+        true,   // --force
+        false,  // --ii
+        true,   // --quiet
     );
     let push_result = match push_result {
         Ok(_) => PushResult::Completed,

@@ -10,7 +10,7 @@ rag-extract - Alias
 SYNOPSIS
 --------
 [verse]
-'rag archive-extract' [--jobs <n=4>] [--force | -f] [--quiet | -q]
+'rag archive-extract' [--jobs <n=4>] [--force | -f] [--quiet | -q] [--[no-]ii]
             --output | -o <dir>
             <archives..>
 
@@ -22,3 +22,6 @@ By default, it raises an error if the output directory already exists. You
 can forcefully overwrite the directory with `--force` option. If something
 goes wrong while forcefully extracting an archive, you might lose the original
 data. Be careful.
+
+By default, it creates an inverted index after extracting the archive. If you
+want to disable that, you can give `--no-ii` option.

@@ -8,7 +8,7 @@ rag-clone - Clone a knowledge-base into a new directory
 SYNOPSIS
 --------
 [verse]
-'rag clone' <remote url> [<directory>] [--quiet | -q]
+'rag clone' <remote url> [<directory>] [--quiet | -q] [--[no-]ii]
 
 DESCRIPTION
 -----------
@@ -28,3 +28,6 @@ under construction.
 If you're cloning a private knowledge-base, you need an api key. Ragit looks
 for api key in environment variables. You have to set `RAGIT_API_KEY`
 environment variable.
+
+By default, it creates an inverted index after cloning the knowledge-base. If
+you want to disable that, you can give `--no-ii` option.

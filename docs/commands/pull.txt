@@ -8,7 +8,7 @@ rag-pull - Pull updates from remote
 SYNOPSIS
 --------
 [verse]
-'rag pull' [--[no-]configs] [--[no-]prompts] [--quiet | -q]
+'rag pull' [--[no-]configs] [--[no-]prompts] [--quiet | -q] [--[no-]ii]
 
 DESCRIPTION
 -----------
@@ -24,3 +24,6 @@ It only writes to `.ragit/`. It does not touch the raw data files.
 
 If the knowledge-base is private, you need an api key to pull. You have to set
 `RAGIT_API_KEY` environment variable.
+
+By default, it creates an inverted index after pulling the knowledge-base. If
+you want to disable that, you can give `--no-ii` option.

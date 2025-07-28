@@ -29,6 +29,7 @@ impl Index {
     pub async fn clone(
         url: String,
         repo_name: Option<String>,
+        ii: bool,
         quiet: bool,
     ) -> Result<HashMap<BlockType, usize>, Error> {
         let repo_name = repo_name.unwrap_or_else(|| infer_repo_name_from_url(&url));
@@ -49,7 +50,13 @@ impl Index {
             }.into());
         }
 
-        match Index::clone_worker(url, repo_name.clone(), &archive_tmp_files_at, quiet).await {
+        match Index::clone_worker(
+            url,
+            repo_name.clone(),
+            &archive_tmp_files_at,
+            ii,
+            quiet,
+        ).await {
             Ok(result) => Ok(result),
             Err(e) => {
                 let _ = remove_dir_all(&archive_tmp_files_at);
@@ -66,6 +73,7 @@ impl Index {
         mut url: String,
         repo_name: String,
         archive_tmp_files_at: &str,
+        ii: bool,
         quiet: bool,
     ) -> Result<HashMap<BlockType, usize>, Error> {
         if !url.ends_with("/") {
@@ -118,8 +126,9 @@ impl Index {
         let block_types = Index::extract_archive(
             &repo_name,
             archive_files.clone(),
-            4,  // workers  // TODO: make it configurable
-            false,
+            4,      // workers  // TODO: make it configurable
+            false,  // force
+            ii,
             quiet,
         )?;
         let archives_in_base = join3(

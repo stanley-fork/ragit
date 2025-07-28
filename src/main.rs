@@ -248,6 +248,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .arg_flag("--output", ArgType::String)
                 .optional_flag(&["--force"])
                 .optional_flag(&["--quiet"])
+                .flag_with_default(&["--ii", "--no-ii"])
                 .short_flag(&["--force", "--output", "--quiet"])
                 .args(ArgType::String, ArgCount::Geq(1))
                 .parse(&args, 2)?;
@@ -262,11 +263,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let archives = parsed_args.get_args();
             let force = parsed_args.get_flag(0).is_some();
             let quiet = parsed_args.get_flag(1).is_some();
+            let ii = parsed_args.get_flag(2).unwrap() == "--ii";
             Index::extract_archive(
                 &output,
                 archives,
                 jobs,
                 force,
+                ii,
                 quiet,
             )?;
         },
@@ -531,6 +534,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("clone") => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--quiet"])
+                .flag_with_default(&["--ii", "--no-ii"])
                 .short_flag(&["--quiet"])
                 .args(ArgType::String, ArgCount::Geq(1))  // url and path
                 .parse(&args, 2)?;
@@ -546,9 +550,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let args = parsed_args.get_args();
             let quiet = parsed_args.get_flag(0).is_some();
+            let ii = parsed_args.get_flag(1).unwrap() == "--ii";
             Index::clone(
                 args[0].clone(),
                 args.get(1).map(|s| s.to_string()),
+                ii,
                 quiet,
             ).await?;
             return Ok(());
@@ -1934,6 +1940,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
                 .optional_flag(&["--quiet"])
+                .flag_with_default(&["--ii", "--no-ii"])
                 .short_flag(&["--quiet"])
                 .parse(&args, 2)?;
 
@@ -1946,9 +1953,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
             let quiet = parsed_args.get_flag(2).is_some();
+            let ii = parsed_args.get_flag(3).unwrap() == "--ii";
             let result = index.pull(
                 include_configs,
                 include_prompts,
+                ii,
                 quiet,
             ).await?;
 
