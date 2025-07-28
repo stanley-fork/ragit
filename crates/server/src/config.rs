@@ -14,7 +14,7 @@ pub struct Config {
     // A directory where push sessions are stored.
     pub push_session_dir: String,
     pub repo_data_dir: String,
-    pub blob_dir: String,
+    pub blob_data_dir: String,
     pub only_admin_can_create_user: bool,
     pub port_number: u16,
 }
@@ -33,7 +33,7 @@ impl Default for Config {
             dump_log_to_stdout: false,
             push_session_dir: String::from("./session"),
             repo_data_dir: String::from("./data"),
-            blob_dir: String::from("./blobs"),
+            blob_data_dir: String::from("./blobs"),
             only_admin_can_create_user: true,
             port_number: 41127,
         }

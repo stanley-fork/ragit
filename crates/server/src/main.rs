@@ -49,9 +49,20 @@ async fn main() {
                         config.repo_data_dir
                     },
                 };
+                let blob_data_dir = match &args.blob_data_dir {
+                    Some(dir) => dir.to_string(),
+                    None => {
+                        let config = Config::default();
+                        config.blob_data_dir
+                    },
+                };
 
                 if exists(&repo_data_dir) {
                     remove_dir_all(&repo_data_dir).unwrap();
+                }
+
+                if exists(&blob_data_dir) {
+                    remove_dir_all(&blob_data_dir).unwrap();
                 }
 
                 if let CliCommand::DropAll(_) = command {

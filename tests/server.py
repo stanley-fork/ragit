@@ -170,7 +170,7 @@ def spawn_ragit_server():
         raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
 
     os.chdir("crates/server")
-    subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force"]).wait()
+    subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force", "--repo-data", "./data", "--blob-data", "./blobs"]).wait()
     server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
 
     for _ in range(300):

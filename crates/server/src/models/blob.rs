@@ -40,7 +40,7 @@ fn get_blob_path(id: &str) -> Result<String, Error> {
     let suffix = id.get(2..).unwrap();
 
     Ok(join3(
-        &config.blob_dir,
+        &config.blob_data_dir,
         prefix,
         suffix,
     )?)

@@ -18,17 +18,11 @@ def goto_root():
             os.chdir("..")
 
 def clean():
-    for d in os.listdir():
-        if os.path.isdir(d) and d.startswith("__tmp_"):
-            shutil.rmtree(d)
-
     goto_root()
 
     for d in os.listdir():
         if os.path.isdir(d) and d.startswith("__tmp_"):
             shutil.rmtree(d)
-
-    os.chdir("crates/server")
 
 def mk_and_cd_tmp_dir(dir_name: Optional[str] = None):
     if dir_name is None:
