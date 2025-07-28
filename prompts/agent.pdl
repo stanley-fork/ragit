@@ -102,7 +102,7 @@ What *new* information did you get from the actions? List the new information th
 
 <|user|>
 
-Below is the information you gathered before you do the actions. Update it with the new information.
+Below is the information you gathered before you do the actions. Update it with the new information. If there's nothing to update, just repeat after the information.
 
 {{context}}
 
