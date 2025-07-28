@@ -76,6 +76,23 @@ impl SchemaType {
             _ => panic!(),
         }
     }
+
+    // It's a word that describes this schema. It's used to
+    // format error messages: format!("your output doesn't contain a valid {}", self.one_word())
+    fn one_word(&self) -> &'static str {
+        match self {
+            SchemaType::Integer
+            | SchemaType::Float => "numeric value",
+            SchemaType::String => "string value",
+            SchemaType::Array(_)
+            | SchemaType::Object(_) => "json value",
+            SchemaType::Boolean => "boolean value",
+            SchemaType::Null => "null value",
+            SchemaType::Yesno => "yes/no value",
+            SchemaType::Code => "code block",
+            SchemaType::TaskList => "markdown task list",
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -205,7 +222,7 @@ impl Schema {
         let v = match serde_json::from_str::<Value>(&extracted_text) {
             Ok(v) => v,
             Err(_) => {
-                return Err(String::from("I cannot parse your json output. Please make sure that your output contains valid json with valid data."));
+                return Err(format!("I cannot parse your output. Please make sure that your output contains a valid {} with valid data.", self.one_word()));
             },
         };
 
@@ -322,7 +339,7 @@ impl Schema {
                         Err(String::from("Just say yes or no."))
                     },
                     (false, false) => if self.r#type == SchemaType::Boolean {
-                        Err(String::from("I cannot find `boolean` in your output. Please make sure that your output contains a valid json value."))
+                        Err(format!("I cannot find `boolean` in your output. Please make sure that your output contains a valid {}.", self.one_word()))
                     } else {
                         Err(String::from("Just say yes or no."))
                     },
@@ -347,9 +364,10 @@ impl Schema {
                 let mut jsonish_literals = extract_jsonish_literal(s);
 
                 match jsonish_literals.get_matches(&self.r#type) {
-                    JsonMatch::NoMatch => Err(format!("I cannot find `{}` in your output. Please make sure that your output contains a valid json value.", self.type_name())),
+                    JsonMatch::NoMatch => Err(format!("I cannot find `{}` in your output. Please make sure that your output contains a valid {}.", self.type_name(), self.one_word())),
                     JsonMatch::MultipleMatches => Err(format!("I see more than 1 candidates that look like `{}`. I don't know which one to choose. Please give me just one `{}`.", self.type_name(), self.type_name())),
                     JsonMatch::Match(s) => Ok(s.to_string()),
+                    JsonMatch::ExpectedIntegerGotFloat(s) => Err(format!("I want an integer, but I can only find a float literal: `{s}`. Could you give me an integer literal?")),
                 }
             },
         }
@@ -535,6 +553,12 @@ impl Schema {
 
     pub fn unwrap_keys(&self) -> Vec<String> {
         self.r#type.unwrap_keys()
+    }
+
+    // It's a word that describes this schema. It's used to
+    // format error messages: format!("your output doesn't contain a valid {}", self.one_word())
+    fn one_word(&self) -> &'static str {
+        self.r#type.one_word()
     }
 }
 

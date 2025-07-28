@@ -59,6 +59,9 @@ def add(a, b):
         ("float", "The answer is 1.5", None),
         ("float", "정답: 1.5", None),
         ("float", "정답은 1.5입니다.", None),
+        ("int", "The answer is 7.", None),
+        ("float", "The answer is 7.", None),
+        ("int", "The answer is 7.5.", Some("but I can only find a float literal")),
         ("[float { max: 0.0 }]", "[1.5, 2.5]", Some("too big")),
         ("[float { max: 0.0 }]", "[-1.5, -2.5]", None),
         ("int", "Answer: -3", None),
@@ -304,6 +307,8 @@ def add(a, b):
         ("float", "The answer is 1.5", Value::from(1.5)),
         ("float", "정답: 1.5", Value::from(1.5)),
         ("float", "정답은 1.5입니다.", Value::from(1.5)),
+        ("int", "The answer is 7.", Value::from(7)),
+        ("float", "The answer is 7.", Value::from(7)),
         ("[float { max: 0.0 }]", "[-1.5, -2.5]", vec![-1.5, -2.5].into()),
         ("int", "Answer: -3", Value::from(-3)),
         (

@@ -144,7 +144,16 @@ impl<'a, 'b> JsonishLiteral<'a> {
     pub fn get_matches(&'a mut self, r#type: &'b SchemaType) -> JsonMatch<'a> {
         match r#type {
             SchemaType::Integer => match self.integers.len() {
-                0 => JsonMatch::NoMatch,
+                0 => match self.floats.len() {
+                    // "7." is pushed to `self.floats` but can be treated like an integer.
+                    // "7.5" is pushed to `self.floats` and cannot be treated like an integer.
+                    // For now, it doesn't treat "7.0" like an integer. It's kinda TODO.
+                    1 if self.s.get((self.floats[0].1 - 1)..self.floats[0].1).unwrap() == "." => {
+                        JsonMatch::Match(self.s.get(self.floats[0].0..(self.floats[0].1 - 1)).unwrap())
+                    },
+                    1 => JsonMatch::ExpectedIntegerGotFloat(self.s.get(self.floats[0].0..self.floats[0].1).unwrap()),
+                    _ => JsonMatch::NoMatch,
+                },
                 1 => JsonMatch::Match(self.s.get(self.integers[0].0..self.integers[0].1).unwrap()),
                 _ => {
                     let mut parsed_integers = vec![];
@@ -173,18 +182,31 @@ impl<'a, 'b> JsonishLiteral<'a> {
             },
             SchemaType::Float => match self.floats.len() {
                 0 => JsonMatch::NoMatch,
-                1 => JsonMatch::Match(self.s.get(self.floats[0].0..self.floats[0].1).unwrap()),
+                // It does 2 things.
+                // 1. If a float literal ends with ".", it removes the point.
+                //    - "7." is a valid f64 in Rust, but not a valid json value.
+                //    - This happens a lot. For example, if the LLM says "the answer is 7.", then the parser would
+                //      match "7.".
+                // 2. If the LLM outputs the same literal multiple times, it deduplicates the literals.
                 _ => {
                     let mut parsed_floats = vec![];
                     let mut selected_str = &self.s[..];
 
                     for (start, end) in self.floats.iter() {
-                        let s = &self.s.get(*start..*end).unwrap();
+                        let (start, mut end) = (*start, *end);
+                        let s = &self.s.get(start..end).unwrap();
                         let Ok(n) = s.parse::<f64>() else { continue; };
 
-                        // If the LLM outputs the same literal multiple times, that's fine.
+                        if s.ends_with(".") {
+                            end -= 1;
+                        }
+
+                        // dedup
                         match parsed_floats.last() {
-                            None => { parsed_floats.push(n); selected_str = s; },
+                            None => {
+                                parsed_floats.push(n);
+                                selected_str = &self.s.get(start..end).unwrap();
+                            },
                             Some(l) if *l != n => { return JsonMatch::MultipleMatches; },
                             Some(_) => {},
                         }
@@ -268,4 +290,5 @@ pub enum JsonMatch<'a> {
     NoMatch,
     MultipleMatches,
     Match(&'a str),
+    ExpectedIntegerGotFloat(&'a str),
 }
