@@ -41,8 +41,8 @@ pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--verbose", "--quiet"])
                 .optional_flag(&["--force-default-config"])
-                .optional_arg_flag("--port", ArgType::IntegerBetween { min: Some(0), max: Some(65535) })
-                .optional_arg_flag("--config", ArgType::Path)
+                .optional_arg_flag("--port", ArgType::integer_between(Some(0), Some(65535)))
+                .optional_arg_flag("--config", ArgType::String)  // path
                 .short_flag(&["--verbose", "--port"])
                 .parse(&args, 2)?;
 
@@ -57,7 +57,7 @@ pub fn parse_cli_args(args: Vec<String>) -> Result<CliCommand, Error> {
         Some(c @ ("drop-all" | "truncate-all")) => {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--force"])
-                .optional_arg_flag(&"--repo-data", ArgType::Path)
+                .optional_arg_flag(&"--repo-data", ArgType::String)  // path
                 .short_flag(&["--force"])
                 .parse(&args, 2)?;
 

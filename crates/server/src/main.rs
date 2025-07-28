@@ -3,6 +3,7 @@
 use ragit_server::CONFIG;
 use ragit_server::cli::{CliCommand, RunArgs, parse_cli_args};
 use ragit_server::config::Config;
+use ragit_server::error::Error;
 use ragit_server::methods::*;
 use ragit_server::models::ai_model::initialize_ai_models;
 use ragit_server::utils::fetch_form_data;
@@ -63,7 +64,21 @@ async fn main() {
             },
         },
         Err(e) => {
-            eprintln!("{e:?}");
+            match e {
+                Error::CliError { message, span } => {
+                    eprintln!("cli error: {message}{}",
+                        if let Some(span) = span {
+                            format!("\n\n{}", ragit_cli::underline_span(&span))
+                        } else {
+                            String::new()
+                        },
+                    );
+                },
+                _ => {
+                    eprintln!("{e:?}");
+                },
+            }
+
             std::process::exit(1);
         },
     };
