@@ -1,4 +1,4 @@
-# Hosting ragit-server
+# Hosting ragithub
 
 You can host a simple server where you can clone/push knowledge-bases to.
 
@@ -8,7 +8,7 @@ With the DB, please set env var `DATABASE_URL` with the DB URL (TODO: use dotenv
 
 > `export DATABASE_URL=postgres://postgres:password@url/to/your/db:5432/`
 
-This has to be done before compilation or migration. If it's first time running ragit-server, you have to init your DB. [sqlx](https://github.com/launchbadge/sqlx) provides you a cli tool for that. Install `sqlx-cli` and run `sqlx migrate run`
+This has to be done before compilation or migration. If it's first time running ragithub, you have to init your DB. [sqlx](https://github.com/launchbadge/sqlx) provides you a cli tool for that. Install `sqlx-cli` and run `sqlx migrate run`
 
 > `cargo install sqlx-cli; sqlx migrate run`
 

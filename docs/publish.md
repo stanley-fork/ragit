@@ -20,14 +20,15 @@ Let's say the latest published version is 0.3.1, and you want to publish 0.3.2.
   - You don't have to edit `Cargo.toml` files. You'll have to edit them after the publish.
 5. Run `git commit`. The commit title must be `release 0.3.2`.
 6. Run `cargo publish` in all the crates.
-  - In order to avoid dependency issues, I recommend you to publish in this order: fs -> ignore -> korean -> pdl -> api -> cli -> core -> server.
+  - In order to avoid dependency issues, I recommend you to publish in this order: fs -> ignore -> korean -> pdl -> api -> cli -> core.
+  - I'm not publishing ragithub-related crates anymore.
 7. Run `git push`.
   - Don't push until you publish all. If something goes wrong in step 6, do something and run `git commit --amend` before you push.
 
 ## After publish
 
 1. Run `git tag v0.3.2` and `git push origin tag v0.3.2`.
-2. Push knowledge-bases to ragit-server on `ragit.baehyunsol.com`, if there are updates.
+2. Push knowledge-bases to ragithub on `ragit.baehyunsol.com`, if there are updates.
 3. Bump versions in `lib.rs` and `Cargo.toml`.
   - Change `pub const VERSION: &str = "0.3.2";` in `lib.rs` to `"0.3.3-dev";`.
   - Change all the versions in `Cargo.toml`s from `0.3.2` to `0.3.3`.

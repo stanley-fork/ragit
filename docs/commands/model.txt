@@ -24,7 +24,7 @@ You can either remove a model by name, or all models with `--all` option.
 
 `rag model --search` is like `rag ls-models`, but it lists models in the
 remote, not in local `models.json`. You have to set `--remote` to a working
-ragit-server. If you're not sure just keep it blank.
+ragithub. If you're not sure just keep it blank.
 
 If you find a nice model with `rag model --search` command and want to use it,
 you can use `rag model --fetch` command. If you run `rag model --fetch --all`,

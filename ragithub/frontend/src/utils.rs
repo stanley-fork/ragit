@@ -254,22 +254,6 @@ pub async fn fetch_json<T: DeserializeOwned>(url: &str, api_key: &Option<String>
     Ok(serde_json::from_value(value.unwrap())?)
 }
 
-pub async fn fetch_text(url: &str, api_key: &Option<String>) -> Result<String, Error> {
-    let mut request = reqwest::Client::new().get(url);
-
-    if let Some(api_key) = api_key {
-        request = request.header("x-api-key", api_key);
-    }
-
-    let response = request.send().await?;
-    write_log(
-        "fetch_text",
-        &format!("fetch_text({url:?}) got `{}`", response.status()),
-    );
-
-    Ok(response.text().await?)
-}
-
 pub async fn fetch_bytes(url: &str, api_key: &Option<String>) -> Result<Vec<u8>, Error> {
     let mut request = reqwest::Client::new().get(url);
 

@@ -9,7 +9,7 @@ use ragit_fs::{
     write_log,
     write_string,
 };
-pub use ragit_server::models::repo::{Repository, Traffic};
+pub use ragithub_backend::models::repo::{Repository, Traffic};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::time::Duration;

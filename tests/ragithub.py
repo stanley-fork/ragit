@@ -6,9 +6,9 @@ from utils import goto_root
 
 help_message = """
 Commands
-    run [--truncate-all]        It runs ragithub.
-        [--port <n=8080>]
-        [--backend <url>]
+    run [--truncate-all]            It runs ragithub. If `--backend` is not set, it deploys a
+        [--port <n=8080>]           local backend at `/ragithub/backend`. If you're using the
+        [--backend <url>]           local backend, you can use `--truncate-all` option.
 """
 
 if __name__ == "__main__":

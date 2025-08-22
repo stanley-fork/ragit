@@ -160,7 +160,7 @@ def server():
             server_process.kill()
 
 # 0. truncate all the data in the server
-# 1. spawns a ragit-server process
+# 1. spawns a ragithub-backend process
 # 2. waits until the server becomes healthy
 # 3. go to root and return the server process
 def spawn_ragit_server(
@@ -169,9 +169,9 @@ def spawn_ragit_server(
     goto_root()
 
     if health_check():
-        raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
+        raise Exception("ragithub-backend is already running. Please run this test in an isolated environment.")
 
-    os.chdir("crates/server")
+    os.chdir("ragithub/backend")
 
     if truncate:
         subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force", "--repo-data", "./data", "--blob-data", "./blobs"]).wait()
@@ -182,11 +182,11 @@ def spawn_ragit_server(
         if health_check():
             break
 
-        print("waiting for ragit-server to start...")
+        print("waiting for ragithub-backend to start...")
         time.sleep(1)
 
     else:
-        raise Exception("failed to run `ragit-server`")
+        raise Exception("failed to run `ragithub-backend`")
 
     os.chdir("../..")
     return server_process

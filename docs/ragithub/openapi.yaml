@@ -1,6 +1,6 @@
 openapi: "3.0.4"
 info:
-  title: ragit-server
+  title: ragithub
   description: backend for ragithub
   version: 0.4.0
 paths:

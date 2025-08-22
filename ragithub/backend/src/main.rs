@@ -1,12 +1,12 @@
 #![recursion_limit = "256"]
 
-use ragit_server::CONFIG;
-use ragit_server::cli::{CliCommand, RunArgs, parse_cli_args};
-use ragit_server::config::Config;
-use ragit_server::error::Error;
-use ragit_server::methods::*;
-use ragit_server::models::ai_model::initialize_ai_models;
-use ragit_server::utils::fetch_form_data;
+use ragithub_backend::CONFIG;
+use ragithub_backend::cli::{CliCommand, RunArgs, parse_cli_args};
+use ragithub_backend::config::Config;
+use ragithub_backend::error::Error;
+use ragithub_backend::methods::*;
+use ragithub_backend::models::ai_model::initialize_ai_models;
+use ragithub_backend::utils::fetch_form_data;
 use ragit_fs::{
     WriteMode,
     exists,

@@ -6,7 +6,7 @@ use ragit_fs::{
     basename,
     write_log,
 };
-pub use ragit_server::models::file::{FileDetail, FileType};
+pub use ragithub_backend::models::file::{FileDetail, FileType};
 use serde::Serialize;
 use std::collections::{hash_map, HashSet};
 use std::hash::Hasher;

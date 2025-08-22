@@ -8,13 +8,20 @@ subprocess.run(["cargo", "clean"], check=True)
 if os.path.exists("Cargo.lock"):
     os.remove("Cargo.lock")
 
-os.chdir("crates")
-
-for crate in os.listdir():
-    os.chdir(crate)
+for path in [
+    "crates/api",
+    "crates/cli",
+    "crates/fs",
+    "crates/ignore",
+    "crates/korean",
+    "crates/pdl",
+    "ragithub/frontend",
+    "ragithub/backend",
+]:
+    os.chdir(path)
     subprocess.run(["cargo", "clean"], check=True)
 
     if os.path.exists("Cargo.lock"):
         os.remove("Cargo.lock")
 
-    os.chdir("..")
+    os.chdir("../..")

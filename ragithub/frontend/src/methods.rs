@@ -1,20 +1,13 @@
 use async_std::task;
-use crate::error::Error;
 use crate::models::{TopMenu, fetch_repositories};
 use crate::utils::{
-    fetch_text,
     int_comma,
     render_time,
     trim_long_string,
     uri_from_str,
 };
 use lazy_static::lazy_static;
-use ragit_fs::{
-    WriteMode,
-    read_string,
-    write_log,
-    write_string,
-};
+use ragit_fs::write_log;
 use std::collections::HashMap;
 use std::process::Command;
 use std::str::FromStr;

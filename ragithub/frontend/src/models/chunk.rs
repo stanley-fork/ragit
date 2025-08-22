@@ -1,5 +1,5 @@
 use ragit::MultiModalContent;
-pub use ragit_server::models::chunk::ChunkDetail;
+pub use ragithub_backend::models::chunk::ChunkDetail;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]

@@ -43,4 +43,4 @@ After writing some code, please make sure to run tests. You can find the tests i
 
 I highly recommend you run `python tests/tests.py all` in an isolated environment, like VM or an EC2 instance. It resets `docs/.ragit` multiple times, and fails if there's `~/.config/ragit`.
 
-Some tests compile and run ragit-server. There're extra prerequisites for ragit-server.
+Some tests compile and run ragithub.

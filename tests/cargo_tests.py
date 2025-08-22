@@ -15,7 +15,16 @@ def cargo_tests():
     )
     os.chdir("crates")
 
-    for crate in ["api", "cli", "fs", "ignore", "korean", "pdl", "server"]:
+    for crate in [
+        "crates/api",
+        "crates/cli",
+        "crates/fs",
+        "crates/ignore",
+        "crates/korean",
+        "crates/pdl",
+        "ragithub/frontend",
+        "ragithub/backend",
+    ]:
         os.chdir(crate)
         errors += run_cargo_test(
             location=crate,
@@ -23,7 +32,7 @@ def cargo_tests():
             # build artifacts take more than 20GiB
             additional_actions=[["cargo", "clean"]],
         )
-        os.chdir("..")
+        os.chdir("../..")
 
     if len(errors) > 0:
         raise Exception("\n\n".join(errors))
