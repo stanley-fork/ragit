@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+        {% if title %}
+            <title>{{title}}</title>
+        {% else %}
+            <title>Ragithub</title>
+        {% endif %}
+
+        <link rel="preload" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding&amp;display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+
+        {% if styles %}
+            {% for style in styles %}<link href="{{style}}" rel="stylesheet"/>{% endfor %}
+        {% endif %}
+        {% block head %}
+        {% endblock head %}
+    </head>
+    <body>
+        {% if top_menu %}
+            <div class="top-menu box">
+                <div class="toggle-buttons">
+                    {% for item in top_menu.items %}
+                        <a href="{{item.href}}" class="deactivated">{{item.name}}</a>
+                        {% if not loop.last %}<span class="landscape-only"> • </span>{% endif %}
+                    {% endfor %}
+                </div>
+                <a class="portrait-only" id="header-button" style="width: 100%;">☰</a>
+            </div>
+
+            <!-- I need a space for the top menu, but I don't know how to do that... -->
+            <br/>
+            <br/>
+            <br/>
+        {% endif %}
+        <a id="top"></a>
+
+        {% block body %}
+        {% endblock body %}
+
+        {% if popup %}
+            <link href="/popup.css" rel="stylesheet"/>
+            <div class="popup-container">
+                <div class="flex-container-row-center">
+                    <div class="popup-box">{{popup}}</div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if components %}{% for html in components %}{{html|safe}}{% endfor %}{% endif %}
+        {% if scripts %}{% for script in scripts %}<script src="{{script}}"></script>{% endfor %}{% endif %}
+
+        <a id="bottom"></a>
+
+        <footer class="markdown">
+            <hr />
+            <div class="flex-container-row-center">
+                <div class="flex-container-column">
+                    <div>2024 ~ 2025 &copy; Baehyunsol</div>
+
+                    {% if ragithub_version %}
+                        <div>version: {{ragithub_version}}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </footer>
+    </body>
+</html>

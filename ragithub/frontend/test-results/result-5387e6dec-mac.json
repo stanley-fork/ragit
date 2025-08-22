@@ -1,0 +1,280 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-28 10:20:54.263961Z",
+        "commit": "5387e6decf26ce4884ec72892a2059d1a0110760",
+        "platform": {
+            "cargo_version": "cargo 1.86.0-nightly (0e3d73849 2025-02-01)",
+            "rustc_version": "rustc 1.86.0-nightly (4a4309466 2025-02-02)",
+            "python_version": "3.9.6",
+            "platform": "macOS-14.3.1-arm64-arm-64bit"
+        },
+        "rand_seed": 2025228102054,
+        "ended_at": "2025-02-28 11:26:54.429209Z",
+        "elapsed_ms": 3960165,
+        "ragit_version": "ragit 0.3.2-dev",
+        "commit_title": "add `tests/server.py`",
+        "commit_message": ""
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 237984
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 126497
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34445
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13889
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11698
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 61682
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6645
+        },
+        "server": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 370689
+        },
+        "cli": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 16028
+        },
+        "archive": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 412712
+        },
+        "many_chunks": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 707679
+        },
+        "many_jobs": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 48260
+        },
+        "ls": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 347048
+        },
+        "meta": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7177
+        },
+        "symlink": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10277
+        },
+        "ii": {
+            "seq": 15,
+            "pass": false,
+            "error": "tfidf result on term 'crate main build into all' is not close enough. error: `approximation[1] not in answer`, answer: ['799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', '0d4fafb4e2410e369b8b2b01f1028098af982abdb891a6790000000100000207', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204', '01632c8715a20988f1d1ee95aa8d5cd1fc4c7c0e7b70c4570000000100000205', '07edccd7468f00ef416e169bb45eeec81e91e583cce8aa8e0000000100000200', '787e2c52575c48133ffde911106c06bba30603371f754ef20000000100000212', '52071601888dbbfd851b3188ad73454b2f566441d31c871e0000000100000207', '73f3b15a8d584c9252dc807e7d72f355852318257b12dac60000000100000200', '344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205'], approximation: ['344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205', '0280d49b1308e37a67c22969ab99bf3aecebda7511b583040000000100000214', '959571cc4d4ddd87dbd356ec2c47db33e21828f5d9b9a4d90000000100000205', 'b339028f8314802ef2d037e64b6fcb5ac5680baee8188e720000000100000217', '799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', 'b3fb241e2bdcb85ea72edc4bd3a063b13d9121058c2523d600000001000001ab', '6e1a3ddbf0402ea96c366c66295a909805302b20fa8013b7000000010000012a', 'd58a4a1947d256486ade8fc6ed56473a8d3884af84854bf60000000100000204', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204']\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 103, in ii_worker\n    raise AssertionError(f\"approximation[{i}] not in answer\")\nAssertionError: approximation[1] not in answer\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/tests.py\", line 472, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'crate main build into all' is not close enough. error: `approximation[1] not in answer`, answer: ['799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', '0d4fafb4e2410e369b8b2b01f1028098af982abdb891a6790000000100000207', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204', '01632c8715a20988f1d1ee95aa8d5cd1fc4c7c0e7b70c4570000000100000205', '07edccd7468f00ef416e169bb45eeec81e91e583cce8aa8e0000000100000200', '787e2c52575c48133ffde911106c06bba30603371f754ef20000000100000212', '52071601888dbbfd851b3188ad73454b2f566441d31c871e0000000100000207', '73f3b15a8d584c9252dc807e7d72f355852318257b12dac60000000100000200', '344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205'], approximation: ['344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205', '0280d49b1308e37a67c22969ab99bf3aecebda7511b583040000000100000214', '959571cc4d4ddd87dbd356ec2c47db33e21828f5d9b9a4d90000000100000205', 'b339028f8314802ef2d037e64b6fcb5ac5680baee8188e720000000100000217', '799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', 'b3fb241e2bdcb85ea72edc4bd3a063b13d9121058c2523d600000001000001ab', '6e1a3ddbf0402ea96c366c66295a909805302b20fa8013b7000000010000012a', 'd58a4a1947d256486ade8fc6ed56473a8d3884af84854bf60000000100000204', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204']\n",
+            "elapsed_ms": 75262
+        },
+        "cat_file": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34318
+        },
+        "images": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9105
+        },
+        "markdown_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14470
+        },
+        "csv_reader": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7651
+        },
+        "subdir": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 27467
+        },
+        "tfidf": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 31846
+        },
+        "merge": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50949
+        },
+        "external_bases": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 159612
+        },
+        "end_to_end dummy": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 77774
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 87665
+        },
+        "prompts dummy": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12535
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 52040
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 89483
+        },
+        "empty dummy": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10408
+        },
+        "empty llama3.3-70b": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11412
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13972
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11880
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 25863
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14245
+        },
+        "extract_keywords dummy": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3015
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9603
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 115681
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 40868
+        },
+        "ragit_api command-r": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7139
+        },
+        "migrate": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 201700
+        },
+        "migrate2": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 249934
+        }
+    },
+    "result": {
+        "total": 42,
+        "complete": 42,
+        "pass": 41,
+        "fail": 1,
+        "remaining": 0
+    }
+}

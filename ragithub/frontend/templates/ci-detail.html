@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="markdown">
+    <h1>{{title}}</h1>
+
+    {% if show_download_button %}
+        <p><a href="/ci/{{title}}/download-json">result.json</a></p>
+    {% endif %}
+
+    <p>total: {{detail.result.pass + detail.result.fail}}, pass: {{detail.result.pass}}, fail: {{detail.result.fail}}</p>
+
+    {% if show_description %}
+        <p>
+            <pre class="fenced-code-block"><code>{{description}}</code></pre>
+        </p>
+    {% endif %}
+
+    {% if show_git_info %}
+        <p>
+            <pre class="fenced-code-block"><code>{{detail.meta.commit_title}}
+
+{{detail.meta.commit_message}}</code></pre>
+        </p>
+    {% endif %}
+
+    {% if show_metadata %}
+        <ul>
+            <li>commit: {{detail.meta.commit}}</li>
+            <li>platform: {{detail.meta.platform.platform}}</li>
+            <li>ragit version: {{detail.meta.ragit_version}}</li>
+            <li>rustc version: {{detail.meta.platform.rustc_version}}</li>
+            <li>cargo version: {{detail.meta.platform.cargo_version}}</li>
+            <li>python version: {{detail.meta.platform.python_version}}</li>
+            <li>tested at: {{detail.meta.ended_at}} ({{detail.meta.ended_at|render_time}})</li>
+            <li>total elapsed time: {{detail.meta.elapsed_ms|int_comma}} ms</li>
+        </ul>
+    {% endif %}
+
+    <h2>TOC</h2>
+    <ol>
+        {% for case in cases %}
+            <li>
+                <div class="title-and-ball">
+                    <a href="#{{case.seq}}">{{case.name}}</a>
+                    <span>&nbsp;</span>
+
+                    {% if case.pass %}
+                        <span class="green-ball-small"></span>
+                    {% else %}
+                        <span class="red-ball-small"></span>
+                    {% endif %}
+                </div>
+            </li>
+        {% endfor %}
+    </ol>
+
+    <h2>Cases</h2>
+
+    {% for case in cases %}
+        <div class="title-and-ball">
+            <div class="title-text">{{case.name}}</div>
+            <span>&nbsp;</span>
+
+            {% if case.pass %}
+                <span class="green-ball-big"></span>
+            {% else %}
+                <span class="red-ball-big"></span>
+            {% endif %}
+        </div>
+        <a id="{{case.seq}}"></a>
+        <a id="{{case.name}}"></a>
+
+        {% if case.ended_at %}
+            <p>tested at: {{case.ended_at}} ({{case.ended_at|render_time}})</p>
+        {% endif %}
+
+        <p>elapsed time: {{case.elapsed_ms|int_comma}} ms</p>
+
+        {% if case.error %}
+            <details open>
+                <summary>Error</summary>
+                <p><pre class="fenced-code-block"><code>{{case.error}}</code></pre></p>
+            </details>
+        {% endif %}
+
+        {% if case.message %}
+            <details>
+                <summary>Message</summary>
+                <p><pre class="fenced-code-block"><code>{{case.message}}</code></pre></p>
+            </details>
+        {% endif %}
+
+        <p>
+            {% if case.history_mode %}
+                <a href="/ci/{{case.name}}#{{title}}">suite</a>
+            {% else %}
+                <a href="/ci/{{case.name_hash}}/history/#{{title}}">history</a>
+            {% endif %}
+        </p>
+
+        <div class="space-between-cases"></div>
+    {% endfor %}
+
+    {% if show_footer_nav %}
+        <hr />
+        <div class="flex-container-lr">
+            <div>
+                &lt;&lt; {% if prev_title %}<a href="/ci/{{prev_title}}">{{prev_title}}</a>{% else %}There's no previous test run.{% endif %}
+            </div>
+            <div>
+                {% if next_title %}<a href="/ci/{{next_title}}">{{next_title}}</a>{% else %}There's no next test run.{% endif %} &gt;&gt;
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

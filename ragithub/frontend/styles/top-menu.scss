@@ -1,0 +1,40 @@
+@import "colors";
+@import "units";
+
+div.top-menu {
+    background-color: var(--black);
+    border-bottom: $border-big solid var(--white);
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: $padding-medium;
+}
+
+div.top-menu a {
+    font-size: $font-big;
+    text-decoration: none;
+    border: none;
+    margin: $padding-medium;
+    color: var(--white);
+}
+
+div.top-menu a:hover {
+    border-bottom: $border-medium solid var(--white);
+}
+
+@media screen and (orientation: portrait) {
+    .deactivated {
+        display: none;
+    }
+
+    .activated {
+        display: block;
+    }
+
+    div.toggle-buttons {
+        max-height: 0;
+        transition: max-height 0.5s ease-out;
+    }
+}

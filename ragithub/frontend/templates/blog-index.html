@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="markdown">
+    {% if tag %}<p>tag: {{tag}} (<a href="/blog">X</a>)</p>{% endif %}
+
+    {% for i in index %}
+        <h2>{{i.month}}</h2>
+
+        {% for article in i.articles %}
+            <p><a href="/blog/{{article.key}}">{{article.title}}</a></p>
+        {% endfor %}
+    {% endfor %}
+</div>
+
+{% endblock %}

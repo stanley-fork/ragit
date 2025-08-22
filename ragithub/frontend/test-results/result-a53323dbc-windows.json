@@ -1,0 +1,262 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-23 10:28:10.444411Z",
+        "commit": "a53323dbc818f402e154310cfe49e395b90624bb",
+        "platform": {
+            "cargo_version": "cargo 1.83.0 (5ffbef321 2024-10-29)",
+            "rustc_version": "rustc 1.83.0 (90b35a623 2024-11-26)",
+            "python_version": "3.13.2",
+            "platform": "Windows-11-10.0.26100-SP0"
+        },
+        "ended_at": "2025-02-23 12:06:32.581533Z",
+        "elapsed_ms": 5902137,
+        "ragit_version": "ragit 0.3.0-dev",
+        "commit_title": "update 0.3.0 release note",
+        "commit_message": "",
+        "rand_seed": 0
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": false,
+            "error": "\n#####################\n### path: command ###\nC:\\Users\\baehy\\ragit\\crates\\pdl: cargo test\n\n### status_code ###\n101\n\n### stdout ###\n\nrunning 4 tests\ntest schema::tests::schema_parse_test ... ok\ntest tests::messages_from_file_test ... FAILED\ntest tests::media_content_test ... ok\ntest schema::tests::schema_validate_test ... ok\n\nfailures:\n\n---- tests::messages_from_file_test stdout ----\nthread 'tests::messages_from_file_test' panicked at src\\lib.rs:407:11:\ncalled `Result::unwrap()` on an `Err` value: file not found: `/tmp/test_messages.tera`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::messages_from_file_test\n\ntest result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\n\n### stderr ###\n    Updating crates.io index\n     Locking 193 packages to latest compatible versions\n   Compiling proc-macro2 v1.0.93\n   Compiling unicode-ident v1.0.17\n   Compiling cfg-if v1.0.0\n   Compiling memchr v2.7.4\n   Compiling windows_x86_64_msvc v0.52.6\n   Compiling autocfg v1.4.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling siphasher v1.0.1\n   Compiling rand_core v0.6.4\n   Compiling rayon-core v1.12.1\n   Compiling regex-syntax v0.8.5\n   Compiling byteorder v1.5.0\n   Compiling simd-adler32 v0.3.7\n   Compiling log v0.4.26\n   Compiling once_cell v1.20.3\n   Compiling thiserror v2.0.11\n   Compiling either v1.13.0\n   Compiling adler2 v2.0.0\n   Compiling zerocopy v0.8.20\n   Compiling anyhow v1.0.96\n   Compiling getrandom v0.3.1\n   Compiling ucd-trie v0.1.7\n   Compiling rand v0.8.5\n   Compiling phf_shared v0.11.3\n   Compiling miniz_oxide v0.8.5\n   Compiling libc v0.2.170\n   Compiling built v0.7.7\n   Compiling thiserror v1.0.69\n   Compiling paste v1.0.15\n   Compiling arrayvec v0.7.6\n   Compiling aligned-vec v0.5.0\n   Compiling aho-corasick v1.1.3\n   Compiling num-traits v0.2.19\n   Compiling phf_generator v0.11.3\n   Compiling phf v0.11.3\n   Compiling minimal-lexical v0.2.1\n   Compiling rav1e v0.7.1\n   Compiling bstr v1.11.3\n   Compiling regex-automata v0.4.9\n   Compiling getrandom v0.2.15\n   Compiling crc32fast v1.4.2\n   Compiling libm v0.2.11\n   Compiling unic-char-range v0.9.0\n   Compiling serde v1.0.218\n   Compiling unic-common v0.9.0\n   Compiling phf_codegen v0.11.3\n   Compiling nom v7.1.3\n   Compiling itertools v0.12.1\n   Compiling windows-targets v0.52.6\n   Compiling unic-char-property v0.9.0\n   Compiling flate2 v1.0.35\n   Compiling unic-ucd-version v0.9.0\n   Compiling quote v1.0.38\n   Compiling crossbeam-epoch v0.9.18\n   Compiling quick-error v2.0.1\n   Compiling bitstream-io v2.6.0\n   Compiling regex v1.11.1\n   Compiling globset v0.4.15\n   Compiling weezl v0.1.8\n   Compiling imgref v1.11.0\n   Compiling windows-sys v0.59.0\n   Compiling noop_proc_macro v0.3.0\n   Compiling new_debug_unreachable v1.0.6\n   Compiling serde_json v1.0.139\n   Compiling unic-ucd-segment v0.9.0\n   Compiling avif-serialize v0.8.2\n   Compiling zune-inflate v0.2.54\n   Compiling fdeflate v0.3.7\n   Compiling syn v2.0.98\n   Compiling crossbeam-deque v0.8.6\n   Compiling simd_helpers v0.1.0\n   Compiling half v2.4.1\n   Compiling rand_core v0.9.2\n   Compiling loop9 v0.1.5\n   Compiling parse-zoneinfo v0.3.1\n   Compiling color_quant v1.1.0\n   Compiling lebe v0.5.2\n   Compiling ryu v1.0.19\n   Compiling deunicode v1.6.0\n   Compiling jpeg-decoder v0.3.1\n   Compiling chrono-tz-build v0.3.0\n   Compiling num-integer v0.1.46\n   Compiling rayon v1.10.0\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.39\n   Compiling bytemuck v1.21.0\n   Compiling bit_field v0.10.2\n   Compiling zune-core v0.4.12\n   Compiling itoa v1.0.14\n   Compiling byteorder-lite v0.1.0\n   Compiling smallvec v1.14.0\n   Compiling winapi-util v0.1.9\n   Compiling bitflags v1.3.2\n   Compiling bitflags v2.8.0\n   Compiling rgb v0.8.50\n   Compiling num-bigint v0.4.6\n   Compiling qoi v0.4.1\n   Compiling image-webp v0.2.1\n   Compiling exr v1.73.0\n   Compiling slug v0.1.6\n   Compiling same-file v1.0.6\n   Compiling tiff v0.9.1\n   Compiling png v0.17.16\n   Compiling zune-jpeg v0.4.14\n   Compiling humansize v2.1.3\n   Compiling gif v0.13.1\n   Compiling unic-segment v0.9.0\n   Compiling percent-encoding v2.3.1\n   Compiling pathdiff v0.2.3\n   Compiling walkdir v2.5.0\n   Compiling lazy_static v1.5.0\n   Compiling base64 v0.22.1\n   Compiling chrono-tz v0.9.0\n   Compiling num-rational v0.4.2\n   Compiling ignore v0.4.23\n   Compiling av1-grain v0.2.3\n   Compiling maybe-rayon v0.1.1\n   Compiling globwalk v0.9.1\n   Compiling zerocopy-derive v0.7.35\n   Compiling thiserror-impl v2.0.11\n   Compiling profiling-procmacros v1.0.16\n   Compiling thiserror-impl v1.0.69\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling num-derive v0.4.2\n   Compiling profiling v1.0.16\n   Compiling zerocopy v0.7.35\n   Compiling pest v2.7.15\n   Compiling ppv-lite86 v0.2.20\n   Compiling rand_chacha v0.3.1\n   Compiling rand_chacha v0.9.0\n   Compiling rand v0.9.0\n   Compiling ragit-fs v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\fs)\n   Compiling pest_meta v2.7.15\n   Compiling pest_generator v2.7.15\n   Compiling pest_derive v2.7.15\n   Compiling tera v1.20.0\n   Compiling ravif v0.11.11\n   Compiling image v0.25.5\n   Compiling ragit-pdl v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\pdl)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 27s\n     Running unittests src\\lib.rs (target\\debug\\deps\\ragit_pdl-1209be947637b1e6.exe)\nerror: test failed, to rerun pass `--lib`\n\n\n\n\n#####################\n### path: command ###\nC:\\Users\\baehy\\ragit\\crates\\pdl: cargo test --release\n\n### status_code ###\n101\n\n### stdout ###\n\nrunning 4 tests\ntest schema::tests::schema_parse_test ... ok\ntest tests::messages_from_file_test ... FAILED\ntest tests::media_content_test ... ok\ntest schema::tests::schema_validate_test ... ok\n\nfailures:\n\n---- tests::messages_from_file_test stdout ----\nthread 'tests::messages_from_file_test' panicked at src\\lib.rs:407:11:\ncalled `Result::unwrap()` on an `Err` value: file not found: `/tmp/test_messages.tera`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::messages_from_file_test\n\ntest result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\n\n### stderr ###\n   Compiling proc-macro2 v1.0.93\n   Compiling unicode-ident v1.0.17\n   Compiling cfg-if v1.0.0\n   Compiling windows_x86_64_msvc v0.52.6\n   Compiling memchr v2.7.4\n   Compiling autocfg v1.4.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling thiserror v2.0.11\n   Compiling siphasher v1.0.1\n   Compiling byteorder v1.5.0\n   Compiling rand_core v0.6.4\n   Compiling regex-syntax v0.8.5\n   Compiling simd-adler32 v0.3.7\n   Compiling rayon-core v1.12.1\n   Compiling log v0.4.26\n   Compiling getrandom v0.3.1\n   Compiling anyhow v1.0.96\n   Compiling either v1.13.0\n   Compiling adler2 v2.0.0\n   Compiling zerocopy v0.8.20\n   Compiling thiserror v1.0.69\n   Compiling aligned-vec v0.5.0\n   Compiling built v0.7.7\n   Compiling phf_shared v0.11.3\n   Compiling rand v0.8.5\n   Compiling minimal-lexical v0.2.1\n   Compiling arrayvec v0.7.6\n   Compiling libc v0.2.170\n   Compiling ucd-trie v0.1.7\n   Compiling phf v0.11.3\n   Compiling miniz_oxide v0.8.5\n   Compiling num-traits v0.2.19\n   Compiling paste v1.0.15\n   Compiling rav1e v0.7.1\n   Compiling crc32fast v1.4.2\n   Compiling getrandom v0.2.15\n   Compiling phf_generator v0.11.3\n   Compiling aho-corasick v1.1.3\n   Compiling bstr v1.11.3\n   Compiling regex-automata v0.4.9\n   Compiling nom v7.1.3\n   Compiling unic-char-range v0.9.0\n   Compiling once_cell v1.20.3\n   Compiling serde v1.0.218\n   Compiling libm v0.2.11\n   Compiling windows-targets v0.52.6\n   Compiling unic-common v0.9.0\n   Compiling flate2 v1.0.35\n   Compiling phf_codegen v0.11.3\n   Compiling unic-char-property v0.9.0\n   Compiling quote v1.0.38\n   Compiling crossbeam-epoch v0.9.18\n   Compiling windows-sys v0.59.0\n   Compiling unic-ucd-version v0.9.0\n   Compiling syn v2.0.98\n   Compiling itertools v0.12.1\n   Compiling imgref v1.11.0\n   Compiling simd_helpers v0.1.0\n   Compiling crossbeam-deque v0.8.6\n   Compiling new_debug_unreachable v1.0.6\n   Compiling regex v1.11.1\n   Compiling num-integer v0.1.46\n   Compiling winapi-util v0.1.9\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.39\n   Compiling rand_core v0.9.2\n   Compiling noop_proc_macro v0.3.0\n   Compiling bitstream-io v2.6.0\n   Compiling serde_json v1.0.139\n   Compiling quick-error v2.0.1\n   Compiling weezl v0.1.8\n   Compiling parse-zoneinfo v0.3.1\n   Compiling num-bigint v0.4.6\n   Compiling same-file v1.0.6\n   Compiling loop9 v0.1.5\n   Compiling unic-ucd-segment v0.9.0\n   Compiling rayon v1.10.0\n   Compiling chrono-tz-build v0.3.0\n   Compiling walkdir v2.5.0\n   Compiling avif-serialize v0.8.2\n   Compiling fdeflate v0.3.7\n   Compiling zune-inflate v0.2.54\n   Compiling globset v0.4.15\n   Compiling half v2.4.1\n   Compiling num-rational v0.4.2\n   Compiling chrono-tz v0.9.0\n   Compiling av1-grain v0.2.3\n   Compiling ignore v0.4.23\n   Compiling bitflags v2.8.0\n   Compiling itoa v1.0.14\n   Compiling bytemuck v1.21.0\n   Compiling zune-core v0.4.12\n   Compiling color_quant v1.1.0\n   Compiling deunicode v1.6.0\n   Compiling bitflags v1.3.2\n   Compiling smallvec v1.14.0\n   Compiling rgb v0.8.50\n   Compiling lebe v0.5.2\n   Compiling jpeg-decoder v0.3.1\n   Compiling byteorder-lite v0.1.0\n   Compiling ryu v1.0.19\n   Compiling bit_field v0.10.2\n   Compiling thiserror-impl v2.0.11\n   Compiling zerocopy-derive v0.7.35\n   Compiling thiserror-impl v1.0.69\n   Compiling profiling-procmacros v1.0.16\n   Compiling num-derive v0.4.2\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling slug v0.1.6\n   Compiling image-webp v0.2.1\n   Compiling exr v1.73.0\n   Compiling png v0.17.16\n   Compiling qoi v0.4.1\n   Compiling zune-jpeg v0.4.14\n   Compiling globwalk v0.9.1\n   Compiling maybe-rayon v0.1.1\n   Compiling tiff v0.9.1\n   Compiling gif v0.13.1\n   Compiling unic-segment v0.9.0\n   Compiling pathdiff v0.2.3\n   Compiling percent-encoding v2.3.1\n   Compiling lazy_static v1.5.0\n   Compiling base64 v0.22.1\n   Compiling profiling v1.0.16\n   Compiling zerocopy v0.7.35\n   Compiling pest v2.7.15\n   Compiling humansize v2.1.3\n   Compiling ppv-lite86 v0.2.20\n   Compiling rand_chacha v0.9.0\n   Compiling rand_chacha v0.3.1\n   Compiling rand v0.9.0\n   Compiling pest_meta v2.7.15\n   Compiling ragit-fs v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\fs)\n   Compiling pest_generator v2.7.15\n   Compiling pest_derive v2.7.15\n   Compiling tera v1.20.0\n   Compiling ravif v0.11.11\n   Compiling image v0.25.5\n   Compiling ragit-pdl v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\pdl)\n    Finished `release` profile [optimized] target(s) in 2m 04s\n     Running unittests src\\lib.rs (target\\release\\deps\\ragit_pdl-67a652a73b776a98.exe)\nerror: test failed, to rerun pass `--lib`\n\n\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\cargo_tests.py\", line 45, in cargo_tests\n    raise Exception(\"\\n\\n\".join(errors))\nException: \n#####################\n### path: command ###\nC:\\Users\\baehy\\ragit\\crates\\pdl: cargo test\n\n### status_code ###\n101\n\n### stdout ###\n\nrunning 4 tests\ntest schema::tests::schema_parse_test ... ok\ntest tests::messages_from_file_test ... FAILED\ntest tests::media_content_test ... ok\ntest schema::tests::schema_validate_test ... ok\n\nfailures:\n\n---- tests::messages_from_file_test stdout ----\nthread 'tests::messages_from_file_test' panicked at src\\lib.rs:407:11:\ncalled `Result::unwrap()` on an `Err` value: file not found: `/tmp/test_messages.tera`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::messages_from_file_test\n\ntest result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\n\n### stderr ###\n    Updating crates.io index\n     Locking 193 packages to latest compatible versions\n   Compiling proc-macro2 v1.0.93\n   Compiling unicode-ident v1.0.17\n   Compiling cfg-if v1.0.0\n   Compiling memchr v2.7.4\n   Compiling windows_x86_64_msvc v0.52.6\n   Compiling autocfg v1.4.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling siphasher v1.0.1\n   Compiling rand_core v0.6.4\n   Compiling rayon-core v1.12.1\n   Compiling regex-syntax v0.8.5\n   Compiling byteorder v1.5.0\n   Compiling simd-adler32 v0.3.7\n   Compiling log v0.4.26\n   Compiling once_cell v1.20.3\n   Compiling thiserror v2.0.11\n   Compiling either v1.13.0\n   Compiling adler2 v2.0.0\n   Compiling zerocopy v0.8.20\n   Compiling anyhow v1.0.96\n   Compiling getrandom v0.3.1\n   Compiling ucd-trie v0.1.7\n   Compiling rand v0.8.5\n   Compiling phf_shared v0.11.3\n   Compiling miniz_oxide v0.8.5\n   Compiling libc v0.2.170\n   Compiling built v0.7.7\n   Compiling thiserror v1.0.69\n   Compiling paste v1.0.15\n   Compiling arrayvec v0.7.6\n   Compiling aligned-vec v0.5.0\n   Compiling aho-corasick v1.1.3\n   Compiling num-traits v0.2.19\n   Compiling phf_generator v0.11.3\n   Compiling phf v0.11.3\n   Compiling minimal-lexical v0.2.1\n   Compiling rav1e v0.7.1\n   Compiling bstr v1.11.3\n   Compiling regex-automata v0.4.9\n   Compiling getrandom v0.2.15\n   Compiling crc32fast v1.4.2\n   Compiling libm v0.2.11\n   Compiling unic-char-range v0.9.0\n   Compiling serde v1.0.218\n   Compiling unic-common v0.9.0\n   Compiling phf_codegen v0.11.3\n   Compiling nom v7.1.3\n   Compiling itertools v0.12.1\n   Compiling windows-targets v0.52.6\n   Compiling unic-char-property v0.9.0\n   Compiling flate2 v1.0.35\n   Compiling unic-ucd-version v0.9.0\n   Compiling quote v1.0.38\n   Compiling crossbeam-epoch v0.9.18\n   Compiling quick-error v2.0.1\n   Compiling bitstream-io v2.6.0\n   Compiling regex v1.11.1\n   Compiling globset v0.4.15\n   Compiling weezl v0.1.8\n   Compiling imgref v1.11.0\n   Compiling windows-sys v0.59.0\n   Compiling noop_proc_macro v0.3.0\n   Compiling new_debug_unreachable v1.0.6\n   Compiling serde_json v1.0.139\n   Compiling unic-ucd-segment v0.9.0\n   Compiling avif-serialize v0.8.2\n   Compiling zune-inflate v0.2.54\n   Compiling fdeflate v0.3.7\n   Compiling syn v2.0.98\n   Compiling crossbeam-deque v0.8.6\n   Compiling simd_helpers v0.1.0\n   Compiling half v2.4.1\n   Compiling rand_core v0.9.2\n   Compiling loop9 v0.1.5\n   Compiling parse-zoneinfo v0.3.1\n   Compiling color_quant v1.1.0\n   Compiling lebe v0.5.2\n   Compiling ryu v1.0.19\n   Compiling deunicode v1.6.0\n   Compiling jpeg-decoder v0.3.1\n   Compiling chrono-tz-build v0.3.0\n   Compiling num-integer v0.1.46\n   Compiling rayon v1.10.0\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.39\n   Compiling bytemuck v1.21.0\n   Compiling bit_field v0.10.2\n   Compiling zune-core v0.4.12\n   Compiling itoa v1.0.14\n   Compiling byteorder-lite v0.1.0\n   Compiling smallvec v1.14.0\n   Compiling winapi-util v0.1.9\n   Compiling bitflags v1.3.2\n   Compiling bitflags v2.8.0\n   Compiling rgb v0.8.50\n   Compiling num-bigint v0.4.6\n   Compiling qoi v0.4.1\n   Compiling image-webp v0.2.1\n   Compiling exr v1.73.0\n   Compiling slug v0.1.6\n   Compiling same-file v1.0.6\n   Compiling tiff v0.9.1\n   Compiling png v0.17.16\n   Compiling zune-jpeg v0.4.14\n   Compiling humansize v2.1.3\n   Compiling gif v0.13.1\n   Compiling unic-segment v0.9.0\n   Compiling percent-encoding v2.3.1\n   Compiling pathdiff v0.2.3\n   Compiling walkdir v2.5.0\n   Compiling lazy_static v1.5.0\n   Compiling base64 v0.22.1\n   Compiling chrono-tz v0.9.0\n   Compiling num-rational v0.4.2\n   Compiling ignore v0.4.23\n   Compiling av1-grain v0.2.3\n   Compiling maybe-rayon v0.1.1\n   Compiling globwalk v0.9.1\n   Compiling zerocopy-derive v0.7.35\n   Compiling thiserror-impl v2.0.11\n   Compiling profiling-procmacros v1.0.16\n   Compiling thiserror-impl v1.0.69\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling num-derive v0.4.2\n   Compiling profiling v1.0.16\n   Compiling zerocopy v0.7.35\n   Compiling pest v2.7.15\n   Compiling ppv-lite86 v0.2.20\n   Compiling rand_chacha v0.3.1\n   Compiling rand_chacha v0.9.0\n   Compiling rand v0.9.0\n   Compiling ragit-fs v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\fs)\n   Compiling pest_meta v2.7.15\n   Compiling pest_generator v2.7.15\n   Compiling pest_derive v2.7.15\n   Compiling tera v1.20.0\n   Compiling ravif v0.11.11\n   Compiling image v0.25.5\n   Compiling ragit-pdl v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\pdl)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 27s\n     Running unittests src\\lib.rs (target\\debug\\deps\\ragit_pdl-1209be947637b1e6.exe)\nerror: test failed, to rerun pass `--lib`\n\n\n\n\n#####################\n### path: command ###\nC:\\Users\\baehy\\ragit\\crates\\pdl: cargo test --release\n\n### status_code ###\n101\n\n### stdout ###\n\nrunning 4 tests\ntest schema::tests::schema_parse_test ... ok\ntest tests::messages_from_file_test ... FAILED\ntest tests::media_content_test ... ok\ntest schema::tests::schema_validate_test ... ok\n\nfailures:\n\n---- tests::messages_from_file_test stdout ----\nthread 'tests::messages_from_file_test' panicked at src\\lib.rs:407:11:\ncalled `Result::unwrap()` on an `Err` value: file not found: `/tmp/test_messages.tera`\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::messages_from_file_test\n\ntest result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\n\n### stderr ###\n   Compiling proc-macro2 v1.0.93\n   Compiling unicode-ident v1.0.17\n   Compiling cfg-if v1.0.0\n   Compiling windows_x86_64_msvc v0.52.6\n   Compiling memchr v2.7.4\n   Compiling autocfg v1.4.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling thiserror v2.0.11\n   Compiling siphasher v1.0.1\n   Compiling byteorder v1.5.0\n   Compiling rand_core v0.6.4\n   Compiling regex-syntax v0.8.5\n   Compiling simd-adler32 v0.3.7\n   Compiling rayon-core v1.12.1\n   Compiling log v0.4.26\n   Compiling getrandom v0.3.1\n   Compiling anyhow v1.0.96\n   Compiling either v1.13.0\n   Compiling adler2 v2.0.0\n   Compiling zerocopy v0.8.20\n   Compiling thiserror v1.0.69\n   Compiling aligned-vec v0.5.0\n   Compiling built v0.7.7\n   Compiling phf_shared v0.11.3\n   Compiling rand v0.8.5\n   Compiling minimal-lexical v0.2.1\n   Compiling arrayvec v0.7.6\n   Compiling libc v0.2.170\n   Compiling ucd-trie v0.1.7\n   Compiling phf v0.11.3\n   Compiling miniz_oxide v0.8.5\n   Compiling num-traits v0.2.19\n   Compiling paste v1.0.15\n   Compiling rav1e v0.7.1\n   Compiling crc32fast v1.4.2\n   Compiling getrandom v0.2.15\n   Compiling phf_generator v0.11.3\n   Compiling aho-corasick v1.1.3\n   Compiling bstr v1.11.3\n   Compiling regex-automata v0.4.9\n   Compiling nom v7.1.3\n   Compiling unic-char-range v0.9.0\n   Compiling once_cell v1.20.3\n   Compiling serde v1.0.218\n   Compiling libm v0.2.11\n   Compiling windows-targets v0.52.6\n   Compiling unic-common v0.9.0\n   Compiling flate2 v1.0.35\n   Compiling phf_codegen v0.11.3\n   Compiling unic-char-property v0.9.0\n   Compiling quote v1.0.38\n   Compiling crossbeam-epoch v0.9.18\n   Compiling windows-sys v0.59.0\n   Compiling unic-ucd-version v0.9.0\n   Compiling syn v2.0.98\n   Compiling itertools v0.12.1\n   Compiling imgref v1.11.0\n   Compiling simd_helpers v0.1.0\n   Compiling crossbeam-deque v0.8.6\n   Compiling new_debug_unreachable v1.0.6\n   Compiling regex v1.11.1\n   Compiling num-integer v0.1.46\n   Compiling winapi-util v0.1.9\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.39\n   Compiling rand_core v0.9.2\n   Compiling noop_proc_macro v0.3.0\n   Compiling bitstream-io v2.6.0\n   Compiling serde_json v1.0.139\n   Compiling quick-error v2.0.1\n   Compiling weezl v0.1.8\n   Compiling parse-zoneinfo v0.3.1\n   Compiling num-bigint v0.4.6\n   Compiling same-file v1.0.6\n   Compiling loop9 v0.1.5\n   Compiling unic-ucd-segment v0.9.0\n   Compiling rayon v1.10.0\n   Compiling chrono-tz-build v0.3.0\n   Compiling walkdir v2.5.0\n   Compiling avif-serialize v0.8.2\n   Compiling fdeflate v0.3.7\n   Compiling zune-inflate v0.2.54\n   Compiling globset v0.4.15\n   Compiling half v2.4.1\n   Compiling num-rational v0.4.2\n   Compiling chrono-tz v0.9.0\n   Compiling av1-grain v0.2.3\n   Compiling ignore v0.4.23\n   Compiling bitflags v2.8.0\n   Compiling itoa v1.0.14\n   Compiling bytemuck v1.21.0\n   Compiling zune-core v0.4.12\n   Compiling color_quant v1.1.0\n   Compiling deunicode v1.6.0\n   Compiling bitflags v1.3.2\n   Compiling smallvec v1.14.0\n   Compiling rgb v0.8.50\n   Compiling lebe v0.5.2\n   Compiling jpeg-decoder v0.3.1\n   Compiling byteorder-lite v0.1.0\n   Compiling ryu v1.0.19\n   Compiling bit_field v0.10.2\n   Compiling thiserror-impl v2.0.11\n   Compiling zerocopy-derive v0.7.35\n   Compiling thiserror-impl v1.0.69\n   Compiling profiling-procmacros v1.0.16\n   Compiling num-derive v0.4.2\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling slug v0.1.6\n   Compiling image-webp v0.2.1\n   Compiling exr v1.73.0\n   Compiling png v0.17.16\n   Compiling qoi v0.4.1\n   Compiling zune-jpeg v0.4.14\n   Compiling globwalk v0.9.1\n   Compiling maybe-rayon v0.1.1\n   Compiling tiff v0.9.1\n   Compiling gif v0.13.1\n   Compiling unic-segment v0.9.0\n   Compiling pathdiff v0.2.3\n   Compiling percent-encoding v2.3.1\n   Compiling lazy_static v1.5.0\n   Compiling base64 v0.22.1\n   Compiling profiling v1.0.16\n   Compiling zerocopy v0.7.35\n   Compiling pest v2.7.15\n   Compiling humansize v2.1.3\n   Compiling ppv-lite86 v0.2.20\n   Compiling rand_chacha v0.9.0\n   Compiling rand_chacha v0.3.1\n   Compiling rand v0.9.0\n   Compiling pest_meta v2.7.15\n   Compiling ragit-fs v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\fs)\n   Compiling pest_generator v2.7.15\n   Compiling pest_derive v2.7.15\n   Compiling tera v1.20.0\n   Compiling ravif v0.11.11\n   Compiling image v0.25.5\n   Compiling ragit-pdl v0.3.0 (C:\\Users\\baehy\\ragit\\crates\\pdl)\n    Finished `release` profile [optimized] target(s) in 2m 04s\n     Running unittests src\\lib.rs (target\\release\\deps\\ragit_pdl-67a652a73b776a98.exe)\nerror: test failed, to rerun pass `--lib`\n\n\n",
+            "elapsed_ms": 812322
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 141356
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39710
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15465
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13527
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 140773
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 27459
+        },
+        "cli": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 19466
+        },
+        "archive": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1069570
+        },
+        "many_chunks": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1354838
+        },
+        "many_jobs": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 56899
+        },
+        "ls": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 253741
+        },
+        "meta": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7857
+        },
+        "symlink": {
+            "seq": 13,
+            "pass": false,
+            "error": "[WinError 1314] A required privilege is not held by the client: 'x.py' -> 'y.py'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\symlink.py\", line 19, in symlink\n    os.symlink(\"x.py\", \"y.py\")\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^\nOSError: [WinError 1314] A required privilege is not held by the client: 'x.py' -> 'y.py'\n",
+            "elapsed_ms": 5
+        },
+        "ii": {
+            "seq": 14,
+            "pass": false,
+            "error": "tfidf result on term 'usiz model into main 2' is not close enough. error: `answer[0] not in approximation`, answer: ['471e4735bcdfe14f7c7029acac07499910a7795a896a29ab0000000100000200', 'a2b84dc9341a81c6c6b956e609445f934c5c6320c8e2f23a0000000100000200', '4dab3737153c332f5659581f3813b0030b08bf22faeb20030000000100000207', '286a68f121fcbcdcb2c4ed02b439e73e703d0c48e67899110000000100000203', 'a9844739ade7cf607c5eeaa6e33a285d9fed956e8190c7c60000000100000202', 'ab2babe95cec68de1fd5bbe2e5ac527816b419ec7786d4920000000100000200', 'd98aba6f531c30e7e88815d6a23f33c2fe1e0f46cad7426a0000000100000222', 'c89abdc2d6b74aee7acab347a37976d5bac7636f709afc1c0000000100000200', '47b7672c731b208e2f39f72834cbad6abdd82ce8cdb77d8e0000000100000200', '190f529008e990e6a241c21d9ea3d81b11b6a796b5f332830000000100000206'], approximation: ['3bc98a66061d3f48a460e7857320ae83f14070499716e1c30000000100000200', '47b7672c731b208e2f39f72834cbad6abdd82ce8cdb77d8e0000000100000200', 'e81b4b1c72171f0dbd4b33005bee68d498f1533211f020fa0000000100000216', 'b6aeeb31e2e59f3c5dd2f1f239f12258328c57351ac22d64000000010000021f', '0f93b318e46eccf6f1f9fba5f9b7908e46e5b398c2c3ab2f0000000100000200', '75b1de75d1b3499f78e96bacbdf25bf140eabb4e3a7594120000000100000200', 'e52668266797d00682802ff6eb6e73516cf4716884045ba20000000100000200', 'e0c1b94d84fd4585fcb954aadf34e54e33a0ea7481e3b1020000000100000200', '38b3fd374647b490d09f9c5ea29ffb1441eeb0a5af34cac90000000100000200', 'edd3d2dc9e9181e69f322eb412c8e1ae186a5f0f48fa73e40000000100000200']\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\ii.py\", line 102, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[0] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\ii.py\", line 38, in ii\n    ii_worker()\n    ~~~~~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\ii.py\", line 118, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'usiz model into main 2' is not close enough. error: `answer[0] not in approximation`, answer: ['471e4735bcdfe14f7c7029acac07499910a7795a896a29ab0000000100000200', 'a2b84dc9341a81c6c6b956e609445f934c5c6320c8e2f23a0000000100000200', '4dab3737153c332f5659581f3813b0030b08bf22faeb20030000000100000207', '286a68f121fcbcdcb2c4ed02b439e73e703d0c48e67899110000000100000203', 'a9844739ade7cf607c5eeaa6e33a285d9fed956e8190c7c60000000100000202', 'ab2babe95cec68de1fd5bbe2e5ac527816b419ec7786d4920000000100000200', 'd98aba6f531c30e7e88815d6a23f33c2fe1e0f46cad7426a0000000100000222', 'c89abdc2d6b74aee7acab347a37976d5bac7636f709afc1c0000000100000200', '47b7672c731b208e2f39f72834cbad6abdd82ce8cdb77d8e0000000100000200', '190f529008e990e6a241c21d9ea3d81b11b6a796b5f332830000000100000206'], approximation: ['3bc98a66061d3f48a460e7857320ae83f14070499716e1c30000000100000200', '47b7672c731b208e2f39f72834cbad6abdd82ce8cdb77d8e0000000100000200', 'e81b4b1c72171f0dbd4b33005bee68d498f1533211f020fa0000000100000216', 'b6aeeb31e2e59f3c5dd2f1f239f12258328c57351ac22d64000000010000021f', '0f93b318e46eccf6f1f9fba5f9b7908e46e5b398c2c3ab2f0000000100000200', '75b1de75d1b3499f78e96bacbdf25bf140eabb4e3a7594120000000100000200', 'e52668266797d00682802ff6eb6e73516cf4716884045ba20000000100000200', 'e0c1b94d84fd4585fcb954aadf34e54e33a0ea7481e3b1020000000100000200', '38b3fd374647b490d09f9c5ea29ffb1441eeb0a5af34cac90000000100000200', 'edd3d2dc9e9181e69f322eb412c8e1ae186a5f0f48fa73e40000000100000200']\n",
+            "elapsed_ms": 86892
+        },
+        "cat_file": {
+            "seq": 15,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\cat_file.py\", line 43, in cat_file\n    assert content == content_json\n           ^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 19810
+        },
+        "images": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11097
+        },
+        "markdown_reader": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 16447
+        },
+        "csv_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9187
+        },
+        "subdir": {
+            "seq": 19,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'rm', '../4.txt', '../sub/6.txt']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\subdir.py\", line 36, in subdir\n    cargo_run([\"rm\", \"../4.txt\", \"../sub/6.txt\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 66, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.752.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 579, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'rm', '../4.txt', '../sub/6.txt']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 7969
+        },
+        "tfidf": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33748
+        },
+        "merge": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 94475
+        },
+        "external_bases": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 146205
+        },
+        "end_to_end dummy": {
+            "seq": 23,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'build']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 354, in <lambda>\n    (\"end_to_end dummy\", lambda: end_to_end(test_model=\"dummy\")),\n                                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\end_to_end.py\", line 94, in end_to_end\n    cargo_run([\"build\"])\n    ~~~~~~~~~^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 66, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.752.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 579, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'build']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 48457
+        },
+        "end_to_end gpt-4o-mini": {
+            "seq": 24,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'rm', 'commands\\\\add.txt', 'commands\\\\archive-create.txt', 'commands\\\\archive-extract.txt', 'commands\\\\build.txt', 'commands\\\\cat-file.txt', 'commands\\\\check.txt', 'commands\\\\clone.txt', 'commands\\\\config.txt', 'commands\\\\extract-keywords.txt', 'commands\\\\gc.txt', 'commands\\\\help.txt', 'commands\\\\ii-build.txt', 'commands\\\\ii-reset.txt', 'commands\\\\ii-status.txt', 'commands\\\\init.txt', 'commands\\\\ls-chunks.txt', 'commands\\\\ls-files.txt', 'commands\\\\ls-images.txt', 'commands\\\\ls-models.txt', 'commands\\\\ls-terms.txt', 'commands\\\\merge.txt', 'commands\\\\meta.txt', 'commands\\\\migrate.txt', 'commands\\\\push.txt', 'commands\\\\query.txt', 'commands\\\\remove.txt', 'commands\\\\retrieve-chunks.txt', 'commands\\\\tfidf.txt', 'commands\\\\version.txt', 'build.md', 'chunks.md', 'config.md', 'contribution.md', 'eval.md', 'index.md', 'models.md', 'pipeline.md', 'prompt_engineering.md', 'quick_guide.md', 'uid_query.md']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 355, in <lambda>\n    (\"end_to_end gpt-4o-mini\", lambda: end_to_end(test_model=\"gpt-4o-mini\")),\n                                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\end_to_end.py\", line 61, in end_to_end\n    cargo_run([\"rm\", *files])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 66, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.752.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 579, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'rm', 'commands\\\\add.txt', 'commands\\\\archive-create.txt', 'commands\\\\archive-extract.txt', 'commands\\\\build.txt', 'commands\\\\cat-file.txt', 'commands\\\\check.txt', 'commands\\\\clone.txt', 'commands\\\\config.txt', 'commands\\\\extract-keywords.txt', 'commands\\\\gc.txt', 'commands\\\\help.txt', 'commands\\\\ii-build.txt', 'commands\\\\ii-reset.txt', 'commands\\\\ii-status.txt', 'commands\\\\init.txt', 'commands\\\\ls-chunks.txt', 'commands\\\\ls-files.txt', 'commands\\\\ls-images.txt', 'commands\\\\ls-models.txt', 'commands\\\\ls-terms.txt', 'commands\\\\merge.txt', 'commands\\\\meta.txt', 'commands\\\\migrate.txt', 'commands\\\\push.txt', 'commands\\\\query.txt', 'commands\\\\remove.txt', 'commands\\\\retrieve-chunks.txt', 'commands\\\\tfidf.txt', 'commands\\\\version.txt', 'build.md', 'chunks.md', 'config.md', 'contribution.md', 'eval.md', 'index.md', 'models.md', 'pipeline.md', 'prompt_engineering.md', 'quick_guide.md', 'uid_query.md']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 10425
+        },
+        "prompts dummy": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14898
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 51671
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 75050
+        },
+        "empty dummy": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7309
+        },
+        "empty gpt-4o-mini": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9188
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 16002
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14835
+        },
+        "extract_keywords dummy": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4983
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11405
+        },
+        "ragit_api llama3.2-11b-groq": {
+            "seq": 34,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 370, in <lambda>\n    (\"ragit_api llama3.2-11b-groq\", lambda: ragit_api(test_model=\"llama3.2-11b-groq\")),\n                                            ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.752.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 579, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 18967
+        },
+        "ragit_api command-r": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1182
+        },
+        "ragit_api phi-4-14b-ollama": {
+            "seq": 36,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'phi-4-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 402, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 372, in <lambda>\n    (\"ragit_api phi-4-14b-ollama\", lambda: ragit_api(test_model=\"phi-4-14b-ollama\")),\n                                           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.752.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 579, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'phi-4-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 7395
+        },
+        "migrate": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 381834
+        },
+        "migrate2": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 617084
+        }
+    },
+    "result": {
+        "total": 39,
+        "complete": 39,
+        "pass": 30,
+        "fail": 9,
+        "remaining": 0
+    }
+}

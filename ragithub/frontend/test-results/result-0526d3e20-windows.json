@@ -1,0 +1,536 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-06-07 05:35:17.622248Z",
+        "commit": "0526d3e20cc059b76d4d717bffc6c06505efe2a6",
+        "platform": {
+            "cargo_version": "cargo 1.85.0 (d73d2caf9 2024-12-31)",
+            "rustc_version": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+            "python_version": "3.13.3",
+            "platform": "Windows-11-10.0.26100-SP0"
+        },
+        "ragit_version": "ragit 0.4.0-dev",
+        "rand_seed": 20250607053517,
+        "ended_at": "2025-06-07 08:13:40.365332Z",
+        "elapsed_ms": 9502743,
+        "commit_title": "fix outdated comment in `tests/tests.py`",
+        "commit_message": "The `migrate` test checks out to 0.2.0, not 0.1.1.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2104343,
+            "message": null
+        },
+        "cargo_features": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 918440,
+            "message": null
+        },
+        "add_and_rm": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 119420,
+            "message": null
+        },
+        "add_and_rm2": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 35682,
+            "message": null
+        },
+        "ignore": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12155,
+            "message": null
+        },
+        "recover": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10653,
+            "message": null
+        },
+        "clone": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 192632,
+            "message": null
+        },
+        "clone_empty": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 123340,
+            "message": null
+        },
+        "pull": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 120796,
+            "message": null
+        },
+        "server": {
+            "seq": 9,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\server.py\", line 52, in server\n    index_json = get_json(url=\"index\", repo=repo)\n  File \"C:\\Users\\baehy\\ragit\\tests\\server.py\", line 311, in get_json\n    return rest_api(\n        method=\"GET\",\n    ...<7 lines>...\n        parse_response=parse_response,\n    )\n  File \"C:\\Users\\baehy\\ragit\\tests\\server.py\", line 297, in rest_api\n    assert response.status_code == expected_status_code\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 111193,
+            "message": null
+        },
+        "server_ai_model": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 100806,
+            "message": null
+        },
+        "server_permission": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 178996,
+            "message": null
+        },
+        "cli": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 21667,
+            "message": null
+        },
+        "outside": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9650,
+            "message": null
+        },
+        "archive": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 942234,
+            "message": null
+        },
+        "many_chunks": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1045298,
+            "message": null
+        },
+        "many_jobs": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 49712,
+            "message": null
+        },
+        "ls": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 331603,
+            "message": null
+        },
+        "meta": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10214,
+            "message": null
+        },
+        "symlink": {
+            "seq": 19,
+            "pass": false,
+            "error": "[WinError 1314] A required privilege is not held by the client: 'x.py' -> 'y.py'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\symlink.py\", line 19, in symlink\n    os.symlink(\"x.py\", \"y.py\")\n    ~~~~~~~~~~^^^^^^^^^^^^^^^^\nOSError: [WinError 1314] A required privilege is not held by the client: 'x.py' -> 'y.py'\n",
+            "elapsed_ms": 23,
+            "message": null
+        },
+        "gh_issue_20": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10844,
+            "message": null
+        },
+        "ii": {
+            "seq": 21,
+            "pass": false,
+            "error": "tfidf result on term 'let condit' is not close enough. error: `answer[2] not in approximation`, answer: ['ee5eaed1a9ded500a79a15070826064e60a4ec7ae84f17720000000100000206', 'c76a34c9c579be452270b9e126bbc83dd82098003a7a94c60000000100000202', 'b686d7d8d5813a39fe953c8699a315d28eece13977c437cc0000000100000207', 'c84ee56f3a03b830454b6a5c04e76ada6e1fa0c222c7897700000001000001bf', '19544bb19a820703db5869a95a69706f45fa043e7b7127600000000100000200', '666805e829e9ddcfd85049201053f7fe57356f8cb130ff7b0000000100000206', '280b92db7213e019fc99d574026d3611f17f4e5f19f06099000000010000020b', 'c2580ec4d7a1ce89296ec5ded6c541ec4634f0f8eaa896c90000000100000200', '2df7774c09ee5045aacec1c804f59c25ea0fdbf4d12421850000000100000209', '2ede0e2a599b499879ca227cbb9bced4033b348c17a52eea0000000100000200'], approximation: ['ee5eaed1a9ded500a79a15070826064e60a4ec7ae84f17720000000100000206', 'c76a34c9c579be452270b9e126bbc83dd82098003a7a94c60000000100000202', 'c84ee56f3a03b830454b6a5c04e76ada6e1fa0c222c7897700000001000001bf', '19544bb19a820703db5869a95a69706f45fa043e7b7127600000000100000200', '666805e829e9ddcfd85049201053f7fe57356f8cb130ff7b0000000100000206', '280b92db7213e019fc99d574026d3611f17f4e5f19f06099000000010000020b', 'c2580ec4d7a1ce89296ec5ded6c541ec4634f0f8eaa896c90000000100000200', '2ede0e2a599b499879ca227cbb9bced4033b348c17a52eea0000000100000200', 'cfaaa7fa22593382cb7f78449c29679ff7cb01a924edb83a0000000100000202', '49930690ec4454b63310ea7f0d237dd762004e010e4355e70000000100000200']\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\ii.py\", line 36, in ii\n    ii_worker()\n    ~~~~~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'let condit' is not close enough. error: `answer[2] not in approximation`, answer: ['ee5eaed1a9ded500a79a15070826064e60a4ec7ae84f17720000000100000206', 'c76a34c9c579be452270b9e126bbc83dd82098003a7a94c60000000100000202', 'b686d7d8d5813a39fe953c8699a315d28eece13977c437cc0000000100000207', 'c84ee56f3a03b830454b6a5c04e76ada6e1fa0c222c7897700000001000001bf', '19544bb19a820703db5869a95a69706f45fa043e7b7127600000000100000200', '666805e829e9ddcfd85049201053f7fe57356f8cb130ff7b0000000100000206', '280b92db7213e019fc99d574026d3611f17f4e5f19f06099000000010000020b', 'c2580ec4d7a1ce89296ec5ded6c541ec4634f0f8eaa896c90000000100000200', '2df7774c09ee5045aacec1c804f59c25ea0fdbf4d12421850000000100000209', '2ede0e2a599b499879ca227cbb9bced4033b348c17a52eea0000000100000200'], approximation: ['ee5eaed1a9ded500a79a15070826064e60a4ec7ae84f17720000000100000206', 'c76a34c9c579be452270b9e126bbc83dd82098003a7a94c60000000100000202', 'c84ee56f3a03b830454b6a5c04e76ada6e1fa0c222c7897700000001000001bf', '19544bb19a820703db5869a95a69706f45fa043e7b7127600000000100000200', '666805e829e9ddcfd85049201053f7fe57356f8cb130ff7b0000000100000206', '280b92db7213e019fc99d574026d3611f17f4e5f19f06099000000010000020b', 'c2580ec4d7a1ce89296ec5ded6c541ec4634f0f8eaa896c90000000100000200', '2ede0e2a599b499879ca227cbb9bced4033b348c17a52eea0000000100000200', 'cfaaa7fa22593382cb7f78449c29679ff7cb01a924edb83a0000000100000202', '49930690ec4454b63310ea7f0d237dd762004e010e4355e70000000100000200']\n",
+            "elapsed_ms": 81453,
+            "message": null
+        },
+        "cat_file": {
+            "seq": 22,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\cat_file.py\", line 44, in cat_file\n    assert content == content_json[0][\"content\"].strip()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 18499,
+            "message": null
+        },
+        "generous_file_reader": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 70185,
+            "message": null
+        },
+        "clean_up_erroneous_chunk": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9777,
+            "message": null
+        },
+        "images": {
+            "seq": 25,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\images.py\", line 62, in images\n    assert count_images() == 3\n           ^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 9262,
+            "message": null
+        },
+        "markdown_reader": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15835,
+            "message": null
+        },
+        "csv_reader": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 70539,
+            "message": null
+        },
+        "real_repos": {
+            "seq": 28,
+            "pass": false,
+            "error": "[WinError 5] Access is denied: '.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\real_repos.py\", line 178, in real_repos\n    shutil.rmtree(\".git\")\n    ~~~~~~~~~~~~~^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n",
+            "elapsed_ms": 5903,
+            "message": "started creating a knowledge-base of git",
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "real_repos_regression": {
+            "seq": 29,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\real_repos_regression.py\", line 159, in real_repos_regression\n    assert count_files() == (len(reproductions), 1, len(reproductions) - 1)  # (total, staged, processed)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 8136,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "subdir": {
+            "seq": 30,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', '1.txt', '2.txt', '3.txt']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\subdir.py\", line 18, in subdir\n    cargo_run([\"add\", \"1.txt\", \"2.txt\", \"3.txt\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', '1.txt', '2.txt', '3.txt']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 810,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "tfidf": {
+            "seq": 31,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tfidf.py\", line 39, in tfidf\n    cargo_run([\"config\", \"--set\", \"model\", \"dummy\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 787,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "korean": {
+            "seq": 32,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\korean.py\", line 17, in korean\n    cargo_run([\"config\", \"--set\", \"model\", \"dummy\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 756,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "merge": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 55630,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "external_bases": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 91569,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "end_to_end dummy": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 83251,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 97415,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "audit llama3.3-70b": {
+            "seq": 37,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 655, in <lambda>\n    (\"audit llama3.3-70b\", lambda: audit(test_model=\"llama3.3-70b\")),\n                                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\audit.py\", line 22, in audit\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 742,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "logs llama3.3-70b": {
+            "seq": 38,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 656, in <lambda>\n    (\"logs llama3.3-70b\", lambda: logs(test_model=\"llama3.3-70b\")),\n                                  ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\logs.py\", line 11, in logs\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 740,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "prompts dummy": {
+            "seq": 39,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 657, in <lambda>\n    (\"prompts dummy\", lambda: prompts(test_model=\"dummy\")),\n                              ~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\prompts.py\", line 31, in prompts\n    cargo_run([\"config\", \"--set\", \"strict_file_reader\", \"true\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 783,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 40,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 658, in <lambda>\n    (\"prompts gpt-4o-mini\", lambda: prompts(test_model=\"gpt-4o-mini\")),\n                                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\prompts.py\", line 31, in prompts\n    cargo_run([\"config\", \"--set\", \"strict_file_reader\", \"true\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 754,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "prompts gemini-2.0-flash": {
+            "seq": 41,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 659, in <lambda>\n    (\"prompts gemini-2.0-flash\", lambda: prompts(test_model=\"gemini-2.0-flash\")),\n                                         ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\prompts.py\", line 31, in prompts\n    cargo_run([\"config\", \"--set\", \"strict_file_reader\", \"true\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 794,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 42,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 660, in <lambda>\n    (\"prompts claude-3.5-sonnet\", lambda: prompts(test_model=\"claude-3.5-sonnet\")),\n                                          ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\prompts.py\", line 31, in prompts\n    cargo_run([\"config\", \"--set\", \"strict_file_reader\", \"true\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 932,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "empty dummy": {
+            "seq": 43,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 661, in <lambda>\n    (\"empty dummy\", lambda: empty(test_model=\"dummy\")),\n                            ~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\empty.py\", line 14, in empty\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 1014,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "empty llama3.3-70b": {
+            "seq": 44,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 662, in <lambda>\n    (\"empty llama3.3-70b\", lambda: empty(test_model=\"llama3.3-70b\")),\n                                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\empty.py\", line 14, in empty\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 977,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "server_chat llama3.3-70b": {
+            "seq": 45,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/rustc', 'sample1']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 663, in <lambda>\n    (\"server_chat llama3.3-70b\", lambda: server_chat(test_model=\"llama3.3-70b\")),\n                                         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\server_chat.py\", line 22, in server_chat\n    cargo_run([\"clone\", \"http://ragit.baehyunsol.com/sample/rustc\", \"sample1\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/rustc', 'sample1']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 200202,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "server_chat gemini-2.0-flash": {
+            "seq": 46,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/rustc', 'sample1']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 664, in <lambda>\n    (\"server_chat gemini-2.0-flash\", lambda: server_chat(test_model=\"gemini-2.0-flash\")),\n                                             ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\server_chat.py\", line 22, in server_chat\n    cargo_run([\"clone\", \"http://ragit.baehyunsol.com/sample/rustc\", \"sample1\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/rustc', 'sample1']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 1566995,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 47,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'gpt-4o-mini']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 665, in <lambda>\n    (\"images2 gpt-4o-mini\", lambda: images2(test_model=\"gpt-4o-mini\")),\n                                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\images2.py\", line 25, in images2\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'gpt-4o-mini']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 755,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 48,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 666, in <lambda>\n    (\"images3 gpt-4o-mini\", lambda: images3(test_model=\"gpt-4o-mini\")),\n                                    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\images3.py\", line 16, in images3\n    cargo_run([\"config\", \"--set\", \"strict_file_reader\", \"true\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'strict_file_reader', 'true']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 806,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "pdl gpt-4o-mini": {
+            "seq": 49,
+            "pass": false,
+            "error": "~/.config/ragit is found. Please run this test in an isolated environment.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 667, in <lambda>\n    (\"pdl gpt-4o-mini\", lambda: pdl(test_model=\"gpt-4o-mini\")),\n                                ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\pdl.py\", line 23, in pdl\n    assert not os.path.exists(global_config_dir), \"~/.config/ragit is found. Please run this test in an isolated environment.\"\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ~/.config/ragit is found. Please run this test in an isolated environment.\n",
+            "elapsed_ms": 18,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "pdf gpt-4o-mini": {
+            "seq": 50,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'landscape.pdf', 'portrait.pdf']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 668, in <lambda>\n    (\"pdf gpt-4o-mini\", lambda: pdf(test_model=\"gpt-4o-mini\")),\n                                ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\pdf.py\", line 21, in pdf\n    cargo_run([\"add\", \"landscape.pdf\", \"portrait.pdf\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'landscape.pdf', 'portrait.pdf']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 852,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "svg gpt-4o-mini": {
+            "seq": 51,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 669, in <lambda>\n    (\"svg gpt-4o-mini\", lambda: svg(test_model=\"gpt-4o-mini\")),\n                                ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\svg.py\", line 19, in svg\n    cargo_run([\"config\", \"--set\", \"model\", \"dummy\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 742,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 52,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'single.md', 'double.md']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 670, in <lambda>\n    (\"web_images gpt-4o-mini\", lambda: web_images(test_model=\"gpt-4o-mini\")),\n                                       ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\web_images.py\", line 17, in web_images\n    cargo_run([\"add\", \"single.md\", \"double.md\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'single.md', 'double.md']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 739,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 53,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'claude-3.5-sonnet']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 673, in <lambda>\n    (\"images2 claude-3.5-sonnet\", lambda: images2(test_model=\"claude-3.5-sonnet\")),\n                                          ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\images2.py\", line 25, in images2\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'claude-3.5-sonnet']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 700,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "extract_keywords dummy": {
+            "seq": 54,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 675, in <lambda>\n    (\"extract_keywords dummy\", lambda: extract_keywords(test_model=\"dummy\")),\n                                       ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\extract_keywords.py\", line 8, in extract_keywords\n    cargo_run([\"clone\", \"http://ragit.baehyunsol.com/sample/ragit\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 379,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 55,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 676, in <lambda>\n    (\"extract_keywords gpt-4o-mini\", lambda: extract_keywords(test_model=\"gpt-4o-mini\")),\n                                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\extract_keywords.py\", line 8, in extract_keywords\n    cargo_run([\"clone\", \"http://ragit.baehyunsol.com/sample/ragit\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 363,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 56,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'sample0.txt']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 677, in <lambda>\n    (\"orphan_process llama3.3-70b\", lambda: orphan_process(test_model=\"llama3.3-70b\")),\n                                            ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\orphan_process.py\", line 25, in orphan_process\n    cargo_run([\"add\", f\"sample{j}.txt\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'sample0.txt']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 722,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 57,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'sample1.txt', 'sample2.txt']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 678, in <lambda>\n    (\"write_lock llama3.3-70b\", lambda: write_lock(test_model=\"llama3.3-70b\")),\n                                        ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\write_lock.py\", line 21, in write_lock\n    cargo_run([\"add\", \"sample1.txt\", \"sample2.txt\"])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'add', 'sample1.txt', 'sample2.txt']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 843,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "ragit_api command-r": {
+            "seq": 58,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1705,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "query_options llama3.3-70b": {
+            "seq": 59,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 680, in <lambda>\n    (\"query_options llama3.3-70b\", lambda: query_options(test_model=\"llama3.3-70b\")),\n                                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\query_options.py\", line 13, in query_options\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 758,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "query_with_schema llama3.3-70b": {
+            "seq": 60,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 681, in <lambda>\n    (\"query_with_schema llama3.3-70b\", lambda: query_with_schema(test_model=\"llama3.3-70b\")),\n                                               ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\query_with_schema.py\", line 24, in query_with_schema\n    cargo_run([\"config\", \"--set\", \"model\", test_model])\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'llama3.3-70b']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 766,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "models_init": {
+            "seq": 61,
+            "pass": false,
+            "error": "models.json file does not exist at: .ragit\\models.json\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\models_init.py\", line 19, in models_init\n    assert os.path.exists(models_json_path), f\"models.json file does not exist at: {models_json_path}\"\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^\nAssertionError: models.json file does not exist at: .ragit\\models.json\n",
+            "elapsed_ms": 429,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "test_home_config_override": {
+            "seq": 62,
+            "pass": false,
+            "error": "C:\\Users\\baehy\\.config\\ragit\\api.json already exists! This test might overwrite your config file. Please run this test in an isolated environment.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\models_init.py\", line 185, in test_home_config_override\n    raise Exception(f\"{p} already exists! This test might overwrite your config file. Please run this test in an isolated environment.\")\nException: C:\\Users\\baehy\\.config\\ragit\\api.json already exists! This test might overwrite your config file. Please run this test in an isolated environment.\n",
+            "elapsed_ms": 0,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 23, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "config": {
+            "seq": 63,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 133280,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "migrate": {
+            "seq": 64,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n  File \"C:\\Users\\baehy\\ragit\\tests\\migrate.py\", line 81, in migrate\n  File \"C:\\Users\\baehy\\ragit\\tests\\migrate.py\", line 47, in init_knowledge_base\n    assert \"sample0.md\" in cargo_run([\"tfidf\", \"baehyunsol\"], stdout=True)\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    cargo_run([\"check\"])\n         ~~~~^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'config', '--set', 'model', 'dummy']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 38766,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    # let's avoid name collision\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "migrate2": {
+            "seq": 65,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'migrate']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n    test()\n    ~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\migrate2.py\", line 49, in migrate2\n    cargo_run([\"migrate\"])\n    ~~~~~~~~~^^^^^^^^^^^^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'migrate']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 46033,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n    clean()\n    ~~~~~^^\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    shutil.rmtree(d)\n    ~~~~~~~~~~~~~^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        },
+        "migrate3": {
+            "seq": 66,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://127.0.0.1/test-user/base-0.3.0']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 720, in <module>\n  File \"C:\\Users\\baehy\\ragit\\tests\\migrate3.py\", line 57, in migrate3\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 87, in cargo_run\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\subprocess.py\", line 577, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'clone', 'http://127.0.0.1/test-user/base-0.3.0']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 221563,
+            "message": null,
+            "cleanup_error": "[WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\nTraceback (most recent call last):\n  File \"C:\\Users\\baehy\\ragit\\tests\\tests.py\", line 751, in <module>\n  File \"C:\\Users\\baehy\\ragit\\tests\\utils.py\", line 29, in clean\n    def mk_and_cd_tmp_dir():\n                ^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 790, in rmtree\n    return _rmtree_unsafe(path, onexc)\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 629, in _rmtree_unsafe\n    onexc(os.unlink, fullname, err)\n    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.1008.0_x64__qbz5n2kfra8p0\\Lib\\shutil.py\", line 625, in _rmtree_unsafe\n    os.unlink(fullname)\n    ~~~~~~~~~^^^^^^^^^^\nPermissionError: [WinError 5] Access is denied: '__tmp_f7eec2602650ebe6\\\\git\\\\.git\\\\objects\\\\pack\\\\pack-dced21fa71b229a9c5183e619a093ccdc05e0162.idx'\n"
+        }
+    },
+    "result": {
+        "total": 67,
+        "complete": 67,
+        "pass": 29,
+        "fail": 38,
+        "remaining": 0
+    }
+}

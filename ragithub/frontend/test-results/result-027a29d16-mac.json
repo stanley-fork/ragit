@@ -1,0 +1,352 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-05-14 13:17:28.098704Z",
+        "commit": "027a29d16171f415545d580b22a1ef3074d46410",
+        "platform": {
+            "cargo_version": "cargo 1.88.0-nightly (7918c7eb5 2025-04-27)",
+            "rustc_version": "rustc 1.88.0-nightly (2e6882ac5 2025-05-05)",
+            "python_version": "3.11.7",
+            "platform": "macOS-14.3.1-arm64-arm-64bit"
+        },
+        "rand_seed": 20250514131728,
+        "ended_at": "2025-05-14 14:26:51.020259Z",
+        "elapsed_ms": 4162921,
+        "ragit_version": "ragit 0.4.0-dev",
+        "commit_title": "update `tests/svg.py`",
+        "commit_message": "I made the code more generic so that it's easier to add svg files.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 540215
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 128336
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 44704
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13805
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11684
+        },
+        "clone": {
+            "seq": 5,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/clone.py\", line 43, in clone\n    create_user(id=\"test-user\", password=\"password\")\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server.py\", line 186, in create_user\n    assert response.status_code == 200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 63969
+        },
+        "clone_empty": {
+            "seq": 6,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/clone_empty.py\", line 20, in clone_empty\n    create_user(id=\"test-user\", password=\"87654321\")\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server.py\", line 186, in create_user\n    assert response.status_code == 200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 2280
+        },
+        "server": {
+            "seq": 7,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server.py\", line 38, in server\n    create_user(id=\"test-user\", password=\"12345678\")\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server.py\", line 186, in create_user\n    assert response.status_code == 200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 6213
+        },
+        "server_permission": {
+            "seq": 8,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server_permission.py\", line 23, in server_permission\n    create_user(id=\"test-user-2\", email=\"sample2@email.com\", password=\"abcdefgh\")\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server.py\", line 186, in create_user\n    assert response.status_code == 200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 2403
+        },
+        "cli": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 24647
+        },
+        "archive": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 406896
+        },
+        "many_chunks": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 413451
+        },
+        "many_jobs": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 54677
+        },
+        "ls": {
+            "seq": 13,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'ls-files', 'tmp-file', '--processed', '--json', '--name-only']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/ls.py\", line 342, in ls\n    assert len(json.loads(cargo_run([\"ls-files\", \"tmp-file\", \"--processed\", \"--json\", \"--name-only\"], stdout=True))) == 0\n                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/utils.py\", line 70, in cargo_run\n    result = subprocess.run(args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/anaconda3/lib/python3.11/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'ls-files', 'tmp-file', '--processed', '--json', '--name-only']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 275396
+        },
+        "meta": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7932
+        },
+        "symlink": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10850
+        },
+        "ii": {
+            "seq": 16,
+            "pass": false,
+            "error": "tfidf result on term 'file 25' is not close enough. error: `answer[1] not in approximation`, answer: ['7fc54003b881ccdafaa1a7854a8905bbafcf2c40b2381f0800000001000001c2', 'd7d7a6856f5b3a7a92a9e57ea2f7cc021827bd0cbcef3bb20000000100000204', '318323062babb157d1e25a7e9f4ba59fd7a4d962e768706b0000000100000200', 'e83f9cbc6848572b1bfdecefe48ad859e65095be90acf88f0000000100000200', '5a6f477f07a7b59fb1bfb2209f52f374d57452ec961b7dcf0000000100000200', '01c3a5841d65abba53905b709adb16c67908c2190d7ed8810000000100000191', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', '00ed7a197725009715fa2efb71c08612ca67b6a19cc7156b000000010000020c', '9e32427659389711bfc3764e45299e7b2ff430db0da92ea70000000100000202', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200'], approximation: ['7fc54003b881ccdafaa1a7854a8905bbafcf2c40b2381f0800000001000001c2', 'e83f9cbc6848572b1bfdecefe48ad859e65095be90acf88f0000000100000200', '5a6f477f07a7b59fb1bfb2209f52f374d57452ec961b7dcf0000000100000200', '01c3a5841d65abba53905b709adb16c67908c2190d7ed8810000000100000191', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', '00ed7a197725009715fa2efb71c08612ca67b6a19cc7156b000000010000020c', '9e32427659389711bfc3764e45299e7b2ff430db0da92ea70000000100000202', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200', '2e429c8c2141c68e4c3db5db7e880721ff2b8b22eea1d13c0000000100000212', '7c7a3eaed0283c816bdba6f63a484cac70542496ce8826280000000100000200']\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[1] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'file 25' is not close enough. error: `answer[1] not in approximation`, answer: ['7fc54003b881ccdafaa1a7854a8905bbafcf2c40b2381f0800000001000001c2', 'd7d7a6856f5b3a7a92a9e57ea2f7cc021827bd0cbcef3bb20000000100000204', '318323062babb157d1e25a7e9f4ba59fd7a4d962e768706b0000000100000200', 'e83f9cbc6848572b1bfdecefe48ad859e65095be90acf88f0000000100000200', '5a6f477f07a7b59fb1bfb2209f52f374d57452ec961b7dcf0000000100000200', '01c3a5841d65abba53905b709adb16c67908c2190d7ed8810000000100000191', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', '00ed7a197725009715fa2efb71c08612ca67b6a19cc7156b000000010000020c', '9e32427659389711bfc3764e45299e7b2ff430db0da92ea70000000100000202', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200'], approximation: ['7fc54003b881ccdafaa1a7854a8905bbafcf2c40b2381f0800000001000001c2', 'e83f9cbc6848572b1bfdecefe48ad859e65095be90acf88f0000000100000200', '5a6f477f07a7b59fb1bfb2209f52f374d57452ec961b7dcf0000000100000200', '01c3a5841d65abba53905b709adb16c67908c2190d7ed8810000000100000191', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', '00ed7a197725009715fa2efb71c08612ca67b6a19cc7156b000000010000020c', '9e32427659389711bfc3764e45299e7b2ff430db0da92ea70000000100000202', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200', '2e429c8c2141c68e4c3db5db7e880721ff2b8b22eea1d13c0000000100000212', '7c7a3eaed0283c816bdba6f63a484cac70542496ce8826280000000100000200']\n",
+            "elapsed_ms": 83516
+        },
+        "cat_file": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 36665
+        },
+        "generous_file_reader": {
+            "seq": 18,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/generous_file_reader.py\", line 58, in generous_file_reader\n    assert \"invalid/url.png\" in cargo_run([\"cat-file\", \"invalid-image-url.md\"], stdout=True)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 29214
+        },
+        "images": {
+            "seq": 19,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/images.py\", line 50, in images\n    assert \"sample2.png\" in stderr   # \"sample2.png not found\" is expected\n           ^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 2754
+        },
+        "markdown_reader": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14297
+        },
+        "csv_reader": {
+            "seq": 21,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/csv_reader.py\", line 55, in csv_reader\n    assert cargo_run([\"build\"], check=False) != 0\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 7716
+        },
+        "real_repos": {
+            "seq": 22,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'build']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/real_repos.py\", line 63, in real_repos\n    cargo_run([\"build\"])\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/utils.py\", line 70, in cargo_run\n    result = subprocess.run(args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/anaconda3/lib/python3.11/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'build']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 309751
+        },
+        "subdir": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 28474
+        },
+        "tfidf": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 31349
+        },
+        "merge": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 59862
+        },
+        "external_bases": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 142167
+        },
+        "end_to_end dummy": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 81064
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 97232
+        },
+        "audit llama3.3-70b": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15265
+        },
+        "logs llama3.3-70b": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8515
+        },
+        "prompts dummy": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9852
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 55682
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 128583
+        },
+        "empty dummy": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13315
+        },
+        "empty llama3.3-70b": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12325
+        },
+        "server_chat llama3.3-70b": {
+            "seq": 36,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 547, in <lambda>\n    (\"server_chat llama3.3-70b\", lambda: server_chat(test_model=\"llama3.3-70b\")),\n                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server_chat.py\", line 32, in server_chat\n    create_user(id=\"test-user\", password=\"secure-password\")\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/server.py\", line 186, in create_user\n    assert response.status_code == 200\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 4607
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13296
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50388
+        },
+        "pdf gpt-4o-mini": {
+            "seq": 39,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 550, in <lambda>\n    (\"pdf gpt-4o-mini\", lambda: pdf(test_model=\"gpt-4o-mini\")),\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/pdf.py\", line 49, in pdf\n    assert any([pdf[\"name\"] in r[\"source\"] for r in search_result])\nAssertionError\n",
+            "elapsed_ms": 113206
+        },
+        "svg gpt-4o-mini": {
+            "seq": 40,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'pdl', 'test1.pdl']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 597, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/tests.py\", line 551, in <lambda>\n    (\"svg gpt-4o-mini\", lambda: svg(test_model=\"gpt-4o-mini\")),\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/svg.py\", line 122, in svg\n    assert \"ragit\" in cargo_run([\"pdl\", \"test1.pdl\"], stdout=True).lower()\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/baehyunsol/Documents/Rust/ragit-versions/ragit-0.4.0-dev/tests/utils.py\", line 70, in cargo_run\n    result = subprocess.run(args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/anaconda3/lib/python3.11/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'pdl', 'test1.pdl']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 16821
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 40565
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 19467
+        },
+        "extract_keywords dummy": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3203
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11821
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 116644
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 81989
+        },
+        "ragit_api command-r": {
+            "seq": 47,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5524
+        },
+        "query_options llama3.3-70b": {
+            "seq": 48,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8873
+        },
+        "models_init": {
+            "seq": 49,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 946
+        },
+        "test_home_config_override": {
+            "seq": 50,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 483
+        },
+        "migrate": {
+            "seq": 51,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 248479
+        },
+        "migrate2": {
+            "seq": 52,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 69835
+        },
+        "config": {
+            "seq": 53,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34658
+        }
+    },
+    "result": {
+        "total": 54,
+        "complete": 54,
+        "pass": 41,
+        "fail": 13,
+        "remaining": 0
+    }
+}

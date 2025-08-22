@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="flex-container-row">
+    <div class="landscape-only">
+        <div class="sidebar">
+            <div class="title">Knowledge-bases</div>
+            <br />
+            <div class="sort-by">
+                {% for category in sidebar_categories %}
+                    <div class={% if category.selected %}"selected-category"{% else %}"unselected-category"{% endif %}>
+                        <a href="?sort_by={{category.short}}">{{category.long}}</a>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <br />
+            <div class="sidebar-items">
+                {% for item in sidebar_items %}
+                    <div class="sidebar-item">{{item.rank}}. <a href="{{item.href}}">{{item.title}}</a></div>
+                {% endfor %}
+            </div>
+            <div class="flex-container-row-reverse">
+                <div class="see-all"><a href="/list?sort_by={{sort_by}}">See all</a></div>
+            </div>
+        </div>
+    </div>
+    <div class="main-view flex-container-column">
+        <div class="search-bar">
+            <form id="search-knowledge-base" method="post">
+                <input class="search-bar" name="search" placeholder="Find your knowledge-bases!" type="text">
+                <input type="submit" value="Search">
+            </form>
+        </div>
+        <div class="notice markdown">{{notice|markdown|safe}}</div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h1>{{uid}}.png</h1>
+
+<img src="/sample/{{repo}}/i/{{uid}}" />
+
+<div class="metadata">
+    {% if extracted_text %}
+        <div class="title">Extracted Text</div>
+        <div class="content">{{extracted_text}}</div>
+    {% endif %}
+
+    {% if explanation %}
+        <div class="title">Explanation</div>
+        <div class="content">{{explanation}}</div>
+    {% endif %}
+</div>
+{% endblock %}

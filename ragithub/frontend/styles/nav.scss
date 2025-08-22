@@ -1,0 +1,46 @@
+@import "colors";
+@import "units";
+
+@media print {
+    nav {
+        display: none;
+    }
+}
+
+nav {
+    background-color: var(--black-trans);
+    transition: background-color 0.5s ease-out;
+    border: $border-medium solid var(--gray);
+    z-index: 1;
+    position: fixed;
+    right: 1%;
+    bottom: 5%;
+    font-size: $font-giant;
+}
+
+nav p {
+    padding: 0;
+    margin: 0;
+}
+
+nav a {
+    cursor: pointer;
+    color: var(--white-trans);
+    text-decoration: none;
+    transition: color 0.5s ease-out;
+    padding: $padding-medium;
+}
+
+nav a:hover {
+    color: var(--white);
+    transition: color 0.5s ease-out;
+}
+
+nav ::selection {
+    background-color: #0000;
+}
+
+nav:hover {
+    background-color: var(--black);
+    transition: background-color 0.5s ease-out;
+}

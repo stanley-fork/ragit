@@ -1,0 +1,117 @@
+@import "colors";
+@import "units";
+
+/* Paragraphs */
+.markdown {
+    p {
+        margin-top: $margin-big;
+    }
+}
+
+/* Headers */
+.markdown {
+    line-height: 1.3;
+
+    {% for header_level in [1, 2, 3, 4, 5, 6] %}
+        h{{header_level}} {
+            font-size: $h{{header_level}}-font-size;
+            margin-top: $h{{header_level}}-margin;
+            margin-bottom: $h{{header_level}}-margin / 2;
+            transition: color 0.3s;
+        }
+
+        h{{header_level}}:hover {
+            color: var(--white-trans);
+            transition: color 0.3s;
+        }
+    {% endfor %}
+
+    h1, h2 {
+        border-bottom: $border-medium solid var(--gray);
+    }
+}
+
+/* Links */
+.markdown {
+    a:link {
+        border-bottom: $border-medium solid var(--aqua-trans);
+        color: var(--aqua);
+        text-decoration: none;
+        transition: border 0.3s;
+    }
+
+    a:visited {
+        color: var(--aqua);
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: none;
+        border-bottom: $border-medium solid var(--aqua);
+    }
+
+    a::selection {
+        color: var(--aqua-compl);
+    }
+}
+
+/* Lists */
+.markdown {
+    li {
+        margin-bottom: $padding-small;
+        padding: $padding-small;
+    }
+}
+
+/* Fenced Code blocks */
+.markdown {
+    pre.fenced-code-block {
+        background-color: $black;
+        overflow: auto;
+        padding: $padding-small;
+
+        /* Not affected by themes */
+        code {
+            color: $white;
+
+            ::selection {
+                background-color: $dark-compl;
+            }
+
+            {% for color in colors %}
+                {% if color.basic %}
+                    .color-{{color.name}} {
+                        color: ${{color.name}};
+                    }
+
+                    .color-{{color.name}}::selection {
+                        color: ${{color.name}}-compl;
+                    }
+                {% endif %}
+            {% endfor %}
+        }
+    }
+}
+
+/* Code spans */
+.markdown {
+    code.inline-code-span {
+        color: $gold;
+        background-color: $black;
+        border-radius: $round-border-tiny;
+        padding: $padding-tiny $padding-small $padding-tiny;
+        white-space: pre;
+    }
+
+    code.inline-code-span::selection {
+        color: $gold-compl;
+    }
+
+    table tr:nth-last-child(odd) code.inline-code-span {
+        background-color: $gray;
+    }
+
+    table tr .tooltip-message code.inline-code-span {
+        background-color: $black;
+    }
+}

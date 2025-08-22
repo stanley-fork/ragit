@@ -1,0 +1,114 @@
+@import "colors";
+@import "units";
+
+.repo-name {
+    font-size: $font-giant;
+}
+
+.clone-button-container {
+    button {
+        cursor: pointer;
+        background-color: var(--black);
+        font-size: $font-medium;
+        color: var(--white);
+        padding: $padding-medium;
+        border-radius: 500px;
+        border: none;
+    }
+
+    #copy-button {
+        cursor: pointer;
+    }
+}
+
+div#clone-info {
+    margin-top: $padding-medium;
+    padding: $padding-medium;
+    background-color: var(--dark);
+    border-radius: $round-border-big;
+    border: $border-big solid var(--gray);
+    position: absolute;
+    z-index: 1;
+    right: 0;
+}
+
+.section-top {
+    display: flex;
+    flex-direction: row;
+
+    > div {
+        margin: $padding-medium;
+    }
+
+    .file-viewer {
+        background-color: var(--black);
+        padding: $padding-medium;
+        margin: $padding-medium;
+        flex-grow: 4;
+
+        a {
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        pre {
+            display: inline-block;
+            margin: 0;
+        }
+    }
+
+    .metadata {
+        background-color: var(--black);
+        padding: $padding-medium;
+        flex-grow: 0;
+
+        display: flex;
+        flex-direction: column;
+        width: max-content;
+        align-items: flex-start;
+
+        div {
+            margin: $padding-medium;
+        }
+
+        div.wrap {
+            max-width: $sidebar-width;
+            overflow-wrap: break-word;
+        }
+
+        a:link {
+            border-bottom: $border-medium solid var(--aqua-trans);
+            color: var(--aqua);
+            text-decoration: none;
+            transition: border 0.3s;
+        }
+
+        a:visited {
+            color: var(--aqua);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: none;
+            border-bottom: $border-medium solid var(--aqua);
+        }
+
+        a::selection {
+            color: var(--aqua-compl);
+        }
+    }
+}
+
+div.file-name {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: end;
+
+    svg {
+        margin-right: $padding-small;
+    }
+}

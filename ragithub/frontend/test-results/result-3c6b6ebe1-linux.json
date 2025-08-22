@@ -1,0 +1,491 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-05-31 02:07:07.510195Z",
+        "commit": "3c6b6ebe1dfcef805c7fe22725d95470a93ba78f",
+        "platform": {
+            "cargo_version": "cargo 1.87.0 (99624be96 2025-05-06)",
+            "rustc_version": "rustc 1.87.0 (17067e9ac 2025-05-09)",
+            "python_version": "3.12.3",
+            "platform": "Linux-6.8.0-1024-aws-x86_64-with-glibc2.39"
+        },
+        "ragit_version": "ragit 0.4.0-dev",
+        "rand_seed": 20250531020707,
+        "ended_at": "2025-05-31 05:38:30.224392Z",
+        "elapsed_ms": 12682714,
+        "commit_title": "fix svg and pdf test",
+        "commit_message": "a035ec6db added cargo features, and now svg and pdf file readers work\nonly if the cargo features are enabled. So I enabled the features in the\ntest cases and added another check about the features.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1135096,
+            "message": null
+        },
+        "cargo_features": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 603036,
+            "message": null
+        },
+        "add_and_rm": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 85947,
+            "message": null
+        },
+        "add_and_rm2": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 29254,
+            "message": null
+        },
+        "ignore": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8814,
+            "message": null
+        },
+        "recover": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7742,
+            "message": null
+        },
+        "clone": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 258243,
+            "message": null
+        },
+        "clone_empty": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8156,
+            "message": null
+        },
+        "pull": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12139,
+            "message": null
+        },
+        "server": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 268020,
+            "message": null
+        },
+        "server_permission": {
+            "seq": 10,
+            "pass": false,
+            "error": "'readme'\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 709, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/server_permission.py\", line 46, in server_permission\n    assert repo_info1[\"readme\"] == \"hello, world\"\n           ~~~~~~~~~~^^^^^^^^^^\nKeyError: 'readme'\n",
+            "elapsed_ms": 1834,
+            "message": null
+        },
+        "cli": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15357,
+            "message": null
+        },
+        "outside": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7083,
+            "message": null
+        },
+        "archive": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 357952,
+            "message": null
+        },
+        "many_chunks": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1326527,
+            "message": null
+        },
+        "many_jobs": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 604242,
+            "message": null
+        },
+        "ls": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 195001,
+            "message": null
+        },
+        "meta": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4648,
+            "message": null
+        },
+        "symlink": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7176,
+            "message": null
+        },
+        "gh_issue_20": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5624,
+            "message": null
+        },
+        "ii": {
+            "seq": 20,
+            "pass": false,
+            "error": "tfidf result on term 'chunk aa' is not close enough. error: `answer[2] not in approximation`, answer: ['c220827e4739df472d66229f61ad8bf1c0bff67b570314b9000000010000021a', '4cfd8868993b18eab4e66c956ad05a39f4c083d6ba68f3b60000000100000214', 'ece7d9ac964d374e578a3c05daf8b46245af9d2a8e76e9210000000100000200', 'c39e41c76d2c3c01c18bb20a135669481eb9ea963597940e0000000100000209', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '1e89c4adea8975cae21c8a68dc77dd4f11f30a544ffa000e0000000100000207', '61a0bf5da68d4a7d9126655b2a034f62fc5fab123b4679f00000000100000215', '1557ddd1b584b8dcec275d294009e627e2df8cc9860aeb570000000100000200', '598898fc27f7824376050f6071364c5ebb2c2108be8f2e9d0000000100000200'], approximation: ['c220827e4739df472d66229f61ad8bf1c0bff67b570314b9000000010000021a', '4cfd8868993b18eab4e66c956ad05a39f4c083d6ba68f3b60000000100000214', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c43e67a9383f8da92cae72c60dd7ff0d918d4941bd7051c0000000100000200', '684f8cb61b37901593b302c6644af01e24360c471e433d0d0000000100000203', 'be4c7d1522ab942c04dba3edb8b354010ac4d2a6ecaa06d40000000100000208', 'ad42b38e1087dd9e249f08166e00d1942a5e2893f30932270000000100000200', 'b39ce5e746eaf69d250805cec1a7a9722b04dd40fe4ea1840000000100000200', 'afda08a0b80435143b38bfc4d92b08a262e371f39767f1ca0000000100000200', '297fe4e4ef251791c7e32590618b928ccb01f435ce47ae370000000100000201']\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 709, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/home/ubuntu/Documents/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'chunk aa' is not close enough. error: `answer[2] not in approximation`, answer: ['c220827e4739df472d66229f61ad8bf1c0bff67b570314b9000000010000021a', '4cfd8868993b18eab4e66c956ad05a39f4c083d6ba68f3b60000000100000214', 'ece7d9ac964d374e578a3c05daf8b46245af9d2a8e76e9210000000100000200', 'c39e41c76d2c3c01c18bb20a135669481eb9ea963597940e0000000100000209', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '1e89c4adea8975cae21c8a68dc77dd4f11f30a544ffa000e0000000100000207', '61a0bf5da68d4a7d9126655b2a034f62fc5fab123b4679f00000000100000215', '1557ddd1b584b8dcec275d294009e627e2df8cc9860aeb570000000100000200', '598898fc27f7824376050f6071364c5ebb2c2108be8f2e9d0000000100000200'], approximation: ['c220827e4739df472d66229f61ad8bf1c0bff67b570314b9000000010000021a', '4cfd8868993b18eab4e66c956ad05a39f4c083d6ba68f3b60000000100000214', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c43e67a9383f8da92cae72c60dd7ff0d918d4941bd7051c0000000100000200', '684f8cb61b37901593b302c6644af01e24360c471e433d0d0000000100000203', 'be4c7d1522ab942c04dba3edb8b354010ac4d2a6ecaa06d40000000100000208', 'ad42b38e1087dd9e249f08166e00d1942a5e2893f30932270000000100000200', 'b39ce5e746eaf69d250805cec1a7a9722b04dd40fe4ea1840000000100000200', 'afda08a0b80435143b38bfc4d92b08a262e371f39767f1ca0000000100000200', '297fe4e4ef251791c7e32590618b928ccb01f435ce47ae370000000100000201']\n",
+            "elapsed_ms": 686744,
+            "message": null
+        },
+        "cat_file": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 56231,
+            "message": null
+        },
+        "generous_file_reader": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1776823,
+            "message": null
+        },
+        "clean_up_erroneous_chunk": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3228,
+            "message": null
+        },
+        "images": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8214,
+            "message": null
+        },
+        "markdown_reader": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10457,
+            "message": null
+        },
+        "csv_reader": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8430,
+            "message": null
+        },
+        "real_repos": {
+            "seq": 27,
+            "pass": false,
+            "error": "[Errno 2] No such file or directory: 'clone-here'\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 709, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/real_repos.py\", line 161, in real_repos\n    os.chdir(\"clone-here\")\nFileNotFoundError: [Errno 2] No such file or directory: 'clone-here'\n",
+            "elapsed_ms": 1182765,
+            "message": "started creating a knowledge-base of git\n\nfinished creating a knowledge-base of git: it took 1106 seconds\n\n----- git (0 errors) -----\n\n\nstarted creating a knowledge-base of postgresql\n\nfailed to clone https://git.postgresql.org/git/postgresql.git\n\nstarted creating a knowledge-base of rustc"
+        },
+        "real_repos_regression": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 16889,
+            "message": null
+        },
+        "subdir": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 20437,
+            "message": null
+        },
+        "tfidf": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 22572,
+            "message": null
+        },
+        "korean": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6091,
+            "message": null
+        },
+        "merge": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 35238,
+            "message": null
+        },
+        "external_bases": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 195887,
+            "message": null
+        },
+        "end_to_end dummy": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 87833,
+            "message": null
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 78321,
+            "message": null
+        },
+        "audit llama3.3-70b": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11329,
+            "message": null
+        },
+        "logs llama3.3-70b": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6231,
+            "message": null
+        },
+        "prompts dummy": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8366,
+            "message": null
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50451,
+            "message": null
+        },
+        "prompts gemini-2.0-flash": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 29171,
+            "message": null
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 72273,
+            "message": null
+        },
+        "empty dummy": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7014,
+            "message": null
+        },
+        "empty llama3.3-70b": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7972,
+            "message": null
+        },
+        "server_chat llama3.3-70b": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 23961,
+            "message": null
+        },
+        "server_chat gemini-2.0-flash": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 41602,
+            "message": null
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11565,
+            "message": null
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 47,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9658,
+            "message": null
+        },
+        "pdl gpt-4o-mini": {
+            "seq": 48,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7131,
+            "message": null
+        },
+        "pdf gpt-4o-mini": {
+            "seq": 49,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 151333,
+            "message": null
+        },
+        "svg gpt-4o-mini": {
+            "seq": 50,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 709, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 658, in <lambda>\n    (\"svg gpt-4o-mini\", lambda: svg(test_model=\"gpt-4o-mini\")),\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ragit/tests/svg.py\", line 129, in svg\n    assert \"ragit\" in cargo_run([\"pdl\", \"test1.pdl\"], stdout=True).lower()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 15363,
+            "message": null
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 51,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 55659,
+            "message": null
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 52,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12145,
+            "message": null
+        },
+        "extract_keywords dummy": {
+            "seq": 53,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2862,
+            "message": null
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 54,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8769,
+            "message": null
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 55,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 107806,
+            "message": null
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 56,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 126137,
+            "message": null,
+            "cleanup_error": "[Errno 39] Directory not empty: '.ragit'\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 740, in <module>\n    clean()\n  File \"/home/ubuntu/Documents/ragit/tests/utils.py\", line 29, in clean\n    shutil.rmtree(d)\n  File \"/usr/lib/python3.12/shutil.py\", line 785, in rmtree\n    _rmtree_safe_fd(fd, path, onexc)\n  File \"/usr/lib/python3.12/shutil.py\", line 686, in _rmtree_safe_fd\n    _rmtree_safe_fd(dirfd, fullname, onexc)\n  File \"/usr/lib/python3.12/shutil.py\", line 697, in _rmtree_safe_fd\n    onexc(os.rmdir, fullname, err)\n  File \"/usr/lib/python3.12/shutil.py\", line 695, in _rmtree_safe_fd\n    os.rmdir(entry.name, dir_fd=topfd)\nOSError: [Errno 39] Directory not empty: '.ragit'\n"
+        },
+        "ragit_api command-r": {
+            "seq": 57,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1397,
+            "message": null
+        },
+        "query_options llama3.3-70b": {
+            "seq": 58,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7479,
+            "message": null
+        },
+        "query_with_schema llama3.3-70b": {
+            "seq": 59,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2710,
+            "message": null
+        },
+        "models_init": {
+            "seq": 60,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 715,
+            "message": null
+        },
+        "test_home_config_override": {
+            "seq": 61,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 355,
+            "message": null
+        },
+        "config": {
+            "seq": 62,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 141635,
+            "message": null
+        },
+        "migrate": {
+            "seq": 63,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1133174,
+            "message": null
+        },
+        "migrate2": {
+            "seq": 64,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 377767,
+            "message": null
+        },
+        "migrate3": {
+            "seq": 65,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 887283,
+            "message": null
+        }
+    },
+    "result": {
+        "total": 66,
+        "complete": 66,
+        "pass": 62,
+        "fail": 4,
+        "remaining": 0
+    }
+}

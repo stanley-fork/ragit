@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="flex-container-column">
+    <div class="repo-name"><a href="/sample/{{repo}}">{{repo}}</a></div>
+    <hr />
+    <div>{{path}}</div>
+    <div>{{uid}}</div>
+</div>
+
+<div class="content-view">
+    {% for c in content %}
+        {% if c.type == 'Text' %}
+        <pre><code>{{c.content}}</code></pre>
+        {% elif c.type == 'Image' %}
+            <a href="/sample/{{repo}}/img/{{c.uid}}"><img src="/sample/{{repo}}/i/{{c.uid}}"/></a>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<hr />
+
+<div class="metadata">
+    {% if chunks %}
+        <div class="title">Chunks</div>
+
+        {% for chunk in chunks %}
+            <div><a href="/sample/{{repo}}/chunk/{{chunk.uid}}">{{chunk.uid|truncate(length=8, end="")}}</a> ({{chunk.source}})</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if title %}
+        <div class="title">Title: {{title}}</div>
+    {% endif %}
+
+    {% if summary %}
+        <div class="title">Summary</div>
+        <div class="content">{{summary}}</div>
+    {% endif %}
+</div>
+{% endblock %}

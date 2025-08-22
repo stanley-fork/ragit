@@ -1,0 +1,62 @@
+$font-tiny: 0.619rem;  // 13px;
+$font-small: 0.762rem;  // 16px;
+$font-medium: 1rem;  // 21px;
+$font-big: 1.19rem;  // 25px;
+$font-giant: 1.571rem;  // 33px;
+
+$border-medium: 0.143rem;  // 3px;
+$border-big: 0.238rem;  // 5px;
+$border-giant: 0.429rem;  // 9px;
+
+$round-border-tiny: 0.143rem;  // 3px;
+$round-border-small: 0.19rem;  // 4px;
+$round-border-medium: 0.286rem;  // 6px;
+$round-border-big: 0.429rem;  // 9px;
+
+$line-height-tiny: 0.6;
+$line-height-small: 0.85;
+$line-height-medium: 1.1;
+$line-height-big: 1.35;
+$line-height-giant: 1.6;
+
+$padding-tiny: 0.143rem;  // 3px;
+$padding-small: 0.286rem;  // 6px;
+$padding-medium: 0.571rem;  // 12px;
+$padding-big: 0.857rem;  // 18px;
+$padding-giant: 1.524rem;  // 32px;
+
+$margin-tiny: 0.19rem;  // 4px;
+$margin-small: 0.429rem;  // 9px;
+$margin-medium: 1rem;  // 21px;
+$margin-big: 1.571rem;  // 33px;
+$margin-giant: 2.286rem;  // 48px;
+
+$image-tiny: 11.9rem;  // 250px;
+$image-small: 16.67rem;  // 350px;
+$image-medium: 21.43rem;  // 450px;
+$image-big: 28.57rem;  // 600px;
+$image-giant: 34.29rem;  // 720px;
+
+$box-tiny: 7.143rem;  // 150px;
+$box-small: 10rem;  // 210px;
+$box-medium: 12.86rem;  // 270px;
+$box-big: 17.14rem;  // 360px;
+$box-giant: 20.57rem;  // 432px;
+
+$h1-font-size: 2.667rem;  // 56px;
+$h2-font-size: 2.286rem;  // 48px;
+$h3-font-size: 2rem;  // 42px;
+$h4-font-size: 1.571rem;  // 33px;
+$h5-font-size: 1rem;  // 21px;
+$h6-font-size: 0.762rem;  // 16px;
+
+$h1-margin: 4rem;  // 84px;
+$h2-margin: 3.714rem;  // 78px;
+$h3-margin: 3.143rem;  // 66px;
+$h4-margin: 2.429rem;  // 51px;
+$h5-margin: 2rem;  // 42px;
+$h6-margin: 1.571rem; // 33px;
+
+$header-height: $font-big + $padding-big * 2 + $border-big;
+
+$sidebar-width: 17.14rem;  // 360px;

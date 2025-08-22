@@ -1,0 +1,58 @@
+@import "colors";
+@import "units";
+
+.repo-name {
+    font-size: $font-giant;
+
+    a {
+        color: var(--white);
+        text-decoration: none;
+    }
+}
+
+.content-view {
+    pre {
+        background-color: var(--black);
+        padding: $padding-small;
+        overflow: auto;
+    }
+}
+
+.metadata {
+    display: flex;
+    flex-direction: column;
+
+    div {
+        margin: $margin-medium;
+    }
+
+    .title {
+        font-size: $font-giant;
+    }
+
+    .content {
+        background-color: var(--black);
+        padding: $padding-small;
+    }
+
+    a:link {
+        border-bottom: $border-medium solid var(--aqua-trans);
+        color: var(--aqua);
+        text-decoration: none;
+        transition: border 0.3s;
+    }
+
+    a:visited {
+        color: var(--aqua);
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: none;
+        border-bottom: $border-medium solid var(--aqua);
+    }
+
+    a::selection {
+        color: var(--aqua-compl);
+    }
+}

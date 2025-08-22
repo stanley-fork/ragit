@@ -1,0 +1,310 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-03-05 23:34:29.304672Z",
+        "commit": "56f0686db9e3f527b29a1895d02234edf4dcaa80",
+        "platform": {
+            "cargo_version": "cargo 1.84.1 (66221abde 2024-11-19)",
+            "rustc_version": "rustc 1.84.1 (e71f9a9a9 2025-01-27)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-133-generic-x86_64-with-glibc2.35"
+        },
+        "rand_seed": 202535233429,
+        "ended_at": "2025-03-06 00:32:55.162195Z",
+        "elapsed_ms": 3505857,
+        "ragit_version": "ragit 0.3.3-dev",
+        "commit_title": "update cargo docs",
+        "commit_message": ""
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": false,
+            "error": "\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/crates/server: cargo test\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n    Updating crates.io index\n     Locking 385 packages to latest compatible versions\n   Compiling proc-macro2 v1.0.94\n   Compiling unicode-ident v1.0.18\n   Compiling cfg-if v1.0.0\n   Compiling autocfg v1.4.0\n   Compiling libc v0.2.170\n   Compiling memchr v2.7.4\n   Compiling pin-project-lite v0.2.16\n   Compiling value-bag v1.10.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling futures-core v0.3.31\n   Compiling once_cell v1.20.3\n   Compiling itoa v1.0.15\n   Compiling smallvec v1.14.0\n   Compiling bytes v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling fnv v1.0.7\n   Compiling futures-sink v0.3.31\n   Compiling siphasher v1.0.1\n   Compiling bitflags v2.9.0\n   Compiling stable_deref_trait v1.2.0\n   Compiling parking_lot_core v0.9.10\n   Compiling pin-utils v0.1.0\n   Compiling scopeguard v1.2.0\n   Compiling futures-task v0.3.31\n   Compiling version_check v0.9.5\n   Compiling rand_core v0.6.4\n   Compiling byteorder v1.5.0\n   Compiling writeable v0.5.5\n   Compiling litemap v0.7.5\n   Compiling typenum v1.18.0\n   Compiling shlex v1.3.0\n   Compiling httparse v1.10.1\n   Compiling parking v2.2.1\n   Compiling vcpkg v0.2.15\n   Compiling pkg-config v0.3.32\n   Compiling serde v1.0.218\n   Compiling icu_locid_transform_data v1.5.0\n   Compiling icu_properties_data v1.5.0\n   Compiling futures-channel v0.3.31\n   Compiling simd-adler32 v0.3.7\n   Compiling percent-encoding v2.3.1\n   Compiling phf_shared v0.11.3\n   Compiling atomic-waker v1.1.2\n   Compiling equivalent v1.0.2\n   Compiling log v0.4.26\n   Compiling tracing-core v0.1.33\n   Compiling regex-syntax v0.8.5\n   Compiling hashbrown v0.15.2\n   Compiling thiserror v2.0.12\n   Compiling either v1.14.0\n   Compiling rayon-core v1.12.1\n   Compiling thiserror v1.0.69\n   Compiling minimal-lexical v0.2.1\n   Compiling icu_normalizer_data v1.5.0\n   Compiling utf8_iter v1.0.4\n   Compiling aho-corasick v1.1.3\n   Compiling slab v0.4.9\n   Compiling lock_api v0.4.12\n   Compiling num-traits v0.2.19\n   Compiling rustix v0.38.44\n   Compiling http v1.2.0\n   Compiling getrandom v0.3.1\n   Compiling generic-array v0.14.7\n   Compiling utf16_iter v1.0.5\n   Compiling cc v1.2.16\n   Compiling rand v0.8.5\n   Compiling write16 v1.0.0\n   Compiling nom v7.1.3\n   Compiling ryu v1.0.20\n   Compiling try-lock v0.2.5\n   Compiling linux-raw-sys v0.4.15\n   Compiling anyhow v1.0.97\n   Compiling fastrand v2.3.0\n   Compiling adler2 v2.0.0\n   Compiling want v0.3.1\n   Compiling crossbeam-epoch v0.9.18\n   Compiling tracing v0.1.41\n   Compiling concurrent-queue v2.5.0\n   Compiling miniz_oxide v0.8.5\n   Compiling phf v0.11.3\n   Compiling form_urlencoded v1.2.1\n   Compiling paste v1.0.15\n   Compiling built v0.7.7\n   Compiling aligned-vec v0.5.0\n   Compiling arrayvec v0.7.6\n   Compiling quote v1.0.39\n   Compiling foreign-types-shared v0.1.1\n   Compiling event-listener v5.4.0\n   Compiling zerocopy v0.8.21\n   Compiling tower-service v0.3.3\n   Compiling openssl v0.10.71\n   Compiling ucd-trie v0.1.7\n   Compiling iana-time-zone v0.1.61\n   Compiling crossbeam-deque v0.8.6\n   Compiling foreign-types v0.3.2\n   Compiling syn v2.0.99\n   Compiling indexmap v2.7.1\n   Compiling futures-lite v2.6.0\n   Compiling http v0.2.12\n   Compiling bstr v1.11.3\n   Compiling crc32fast v1.4.2\n   Compiling native-tls v0.2.14\n   Compiling unic-common v0.9.0\n   Compiling rav1e v0.7.1\n   Compiling unic-char-range v0.9.0\n   Compiling same-file v1.0.6\n   Compiling phf_generator v0.11.3\n   Compiling event-listener-strategy v0.5.3\n   Compiling serde_json v1.0.140\n   Compiling unicase v2.8.1\n   Compiling libm v0.2.11\n   Compiling mime v0.3.17\n   Compiling walkdir v2.5.0\n   Compiling unic-char-property v0.9.0\n   Compiling flate2 v1.1.0\n   Compiling phf_codegen v0.11.3\n   Compiling unic-ucd-version v0.9.0\n   Compiling simd_helpers v0.1.0\n   Compiling itertools v0.12.1\n   Compiling num-integer v0.1.46\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.40\n   Compiling mime_guess v2.0.5\n   Compiling utf8parse v0.2.2\n   Compiling async-task v4.7.1\n   Compiling regex-automata v0.4.9\n   Compiling quick-error v2.0.1\n   Compiling http-body v1.0.1\n   Compiling new_debug_unreachable v1.0.6\n   Compiling bitstream-io v2.6.0\n   Compiling weezl v0.1.8\n   Compiling noop_proc_macro v0.3.0\n   Compiling rayon v1.10.0\n   Compiling num-bigint v0.4.6\n   Compiling openssl-probe v0.1.6\n   Compiling imgref v1.11.0\n   Compiling anstyle-parse v0.2.6\n   Compiling unic-ucd-segment v0.9.0\n   Compiling async-lock v3.4.0\n   Compiling async-channel v2.3.1\n   Compiling avif-serialize v0.8.3\n   Compiling piper v0.2.4\n   Compiling zune-inflate v0.2.54\n   Compiling loop9 v0.1.5\n   Compiling fdeflate v0.3.7\n   Compiling signal-hook-registry v1.4.2\n   Compiling socket2 v0.5.8\n   Compiling mio v1.0.3\n   Compiling getrandom v0.2.15\n   Compiling half v2.4.1\n   Compiling encoding_rs v0.8.35\n   Compiling color_quant v1.1.0\n   Compiling parking_lot v0.12.3\n   Compiling rand_core v0.9.3\n   Compiling pathdiff v0.2.3\n   Compiling bytemuck v1.22.0\n   Compiling jpeg-decoder v0.3.1\n   Compiling byteorder-lite v0.1.0\n   Compiling bit_field v0.10.2\n   Compiling anstyle-query v1.1.2\n   Compiling openssl-sys v0.9.106\n   Compiling is_terminal_polyfill v1.70.1\n   Compiling lazy_static v1.5.0\n   Compiling zune-core v0.4.12\n   Compiling colorchoice v1.0.3\n   Compiling cfg_aliases v0.2.1\n   Compiling crypto-common v0.1.6\n   Compiling block-buffer v0.10.4\n   Compiling cpufeatures v0.2.17\n   Compiling rgb v0.8.50\n   Compiling lebe v0.5.2\n   Compiling anstyle v1.0.10\n   Compiling bitflags v1.3.2\n   Compiling deunicode v1.6.0\n   Compiling image-webp v0.2.1\n   Compiling nix v0.29.0\n   Compiling qoi v0.4.1\n   Compiling humansize v2.1.3\n   Compiling gif v0.13.1\n   Compiling png v0.17.16\n   Compiling digest v0.10.7\n   Compiling unic-segment v0.9.0\n   Compiling exr v1.73.0\n   Compiling zune-jpeg v0.4.14\n   Compiling blocking v1.6.1\n   Compiling async-executor v1.13.1\n   Compiling anstream v0.6.18\n   Compiling terminfo v0.9.0\n   Compiling slug v0.1.6\n   Compiling sha1 v0.10.6\n   Compiling sync_wrapper v1.0.2\n   Compiling heck v0.5.0\n   Compiling event-listener v2.5.3\n   Compiling strsim v0.11.1\n   Compiling rustls-pki-types v1.11.0\n   Compiling base64 v0.22.1\n   Compiling clap_lex v0.7.4\n   Compiling tower-layer v0.3.3\n   Compiling async-channel v1.9.0\n   Compiling multer v2.1.0\n   Compiling clap_builder v4.5.31\n   Compiling kv-log-macro v1.0.7\n   Compiling tiff v0.9.1\n   Compiling httpdate v1.0.3\n   Compiling utf-8 v0.7.6\n   Compiling ipnet v2.11.0\n   Compiling regex v1.11.1\n   Compiling data-encoding v2.8.0\n   Compiling rustls-pemfile v2.2.0\n   Compiling env_home v0.1.0\n   Compiling num-rational v0.4.2\n   Compiling headers-core v0.2.0\n   Compiling http-body v0.4.6\n   Compiling csv-core v0.1.12\n   Compiling spin v0.9.8\n   Compiling base64 v0.21.7\n   Compiling keccak v0.1.5\n   Compiling parse-zoneinfo v0.3.1\n   Compiling ragit-korean v0.3.3 (/home/baehyunsol/Documents/ragit/crates/korean)\n   Compiling ragit-cli v0.3.3 (/home/baehyunsol/Documents/ragit/crates/cli)\n   Compiling scoped-tls v1.0.1\n   Compiling sha3 v0.10.8\n   Compiling headers v0.3.9\n   Compiling av1-grain v0.2.3\n   Compiling maybe-rayon v0.1.1\n   Compiling chrono-tz-build v0.3.0\n   Compiling chrono-tz v0.9.0\n   Compiling synstructure v0.13.1\n   Compiling globset v0.4.16\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.7.5\n   Compiling zerovec-derive v0.10.3\n   Compiling futures-macro v0.3.31\n   Compiling displaydoc v0.2.5\n   Compiling zerocopy-derive v0.7.35\n   Compiling tokio-macros v2.5.0\n   Compiling icu_provider_macros v1.5.0\n   Compiling serde_derive v1.0.218\n   Compiling thiserror-impl v2.0.12\n   Compiling thiserror-impl v1.0.69\n   Compiling profiling-procmacros v1.0.16\n   Compiling openssl-macros v0.1.1\n   Compiling num-derive v0.4.2\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling clap_derive v4.5.28\n   Compiling pin-project-internal v1.1.10\n   Compiling async-recursion v1.1.1\n   Compiling polling v3.7.4\n   Compiling ignore v0.4.23\n   Compiling which v7.0.2\n   Compiling async-io v2.4.0\n   Compiling profiling v1.0.16\n   Compiling globwalk v0.9.1\n   Compiling tokio v1.43.0\n   Compiling async-global-executor v2.4.1\n   Compiling async-std v1.13.0\n   Compiling futures-util v0.3.31\n   Compiling zerocopy v0.7.35\n   Compiling pin-project v1.1.10\n   Compiling zerofrom v0.1.6\n   Compiling yoke v0.7.5\n   Compiling ppv-lite86 v0.2.20\n   Compiling pest v2.7.15\n   Compiling clearscreen v4.0.1\n   Compiling zerovec v0.10.4\n   Compiling rand_chacha v0.3.1\n   Compiling rand_chacha v0.9.0\n   Compiling clap v4.5.31\n   Compiling rand v0.9.0\n   Compiling tinystr v0.7.6\n   Compiling icu_collections v1.5.0\n   Compiling icu_locid v1.5.0\n   Compiling ragit-fs v0.3.3 (/home/baehyunsol/Documents/ragit/crates/fs)\n   Compiling pest_meta v2.7.15\n   Compiling ragit-ignore v0.3.3 (/home/baehyunsol/Documents/ragit/crates/ignore)\n   Compiling icu_provider v1.5.0\n   Compiling icu_locid_transform v1.5.0\n   Compiling pest_generator v2.7.15\n   Compiling http-body-util v0.1.2\n   Compiling futures-executor v0.3.31\n   Compiling futures v0.3.31\n   Compiling icu_properties v1.5.1\n   Compiling pest_derive v2.7.15\n   Compiling tokio-util v0.7.13\n   Compiling tokio-native-tls v0.3.1\n   Compiling tower v0.5.2\n   Compiling h2 v0.4.8\n   Compiling h2 v0.3.26\n   Compiling icu_normalizer v1.5.0\n   Compiling ravif v0.11.11\n   Compiling serde_urlencoded v0.7.1\n   Compiling csv v1.3.1\n   Compiling rust-stemmers v1.2.0\n   Compiling idna_adapter v1.2.0\n   Compiling idna v1.0.3\n   Compiling url v2.5.4\n   Compiling image v0.25.5\n   Compiling tera v1.20.0\n   Compiling tungstenite v0.21.0\n   Compiling tokio-tungstenite v0.21.0\n   Compiling hyper v0.14.32\n   Compiling hyper v1.6.0\n   Compiling ragit-pdl v0.3.3 (/home/baehyunsol/Documents/ragit/crates/pdl)\n   Compiling hyper-util v0.1.10\n   Compiling hyper-tls v0.6.0\n   Compiling reqwest v0.12.12\n   Compiling warp v0.3.7\n   Compiling ragit-api v0.3.3 (/home/baehyunsol/Documents/ragit/crates/api)\n   Compiling ragit v0.3.3 (/home/baehyunsol/Documents/ragit)\n   Compiling ragit-server v0.3.3 (/home/baehyunsol/Documents/ragit/crates/server)\nerror[E0658]: async closures are unstable\n   --> src/main.rs:187:15\n    |\n187 |         .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nerror[E0658]: async closures are unstable\n   --> src/main.rs:204:15\n    |\n204 |         .then(async |user: String, repo: String, chat_id: String, form: FormData| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nFor more information about this error, try `rustc --explain E0658`.\nerror: could not compile `ragit-server` (bin \"ragit-server\" test) due to 2 previous errors\n\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/crates/server: cargo test --release\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n   Compiling proc-macro2 v1.0.94\n   Compiling unicode-ident v1.0.18\n   Compiling cfg-if v1.0.0\n   Compiling autocfg v1.4.0\n   Compiling libc v0.2.170\n   Compiling memchr v2.7.4\n   Compiling pin-project-lite v0.2.16\n   Compiling value-bag v1.10.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling futures-core v0.3.31\n   Compiling itoa v1.0.15\n   Compiling smallvec v1.14.0\n   Compiling bytes v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling once_cell v1.20.3\n   Compiling fnv v1.0.7\n   Compiling futures-sink v0.3.31\n   Compiling stable_deref_trait v1.2.0\n   Compiling parking_lot_core v0.9.10\n   Compiling bitflags v2.9.0\n   Compiling scopeguard v1.2.0\n   Compiling pin-utils v0.1.0\n   Compiling version_check v0.9.5\n   Compiling futures-task v0.3.31\n   Compiling siphasher v1.0.1\n   Compiling byteorder v1.5.0\n   Compiling rand_core v0.6.4\n   Compiling thiserror v2.0.12\n   Compiling litemap v0.7.5\n   Compiling writeable v0.5.5\n   Compiling httparse v1.10.1\n   Compiling typenum v1.18.0\n   Compiling shlex v1.3.0\n   Compiling parking v2.2.1\n   Compiling serde v1.0.218\n   Compiling futures-channel v0.3.31\n   Compiling pkg-config v0.3.32\n   Compiling vcpkg v0.2.15\n   Compiling icu_locid_transform_data v1.5.0\n   Compiling equivalent v1.0.2\n   Compiling thiserror v1.0.69\n   Compiling percent-encoding v2.3.1\n   Compiling rayon-core v1.12.1\n   Compiling either v1.14.0\n   Compiling phf_shared v0.11.3\n   Compiling log v0.4.26\n   Compiling tracing-core v0.1.33\n   Compiling icu_properties_data v1.5.0\n   Compiling hashbrown v0.15.2\n   Compiling atomic-waker v1.1.2\n   Compiling rand v0.8.5\n   Compiling cc v1.2.16\n   Compiling regex-syntax v0.8.5\n   Compiling simd-adler32 v0.3.7\n   Compiling utf8_iter v1.0.4\n   Compiling utf16_iter v1.0.5\n   Compiling slab v0.4.9\n   Compiling lock_api v0.4.12\n   Compiling num-traits v0.2.19\n   Compiling rustix v0.38.44\n   Compiling minimal-lexical v0.2.1\n   Compiling icu_normalizer_data v1.5.0\n   Compiling aho-corasick v1.1.3\n   Compiling getrandom v0.3.1\n   Compiling write16 v1.0.0\n   Compiling ryu v1.0.20\n   Compiling anyhow v1.0.97\n   Compiling try-lock v0.2.5\n   Compiling linux-raw-sys v0.4.15\n   Compiling generic-array v0.14.7\n   Compiling adler2 v2.0.0\n   Compiling http v1.2.0\n   Compiling nom v7.1.3\n   Compiling fastrand v2.3.0\n   Compiling miniz_oxide v0.8.5\n   Compiling want v0.3.1\n   Compiling phf v0.11.3\n   Compiling quote v1.0.39\n   Compiling tracing v0.1.41\n   Compiling form_urlencoded v1.2.1\n   Compiling built v0.7.7\n   Compiling crossbeam-epoch v0.9.18\n   Compiling concurrent-queue v2.5.0\n   Compiling arrayvec v0.7.6\n   Compiling paste v1.0.15\n   Compiling ucd-trie v0.1.7\n   Compiling tower-service v0.3.3\n   Compiling syn v2.0.99\n   Compiling aligned-vec v0.5.0\n   Compiling phf_generator v0.11.3\n   Compiling event-listener v5.4.0\n   Compiling iana-time-zone v0.1.61\n   Compiling zerocopy v0.8.21\n   Compiling foreign-types-shared v0.1.1\n   Compiling openssl v0.10.71\n   Compiling crossbeam-deque v0.8.6\n   Compiling phf_codegen v0.11.3\n   Compiling foreign-types v0.3.2\n   Compiling futures-lite v2.6.0\n   Compiling http v0.2.12\n   Compiling event-listener-strategy v0.5.3\n   Compiling indexmap v2.7.1\n   Compiling rav1e v0.7.1\n   Compiling bstr v1.11.3\n   Compiling crc32fast v1.4.2\n   Compiling libm v0.2.11\n   Compiling serde_json v1.0.140\n   Compiling same-file v1.0.6\n   Compiling unic-char-range v0.9.0\n   Compiling mime v0.3.17\n   Compiling native-tls v0.2.14\n   Compiling unic-common v0.9.0\n   Compiling unicase v2.8.1\n   Compiling flate2 v1.1.0\n   Compiling unic-ucd-version v0.9.0\n   Compiling walkdir v2.5.0\n   Compiling unic-char-property v0.9.0\n   Compiling http-body v1.0.1\n   Compiling simd_helpers v0.1.0\n   Compiling itertools v0.12.1\n   Compiling utf8parse v0.2.2\n   Compiling mime_guess v2.0.5\n   Compiling quick-error v2.0.1\n   Compiling imgref v1.11.0\n   Compiling noop_proc_macro v0.3.0\n   Compiling async-task v4.7.1\n   Compiling openssl-probe v0.1.6\n   Compiling bitstream-io v2.6.0\n   Compiling num-integer v0.1.46\n   Compiling block-buffer v0.10.4\n   Compiling socket2 v0.5.8\n   Compiling signal-hook-registry v1.4.2\n   Compiling mio v1.0.3\n   Compiling getrandom v0.2.15\n   Compiling num-bigint v0.4.6\n   Compiling crypto-common v0.1.6\n   Compiling regex-automata v0.4.9\n   Compiling rayon v1.10.0\n   Compiling digest v0.10.7\n   Compiling parking_lot v0.12.3\n   Compiling openssl-sys v0.9.106\n   Compiling rand_core v0.9.3\n   Compiling chrono v0.4.40\n   Compiling v_frame v0.3.8\n   Compiling weezl v0.1.8\n   Compiling new_debug_unreachable v1.0.6\n   Compiling loop9 v0.1.5\n   Compiling anstyle-parse v0.2.6\n   Compiling unic-ucd-segment v0.9.0\n   Compiling async-lock v3.4.0\n   Compiling async-channel v2.3.1\n   Compiling avif-serialize v0.8.3\n   Compiling piper v0.2.4\n   Compiling fdeflate v0.3.7\n   Compiling zune-inflate v0.2.54\n   Compiling encoding_rs v0.8.35\n   Compiling half v2.4.1\n   Compiling cfg_aliases v0.2.1\n   Compiling bit_field v0.10.2\n   Compiling lebe v0.5.2\n   Compiling bytemuck v1.22.0\n   Compiling bitflags v1.3.2\n   Compiling zune-core v0.4.12\n   Compiling is_terminal_polyfill v1.70.1\n   Compiling byteorder-lite v0.1.0\n   Compiling deunicode v1.6.0\n   Compiling color_quant v1.1.0\n   Compiling lazy_static v1.5.0\n   Compiling colorchoice v1.0.3\n   Compiling jpeg-decoder v0.3.1\n   Compiling rgb v0.8.50\n   Compiling anstyle v1.0.10\n   Compiling anstyle-query v1.1.2\n   Compiling pathdiff v0.2.3\n   Compiling cpufeatures v0.2.17\n   Compiling image-webp v0.2.1\n   Compiling gif v0.13.1\n   Compiling slug v0.1.6\n   Compiling sha1 v0.10.6\n   Compiling zune-jpeg v0.4.14\n   Compiling anstream v0.6.18\n   Compiling qoi v0.4.1\n   Compiling exr v1.73.0\n   Compiling humansize v2.1.3\n   Compiling num-rational v0.4.2\n   Compiling png v0.17.16\n   Compiling nix v0.29.0\n   Compiling unic-segment v0.9.0\n   Compiling blocking v1.6.1\n   Compiling async-executor v1.13.1\n   Compiling terminfo v0.9.0\n   Compiling sync_wrapper v1.0.2\n   Compiling base64 v0.22.1\n   Compiling tower-layer v0.3.3\n   Compiling event-listener v2.5.3\n   Compiling tiff v0.9.1\n   Compiling heck v0.5.0\n   Compiling av1-grain v0.2.3\n   Compiling clap_lex v0.7.4\n   Compiling rustls-pki-types v1.11.0\n   Compiling strsim v0.11.1\n   Compiling async-channel v1.9.0\n   Compiling multer v2.1.0\n   Compiling kv-log-macro v1.0.7\n   Compiling utf-8 v0.7.6\n   Compiling regex v1.11.1\n   Compiling clap_builder v4.5.31\n   Compiling httpdate v1.0.3\n   Compiling data-encoding v2.8.0\n   Compiling env_home v0.1.0\n   Compiling ipnet v2.11.0\n   Compiling headers-core v0.2.0\n   Compiling rustls-pemfile v2.2.0\n   Compiling http-body v0.4.6\n   Compiling csv-core v0.1.12\n   Compiling maybe-rayon v0.1.1\n   Compiling keccak v0.1.5\n   Compiling parse-zoneinfo v0.3.1\n   Compiling spin v0.9.8\n   Compiling base64 v0.21.7\n   Compiling sha3 v0.10.8\n   Compiling ragit-korean v0.3.3 (/home/baehyunsol/Documents/ragit/crates/korean)\n   Compiling ragit-cli v0.3.3 (/home/baehyunsol/Documents/ragit/crates/cli)\n   Compiling scoped-tls v1.0.1\n   Compiling chrono-tz-build v0.3.0\n   Compiling headers v0.3.9\n   Compiling chrono-tz v0.9.0\n   Compiling globset v0.4.16\n   Compiling synstructure v0.13.1\n   Compiling ignore v0.4.23\n   Compiling polling v3.7.4\n   Compiling which v7.0.2\n   Compiling globwalk v0.9.1\n   Compiling async-io v2.4.0\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.7.5\n   Compiling zerovec-derive v0.10.3\n   Compiling futures-macro v0.3.31\n   Compiling displaydoc v0.2.5\n   Compiling zerocopy-derive v0.7.35\n   Compiling tokio-macros v2.5.0\n   Compiling icu_provider_macros v1.5.0\n   Compiling thiserror-impl v2.0.12\n   Compiling serde_derive v1.0.218\n   Compiling thiserror-impl v1.0.69\n   Compiling profiling-procmacros v1.0.16\n   Compiling openssl-macros v0.1.1\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling num-derive v0.4.2\n   Compiling async-global-executor v2.4.1\n   Compiling tokio v1.43.0\n   Compiling profiling v1.0.16\n   Compiling futures-util v0.3.31\n   Compiling clap_derive v4.5.28\n   Compiling async-std v1.13.0\n   Compiling pin-project-internal v1.1.10\n   Compiling async-recursion v1.1.1\n   Compiling zerocopy v0.7.35\n   Compiling zerofrom v0.1.6\n   Compiling yoke v0.7.5\n   Compiling zerovec v0.10.4\n   Compiling pest v2.7.15\n   Compiling clearscreen v4.0.1\n   Compiling ppv-lite86 v0.2.20\n   Compiling rand_chacha v0.3.1\n   Compiling rand_chacha v0.9.0\n   Compiling rand v0.9.0\n   Compiling pin-project v1.1.10\n   Compiling clap v4.5.31\n   Compiling pest_meta v2.7.15\n   Compiling ragit-fs v0.3.3 (/home/baehyunsol/Documents/ragit/crates/fs)\n   Compiling tinystr v0.7.6\n   Compiling icu_collections v1.5.0\n   Compiling icu_locid v1.5.0\n   Compiling ragit-ignore v0.3.3 (/home/baehyunsol/Documents/ragit/crates/ignore)\n   Compiling pest_generator v2.7.15\n   Compiling icu_provider v1.5.0\n   Compiling pest_derive v2.7.15\n   Compiling icu_locid_transform v1.5.0\n   Compiling icu_properties v1.5.1\n   Compiling http-body-util v0.1.2\n   Compiling futures-executor v0.3.31\n   Compiling futures v0.3.31\n   Compiling tokio-util v0.7.13\n   Compiling tokio-native-tls v0.3.1\n   Compiling tower v0.5.2\n   Compiling serde_urlencoded v0.7.1\n   Compiling rust-stemmers v1.2.0\n   Compiling csv v1.3.1\n   Compiling h2 v0.4.8\n   Compiling h2 v0.3.26\n   Compiling icu_normalizer v1.5.0\n   Compiling tera v1.20.0\n   Compiling idna_adapter v1.2.0\n   Compiling idna v1.0.3\n   Compiling url v2.5.4\n   Compiling tungstenite v0.21.0\n   Compiling ravif v0.11.11\n   Compiling tokio-tungstenite v0.21.0\n   Compiling image v0.25.5\n   Compiling hyper v0.14.32\n   Compiling hyper v1.6.0\n   Compiling hyper-util v0.1.10\n   Compiling ragit-pdl v0.3.3 (/home/baehyunsol/Documents/ragit/crates/pdl)\n   Compiling hyper-tls v0.6.0\n   Compiling reqwest v0.12.12\n   Compiling ragit-api v0.3.3 (/home/baehyunsol/Documents/ragit/crates/api)\n   Compiling ragit v0.3.3 (/home/baehyunsol/Documents/ragit)\n   Compiling warp v0.3.7\n   Compiling ragit-server v0.3.3 (/home/baehyunsol/Documents/ragit/crates/server)\nerror[E0658]: async closures are unstable\n   --> src/main.rs:187:15\n    |\n187 |         .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nerror[E0658]: async closures are unstable\n   --> src/main.rs:204:15\n    |\n204 |         .then(async |user: String, repo: String, chat_id: String, form: FormData| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nFor more information about this error, try `rustc --explain E0658`.\nerror: could not compile `ragit-server` (bin \"ragit-server\" test) due to 2 previous errors\n\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 504, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/cargo_tests.py\", line 45, in cargo_tests\n    raise Exception(\"\\n\\n\".join(errors))\nException: \n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/crates/server: cargo test\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n    Updating crates.io index\n     Locking 385 packages to latest compatible versions\n   Compiling proc-macro2 v1.0.94\n   Compiling unicode-ident v1.0.18\n   Compiling cfg-if v1.0.0\n   Compiling autocfg v1.4.0\n   Compiling libc v0.2.170\n   Compiling memchr v2.7.4\n   Compiling pin-project-lite v0.2.16\n   Compiling value-bag v1.10.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling futures-core v0.3.31\n   Compiling once_cell v1.20.3\n   Compiling itoa v1.0.15\n   Compiling smallvec v1.14.0\n   Compiling bytes v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling fnv v1.0.7\n   Compiling futures-sink v0.3.31\n   Compiling siphasher v1.0.1\n   Compiling bitflags v2.9.0\n   Compiling stable_deref_trait v1.2.0\n   Compiling parking_lot_core v0.9.10\n   Compiling pin-utils v0.1.0\n   Compiling scopeguard v1.2.0\n   Compiling futures-task v0.3.31\n   Compiling version_check v0.9.5\n   Compiling rand_core v0.6.4\n   Compiling byteorder v1.5.0\n   Compiling writeable v0.5.5\n   Compiling litemap v0.7.5\n   Compiling typenum v1.18.0\n   Compiling shlex v1.3.0\n   Compiling httparse v1.10.1\n   Compiling parking v2.2.1\n   Compiling vcpkg v0.2.15\n   Compiling pkg-config v0.3.32\n   Compiling serde v1.0.218\n   Compiling icu_locid_transform_data v1.5.0\n   Compiling icu_properties_data v1.5.0\n   Compiling futures-channel v0.3.31\n   Compiling simd-adler32 v0.3.7\n   Compiling percent-encoding v2.3.1\n   Compiling phf_shared v0.11.3\n   Compiling atomic-waker v1.1.2\n   Compiling equivalent v1.0.2\n   Compiling log v0.4.26\n   Compiling tracing-core v0.1.33\n   Compiling regex-syntax v0.8.5\n   Compiling hashbrown v0.15.2\n   Compiling thiserror v2.0.12\n   Compiling either v1.14.0\n   Compiling rayon-core v1.12.1\n   Compiling thiserror v1.0.69\n   Compiling minimal-lexical v0.2.1\n   Compiling icu_normalizer_data v1.5.0\n   Compiling utf8_iter v1.0.4\n   Compiling aho-corasick v1.1.3\n   Compiling slab v0.4.9\n   Compiling lock_api v0.4.12\n   Compiling num-traits v0.2.19\n   Compiling rustix v0.38.44\n   Compiling http v1.2.0\n   Compiling getrandom v0.3.1\n   Compiling generic-array v0.14.7\n   Compiling utf16_iter v1.0.5\n   Compiling cc v1.2.16\n   Compiling rand v0.8.5\n   Compiling write16 v1.0.0\n   Compiling nom v7.1.3\n   Compiling ryu v1.0.20\n   Compiling try-lock v0.2.5\n   Compiling linux-raw-sys v0.4.15\n   Compiling anyhow v1.0.97\n   Compiling fastrand v2.3.0\n   Compiling adler2 v2.0.0\n   Compiling want v0.3.1\n   Compiling crossbeam-epoch v0.9.18\n   Compiling tracing v0.1.41\n   Compiling concurrent-queue v2.5.0\n   Compiling miniz_oxide v0.8.5\n   Compiling phf v0.11.3\n   Compiling form_urlencoded v1.2.1\n   Compiling paste v1.0.15\n   Compiling built v0.7.7\n   Compiling aligned-vec v0.5.0\n   Compiling arrayvec v0.7.6\n   Compiling quote v1.0.39\n   Compiling foreign-types-shared v0.1.1\n   Compiling event-listener v5.4.0\n   Compiling zerocopy v0.8.21\n   Compiling tower-service v0.3.3\n   Compiling openssl v0.10.71\n   Compiling ucd-trie v0.1.7\n   Compiling iana-time-zone v0.1.61\n   Compiling crossbeam-deque v0.8.6\n   Compiling foreign-types v0.3.2\n   Compiling syn v2.0.99\n   Compiling indexmap v2.7.1\n   Compiling futures-lite v2.6.0\n   Compiling http v0.2.12\n   Compiling bstr v1.11.3\n   Compiling crc32fast v1.4.2\n   Compiling native-tls v0.2.14\n   Compiling unic-common v0.9.0\n   Compiling rav1e v0.7.1\n   Compiling unic-char-range v0.9.0\n   Compiling same-file v1.0.6\n   Compiling phf_generator v0.11.3\n   Compiling event-listener-strategy v0.5.3\n   Compiling serde_json v1.0.140\n   Compiling unicase v2.8.1\n   Compiling libm v0.2.11\n   Compiling mime v0.3.17\n   Compiling walkdir v2.5.0\n   Compiling unic-char-property v0.9.0\n   Compiling flate2 v1.1.0\n   Compiling phf_codegen v0.11.3\n   Compiling unic-ucd-version v0.9.0\n   Compiling simd_helpers v0.1.0\n   Compiling itertools v0.12.1\n   Compiling num-integer v0.1.46\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.40\n   Compiling mime_guess v2.0.5\n   Compiling utf8parse v0.2.2\n   Compiling async-task v4.7.1\n   Compiling regex-automata v0.4.9\n   Compiling quick-error v2.0.1\n   Compiling http-body v1.0.1\n   Compiling new_debug_unreachable v1.0.6\n   Compiling bitstream-io v2.6.0\n   Compiling weezl v0.1.8\n   Compiling noop_proc_macro v0.3.0\n   Compiling rayon v1.10.0\n   Compiling num-bigint v0.4.6\n   Compiling openssl-probe v0.1.6\n   Compiling imgref v1.11.0\n   Compiling anstyle-parse v0.2.6\n   Compiling unic-ucd-segment v0.9.0\n   Compiling async-lock v3.4.0\n   Compiling async-channel v2.3.1\n   Compiling avif-serialize v0.8.3\n   Compiling piper v0.2.4\n   Compiling zune-inflate v0.2.54\n   Compiling loop9 v0.1.5\n   Compiling fdeflate v0.3.7\n   Compiling signal-hook-registry v1.4.2\n   Compiling socket2 v0.5.8\n   Compiling mio v1.0.3\n   Compiling getrandom v0.2.15\n   Compiling half v2.4.1\n   Compiling encoding_rs v0.8.35\n   Compiling color_quant v1.1.0\n   Compiling parking_lot v0.12.3\n   Compiling rand_core v0.9.3\n   Compiling pathdiff v0.2.3\n   Compiling bytemuck v1.22.0\n   Compiling jpeg-decoder v0.3.1\n   Compiling byteorder-lite v0.1.0\n   Compiling bit_field v0.10.2\n   Compiling anstyle-query v1.1.2\n   Compiling openssl-sys v0.9.106\n   Compiling is_terminal_polyfill v1.70.1\n   Compiling lazy_static v1.5.0\n   Compiling zune-core v0.4.12\n   Compiling colorchoice v1.0.3\n   Compiling cfg_aliases v0.2.1\n   Compiling crypto-common v0.1.6\n   Compiling block-buffer v0.10.4\n   Compiling cpufeatures v0.2.17\n   Compiling rgb v0.8.50\n   Compiling lebe v0.5.2\n   Compiling anstyle v1.0.10\n   Compiling bitflags v1.3.2\n   Compiling deunicode v1.6.0\n   Compiling image-webp v0.2.1\n   Compiling nix v0.29.0\n   Compiling qoi v0.4.1\n   Compiling humansize v2.1.3\n   Compiling gif v0.13.1\n   Compiling png v0.17.16\n   Compiling digest v0.10.7\n   Compiling unic-segment v0.9.0\n   Compiling exr v1.73.0\n   Compiling zune-jpeg v0.4.14\n   Compiling blocking v1.6.1\n   Compiling async-executor v1.13.1\n   Compiling anstream v0.6.18\n   Compiling terminfo v0.9.0\n   Compiling slug v0.1.6\n   Compiling sha1 v0.10.6\n   Compiling sync_wrapper v1.0.2\n   Compiling heck v0.5.0\n   Compiling event-listener v2.5.3\n   Compiling strsim v0.11.1\n   Compiling rustls-pki-types v1.11.0\n   Compiling base64 v0.22.1\n   Compiling clap_lex v0.7.4\n   Compiling tower-layer v0.3.3\n   Compiling async-channel v1.9.0\n   Compiling multer v2.1.0\n   Compiling clap_builder v4.5.31\n   Compiling kv-log-macro v1.0.7\n   Compiling tiff v0.9.1\n   Compiling httpdate v1.0.3\n   Compiling utf-8 v0.7.6\n   Compiling ipnet v2.11.0\n   Compiling regex v1.11.1\n   Compiling data-encoding v2.8.0\n   Compiling rustls-pemfile v2.2.0\n   Compiling env_home v0.1.0\n   Compiling num-rational v0.4.2\n   Compiling headers-core v0.2.0\n   Compiling http-body v0.4.6\n   Compiling csv-core v0.1.12\n   Compiling spin v0.9.8\n   Compiling base64 v0.21.7\n   Compiling keccak v0.1.5\n   Compiling parse-zoneinfo v0.3.1\n   Compiling ragit-korean v0.3.3 (/home/baehyunsol/Documents/ragit/crates/korean)\n   Compiling ragit-cli v0.3.3 (/home/baehyunsol/Documents/ragit/crates/cli)\n   Compiling scoped-tls v1.0.1\n   Compiling sha3 v0.10.8\n   Compiling headers v0.3.9\n   Compiling av1-grain v0.2.3\n   Compiling maybe-rayon v0.1.1\n   Compiling chrono-tz-build v0.3.0\n   Compiling chrono-tz v0.9.0\n   Compiling synstructure v0.13.1\n   Compiling globset v0.4.16\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.7.5\n   Compiling zerovec-derive v0.10.3\n   Compiling futures-macro v0.3.31\n   Compiling displaydoc v0.2.5\n   Compiling zerocopy-derive v0.7.35\n   Compiling tokio-macros v2.5.0\n   Compiling icu_provider_macros v1.5.0\n   Compiling serde_derive v1.0.218\n   Compiling thiserror-impl v2.0.12\n   Compiling thiserror-impl v1.0.69\n   Compiling profiling-procmacros v1.0.16\n   Compiling openssl-macros v0.1.1\n   Compiling num-derive v0.4.2\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling clap_derive v4.5.28\n   Compiling pin-project-internal v1.1.10\n   Compiling async-recursion v1.1.1\n   Compiling polling v3.7.4\n   Compiling ignore v0.4.23\n   Compiling which v7.0.2\n   Compiling async-io v2.4.0\n   Compiling profiling v1.0.16\n   Compiling globwalk v0.9.1\n   Compiling tokio v1.43.0\n   Compiling async-global-executor v2.4.1\n   Compiling async-std v1.13.0\n   Compiling futures-util v0.3.31\n   Compiling zerocopy v0.7.35\n   Compiling pin-project v1.1.10\n   Compiling zerofrom v0.1.6\n   Compiling yoke v0.7.5\n   Compiling ppv-lite86 v0.2.20\n   Compiling pest v2.7.15\n   Compiling clearscreen v4.0.1\n   Compiling zerovec v0.10.4\n   Compiling rand_chacha v0.3.1\n   Compiling rand_chacha v0.9.0\n   Compiling clap v4.5.31\n   Compiling rand v0.9.0\n   Compiling tinystr v0.7.6\n   Compiling icu_collections v1.5.0\n   Compiling icu_locid v1.5.0\n   Compiling ragit-fs v0.3.3 (/home/baehyunsol/Documents/ragit/crates/fs)\n   Compiling pest_meta v2.7.15\n   Compiling ragit-ignore v0.3.3 (/home/baehyunsol/Documents/ragit/crates/ignore)\n   Compiling icu_provider v1.5.0\n   Compiling icu_locid_transform v1.5.0\n   Compiling pest_generator v2.7.15\n   Compiling http-body-util v0.1.2\n   Compiling futures-executor v0.3.31\n   Compiling futures v0.3.31\n   Compiling icu_properties v1.5.1\n   Compiling pest_derive v2.7.15\n   Compiling tokio-util v0.7.13\n   Compiling tokio-native-tls v0.3.1\n   Compiling tower v0.5.2\n   Compiling h2 v0.4.8\n   Compiling h2 v0.3.26\n   Compiling icu_normalizer v1.5.0\n   Compiling ravif v0.11.11\n   Compiling serde_urlencoded v0.7.1\n   Compiling csv v1.3.1\n   Compiling rust-stemmers v1.2.0\n   Compiling idna_adapter v1.2.0\n   Compiling idna v1.0.3\n   Compiling url v2.5.4\n   Compiling image v0.25.5\n   Compiling tera v1.20.0\n   Compiling tungstenite v0.21.0\n   Compiling tokio-tungstenite v0.21.0\n   Compiling hyper v0.14.32\n   Compiling hyper v1.6.0\n   Compiling ragit-pdl v0.3.3 (/home/baehyunsol/Documents/ragit/crates/pdl)\n   Compiling hyper-util v0.1.10\n   Compiling hyper-tls v0.6.0\n   Compiling reqwest v0.12.12\n   Compiling warp v0.3.7\n   Compiling ragit-api v0.3.3 (/home/baehyunsol/Documents/ragit/crates/api)\n   Compiling ragit v0.3.3 (/home/baehyunsol/Documents/ragit)\n   Compiling ragit-server v0.3.3 (/home/baehyunsol/Documents/ragit/crates/server)\nerror[E0658]: async closures are unstable\n   --> src/main.rs:187:15\n    |\n187 |         .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nerror[E0658]: async closures are unstable\n   --> src/main.rs:204:15\n    |\n204 |         .then(async |user: String, repo: String, chat_id: String, form: FormData| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nFor more information about this error, try `rustc --explain E0658`.\nerror: could not compile `ragit-server` (bin \"ragit-server\" test) due to 2 previous errors\n\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/crates/server: cargo test --release\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n   Compiling proc-macro2 v1.0.94\n   Compiling unicode-ident v1.0.18\n   Compiling cfg-if v1.0.0\n   Compiling autocfg v1.4.0\n   Compiling libc v0.2.170\n   Compiling memchr v2.7.4\n   Compiling pin-project-lite v0.2.16\n   Compiling value-bag v1.10.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling futures-core v0.3.31\n   Compiling itoa v1.0.15\n   Compiling smallvec v1.14.0\n   Compiling bytes v1.10.1\n   Compiling futures-io v0.3.31\n   Compiling once_cell v1.20.3\n   Compiling fnv v1.0.7\n   Compiling futures-sink v0.3.31\n   Compiling stable_deref_trait v1.2.0\n   Compiling parking_lot_core v0.9.10\n   Compiling bitflags v2.9.0\n   Compiling scopeguard v1.2.0\n   Compiling pin-utils v0.1.0\n   Compiling version_check v0.9.5\n   Compiling futures-task v0.3.31\n   Compiling siphasher v1.0.1\n   Compiling byteorder v1.5.0\n   Compiling rand_core v0.6.4\n   Compiling thiserror v2.0.12\n   Compiling litemap v0.7.5\n   Compiling writeable v0.5.5\n   Compiling httparse v1.10.1\n   Compiling typenum v1.18.0\n   Compiling shlex v1.3.0\n   Compiling parking v2.2.1\n   Compiling serde v1.0.218\n   Compiling futures-channel v0.3.31\n   Compiling pkg-config v0.3.32\n   Compiling vcpkg v0.2.15\n   Compiling icu_locid_transform_data v1.5.0\n   Compiling equivalent v1.0.2\n   Compiling thiserror v1.0.69\n   Compiling percent-encoding v2.3.1\n   Compiling rayon-core v1.12.1\n   Compiling either v1.14.0\n   Compiling phf_shared v0.11.3\n   Compiling log v0.4.26\n   Compiling tracing-core v0.1.33\n   Compiling icu_properties_data v1.5.0\n   Compiling hashbrown v0.15.2\n   Compiling atomic-waker v1.1.2\n   Compiling rand v0.8.5\n   Compiling cc v1.2.16\n   Compiling regex-syntax v0.8.5\n   Compiling simd-adler32 v0.3.7\n   Compiling utf8_iter v1.0.4\n   Compiling utf16_iter v1.0.5\n   Compiling slab v0.4.9\n   Compiling lock_api v0.4.12\n   Compiling num-traits v0.2.19\n   Compiling rustix v0.38.44\n   Compiling minimal-lexical v0.2.1\n   Compiling icu_normalizer_data v1.5.0\n   Compiling aho-corasick v1.1.3\n   Compiling getrandom v0.3.1\n   Compiling write16 v1.0.0\n   Compiling ryu v1.0.20\n   Compiling anyhow v1.0.97\n   Compiling try-lock v0.2.5\n   Compiling linux-raw-sys v0.4.15\n   Compiling generic-array v0.14.7\n   Compiling adler2 v2.0.0\n   Compiling http v1.2.0\n   Compiling nom v7.1.3\n   Compiling fastrand v2.3.0\n   Compiling miniz_oxide v0.8.5\n   Compiling want v0.3.1\n   Compiling phf v0.11.3\n   Compiling quote v1.0.39\n   Compiling tracing v0.1.41\n   Compiling form_urlencoded v1.2.1\n   Compiling built v0.7.7\n   Compiling crossbeam-epoch v0.9.18\n   Compiling concurrent-queue v2.5.0\n   Compiling arrayvec v0.7.6\n   Compiling paste v1.0.15\n   Compiling ucd-trie v0.1.7\n   Compiling tower-service v0.3.3\n   Compiling syn v2.0.99\n   Compiling aligned-vec v0.5.0\n   Compiling phf_generator v0.11.3\n   Compiling event-listener v5.4.0\n   Compiling iana-time-zone v0.1.61\n   Compiling zerocopy v0.8.21\n   Compiling foreign-types-shared v0.1.1\n   Compiling openssl v0.10.71\n   Compiling crossbeam-deque v0.8.6\n   Compiling phf_codegen v0.11.3\n   Compiling foreign-types v0.3.2\n   Compiling futures-lite v2.6.0\n   Compiling http v0.2.12\n   Compiling event-listener-strategy v0.5.3\n   Compiling indexmap v2.7.1\n   Compiling rav1e v0.7.1\n   Compiling bstr v1.11.3\n   Compiling crc32fast v1.4.2\n   Compiling libm v0.2.11\n   Compiling serde_json v1.0.140\n   Compiling same-file v1.0.6\n   Compiling unic-char-range v0.9.0\n   Compiling mime v0.3.17\n   Compiling native-tls v0.2.14\n   Compiling unic-common v0.9.0\n   Compiling unicase v2.8.1\n   Compiling flate2 v1.1.0\n   Compiling unic-ucd-version v0.9.0\n   Compiling walkdir v2.5.0\n   Compiling unic-char-property v0.9.0\n   Compiling http-body v1.0.1\n   Compiling simd_helpers v0.1.0\n   Compiling itertools v0.12.1\n   Compiling utf8parse v0.2.2\n   Compiling mime_guess v2.0.5\n   Compiling quick-error v2.0.1\n   Compiling imgref v1.11.0\n   Compiling noop_proc_macro v0.3.0\n   Compiling async-task v4.7.1\n   Compiling openssl-probe v0.1.6\n   Compiling bitstream-io v2.6.0\n   Compiling num-integer v0.1.46\n   Compiling block-buffer v0.10.4\n   Compiling socket2 v0.5.8\n   Compiling signal-hook-registry v1.4.2\n   Compiling mio v1.0.3\n   Compiling getrandom v0.2.15\n   Compiling num-bigint v0.4.6\n   Compiling crypto-common v0.1.6\n   Compiling regex-automata v0.4.9\n   Compiling rayon v1.10.0\n   Compiling digest v0.10.7\n   Compiling parking_lot v0.12.3\n   Compiling openssl-sys v0.9.106\n   Compiling rand_core v0.9.3\n   Compiling chrono v0.4.40\n   Compiling v_frame v0.3.8\n   Compiling weezl v0.1.8\n   Compiling new_debug_unreachable v1.0.6\n   Compiling loop9 v0.1.5\n   Compiling anstyle-parse v0.2.6\n   Compiling unic-ucd-segment v0.9.0\n   Compiling async-lock v3.4.0\n   Compiling async-channel v2.3.1\n   Compiling avif-serialize v0.8.3\n   Compiling piper v0.2.4\n   Compiling fdeflate v0.3.7\n   Compiling zune-inflate v0.2.54\n   Compiling encoding_rs v0.8.35\n   Compiling half v2.4.1\n   Compiling cfg_aliases v0.2.1\n   Compiling bit_field v0.10.2\n   Compiling lebe v0.5.2\n   Compiling bytemuck v1.22.0\n   Compiling bitflags v1.3.2\n   Compiling zune-core v0.4.12\n   Compiling is_terminal_polyfill v1.70.1\n   Compiling byteorder-lite v0.1.0\n   Compiling deunicode v1.6.0\n   Compiling color_quant v1.1.0\n   Compiling lazy_static v1.5.0\n   Compiling colorchoice v1.0.3\n   Compiling jpeg-decoder v0.3.1\n   Compiling rgb v0.8.50\n   Compiling anstyle v1.0.10\n   Compiling anstyle-query v1.1.2\n   Compiling pathdiff v0.2.3\n   Compiling cpufeatures v0.2.17\n   Compiling image-webp v0.2.1\n   Compiling gif v0.13.1\n   Compiling slug v0.1.6\n   Compiling sha1 v0.10.6\n   Compiling zune-jpeg v0.4.14\n   Compiling anstream v0.6.18\n   Compiling qoi v0.4.1\n   Compiling exr v1.73.0\n   Compiling humansize v2.1.3\n   Compiling num-rational v0.4.2\n   Compiling png v0.17.16\n   Compiling nix v0.29.0\n   Compiling unic-segment v0.9.0\n   Compiling blocking v1.6.1\n   Compiling async-executor v1.13.1\n   Compiling terminfo v0.9.0\n   Compiling sync_wrapper v1.0.2\n   Compiling base64 v0.22.1\n   Compiling tower-layer v0.3.3\n   Compiling event-listener v2.5.3\n   Compiling tiff v0.9.1\n   Compiling heck v0.5.0\n   Compiling av1-grain v0.2.3\n   Compiling clap_lex v0.7.4\n   Compiling rustls-pki-types v1.11.0\n   Compiling strsim v0.11.1\n   Compiling async-channel v1.9.0\n   Compiling multer v2.1.0\n   Compiling kv-log-macro v1.0.7\n   Compiling utf-8 v0.7.6\n   Compiling regex v1.11.1\n   Compiling clap_builder v4.5.31\n   Compiling httpdate v1.0.3\n   Compiling data-encoding v2.8.0\n   Compiling env_home v0.1.0\n   Compiling ipnet v2.11.0\n   Compiling headers-core v0.2.0\n   Compiling rustls-pemfile v2.2.0\n   Compiling http-body v0.4.6\n   Compiling csv-core v0.1.12\n   Compiling maybe-rayon v0.1.1\n   Compiling keccak v0.1.5\n   Compiling parse-zoneinfo v0.3.1\n   Compiling spin v0.9.8\n   Compiling base64 v0.21.7\n   Compiling sha3 v0.10.8\n   Compiling ragit-korean v0.3.3 (/home/baehyunsol/Documents/ragit/crates/korean)\n   Compiling ragit-cli v0.3.3 (/home/baehyunsol/Documents/ragit/crates/cli)\n   Compiling scoped-tls v1.0.1\n   Compiling chrono-tz-build v0.3.0\n   Compiling headers v0.3.9\n   Compiling chrono-tz v0.9.0\n   Compiling globset v0.4.16\n   Compiling synstructure v0.13.1\n   Compiling ignore v0.4.23\n   Compiling polling v3.7.4\n   Compiling which v7.0.2\n   Compiling globwalk v0.9.1\n   Compiling async-io v2.4.0\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.7.5\n   Compiling zerovec-derive v0.10.3\n   Compiling futures-macro v0.3.31\n   Compiling displaydoc v0.2.5\n   Compiling zerocopy-derive v0.7.35\n   Compiling tokio-macros v2.5.0\n   Compiling icu_provider_macros v1.5.0\n   Compiling thiserror-impl v2.0.12\n   Compiling serde_derive v1.0.218\n   Compiling thiserror-impl v1.0.69\n   Compiling profiling-procmacros v1.0.16\n   Compiling openssl-macros v0.1.1\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling num-derive v0.4.2\n   Compiling async-global-executor v2.4.1\n   Compiling tokio v1.43.0\n   Compiling profiling v1.0.16\n   Compiling futures-util v0.3.31\n   Compiling clap_derive v4.5.28\n   Compiling async-std v1.13.0\n   Compiling pin-project-internal v1.1.10\n   Compiling async-recursion v1.1.1\n   Compiling zerocopy v0.7.35\n   Compiling zerofrom v0.1.6\n   Compiling yoke v0.7.5\n   Compiling zerovec v0.10.4\n   Compiling pest v2.7.15\n   Compiling clearscreen v4.0.1\n   Compiling ppv-lite86 v0.2.20\n   Compiling rand_chacha v0.3.1\n   Compiling rand_chacha v0.9.0\n   Compiling rand v0.9.0\n   Compiling pin-project v1.1.10\n   Compiling clap v4.5.31\n   Compiling pest_meta v2.7.15\n   Compiling ragit-fs v0.3.3 (/home/baehyunsol/Documents/ragit/crates/fs)\n   Compiling tinystr v0.7.6\n   Compiling icu_collections v1.5.0\n   Compiling icu_locid v1.5.0\n   Compiling ragit-ignore v0.3.3 (/home/baehyunsol/Documents/ragit/crates/ignore)\n   Compiling pest_generator v2.7.15\n   Compiling icu_provider v1.5.0\n   Compiling pest_derive v2.7.15\n   Compiling icu_locid_transform v1.5.0\n   Compiling icu_properties v1.5.1\n   Compiling http-body-util v0.1.2\n   Compiling futures-executor v0.3.31\n   Compiling futures v0.3.31\n   Compiling tokio-util v0.7.13\n   Compiling tokio-native-tls v0.3.1\n   Compiling tower v0.5.2\n   Compiling serde_urlencoded v0.7.1\n   Compiling rust-stemmers v1.2.0\n   Compiling csv v1.3.1\n   Compiling h2 v0.4.8\n   Compiling h2 v0.3.26\n   Compiling icu_normalizer v1.5.0\n   Compiling tera v1.20.0\n   Compiling idna_adapter v1.2.0\n   Compiling idna v1.0.3\n   Compiling url v2.5.4\n   Compiling tungstenite v0.21.0\n   Compiling ravif v0.11.11\n   Compiling tokio-tungstenite v0.21.0\n   Compiling image v0.25.5\n   Compiling hyper v0.14.32\n   Compiling hyper v1.6.0\n   Compiling hyper-util v0.1.10\n   Compiling ragit-pdl v0.3.3 (/home/baehyunsol/Documents/ragit/crates/pdl)\n   Compiling hyper-tls v0.6.0\n   Compiling reqwest v0.12.12\n   Compiling ragit-api v0.3.3 (/home/baehyunsol/Documents/ragit/crates/api)\n   Compiling ragit v0.3.3 (/home/baehyunsol/Documents/ragit)\n   Compiling warp v0.3.7\n   Compiling ragit-server v0.3.3 (/home/baehyunsol/Documents/ragit/crates/server)\nerror[E0658]: async closures are unstable\n   --> src/main.rs:187:15\n    |\n187 |         .then(async |user: String, repo: String, chat_id: String, form: HashMap<String, String>| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nerror[E0658]: async closures are unstable\n   --> src/main.rs:204:15\n    |\n204 |         .then(async |user: String, repo: String, chat_id: String, form: FormData| {\n    |               ^^^^^\n    |\n    = note: see issue #62290 <https://github.com/rust-lang/rust/issues/62290> for more information\n    = help: to use an async block, remove the `||`: `async {`\n\nFor more information about this error, try `rustc --explain E0658`.\nerror: could not compile `ragit-server` (bin \"ragit-server\" test) due to 2 previous errors\n\n\n",
+            "elapsed_ms": 125973
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33574
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10428
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2969
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2902
+        },
+        "clone": {
+            "seq": 5,
+            "pass": false,
+            "error": "failed to compile `ragit-server`\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 504, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/clone.py\", line 50, in clone\n    raise Exception(\"failed to compile `ragit-server`\")\nException: failed to compile `ragit-server`\n",
+            "elapsed_ms": 301559
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4079
+        },
+        "server": {
+            "seq": 7,
+            "pass": false,
+            "error": "failed to compile `ragit-server`\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 504, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/server.py\", line 38, in server\n    raise Exception(\"failed to compile `ragit-server`\")\nException: failed to compile `ragit-server`\n",
+            "elapsed_ms": 301698
+        },
+        "cli": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3466
+        },
+        "archive": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 192258
+        },
+        "many_chunks": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 574909
+        },
+        "many_jobs": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 136326
+        },
+        "ls": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 136853
+        },
+        "meta": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1606
+        },
+        "symlink": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2913
+        },
+        "ii": {
+            "seq": 15,
+            "pass": false,
+            "error": "tfidf result on term 'main' is not close enough. error: `answer[1] not in approximation`, answer: ['2ff63726cd35393e754d357e2bcd18e2b614cf3c6be7858b00000001000001c0', '968682cfc7b59bb1f7703f233e07fdba0a69e17b03f23f0c00000001000001e8', '243df3b7cafea5fd39ca25bdc1eb5dc0e6f37b257e01816100000001000001c9', 'dd640d80f6cd58da4087957d0dd282393633c75d4e6af270000000010000020e', '3866920645ce9cdd61f76bf558084433d299d4e9e39dca5c000000010000020e', 'e70e7cf654c87be73761641b1e3013c05fc66627156b55e80000000100000148', 'b732a677df44c14f936df1d937d2c8a7d3e14aa919fdae56000000010000013e', '7c46884cd1787aa09d1698c6233d2024c58530e10e96c3830000000100000202', 'd34bd5a2db49303bca8b5d463bc2ee17bdf814932c7a244b0000000100000201', 'cd555347422db94b5eb41d8c2c5eba0d7ed199a95f69c472000000010000020d'], approximation: ['2ff63726cd35393e754d357e2bcd18e2b614cf3c6be7858b00000001000001c0', '243df3b7cafea5fd39ca25bdc1eb5dc0e6f37b257e01816100000001000001c9', 'dd640d80f6cd58da4087957d0dd282393633c75d4e6af270000000010000020e', '3866920645ce9cdd61f76bf558084433d299d4e9e39dca5c000000010000020e', 'e70e7cf654c87be73761641b1e3013c05fc66627156b55e80000000100000148', 'b732a677df44c14f936df1d937d2c8a7d3e14aa919fdae56000000010000013e', '7c46884cd1787aa09d1698c6233d2024c58530e10e96c3830000000100000202', 'd34bd5a2db49303bca8b5d463bc2ee17bdf814932c7a244b0000000100000201', 'cd555347422db94b5eb41d8c2c5eba0d7ed199a95f69c472000000010000020d', '14b9a5c74aa84477ddd9dc07f1d0ce67e7cd4d22d930035e000000010000016e']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[1] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 504, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'main' is not close enough. error: `answer[1] not in approximation`, answer: ['2ff63726cd35393e754d357e2bcd18e2b614cf3c6be7858b00000001000001c0', '968682cfc7b59bb1f7703f233e07fdba0a69e17b03f23f0c00000001000001e8', '243df3b7cafea5fd39ca25bdc1eb5dc0e6f37b257e01816100000001000001c9', 'dd640d80f6cd58da4087957d0dd282393633c75d4e6af270000000010000020e', '3866920645ce9cdd61f76bf558084433d299d4e9e39dca5c000000010000020e', 'e70e7cf654c87be73761641b1e3013c05fc66627156b55e80000000100000148', 'b732a677df44c14f936df1d937d2c8a7d3e14aa919fdae56000000010000013e', '7c46884cd1787aa09d1698c6233d2024c58530e10e96c3830000000100000202', 'd34bd5a2db49303bca8b5d463bc2ee17bdf814932c7a244b0000000100000201', 'cd555347422db94b5eb41d8c2c5eba0d7ed199a95f69c472000000010000020d'], approximation: ['2ff63726cd35393e754d357e2bcd18e2b614cf3c6be7858b00000001000001c0', '243df3b7cafea5fd39ca25bdc1eb5dc0e6f37b257e01816100000001000001c9', 'dd640d80f6cd58da4087957d0dd282393633c75d4e6af270000000010000020e', '3866920645ce9cdd61f76bf558084433d299d4e9e39dca5c000000010000020e', 'e70e7cf654c87be73761641b1e3013c05fc66627156b55e80000000100000148', 'b732a677df44c14f936df1d937d2c8a7d3e14aa919fdae56000000010000013e', '7c46884cd1787aa09d1698c6233d2024c58530e10e96c3830000000100000202', 'd34bd5a2db49303bca8b5d463bc2ee17bdf814932c7a244b0000000100000201', 'cd555347422db94b5eb41d8c2c5eba0d7ed199a95f69c472000000010000020d', '14b9a5c74aa84477ddd9dc07f1d0ce67e7cd4d22d930035e000000010000016e']\n",
+            "elapsed_ms": 126647
+        },
+        "cat_file": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14999
+        },
+        "images": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3934
+        },
+        "markdown_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4908
+        },
+        "csv_reader": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2236
+        },
+        "subdir": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8766
+        },
+        "tfidf": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10040
+        },
+        "merge": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13477
+        },
+        "external_bases": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 45724
+        },
+        "end_to_end dummy": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 134007
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 141768
+        },
+        "audit llama3.3-70b": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6253
+        },
+        "prompts dummy": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4452
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39132
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 76046
+        },
+        "empty dummy": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2625
+        },
+        "empty llama3.3-70b": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3840
+        },
+        "server2 dummy": {
+            "seq": 32,
+            "pass": false,
+            "error": "failed to compile `ragit-server`\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 504, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 457, in <lambda>\n    (\"server2 dummy\", lambda: server2(test_model=\"dummy\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/server2.py\", line 29, in server2\n    raise Exception(\"failed to compile `ragit-server`\")\nException: failed to compile `ragit-server`\n",
+            "elapsed_ms": 300339
+        },
+        "server2 llama3.3-70b": {
+            "seq": 33,
+            "pass": false,
+            "error": "failed to compile `ragit-server`\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 504, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 458, in <lambda>\n    (\"server2 llama3.3-70b\", lambda: server2(test_model=\"llama3.3-70b\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/server2.py\", line 29, in server2\n    raise Exception(\"failed to compile `ragit-server`\")\nException: failed to compile `ragit-server`\n",
+            "elapsed_ms": 300354
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10124
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13050
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 22410
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10215
+        },
+        "extract_keywords dummy": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1670
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7921
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 102945
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 52191
+        },
+        "ragit_api command-r": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1894
+        },
+        "models_init": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 267
+        },
+        "test_home_config_override": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 124
+        },
+        "migrate": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 120078
+        },
+        "migrate2": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 64821
+        }
+    },
+    "result": {
+        "total": 47,
+        "complete": 47,
+        "pass": 41,
+        "fail": 6,
+        "remaining": 0
+    }
+}

@@ -1,0 +1,292 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-03-01 11:27:47.373227Z",
+        "commit": "fec3323ea7cac352aad445ac62a975e2eec1475f",
+        "platform": {
+            "cargo_version": "cargo 1.84.1 (66221abde 2024-11-19)",
+            "rustc_version": "rustc 1.84.1 (e71f9a9a9 2025-01-27)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-133-generic-x86_64-with-glibc2.35"
+        },
+        "rand_seed": 202531112747,
+        "ended_at": "2025-03-01 12:48:39.169037Z",
+        "elapsed_ms": 4851795,
+        "ragit_version": "ragit 0.3.2-dev",
+        "commit_title": "fix compilation error of ragit-api",
+        "commit_message": "I forgot to import `ragit_fs::join4`.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 122164
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33540
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11630
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2962
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3900
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 245916
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3834
+        },
+        "server": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 81785
+        },
+        "cli": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3445
+        },
+        "archive": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 535355
+        },
+        "many_chunks": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 570253
+        },
+        "many_jobs": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 503916
+        },
+        "ls": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 90295
+        },
+        "meta": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1598
+        },
+        "symlink": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4913
+        },
+        "ii": {
+            "seq": 15,
+            "pass": false,
+            "error": "tfidf result on term 'remov term build as into' is not close enough. error: `answer[1] not in approximation`, answer: ['bdd21df3ca03651582624c519bff4ff28c16be4ce53e2fdb0000000100000201', '16743869b9f14477a2697e08098d5a35f089a48734289f660000000100000202', '26372082d84163a4437efe7ec4fa4f3b2912d74c42a32a540000000100000207', '9153ae9de9225efd5ee0268307d43914a3163116f5a6fa190000000100000195', '1c6718196c8c3e905183b0f57801b920e3745939cc8956750000000100000230', '12f465533e678ad2c7ceff2984aae0ab607900433330f19b0000000100000200', '58074ce21bb649a3583b295536a669ce421915c577490abd0000000100000202', '6c1de977cd7a1bddbecfd694e0570e39545c6acb5d9a641e0000000100000209', '3f9fe77a677ec7ad40ad74f7337684c102880255c0bed9450000000100000219', 'ddd59f2c986485ae58dcb116833260654bfd3fabce2007e70000000100000200'], approximation: ['bdd21df3ca03651582624c519bff4ff28c16be4ce53e2fdb0000000100000201', 'ddd59f2c986485ae58dcb116833260654bfd3fabce2007e70000000100000200', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204', 'a3526c5a0e3c7ba51fe4d8b99f347c8b9b719df27ea4645400000001000001bf', '3f9fe77a677ec7ad40ad74f7337684c102880255c0bed9450000000100000219', '95757c35e79b0d3128485731655b206bb5b82ff2f413f792000000010000021c', '0f623a8fee630ecd6fde1f8641f951e13c5423658d4cb13e0000000100000205', '240560ee3e23c04688c6d4cb4f024dca53a2a2d8a7ef290c0000000100000200', 'a5b434130fee72f5367e85c8642a3ac13db0bd0b87d3317f0000000100000200', '11539612d171f1457026ac0f340b0c13f04cef86f09023900000000100000205']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[1] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 483, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'remov term build as into' is not close enough. error: `answer[1] not in approximation`, answer: ['bdd21df3ca03651582624c519bff4ff28c16be4ce53e2fdb0000000100000201', '16743869b9f14477a2697e08098d5a35f089a48734289f660000000100000202', '26372082d84163a4437efe7ec4fa4f3b2912d74c42a32a540000000100000207', '9153ae9de9225efd5ee0268307d43914a3163116f5a6fa190000000100000195', '1c6718196c8c3e905183b0f57801b920e3745939cc8956750000000100000230', '12f465533e678ad2c7ceff2984aae0ab607900433330f19b0000000100000200', '58074ce21bb649a3583b295536a669ce421915c577490abd0000000100000202', '6c1de977cd7a1bddbecfd694e0570e39545c6acb5d9a641e0000000100000209', '3f9fe77a677ec7ad40ad74f7337684c102880255c0bed9450000000100000219', 'ddd59f2c986485ae58dcb116833260654bfd3fabce2007e70000000100000200'], approximation: ['bdd21df3ca03651582624c519bff4ff28c16be4ce53e2fdb0000000100000201', 'ddd59f2c986485ae58dcb116833260654bfd3fabce2007e70000000100000200', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204', 'a3526c5a0e3c7ba51fe4d8b99f347c8b9b719df27ea4645400000001000001bf', '3f9fe77a677ec7ad40ad74f7337684c102880255c0bed9450000000100000219', '95757c35e79b0d3128485731655b206bb5b82ff2f413f792000000010000021c', '0f623a8fee630ecd6fde1f8641f951e13c5423658d4cb13e0000000100000205', '240560ee3e23c04688c6d4cb4f024dca53a2a2d8a7ef290c0000000100000200', 'a5b434130fee72f5367e85c8642a3ac13db0bd0b87d3317f0000000100000200', '11539612d171f1457026ac0f340b0c13f04cef86f09023900000000100000205']\n",
+            "elapsed_ms": 500362
+        },
+        "cat_file": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 31439
+        },
+        "images": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 21876
+        },
+        "markdown_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14144
+        },
+        "csv_reader": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4344
+        },
+        "subdir": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13434
+        },
+        "tfidf": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 17967
+        },
+        "merge": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 18366
+        },
+        "external_bases": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 75418
+        },
+        "end_to_end dummy": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 377229
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 388738
+        },
+        "prompts dummy": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 18366
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 62628
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 86944
+        },
+        "empty dummy": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3532
+        },
+        "empty llama3.3-70b": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4603
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12440
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9915
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 23016
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11519
+        },
+        "extract_keywords dummy": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1563
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7645
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 101527
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 31667
+        },
+        "ragit_api command-r": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1817
+        },
+        "models_init": {
+            "seq": 40,
+            "pass": false,
+            "error": "Expected lowest-cost model 'phi-4-14b-ollama', got 'gpt-4o'\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 483, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/models_init.py\", line 137, in models_init\n    assert selected_model == 'phi-4-14b-ollama', f\"Expected lowest-cost model 'phi-4-14b-ollama', got '{selected_model}'\"\nAssertionError: Expected lowest-cost model 'phi-4-14b-ollama', got 'gpt-4o'\n",
+            "elapsed_ms": 257
+        },
+        "test_home_config_override": {
+            "seq": 41,
+            "pass": false,
+            "error": "/home/baehyunsol/.config/ragit/api.json already exists! This test might overwrite your config file. Please run this test in an isolated environment.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 483, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/models_init.py\", line 185, in test_home_config_override\n    raise Exception(f\"{p} already exists! This test might overwrite your config file. Please run this test in an isolated environment.\")\nException: /home/baehyunsol/.config/ragit/api.json already exists! This test might overwrite your config file. Please run this test in an isolated environment.\n",
+            "elapsed_ms": 0
+        },
+        "migrate": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 102526
+        },
+        "migrate2": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 664987
+        }
+    },
+    "result": {
+        "total": 44,
+        "complete": 44,
+        "pass": 41,
+        "fail": 3,
+        "remaining": 0
+    }
+}

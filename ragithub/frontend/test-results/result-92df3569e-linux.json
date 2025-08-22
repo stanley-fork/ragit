@@ -1,0 +1,382 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-05-19 23:29:45.111296Z",
+        "commit": "92df3569ea6187ea5459363f38c4eee0d1d74946",
+        "platform": {
+            "cargo_version": "cargo 1.87.0-nightly (6cf826701 2025-03-14)",
+            "rustc_version": "rustc 1.87.0-nightly (78948ac25 2025-03-20)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-136-generic-x86_64-with-glibc2.35"
+        },
+        "rand_seed": 20250519232945,
+        "ended_at": "2025-05-20 00:59:40.946018Z",
+        "elapsed_ms": 5395834,
+        "ragit_version": "ragit 0.4.0-dev",
+        "commit_title": "fix typo in dc865864",
+        "commit_message": "It's not just a typo. I used a wrong variable.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": false,
+            "error": "\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit: cargo test\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n   Compiling proc-macro2 v1.0.95\n   Compiling unicode-ident v1.0.18\n   Compiling cfg-if v1.0.0\n   Compiling memchr v2.7.4\n   Compiling libc v0.2.172\n   Compiling autocfg v1.4.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling value-bag v1.11.1\n   Compiling pin-project-lite v0.2.16\n   Compiling once_cell v1.21.3\n   Compiling smallvec v1.15.0\n   Compiling pkg-config v0.3.32\n   Compiling shlex v1.3.0\n   Compiling futures-core v0.3.31\n   Compiling regex-syntax v0.8.5\n   Compiling bitflags v2.9.1\n   Compiling futures-io v0.3.31\n   Compiling siphasher v1.0.1\n   Compiling stable_deref_trait v1.2.0\n   Compiling minimal-lexical v0.2.1\n   Compiling zerocopy v0.8.25\n   Compiling itoa v1.0.15\n   Compiling simd-adler32 v0.3.7\n   Compiling parking_lot_core v0.9.10\n   Compiling bytes v1.10.1\n   Compiling version_check v0.9.5\n   Compiling futures-sink v0.3.31\n   Compiling arrayvec v0.7.6\n   Compiling scopeguard v1.2.0\n   Compiling equivalent v1.0.2\n   Compiling libm v0.2.15\n   Compiling hashbrown v0.15.3\n   Compiling adler2 v2.0.0\n   Compiling bytemuck v1.23.0\n   Compiling parking v2.2.1\n   Compiling tracing-core v0.1.33\n   Compiling log v0.4.27\n   Compiling cc v1.2.23\n   Compiling vcpkg v0.2.15\n   Compiling pin-utils v0.1.0\n   Compiling rand_core v0.6.4\n   Compiling serde v1.0.219\n   Compiling phf_shared v0.11.3\n   Compiling atomic-waker v1.1.2\n   Compiling rayon-core v1.12.1\n   Compiling libloading v0.8.7\n   Compiling crc32fast v1.4.2\n   Compiling writeable v0.6.1\n   Compiling miniz_oxide v0.8.8\n   Compiling rand v0.8.5\n   Compiling fnv v1.0.7\n   Compiling semver v1.0.26\n   Compiling futures-task v0.3.31\n   Compiling glob v0.3.2\n   Compiling num-traits v0.2.19\n   Compiling slab v0.4.9\n   Compiling lock_api v0.4.12\n   Compiling futures-channel v0.3.31\n   Compiling thiserror v2.0.12\n   Compiling getrandom v0.3.3\n   Compiling aho-corasick v1.1.3\n   Compiling litemap v0.8.0\n   Compiling either v1.15.0\n   Compiling icu_normalizer_data v2.0.0\n   Compiling icu_properties_data v2.0.0\n   Compiling fastrand v2.3.0\n   Compiling anyhow v1.0.98\n   Compiling same-file v1.0.6\n   Compiling phf v0.11.3\n   Compiling iana-time-zone v0.1.63\n   Compiling built v0.7.7\n   Compiling ucd-trie v0.1.7\n   Compiling ryu v1.0.20\n   Compiling walkdir v2.5.0\n   Compiling clang-sys v1.8.1\n   Compiling aligned-vec v0.5.0\n   Compiling thiserror v1.0.69\n   Compiling crossbeam-epoch v0.9.18\n   Compiling concurrent-queue v2.5.0\n   Compiling quote v1.0.40\n   Compiling tracing v0.1.41\n   Compiling foreign-types-shared v0.1.1\n   Compiling indexmap v2.9.0\n   Compiling flate2 v1.1.1\n   Compiling percent-encoding v2.3.1\n   Compiling paste v1.0.15\n   Compiling openssl v0.10.72\n   Compiling event-listener v5.4.0\n   Compiling typenum v1.18.0\n   Compiling httparse v1.10.1\n   Compiling rustix v0.38.44\n   Compiling mio v1.0.3\n   Compiling crossbeam-deque v0.8.6\n   Compiling syn v2.0.101\n   Compiling socket2 v0.5.9\n   Compiling signal-hook-registry v1.4.5\n   Compiling http v1.3.1\n   Compiling phf_generator v0.11.3\n   Compiling getrandom v0.2.16\n   Compiling rav1e v0.7.1\n   Compiling rustc_version v0.4.1\n   Compiling foreign-types v0.3.2\n   Compiling futures-lite v2.6.0\n   Compiling phf_codegen v0.11.3\n   Compiling parking_lot v0.12.3\n   Compiling event-listener-strategy v0.5.4\n   Compiling generic-array v0.14.7\n   Compiling nom v7.1.3\n   Compiling rand_core v0.9.3\n   Compiling bstr v1.12.0\n   Compiling fdeflate v0.3.7\n   Compiling native-tls v0.2.14\n   Compiling weezl v0.1.8\n   Compiling bitflags v1.3.2\n   Compiling unic-char-range v0.9.0\n   Compiling bindgen v0.71.1\n   Compiling try-lock v0.2.5\n   Compiling unic-common v0.9.0\n   Compiling quick-error v2.0.1\n   Compiling lazy_static v1.5.0\n   Compiling linux-raw-sys v0.4.15\n   Compiling unic-ucd-version v0.9.0\n   Compiling want v0.3.1\n   Compiling pathfinder_simd v0.5.4 (https://github.com/servo/pathfinder.git#8ccf6f7c)\n   Compiling unic-char-property v0.9.0\n   Compiling simd_helpers v0.1.0\n   Compiling itertools v0.12.1\n   Compiling itertools v0.13.0\n   Compiling slotmap v1.0.7\n   Compiling yeslogic-fontconfig-sys v6.0.0\n   Compiling rgb v0.8.50\n   Compiling num-integer v0.1.46\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.41\n   Compiling rayon v1.10.0\n   Compiling png v0.17.16\n   Compiling tower-service v0.3.3\n   Compiling imgref v1.11.0\n   Compiling toml_datetime v0.6.9\n   Compiling byteorder-lite v0.1.0\n   Compiling core_maths v0.1.1\n   Compiling winnow v0.7.10\n   Compiling new_debug_unreachable v1.0.6\n   Compiling unicase v2.8.1\n   Compiling serde_json v1.0.140\n   Compiling zune-core v0.4.12\n   Compiling base64 v0.22.1\n   Compiling float-cmp v0.9.0\n   Compiling bitstream-io v2.6.0\n   Compiling rustc-hash v2.1.1\n   Compiling utf8parse v0.2.2\n   Compiling noop_proc_macro v0.3.0\n   Compiling num-bigint v0.4.6\n   Compiling http-body v1.0.1\n   Compiling color_quant v1.1.0\n   Compiling regex-automata v0.4.9\n   Compiling openssl-probe v0.1.6\n   Compiling async-task v4.7.1\n   Compiling anstyle-parse v0.2.6\n   Compiling image-webp v0.2.1\n   Compiling mime_guess v2.0.5\n   Compiling zune-jpeg v0.4.14\n   Compiling openssl-sys v0.9.108\n   Compiling freetype-sys v0.20.1\n   Compiling gif v0.13.1\n   Compiling strict-num v0.1.1\n   Compiling ttf-parser v0.25.1\n   Compiling loop9 v0.1.5\n   Compiling unic-ucd-segment v0.9.0\n   Compiling async-channel v2.3.1\n   Compiling async-lock v3.4.0\n   Compiling form_urlencoded v1.2.1\n   Compiling piper v0.2.4\n   Compiling zune-inflate v0.2.54\n   Compiling avif-serialize v0.8.3\n   Compiling half v2.6.0\n   Compiling colorchoice v1.0.3\n   Compiling bit_field v0.10.2\n   Compiling lebe v0.5.2\n   Compiling anstyle-query v1.1.2\n   Compiling jpeg-decoder v0.3.1\n   Compiling arrayref v0.3.9\n   Compiling zeroize v1.8.1\n   Compiling utf8_iter v1.0.4\n   Compiling tinyvec_macros v0.1.1\n   Compiling is_terminal_polyfill v1.70.1\n   Compiling roxmltree v0.20.0\n   Compiling option-ext v0.2.0\n   Compiling anstyle v1.0.10\n   Compiling cexpr v0.6.0\n   Compiling pathdiff v0.2.3\n   Compiling deunicode v1.6.2\n   Compiling dirs-sys v0.4.1\n   Compiling rustls-pki-types v1.12.0\n   Compiling tinyvec v1.9.0\n   Compiling tiny-skia-path v0.11.4\n   Compiling unic-segment v0.9.0\n   Compiling exr v1.73.0\n   Compiling blocking v1.6.1\n   Compiling anstream v0.6.18\n   Compiling async-executor v1.13.2\n   Compiling slug v0.1.6\n   Compiling http-body-util v0.1.3\n   Compiling num-rational v0.4.2\n   Compiling fontconfig-parser v0.5.8\n   Compiling humansize v2.1.3\n   Compiling tiff v0.9.1\n   Compiling memmap2 v0.9.5\n   Compiling qoi v0.4.1\n   Compiling dlib v0.5.2\n   Compiling kurbo v0.11.2\n   Compiling sync_wrapper v1.0.2\n   Compiling event-listener v2.5.3\n   Compiling clap_lex v0.7.4\n   Compiling mime v0.3.17\n   Compiling unicode-ccc v0.4.0\n   Compiling strsim v0.11.1\n   Compiling font-kit v0.14.2\n   Compiling unicode-bidi-mirroring v0.4.0\n   Compiling tower-layer v0.3.3\n   Compiling toml_edit v0.22.26\n   Compiling unicode-script v0.5.7\n   Compiling av1-grain v0.2.3\n   Compiling unicode-properties v0.1.3\n   Compiling heck v0.5.0\n   Compiling clap_builder v4.5.38\n   Compiling async-channel v1.9.0\n   Compiling pathfinder_geometry v0.5.1\n   Compiling rustls-pemfile v2.2.0\n   Compiling dirs v5.0.1\n   Compiling crypto-common v0.1.6\n   Compiling block-buffer v0.10.4\n   Compiling simplecss v0.2.2\n   Compiling kv-log-macro v1.0.7\n   Compiling encoding_rs v0.8.35\n   Compiling xmlwriter v0.1.0\n   Compiling imagesize v0.13.0\n   Compiling float-ord v0.3.2\n   Compiling ipnet v2.11.0\n   Compiling pico-args v0.5.0\n   Compiling unicode-bidi v0.3.18\n   Compiling unicode-vo v0.1.0\n   Compiling data-url v0.3.1\n   Compiling byteorder v1.5.0\n   Compiling digest v0.10.7\n   Compiling tiny-skia v0.11.4\n   Compiling csv-core v0.1.12\n   Compiling keccak v0.1.5\n   Compiling ragit-korean v0.4.0 (/home/baehyunsol/Documents/ragit/crates/korean)\n   Compiling ragit-cli v0.4.0 (/home/baehyunsol/Documents/ragit/crates/cli)\n   Compiling sha3 v0.10.8\n   Compiling regex v1.11.1\n   Compiling globset v0.4.16\n   Compiling maybe-rayon v0.1.1\n   Compiling svgtypes v0.15.3\n   Compiling parse-zoneinfo v0.3.1\n   Compiling ignore v0.4.23\n   Compiling chrono-tz-build v0.3.0\n   Compiling synstructure v0.13.2\n   Compiling fontdb v0.23.0\n   Compiling rustybuzz v0.20.1\n   Compiling chrono-tz v0.9.0\n   Compiling proc-macro-crate v3.3.0\n   Compiling globwalk v0.9.1\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.8.0\n   Compiling zerocopy-derive v0.8.25\n   Compiling zerovec-derive v0.11.1\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.5.0\n   Compiling futures-macro v0.3.31\n   Compiling serde_derive v1.0.219\n   Compiling thiserror-impl v2.0.12\n   Compiling profiling-procmacros v1.0.16\n   Compiling openssl-macros v0.1.1\n   Compiling thiserror-impl v1.0.69\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling num-derive v0.4.2\n   Compiling clap_derive v4.5.32\n   Compiling async-recursion v1.1.1\n   Compiling num_enum_derive v0.7.3\n   Compiling profiling v1.0.16\n   Compiling tokio v1.45.0\n   Compiling futures-util v0.3.31\n   Compiling zerofrom v0.1.6\n   Compiling num_enum v0.7.3\n   Compiling pest v2.8.0\n   Compiling yoke v0.8.0\n   Compiling zerovec v0.11.2\n   Compiling zerotrie v0.2.2\n   Compiling usvg v0.45.1\n   Compiling clap v4.5.38\n   Compiling tinystr v0.8.1\n   Compiling potential_utf v0.1.2\n   Compiling icu_collections v2.0.0\n   Compiling polling v3.7.4\n   Compiling pest_meta v2.8.0\n   Compiling icu_locale_core v2.0.0\n   Compiling async-io v2.4.0\n   Compiling async-global-executor v2.4.1\n   Compiling async-std v1.13.1\n   Compiling icu_provider v2.0.0\n   Compiling pest_generator v2.8.0\n   Compiling icu_properties v2.0.0\n   Compiling icu_normalizer v2.0.0\n   Compiling ppv-lite86 v0.2.21\n   Compiling resvg v0.45.1\n   Compiling rand_chacha v0.9.0\n   Compiling rand_chacha v0.3.1\n   Compiling rand v0.9.1\n   Compiling mupdf-sys v0.5.0\n   Compiling pest_derive v2.8.0\n   Compiling ragit-fs v0.4.0 (/home/baehyunsol/Documents/ragit/crates/fs)\n   Compiling ragit-ignore v0.4.0 (/home/baehyunsol/Documents/ragit/crates/ignore)\n   Compiling futures-executor v0.3.31\n   Compiling serde_urlencoded v0.7.1\n   Compiling rust-stemmers v1.2.0\n   Compiling csv v1.3.1\n   Compiling futures v0.3.31\n   Compiling idna_adapter v1.2.1\n   Compiling idna v1.0.3\n   Compiling ravif v0.11.12\n   Compiling url v2.5.4\n   Compiling tera v1.20.0\n   Compiling image v0.25.6\n   Compiling tokio-util v0.7.15\n   Compiling tokio-native-tls v0.3.1\n   Compiling tower v0.5.2\n   Compiling h2 v0.4.10\n   Compiling ragit-pdl v0.4.0 (/home/baehyunsol/Documents/ragit/crates/pdl)\n   Compiling hyper v1.6.0\n   Compiling hyper-util v0.1.11\n   Compiling hyper-tls v0.6.0\n   Compiling reqwest v0.12.15\n   Compiling ragit-api v0.4.0 (/home/baehyunsol/Documents/ragit/crates/api)\n   Compiling mupdf v0.5.0\n   Compiling ragit v0.4.0 (/home/baehyunsol/Documents/ragit)\nerror[E0061]: this function takes 3 arguments but 2 arguments were supplied\n   --> src/index/file/markdown.rs:494:29\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", &config_strict).unwrap();\n    |                             ^^^^^^^^^^^^^^^^^^^                  -------------- argument #2 of type `&str` is missing\n    |\nnote: associated function defined here\n   --> src/index/file.rs:34:8\n    |\n34  |     fn new(path: &str, root_dir: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;\n    |        ^^^             --------\nhelp: provide the argument\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", /* &str */, &config_strict).unwrap();\n    |                                                                  +++++++++++\n\nFor more information about this error, try `rustc --explain E0061`.\nerror: could not compile `ragit` (lib test) due to 1 previous error\nwarning: build failed, waiting for other jobs to finish...\n\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit: cargo test --release\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n   Compiling ragit v0.4.0 (/home/baehyunsol/Documents/ragit)\nerror[E0061]: this function takes 3 arguments but 2 arguments were supplied\n   --> src/index/file/markdown.rs:494:29\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", &config_strict).unwrap();\n    |                             ^^^^^^^^^^^^^^^^^^^                  -------------- argument #2 of type `&str` is missing\n    |\nnote: associated function defined here\n   --> src/index/file.rs:34:8\n    |\n34  |     fn new(path: &str, root_dir: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;\n    |        ^^^             --------\nhelp: provide the argument\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", /* &str */, &config_strict).unwrap();\n    |                                                                  +++++++++++\n\nFor more information about this error, try `rustc --explain E0061`.\nerror: could not compile `ragit` (lib test) due to 1 previous error\n\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/cargo_tests.py\", line 46, in cargo_tests\n    raise Exception(\"\\n\\n\".join(errors))\nException: \n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit: cargo test\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n   Compiling proc-macro2 v1.0.95\n   Compiling unicode-ident v1.0.18\n   Compiling cfg-if v1.0.0\n   Compiling memchr v2.7.4\n   Compiling libc v0.2.172\n   Compiling autocfg v1.4.0\n   Compiling crossbeam-utils v0.8.21\n   Compiling value-bag v1.11.1\n   Compiling pin-project-lite v0.2.16\n   Compiling once_cell v1.21.3\n   Compiling smallvec v1.15.0\n   Compiling pkg-config v0.3.32\n   Compiling shlex v1.3.0\n   Compiling futures-core v0.3.31\n   Compiling regex-syntax v0.8.5\n   Compiling bitflags v2.9.1\n   Compiling futures-io v0.3.31\n   Compiling siphasher v1.0.1\n   Compiling stable_deref_trait v1.2.0\n   Compiling minimal-lexical v0.2.1\n   Compiling zerocopy v0.8.25\n   Compiling itoa v1.0.15\n   Compiling simd-adler32 v0.3.7\n   Compiling parking_lot_core v0.9.10\n   Compiling bytes v1.10.1\n   Compiling version_check v0.9.5\n   Compiling futures-sink v0.3.31\n   Compiling arrayvec v0.7.6\n   Compiling scopeguard v1.2.0\n   Compiling equivalent v1.0.2\n   Compiling libm v0.2.15\n   Compiling hashbrown v0.15.3\n   Compiling adler2 v2.0.0\n   Compiling bytemuck v1.23.0\n   Compiling parking v2.2.1\n   Compiling tracing-core v0.1.33\n   Compiling log v0.4.27\n   Compiling cc v1.2.23\n   Compiling vcpkg v0.2.15\n   Compiling pin-utils v0.1.0\n   Compiling rand_core v0.6.4\n   Compiling serde v1.0.219\n   Compiling phf_shared v0.11.3\n   Compiling atomic-waker v1.1.2\n   Compiling rayon-core v1.12.1\n   Compiling libloading v0.8.7\n   Compiling crc32fast v1.4.2\n   Compiling writeable v0.6.1\n   Compiling miniz_oxide v0.8.8\n   Compiling rand v0.8.5\n   Compiling fnv v1.0.7\n   Compiling semver v1.0.26\n   Compiling futures-task v0.3.31\n   Compiling glob v0.3.2\n   Compiling num-traits v0.2.19\n   Compiling slab v0.4.9\n   Compiling lock_api v0.4.12\n   Compiling futures-channel v0.3.31\n   Compiling thiserror v2.0.12\n   Compiling getrandom v0.3.3\n   Compiling aho-corasick v1.1.3\n   Compiling litemap v0.8.0\n   Compiling either v1.15.0\n   Compiling icu_normalizer_data v2.0.0\n   Compiling icu_properties_data v2.0.0\n   Compiling fastrand v2.3.0\n   Compiling anyhow v1.0.98\n   Compiling same-file v1.0.6\n   Compiling phf v0.11.3\n   Compiling iana-time-zone v0.1.63\n   Compiling built v0.7.7\n   Compiling ucd-trie v0.1.7\n   Compiling ryu v1.0.20\n   Compiling walkdir v2.5.0\n   Compiling clang-sys v1.8.1\n   Compiling aligned-vec v0.5.0\n   Compiling thiserror v1.0.69\n   Compiling crossbeam-epoch v0.9.18\n   Compiling concurrent-queue v2.5.0\n   Compiling quote v1.0.40\n   Compiling tracing v0.1.41\n   Compiling foreign-types-shared v0.1.1\n   Compiling indexmap v2.9.0\n   Compiling flate2 v1.1.1\n   Compiling percent-encoding v2.3.1\n   Compiling paste v1.0.15\n   Compiling openssl v0.10.72\n   Compiling event-listener v5.4.0\n   Compiling typenum v1.18.0\n   Compiling httparse v1.10.1\n   Compiling rustix v0.38.44\n   Compiling mio v1.0.3\n   Compiling crossbeam-deque v0.8.6\n   Compiling syn v2.0.101\n   Compiling socket2 v0.5.9\n   Compiling signal-hook-registry v1.4.5\n   Compiling http v1.3.1\n   Compiling phf_generator v0.11.3\n   Compiling getrandom v0.2.16\n   Compiling rav1e v0.7.1\n   Compiling rustc_version v0.4.1\n   Compiling foreign-types v0.3.2\n   Compiling futures-lite v2.6.0\n   Compiling phf_codegen v0.11.3\n   Compiling parking_lot v0.12.3\n   Compiling event-listener-strategy v0.5.4\n   Compiling generic-array v0.14.7\n   Compiling nom v7.1.3\n   Compiling rand_core v0.9.3\n   Compiling bstr v1.12.0\n   Compiling fdeflate v0.3.7\n   Compiling native-tls v0.2.14\n   Compiling weezl v0.1.8\n   Compiling bitflags v1.3.2\n   Compiling unic-char-range v0.9.0\n   Compiling bindgen v0.71.1\n   Compiling try-lock v0.2.5\n   Compiling unic-common v0.9.0\n   Compiling quick-error v2.0.1\n   Compiling lazy_static v1.5.0\n   Compiling linux-raw-sys v0.4.15\n   Compiling unic-ucd-version v0.9.0\n   Compiling want v0.3.1\n   Compiling pathfinder_simd v0.5.4 (https://github.com/servo/pathfinder.git#8ccf6f7c)\n   Compiling unic-char-property v0.9.0\n   Compiling simd_helpers v0.1.0\n   Compiling itertools v0.12.1\n   Compiling itertools v0.13.0\n   Compiling slotmap v1.0.7\n   Compiling yeslogic-fontconfig-sys v6.0.0\n   Compiling rgb v0.8.50\n   Compiling num-integer v0.1.46\n   Compiling v_frame v0.3.8\n   Compiling chrono v0.4.41\n   Compiling rayon v1.10.0\n   Compiling png v0.17.16\n   Compiling tower-service v0.3.3\n   Compiling imgref v1.11.0\n   Compiling toml_datetime v0.6.9\n   Compiling byteorder-lite v0.1.0\n   Compiling core_maths v0.1.1\n   Compiling winnow v0.7.10\n   Compiling new_debug_unreachable v1.0.6\n   Compiling unicase v2.8.1\n   Compiling serde_json v1.0.140\n   Compiling zune-core v0.4.12\n   Compiling base64 v0.22.1\n   Compiling float-cmp v0.9.0\n   Compiling bitstream-io v2.6.0\n   Compiling rustc-hash v2.1.1\n   Compiling utf8parse v0.2.2\n   Compiling noop_proc_macro v0.3.0\n   Compiling num-bigint v0.4.6\n   Compiling http-body v1.0.1\n   Compiling color_quant v1.1.0\n   Compiling regex-automata v0.4.9\n   Compiling openssl-probe v0.1.6\n   Compiling async-task v4.7.1\n   Compiling anstyle-parse v0.2.6\n   Compiling image-webp v0.2.1\n   Compiling mime_guess v2.0.5\n   Compiling zune-jpeg v0.4.14\n   Compiling openssl-sys v0.9.108\n   Compiling freetype-sys v0.20.1\n   Compiling gif v0.13.1\n   Compiling strict-num v0.1.1\n   Compiling ttf-parser v0.25.1\n   Compiling loop9 v0.1.5\n   Compiling unic-ucd-segment v0.9.0\n   Compiling async-channel v2.3.1\n   Compiling async-lock v3.4.0\n   Compiling form_urlencoded v1.2.1\n   Compiling piper v0.2.4\n   Compiling zune-inflate v0.2.54\n   Compiling avif-serialize v0.8.3\n   Compiling half v2.6.0\n   Compiling colorchoice v1.0.3\n   Compiling bit_field v0.10.2\n   Compiling lebe v0.5.2\n   Compiling anstyle-query v1.1.2\n   Compiling jpeg-decoder v0.3.1\n   Compiling arrayref v0.3.9\n   Compiling zeroize v1.8.1\n   Compiling utf8_iter v1.0.4\n   Compiling tinyvec_macros v0.1.1\n   Compiling is_terminal_polyfill v1.70.1\n   Compiling roxmltree v0.20.0\n   Compiling option-ext v0.2.0\n   Compiling anstyle v1.0.10\n   Compiling cexpr v0.6.0\n   Compiling pathdiff v0.2.3\n   Compiling deunicode v1.6.2\n   Compiling dirs-sys v0.4.1\n   Compiling rustls-pki-types v1.12.0\n   Compiling tinyvec v1.9.0\n   Compiling tiny-skia-path v0.11.4\n   Compiling unic-segment v0.9.0\n   Compiling exr v1.73.0\n   Compiling blocking v1.6.1\n   Compiling anstream v0.6.18\n   Compiling async-executor v1.13.2\n   Compiling slug v0.1.6\n   Compiling http-body-util v0.1.3\n   Compiling num-rational v0.4.2\n   Compiling fontconfig-parser v0.5.8\n   Compiling humansize v2.1.3\n   Compiling tiff v0.9.1\n   Compiling memmap2 v0.9.5\n   Compiling qoi v0.4.1\n   Compiling dlib v0.5.2\n   Compiling kurbo v0.11.2\n   Compiling sync_wrapper v1.0.2\n   Compiling event-listener v2.5.3\n   Compiling clap_lex v0.7.4\n   Compiling mime v0.3.17\n   Compiling unicode-ccc v0.4.0\n   Compiling strsim v0.11.1\n   Compiling font-kit v0.14.2\n   Compiling unicode-bidi-mirroring v0.4.0\n   Compiling tower-layer v0.3.3\n   Compiling toml_edit v0.22.26\n   Compiling unicode-script v0.5.7\n   Compiling av1-grain v0.2.3\n   Compiling unicode-properties v0.1.3\n   Compiling heck v0.5.0\n   Compiling clap_builder v4.5.38\n   Compiling async-channel v1.9.0\n   Compiling pathfinder_geometry v0.5.1\n   Compiling rustls-pemfile v2.2.0\n   Compiling dirs v5.0.1\n   Compiling crypto-common v0.1.6\n   Compiling block-buffer v0.10.4\n   Compiling simplecss v0.2.2\n   Compiling kv-log-macro v1.0.7\n   Compiling encoding_rs v0.8.35\n   Compiling xmlwriter v0.1.0\n   Compiling imagesize v0.13.0\n   Compiling float-ord v0.3.2\n   Compiling ipnet v2.11.0\n   Compiling pico-args v0.5.0\n   Compiling unicode-bidi v0.3.18\n   Compiling unicode-vo v0.1.0\n   Compiling data-url v0.3.1\n   Compiling byteorder v1.5.0\n   Compiling digest v0.10.7\n   Compiling tiny-skia v0.11.4\n   Compiling csv-core v0.1.12\n   Compiling keccak v0.1.5\n   Compiling ragit-korean v0.4.0 (/home/baehyunsol/Documents/ragit/crates/korean)\n   Compiling ragit-cli v0.4.0 (/home/baehyunsol/Documents/ragit/crates/cli)\n   Compiling sha3 v0.10.8\n   Compiling regex v1.11.1\n   Compiling globset v0.4.16\n   Compiling maybe-rayon v0.1.1\n   Compiling svgtypes v0.15.3\n   Compiling parse-zoneinfo v0.3.1\n   Compiling ignore v0.4.23\n   Compiling chrono-tz-build v0.3.0\n   Compiling synstructure v0.13.2\n   Compiling fontdb v0.23.0\n   Compiling rustybuzz v0.20.1\n   Compiling chrono-tz v0.9.0\n   Compiling proc-macro-crate v3.3.0\n   Compiling globwalk v0.9.1\n   Compiling zerofrom-derive v0.1.6\n   Compiling yoke-derive v0.8.0\n   Compiling zerocopy-derive v0.8.25\n   Compiling zerovec-derive v0.11.1\n   Compiling displaydoc v0.2.5\n   Compiling tokio-macros v2.5.0\n   Compiling futures-macro v0.3.31\n   Compiling serde_derive v1.0.219\n   Compiling thiserror-impl v2.0.12\n   Compiling profiling-procmacros v1.0.16\n   Compiling openssl-macros v0.1.1\n   Compiling thiserror-impl v1.0.69\n   Compiling arg_enum_proc_macro v0.3.4\n   Compiling num-derive v0.4.2\n   Compiling clap_derive v4.5.32\n   Compiling async-recursion v1.1.1\n   Compiling num_enum_derive v0.7.3\n   Compiling profiling v1.0.16\n   Compiling tokio v1.45.0\n   Compiling futures-util v0.3.31\n   Compiling zerofrom v0.1.6\n   Compiling num_enum v0.7.3\n   Compiling pest v2.8.0\n   Compiling yoke v0.8.0\n   Compiling zerovec v0.11.2\n   Compiling zerotrie v0.2.2\n   Compiling usvg v0.45.1\n   Compiling clap v4.5.38\n   Compiling tinystr v0.8.1\n   Compiling potential_utf v0.1.2\n   Compiling icu_collections v2.0.0\n   Compiling polling v3.7.4\n   Compiling pest_meta v2.8.0\n   Compiling icu_locale_core v2.0.0\n   Compiling async-io v2.4.0\n   Compiling async-global-executor v2.4.1\n   Compiling async-std v1.13.1\n   Compiling icu_provider v2.0.0\n   Compiling pest_generator v2.8.0\n   Compiling icu_properties v2.0.0\n   Compiling icu_normalizer v2.0.0\n   Compiling ppv-lite86 v0.2.21\n   Compiling resvg v0.45.1\n   Compiling rand_chacha v0.9.0\n   Compiling rand_chacha v0.3.1\n   Compiling rand v0.9.1\n   Compiling mupdf-sys v0.5.0\n   Compiling pest_derive v2.8.0\n   Compiling ragit-fs v0.4.0 (/home/baehyunsol/Documents/ragit/crates/fs)\n   Compiling ragit-ignore v0.4.0 (/home/baehyunsol/Documents/ragit/crates/ignore)\n   Compiling futures-executor v0.3.31\n   Compiling serde_urlencoded v0.7.1\n   Compiling rust-stemmers v1.2.0\n   Compiling csv v1.3.1\n   Compiling futures v0.3.31\n   Compiling idna_adapter v1.2.1\n   Compiling idna v1.0.3\n   Compiling ravif v0.11.12\n   Compiling url v2.5.4\n   Compiling tera v1.20.0\n   Compiling image v0.25.6\n   Compiling tokio-util v0.7.15\n   Compiling tokio-native-tls v0.3.1\n   Compiling tower v0.5.2\n   Compiling h2 v0.4.10\n   Compiling ragit-pdl v0.4.0 (/home/baehyunsol/Documents/ragit/crates/pdl)\n   Compiling hyper v1.6.0\n   Compiling hyper-util v0.1.11\n   Compiling hyper-tls v0.6.0\n   Compiling reqwest v0.12.15\n   Compiling ragit-api v0.4.0 (/home/baehyunsol/Documents/ragit/crates/api)\n   Compiling mupdf v0.5.0\n   Compiling ragit v0.4.0 (/home/baehyunsol/Documents/ragit)\nerror[E0061]: this function takes 3 arguments but 2 arguments were supplied\n   --> src/index/file/markdown.rs:494:29\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", &config_strict).unwrap();\n    |                             ^^^^^^^^^^^^^^^^^^^                  -------------- argument #2 of type `&str` is missing\n    |\nnote: associated function defined here\n   --> src/index/file.rs:34:8\n    |\n34  |     fn new(path: &str, root_dir: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;\n    |        ^^^             --------\nhelp: provide the argument\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", /* &str */, &config_strict).unwrap();\n    |                                                                  +++++++++++\n\nFor more information about this error, try `rustc --explain E0061`.\nerror: could not compile `ragit` (lib test) due to 1 previous error\nwarning: build failed, waiting for other jobs to finish...\n\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit: cargo test --release\n\n### status_code ###\n101\n\n### stdout ###\n\n\n### stderr ###\n   Compiling ragit v0.4.0 (/home/baehyunsol/Documents/ragit)\nerror[E0061]: this function takes 3 arguments but 2 arguments were supplied\n   --> src/index/file/markdown.rs:494:29\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", &config_strict).unwrap();\n    |                             ^^^^^^^^^^^^^^^^^^^                  -------------- argument #2 of type `&str` is missing\n    |\nnote: associated function defined here\n   --> src/index/file.rs:34:8\n    |\n34  |     fn new(path: &str, root_dir: &str, config: &BuildConfig) -> Result<Self, Error> where Self: Sized;\n    |        ^^^             --------\nhelp: provide the argument\n    |\n494 |         let mut md_reader = MarkdownReader::new(\"__tmp_test.md\", /* &str */, &config_strict).unwrap();\n    |                                                                  +++++++++++\n\nFor more information about this error, try `rustc --explain E0061`.\nerror: could not compile `ragit` (lib test) due to 1 previous error\n\n\n",
+            "elapsed_ms": 273063
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34683
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11540
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3185
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3094
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 124284
+        },
+        "clone_empty": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4944
+        },
+        "pull": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9096
+        },
+        "server": {
+            "seq": 8,
+            "pass": false,
+            "error": "{'ragit_version': '0.4.0-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'None'}, 'uid': None} != {'ragit_version': '0.4.0-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'None'}, 'uid': {'high': 226965926617079404232257257017206136310, 'low': 98353210059702837338669213515912314881}}\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/server.py\", line 51, in server\n    assert_eq_json(\"index.json\", index_json)\n  File \"/home/baehyunsol/Documents/ragit/tests/server.py\", line 266, in assert_eq_json\n    raise ValueError(f\"{file.__repr__()} != {value.__repr__()}\")\nValueError: {'ragit_version': '0.4.0-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'None'}, 'uid': None} != {'ragit_version': '0.4.0-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'None'}, 'uid': {'high': 226965926617079404232257257017206136310, 'low': 98353210059702837338669213515912314881}}\n",
+            "elapsed_ms": 4925
+        },
+        "server_permission": {
+            "seq": 9,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/server_permission.py\", line 23, in server_permission\n    create_user(id=\"test-user-2\", email=\"sample2@email.com\", password=\"abcdefgh\")\n  File \"/home/baehyunsol/Documents/ragit/tests/server.py\", line 186, in create_user\n    assert response.status_code == 200\nAssertionError\n",
+            "elapsed_ms": 1624
+        },
+        "cli": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5623
+        },
+        "archive": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 194267
+        },
+        "many_chunks": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 573050
+        },
+        "many_jobs": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 155798
+        },
+        "ls": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 77279
+        },
+        "meta": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1730
+        },
+        "symlink": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3093
+        },
+        "ii": {
+            "seq": 17,
+            "pass": false,
+            "error": "tfidf result on term 'chunk bitxor' is not close enough. error: `answer[2] not in approximation`, answer: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', 'ece7d9ac964d374e578a3c05daf8b46245af9d2a8e76e9210000000100000200', 'c39e41c76d2c3c01c18bb20a135669481eb9ea963597940e0000000100000209', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '1e89c4adea8975cae21c8a68dc77dd4f11f30a544ffa000e0000000100000207', '61a0bf5da68d4a7d9126655b2a034f62fc5fab123b4679f00000000100000215', '1557ddd1b584b8dcec275d294009e627e2df8cc9860aeb570000000100000200', '6a6bd2b7881a1ae3c81a06b38a06c32253ed0d32efe0ab250000000100000213'], approximation: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', 'c39e41c76d2c3c01c18bb20a135669481eb9ea963597940e0000000100000209', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '598898fc27f7824376050f6071364c5ebb2c2108be8f2e9d0000000100000200', '1c43e67a9383f8da92cae72c60dd7ff0d918d4941bd7051c0000000100000200', 'bca871f9c4baebcac7ea6400be8e6684139c48c0f82e59390000000100000200', '7f341bdda781f4986fdc3246acc697dae778f50ececa45190000000100000200', '20bdf67206e914ca20963264b3a90741b7f14be3ff0e62e50000000100000201', '771a35d08abd4d515d67f5e9d3d1a8c1cfebe66609a7d2c0000000010000020b']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'chunk bitxor' is not close enough. error: `answer[2] not in approximation`, answer: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', 'ece7d9ac964d374e578a3c05daf8b46245af9d2a8e76e9210000000100000200', 'c39e41c76d2c3c01c18bb20a135669481eb9ea963597940e0000000100000209', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '1e89c4adea8975cae21c8a68dc77dd4f11f30a544ffa000e0000000100000207', '61a0bf5da68d4a7d9126655b2a034f62fc5fab123b4679f00000000100000215', '1557ddd1b584b8dcec275d294009e627e2df8cc9860aeb570000000100000200', '6a6bd2b7881a1ae3c81a06b38a06c32253ed0d32efe0ab250000000100000213'], approximation: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', 'c39e41c76d2c3c01c18bb20a135669481eb9ea963597940e0000000100000209', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '598898fc27f7824376050f6071364c5ebb2c2108be8f2e9d0000000100000200', '1c43e67a9383f8da92cae72c60dd7ff0d918d4941bd7051c0000000100000200', 'bca871f9c4baebcac7ea6400be8e6684139c48c0f82e59390000000100000200', '7f341bdda781f4986fdc3246acc697dae778f50ececa45190000000100000200', '20bdf67206e914ca20963264b3a90741b7f14be3ff0e62e50000000100000201', '771a35d08abd4d515d67f5e9d3d1a8c1cfebe66609a7d2c0000000010000020b']\n",
+            "elapsed_ms": 154596
+        },
+        "cat_file": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15312
+        },
+        "generous_file_reader": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 270293
+        },
+        "clean_up_erroneous_chunk": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1413
+        },
+        "images": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4401
+        },
+        "markdown_reader": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5310
+        },
+        "csv_reader": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2800
+        },
+        "real_repos": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2431355
+        },
+        "real_repos_regression": {
+            "seq": 25,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/real_repos_regression.py\", line 157, in real_repos_regression\n    assert count_files() == (len(reproductions), 1, len(reproductions) - 1)  # (total, staged, processed)\nAssertionError\n",
+            "elapsed_ms": 2525
+        },
+        "subdir": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8886
+        },
+        "tfidf": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9714
+        },
+        "merge": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14332
+        },
+        "external_bases": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33259
+        },
+        "end_to_end dummy": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 36348
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 57961
+        },
+        "audit llama3.3-70b": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5962
+        },
+        "logs llama3.3-70b": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4386
+        },
+        "prompts dummy": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4575
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39197
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 72351
+        },
+        "empty dummy": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2800
+        },
+        "empty llama3.3-70b": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3708
+        },
+        "server_chat llama3.3-70b": {
+            "seq": 39,
+            "pass": false,
+            "error": "Expecting value: line 1 column 1 (char 0)\nTraceback (most recent call last):\n  File \"/home/baehyunsol/.local/lib/python3.10/site-packages/requests/models.py\", line 974, in json\n    return complexjson.loads(self.text, **kwargs)\n  File \"/usr/lib/python3.10/json/__init__.py\", line 346, in loads\n    return _default_decoder.decode(s)\n  File \"/usr/lib/python3.10/json/decoder.py\", line 337, in decode\n    obj, end = self.raw_decode(s, idx=_w(s, 0).end())\n  File \"/usr/lib/python3.10/json/decoder.py\", line 355, in raw_decode\n    raise JSONDecodeError(\"Expecting value\", s, err.value) from None\njson.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 598, in <lambda>\n    (\"server_chat llama3.3-70b\", lambda: server_chat(test_model=\"llama3.3-70b\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/server_chat.py\", line 67, in server_chat\n    responses2.append(requests.post(f\"http://127.0.0.1:41127/test-user/sample2/chat/{chat_id2}\", files={\"query\": \"How does the rust compiler implement type system?\"}).json())\n  File \"/home/baehyunsol/.local/lib/python3.10/site-packages/requests/models.py\", line 978, in json\n    raise RequestsJSONDecodeError(e.msg, e.doc, e.pos)\nrequests.exceptions.JSONDecodeError: Expecting value: line 1 column 1 (char 0)\n",
+            "elapsed_ms": 8201
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9460
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9160
+        },
+        "pdl gpt-4o-mini": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15069
+        },
+        "pdf gpt-4o-mini": {
+            "seq": 43,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 602, in <lambda>\n    (\"pdf gpt-4o-mini\", lambda: pdf(test_model=\"gpt-4o-mini\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/pdf.py\", line 51, in pdf\n    assert any([pdf[\"name\"] in r[\"source\"] for r in search_result])\nAssertionError\n",
+            "elapsed_ms": 137512
+        },
+        "svg gpt-4o-mini": {
+            "seq": 44,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 603, in <lambda>\n    (\"svg gpt-4o-mini\", lambda: svg(test_model=\"gpt-4o-mini\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/svg.py\", line 123, in svg\n    assert \"ragit\" in cargo_run([\"pdl\", \"test1.pdl\"], stdout=True).lower()\nAssertionError\n",
+            "elapsed_ms": 7634
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 67964
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9344
+        },
+        "extract_keywords dummy": {
+            "seq": 47,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1623
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 48,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8448
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 49,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 99610
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 50,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'check']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 650, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 612, in <lambda>\n    (\"write_lock llama3.3-70b\", lambda: write_lock(test_model=\"llama3.3-70b\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/write_lock.py\", line 94, in write_lock\n    cargo_run([\"check\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 77, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'check']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 88266
+        },
+        "ragit_api command-r": {
+            "seq": 51,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1005
+        },
+        "query_options llama3.3-70b": {
+            "seq": 52,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5804
+        },
+        "query_with_schema llama3.3-70b": {
+            "seq": 53,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1658
+        },
+        "models_init": {
+            "seq": 54,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 282
+        },
+        "test_home_config_override": {
+            "seq": 55,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 134
+        },
+        "migrate": {
+            "seq": 56,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 149491
+        },
+        "migrate2": {
+            "seq": 57,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 42999
+        },
+        "config": {
+            "seq": 58,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 22611
+        }
+    },
+    "result": {
+        "total": 59,
+        "complete": 59,
+        "pass": 50,
+        "fail": 9,
+        "remaining": 0
+    }
+}

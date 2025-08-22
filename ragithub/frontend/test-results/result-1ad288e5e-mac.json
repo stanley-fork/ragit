@@ -1,0 +1,316 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-03-12 10:45:29.657106Z",
+        "commit": "1ad288e5ed523e65df05ed46e1a2450239dc9fd9",
+        "platform": {
+            "cargo_version": "cargo 1.87.0-nightly (2622e844b 2025-02-28)",
+            "rustc_version": "rustc 1.87.0-nightly (f9e0239a7 2025-03-04)",
+            "python_version": "3.9.6",
+            "platform": "macOS-14.3.1-arm64-arm-64bit"
+        },
+        "rand_seed": 2025312104529,
+        "ended_at": "2025-03-12 11:49:54.685992Z",
+        "elapsed_ms": 3865028,
+        "ragit_version": "ragit 0.3.5-dev",
+        "commit_title": "bump versions",
+        "commit_message": ""
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 220818
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 119939
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39888
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13066
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11196
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 68091
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6606
+        },
+        "server": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 369855
+        },
+        "cli": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15193
+        },
+        "archive": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 410484
+        },
+        "many_chunks": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 667929
+        },
+        "many_jobs": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 52530
+        },
+        "ls": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 215936
+        },
+        "meta": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6713
+        },
+        "symlink": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9880
+        },
+        "ii": {
+            "seq": 15,
+            "pass": false,
+            "error": "tfidf result on term 'index i1' is not close enough. error: `answer[2] not in approximation`, answer: ['06796984de67a345ea967cf4ea2d1b643098831e4f0593710000000100000206', '4a721073fd5242ed5abd10119f78195fc7ec27f2a3645c500000000100000200', '84f73637f6b047d40de0119f8b324bc22311833ce7ad8b740000000100000206', '7d4de8382ff1f4f6ff46958bb58160a6056b4036886f4095000000010000020c', '14c727affd6c6d5ad0ef8e0b96fe1dd1dd9a6b990d2208b20000000100000206', '9ec06c87e0c0e75913da9947a474f45e543dabd39b93bc4b0000000100000202', '9eba4fcd4da97f011faca64a1987433c6c56aae64b3f1f660000000100000200', '4d747c0a72fc372c3ac313636cace24201628166a54bc6470000000100000201', 'e6d61827ae35a73b03e0681fa685156ca44ebb8fd82d82ce0000000100000201', '56064bff2c014e93de636bb4f76b1c7a709befad1a1808040000000100000200'], approximation: ['06796984de67a345ea967cf4ea2d1b643098831e4f0593710000000100000206', '4a721073fd5242ed5abd10119f78195fc7ec27f2a3645c500000000100000200', '7d4de8382ff1f4f6ff46958bb58160a6056b4036886f4095000000010000020c', 'e6d61827ae35a73b03e0681fa685156ca44ebb8fd82d82ce0000000100000201', '200bc1cb317e9877236e85abc331b191e6fa4046098e61540000000100000205', '830768272cf534f8e8ed034bf4b6e4fa90e4e4af3037a0eb0000000100000200', '836b3d64a3e542082248b20ced549e98ce695e6cd632e5550000000100000206', '376f7cb1bebebc9d494d818bcd1da3fb850862285ce3d0950000000100000218', '116bde010722427b61606390beecd624365846e8cca58e200000000100000200', 'd6e17497e970ae75bbd8350e19def70beb02993a5fcb04ab0000000100000210']\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/tests.py\", line 517, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'index i1' is not close enough. error: `answer[2] not in approximation`, answer: ['06796984de67a345ea967cf4ea2d1b643098831e4f0593710000000100000206', '4a721073fd5242ed5abd10119f78195fc7ec27f2a3645c500000000100000200', '84f73637f6b047d40de0119f8b324bc22311833ce7ad8b740000000100000206', '7d4de8382ff1f4f6ff46958bb58160a6056b4036886f4095000000010000020c', '14c727affd6c6d5ad0ef8e0b96fe1dd1dd9a6b990d2208b20000000100000206', '9ec06c87e0c0e75913da9947a474f45e543dabd39b93bc4b0000000100000202', '9eba4fcd4da97f011faca64a1987433c6c56aae64b3f1f660000000100000200', '4d747c0a72fc372c3ac313636cace24201628166a54bc6470000000100000201', 'e6d61827ae35a73b03e0681fa685156ca44ebb8fd82d82ce0000000100000201', '56064bff2c014e93de636bb4f76b1c7a709befad1a1808040000000100000200'], approximation: ['06796984de67a345ea967cf4ea2d1b643098831e4f0593710000000100000206', '4a721073fd5242ed5abd10119f78195fc7ec27f2a3645c500000000100000200', '7d4de8382ff1f4f6ff46958bb58160a6056b4036886f4095000000010000020c', 'e6d61827ae35a73b03e0681fa685156ca44ebb8fd82d82ce0000000100000201', '200bc1cb317e9877236e85abc331b191e6fa4046098e61540000000100000205', '830768272cf534f8e8ed034bf4b6e4fa90e4e4af3037a0eb0000000100000200', '836b3d64a3e542082248b20ced549e98ce695e6cd632e5550000000100000206', '376f7cb1bebebc9d494d818bcd1da3fb850862285ce3d0950000000100000218', '116bde010722427b61606390beecd624365846e8cca58e200000000100000200', 'd6e17497e970ae75bbd8350e19def70beb02993a5fcb04ab0000000100000210']\n",
+            "elapsed_ms": 76775
+        },
+        "cat_file": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33709
+        },
+        "images": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8760
+        },
+        "markdown_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13824
+        },
+        "csv_reader": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7403
+        },
+        "subdir": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 26173
+        },
+        "tfidf": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 30552
+        },
+        "merge": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50248
+        },
+        "external_bases": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 89264
+        },
+        "end_to_end dummy": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 164290
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 181437
+        },
+        "audit llama3.3-70b": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14566
+        },
+        "logs llama3.3-70b": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8356
+        },
+        "prompts dummy": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9347
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 45027
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 73249
+        },
+        "empty dummy": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9834
+        },
+        "empty llama3.3-70b": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11049
+        },
+        "server2 dummy": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6702
+        },
+        "server2 llama3.3-70b": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 24136
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10623
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10529
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 23792
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13690
+        },
+        "extract_keywords dummy": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2790
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10120
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 116550
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 75963
+        },
+        "ragit_api command-r": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9195
+        },
+        "models_init": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1201
+        },
+        "test_home_config_override": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 578
+        },
+        "migrate": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 240922
+        },
+        "migrate2": {
+            "seq": 47,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 125562
+        }
+    },
+    "result": {
+        "total": 48,
+        "complete": 48,
+        "pass": 47,
+        "fail": 1,
+        "remaining": 0
+    }
+}

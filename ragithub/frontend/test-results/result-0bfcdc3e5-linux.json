@@ -1,0 +1,244 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-17 22:16:18.017675Z",
+        "commit": "0bfcdc3e564798fc2d1ecd2042b8ed4d0845c085",
+        "platform": {
+            "cargo_version": "cargo 1.84.1 (66221abde 2024-11-19)",
+            "rustc_version": "rustc 1.84.1 (e71f9a9a9 2025-01-27)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-130-generic-x86_64-with-glibc2.35"
+        },
+        "ended_at": "2025-02-17 23:02:16.263362Z",
+        "elapsed_ms": 2758245,
+        "ragit_version": "ragit 0.3.0-dev",
+        "commit_title": "update commit hash",
+        "commit_message": "",
+        "rand_seed": 0
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 115622
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 27030
+        },
+        "recover": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2919
+        },
+        "clone": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1079452
+        },
+        "clone2": {
+            "seq": 4,
+            "pass": false,
+            "error": "\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/__tmp_ec6e5261a4b44345: rag clone http://ragit.baehyunsol.com/sample/git\n\n### returncode ###\n\n1\n\n### stdout ###\n\n\n\n### stderr ###\n\n    Finished `release` profile [optimized] target(s) in 0.06s\n     Running `/home/baehyunsol/Documents/ragit/target/release/rag clone 'http://ragit.baehyunsol.com/sample/git'`\nCloneRequestError { code: Some(404), url: \"http://ragit.baehyunsol.com:41127/sample/git/archive-list/\" }\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/__tmp_ec6e5261a4b44345: rag clone http://ragit.baehyunsol.com/sample/ragit\n\n### returncode ###\n\n1\n\n### stdout ###\n\n\n\n### stderr ###\n\n    Finished `release` profile [optimized] target(s) in 0.07s\n     Running `/home/baehyunsol/Documents/ragit/target/release/rag clone 'http://ragit.baehyunsol.com/sample/ragit'`\nCloneRequestError { code: Some(404), url: \"http://ragit.baehyunsol.com:41127/sample/ragit/archive-list/\" }\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/__tmp_ec6e5261a4b44345: rag clone http://ragit.baehyunsol.com/sample/rustc\n\n### returncode ###\n\n1\n\n### stdout ###\n\n\n\n### stderr ###\n\n    Finished `release` profile [optimized] target(s) in 0.06s\n     Running `/home/baehyunsol/Documents/ragit/target/release/rag clone 'http://ragit.baehyunsol.com/sample/rustc'`\nCloneRequestError { code: Some(404), url: \"http://ragit.baehyunsol.com:41127/sample/rustc/archive-list/\" }\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/clone2.py\", line 72, in clone2\n    raise Exception(\"\\n\\n\".join(errors))\nException: \n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/__tmp_ec6e5261a4b44345: rag clone http://ragit.baehyunsol.com/sample/git\n\n### returncode ###\n\n1\n\n### stdout ###\n\n\n\n### stderr ###\n\n    Finished `release` profile [optimized] target(s) in 0.06s\n     Running `/home/baehyunsol/Documents/ragit/target/release/rag clone 'http://ragit.baehyunsol.com/sample/git'`\nCloneRequestError { code: Some(404), url: \"http://ragit.baehyunsol.com:41127/sample/git/archive-list/\" }\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/__tmp_ec6e5261a4b44345: rag clone http://ragit.baehyunsol.com/sample/ragit\n\n### returncode ###\n\n1\n\n### stdout ###\n\n\n\n### stderr ###\n\n    Finished `release` profile [optimized] target(s) in 0.07s\n     Running `/home/baehyunsol/Documents/ragit/target/release/rag clone 'http://ragit.baehyunsol.com/sample/ragit'`\nCloneRequestError { code: Some(404), url: \"http://ragit.baehyunsol.com:41127/sample/ragit/archive-list/\" }\n\n\n\n#####################\n### path: command ###\n/home/baehyunsol/Documents/ragit/__tmp_ec6e5261a4b44345: rag clone http://ragit.baehyunsol.com/sample/rustc\n\n### returncode ###\n\n1\n\n### stdout ###\n\n\n\n### stderr ###\n\n    Finished `release` profile [optimized] target(s) in 0.06s\n     Running `/home/baehyunsol/Documents/ragit/target/release/rag clone 'http://ragit.baehyunsol.com/sample/rustc'`\nCloneRequestError { code: Some(404), url: \"http://ragit.baehyunsol.com:41127/sample/rustc/archive-list/\" }\n\n",
+            "elapsed_ms": 888
+        },
+        "cli": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2605
+        },
+        "archive": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 117858
+        },
+        "many_chunks": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 590067
+        },
+        "many_jobs": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 115862
+        },
+        "ls": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 58579
+        },
+        "meta": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1608
+        },
+        "symlink": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2512
+        },
+        "ii": {
+            "seq": 12,
+            "pass": false,
+            "error": "tfidf result on term 'model build buffer crate all' is not close enough. error: `answer[0] not in approximation`, answer: ['6ea382bebb6d2adbf7dbd48d7c21b62bbc17b13d8a22723e000000010000018d', 'e9d9a44d90b9887cdbb444738901ae5ee4a52abbe6e0df900000000100000201', '42c9887f5422714a5f3dff5e34ac38d6e2f9845c4b529a4b0000000100000200', 'b0658c1805e02ec22db3f63b7d06357cef2dcd406f45476d000000010000020a', '361cf8d14a17dc2b4f027f296badd8c28bf882beee165449000000010000021d', '7af8f806193600bc6b6660c3152b08a1169e07cda1f685d80000000100000202', 'fcdb6180eaab63a79d97999df09a3e5c97c60c45ae104599000000010000020e', 'fe8139c42af838ef2529c2065f8852f56a10e18c3b1c0c350000000100000200', 'adee25a9516d1488496205dbe918fc1ad33975083b6fcf230000000100000200', 'bfc0be2493488e8a0407ed010a4dd5edcc775ed145d78b44000000010000020d'], approximation: ['361cf8d14a17dc2b4f027f296badd8c28bf882beee165449000000010000021d', '42c9887f5422714a5f3dff5e34ac38d6e2f9845c4b529a4b0000000100000200', 'e9d9a44d90b9887cdbb444738901ae5ee4a52abbe6e0df900000000100000201', '8be2584c5f1670f97f857a0a936c630367aafc6cc7a7257c0000000100000203', '36bf5937526d2f4b487fa405dc46420be67e38bb89d250f20000000100000200', '7af8f806193600bc6b6660c3152b08a1169e07cda1f685d80000000100000202', '1c5c6f49f6341b8728659c8a82e7b7982597c2aca5962a98000000010000020b', 'c3047bec8101aacb87b8831c9960646a2dddacc317f117790000000100000201', 'ea51413d5882ea717387b10bfad1acb351dec8d08ee59dc40000000100000200', '1504318cb9835a6794251f011926a512a156fe8b40c4d0450000000100000200']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 90, in ii\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[0] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 106, in ii\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'model build buffer crate all' is not close enough. error: `answer[0] not in approximation`, answer: ['6ea382bebb6d2adbf7dbd48d7c21b62bbc17b13d8a22723e000000010000018d', 'e9d9a44d90b9887cdbb444738901ae5ee4a52abbe6e0df900000000100000201', '42c9887f5422714a5f3dff5e34ac38d6e2f9845c4b529a4b0000000100000200', 'b0658c1805e02ec22db3f63b7d06357cef2dcd406f45476d000000010000020a', '361cf8d14a17dc2b4f027f296badd8c28bf882beee165449000000010000021d', '7af8f806193600bc6b6660c3152b08a1169e07cda1f685d80000000100000202', 'fcdb6180eaab63a79d97999df09a3e5c97c60c45ae104599000000010000020e', 'fe8139c42af838ef2529c2065f8852f56a10e18c3b1c0c350000000100000200', 'adee25a9516d1488496205dbe918fc1ad33975083b6fcf230000000100000200', 'bfc0be2493488e8a0407ed010a4dd5edcc775ed145d78b44000000010000020d'], approximation: ['361cf8d14a17dc2b4f027f296badd8c28bf882beee165449000000010000021d', '42c9887f5422714a5f3dff5e34ac38d6e2f9845c4b529a4b0000000100000200', 'e9d9a44d90b9887cdbb444738901ae5ee4a52abbe6e0df900000000100000201', '8be2584c5f1670f97f857a0a936c630367aafc6cc7a7257c0000000100000203', '36bf5937526d2f4b487fa405dc46420be67e38bb89d250f20000000100000200', '7af8f806193600bc6b6660c3152b08a1169e07cda1f685d80000000100000202', '1c5c6f49f6341b8728659c8a82e7b7982597c2aca5962a98000000010000020b', 'c3047bec8101aacb87b8831c9960646a2dddacc317f117790000000100000201', 'ea51413d5882ea717387b10bfad1acb351dec8d08ee59dc40000000100000200', '1504318cb9835a6794251f011926a512a156fe8b40c4d0450000000100000200']\n",
+            "elapsed_ms": 123862
+        },
+        "cat_file": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15037
+        },
+        "images": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3660
+        },
+        "markdown_reader": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4910
+        },
+        "csv_reader": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2338
+        },
+        "subdir": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7275
+        },
+        "tfidf": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8968
+        },
+        "merge": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12723
+        },
+        "external_bases": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 49787
+        },
+        "end_to_end dummy": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39473
+        },
+        "end_to_end gpt-4o-mini": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 78261
+        },
+        "prompts dummy": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5155
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 53754
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 88738
+        },
+        "empty dummy": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1488
+        },
+        "empty gpt-4o-mini": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2578
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9414
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11029
+        },
+        "extract_keywords dummy": {
+            "seq": 30,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 342, in <lambda>\n    (\"extract_keywords dummy\", lambda: extract_keywords(test_model=\"dummy\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/extract_keywords.py\", line 8, in extract_keywords\n    cargo_run([\"clone\", \"http://ragit.baehyunsol.com/sample/ragit\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 65, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 343
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 31,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 343, in <lambda>\n    (\"extract_keywords gpt-4o-mini\", lambda: extract_keywords(test_model=\"gpt-4o-mini\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/extract_keywords.py\", line 8, in extract_keywords\n    cargo_run([\"clone\", \"http://ragit.baehyunsol.com/sample/ragit\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 65, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'clone', 'http://ragit.baehyunsol.com/sample/ragit']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 201
+        },
+        "ragit_api llama3.2-11b-groq": {
+            "seq": 32,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 346, in <lambda>\n    (\"ragit_api llama3.2-11b-groq\", lambda: ragit_api(test_model=\"llama3.2-11b-groq\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 1011
+        },
+        "ragit_api command-r": {
+            "seq": 33,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'command-r', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 347, in <lambda>\n    (\"ragit_api command-r\", lambda: ragit_api(test_model=\"command-r\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'command-r', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 145
+        },
+        "ragit_api phi-4-14b-ollama": {
+            "seq": 34,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'phi-4-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 348, in <lambda>\n    (\"ragit_api phi-4-14b-ollama\", lambda: ragit_api(test_model=\"phi-4-14b-ollama\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'phi-4-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 5147
+        },
+        "migrate": {
+            "seq": 35,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'migrate']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 377, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/migrate.py\", line 90, in migrate\n    cargo_run([\"migrate\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 65, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'migrate']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 94142
+        }
+    },
+    "result": {
+        "total": 36,
+        "complete": 36,
+        "pass": 28,
+        "fail": 8,
+        "remaining": 0
+    }
+}

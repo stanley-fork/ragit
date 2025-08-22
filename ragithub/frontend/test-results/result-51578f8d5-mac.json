@@ -1,0 +1,328 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-04-04 12:55:56.132645Z",
+        "commit": "51578f8d556b0f5cd037497b1be1de0a788b47fe",
+        "platform": {
+            "cargo_version": "cargo 1.87.0-nightly (2622e844b 2025-02-28)",
+            "rustc_version": "rustc 1.87.0-nightly (f9e0239a7 2025-03-04)",
+            "python_version": "3.9.6",
+            "platform": "macOS-14.3.1-arm64-arm-64bit"
+        },
+        "rand_seed": 20250404125556,
+        "ended_at": "2025-04-04 13:59:04.442731Z",
+        "elapsed_ms": 3788310,
+        "ragit_version": "ragit 0.4.0-dev",
+        "commit_title": "fix pdf.py",
+        "commit_message": "Most pdf readers (and humans) count pages from 1, but pdf.py was\ncounting from 0. Now it counts from 1.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 361846
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 118367
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 41210
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12751
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11072
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 70762
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7594
+        },
+        "server": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 367207
+        },
+        "cli": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 24151
+        },
+        "archive": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 402273
+        },
+        "many_chunks": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 624902
+        },
+        "many_jobs": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 54044
+        },
+        "ls": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 239392
+        },
+        "meta": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6790
+        },
+        "symlink": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9665
+        },
+        "ii": {
+            "seq": 15,
+            "pass": false,
+            "error": "tfidf result on term 'chunk bit' is not close enough. error: `answer[2] not in approximation`, answer: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '2db3ad484a30f5e45cd315c3318483853d0b5a2f24751e560000000100000200', 'ece7d9ac964d374e578a3c05daf8b46245af9d2a8e76e9210000000100000200', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '1e89c4adea8975cae21c8a68dc77dd4f11f30a544ffa000e0000000100000207', 'bea6ffe2afbfb959f9b4d95b719ac79caaa2bd6bd5a27bc30000000100000200', '61a0bf5da68d4a7d9126655b2a034f62fc5fab123b4679f00000000100000215', '1557ddd1b584b8dcec275d294009e627e2df8cc9860aeb570000000100000200'], approximation: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '64185f1a8f7e1e3eaec1e16d9455aefe012e1bceb8a79b1c0000000100000212', '9f446b7cf2f80234f000e47bec44f3a8e9345c13b8b86c390000000100000200', '85fe7af3c1f4e86dca594d55b59dac43cb3dd60f5701ac520000000100000200', '684f8cb61b37901593b302c6644af01e24360c471e433d0d0000000100000203', '7f341bdda781f4986fdc3246acc697dae778f50ececa45190000000100000200', 'a9d7d61f92c3c12206e3439ec312fd09859b5edc1643c71d0000000100000201', 'cbd11ccae0cd05e581c5a1eaa53d9c7fa91b14cbe9c4b5d30000000100000213']\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/tests.py\", line 538, in <module>\n    test()\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/Users/baehyunsol/Documents/Rust/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'chunk bit' is not close enough. error: `answer[2] not in approximation`, answer: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '2db3ad484a30f5e45cd315c3318483853d0b5a2f24751e560000000100000200', 'ece7d9ac964d374e578a3c05daf8b46245af9d2a8e76e9210000000100000200', 'c7062921979fb787f85436d9298930448db1718d47fed4930000000100000200', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '1e89c4adea8975cae21c8a68dc77dd4f11f30a544ffa000e0000000100000207', 'bea6ffe2afbfb959f9b4d95b719ac79caaa2bd6bd5a27bc30000000100000200', '61a0bf5da68d4a7d9126655b2a034f62fc5fab123b4679f00000000100000215', '1557ddd1b584b8dcec275d294009e627e2df8cc9860aeb570000000100000200'], approximation: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '1c167dbbaa87d63afa5b9e650a29c6f64f4dc19dea2249b2000000010000018e', '64185f1a8f7e1e3eaec1e16d9455aefe012e1bceb8a79b1c0000000100000212', '9f446b7cf2f80234f000e47bec44f3a8e9345c13b8b86c390000000100000200', '85fe7af3c1f4e86dca594d55b59dac43cb3dd60f5701ac520000000100000200', '684f8cb61b37901593b302c6644af01e24360c471e433d0d0000000100000203', '7f341bdda781f4986fdc3246acc697dae778f50ececa45190000000100000200', 'a9d7d61f92c3c12206e3439ec312fd09859b5edc1643c71d0000000100000201', 'cbd11ccae0cd05e581c5a1eaa53d9c7fa91b14cbe9c4b5d30000000100000213']\n",
+            "elapsed_ms": 77853
+        },
+        "cat_file": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 32399
+        },
+        "images": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8584
+        },
+        "markdown_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13592
+        },
+        "csv_reader": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7133
+        },
+        "subdir": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 25498
+        },
+        "tfidf": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 29659
+        },
+        "merge": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 47627
+        },
+        "external_bases": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 63957
+        },
+        "end_to_end dummy": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 73584
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 98556
+        },
+        "audit llama3.3-70b": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14894
+        },
+        "logs llama3.3-70b": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8399
+        },
+        "prompts dummy": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8948
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 62748
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 87925
+        },
+        "empty dummy": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10044
+        },
+        "empty llama3.3-70b": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11605
+        },
+        "server2 dummy": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7248
+        },
+        "server2 llama3.3-70b": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 24411
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12812
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12110
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 54362
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14843
+        },
+        "extract_keywords dummy": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2758
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9728
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 113126
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 73393
+        },
+        "ragit_api command-r": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7593
+        },
+        "query_options llama3.3-70b": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11173
+        },
+        "models_init": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 836
+        },
+        "test_home_config_override": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 477
+        },
+        "migrate": {
+            "seq": 47,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 228255
+        },
+        "migrate2": {
+            "seq": 48,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 67121
+        },
+        "config": {
+            "seq": 49,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39859
+        }
+    },
+    "result": {
+        "total": 50,
+        "complete": 50,
+        "pass": 49,
+        "fail": 1,
+        "remaining": 0
+    }
+}

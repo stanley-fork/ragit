@@ -1,0 +1,262 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-23 19:10:31.837533Z",
+        "commit": "499147737371c72cecce92e7cf03201ad06e93a5",
+        "platform": {
+            "cargo_version": "cargo 1.84.1 (66221abde 2024-11-19)",
+            "rustc_version": "rustc 1.84.1 (e71f9a9a9 2025-01-27)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-133-generic-x86_64-with-glibc2.35"
+        },
+        "ended_at": "2025-02-23 19:52:59.344108Z",
+        "elapsed_ms": 2547506,
+        "ragit_version": "ragit 0.3.0-dev",
+        "commit_title": "refactor",
+        "commit_message": "Created `constant.rs` and moved all the constant definitions to the\nfile.\n",
+        "rand_seed": 0
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 113621
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33591
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8580
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2954
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2886
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 95354
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4384
+        },
+        "cli": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3435
+        },
+        "archive": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 189670
+        },
+        "many_chunks": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 590144
+        },
+        "many_jobs": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 121692
+        },
+        "ls": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 57926
+        },
+        "meta": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1589
+        },
+        "symlink": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2906
+        },
+        "ii": {
+            "seq": 14,
+            "pass": false,
+            "error": "tfidf result on term 'uid millisecond' is not close enough. error: `answer[2] not in approximation`, answer: ['eb477fe53b995a5db3f744577d978f030b4c3441723250c20000000100000200', 'c67309f08723bad8c4a462ed6b626d64b388dbe1fdab63e70000000100000201', 'a34bb746e81c66fb626a2502664b643d85b8afc6febe57cf0000000100000200', 'ca60d537d41918ffcae596285212754f7c3e54515b6b8aea0000000100000202', 'a401c320b165cf20893a561cd09e538b29d115e5bf19a96a0000000100000200', 'aa43ab2c426432560ecfea3dfe9c18412a8c5d9eb71e47f70000000100000200', 'cc62459e21f45e9183a03d5491d04a0600b5d56a21226e0e000000010000021a', '0c27c576c15fd76248dc69f7c130690fa1ba0fd5aee9e7dc0000000100000220', '438696528797e0cea206e229c04c5e3d8ff2bd8ecb6561200000000100000201', '1a01fc72814e7e4c1241776dab4086ecb28b9ecc6b5b6af30000000100000200'], approximation: ['eb477fe53b995a5db3f744577d978f030b4c3441723250c20000000100000200', 'c67309f08723bad8c4a462ed6b626d64b388dbe1fdab63e70000000100000201', 'ca60d537d41918ffcae596285212754f7c3e54515b6b8aea0000000100000202', 'aa43ab2c426432560ecfea3dfe9c18412a8c5d9eb71e47f70000000100000200', '0c27c576c15fd76248dc69f7c130690fa1ba0fd5aee9e7dc0000000100000220', '5a9aa69519171f78b318b3c4f47c53d57d1fa61f6e6bbcea0000000100000200', 'd56d2a40441eff2319ef35902b1da831efae36466966e91f0000000100000200', '9a67f08092060d919044364700b3f66155f1f54dba67ce4d0000000100000204', 'e33951aa606d59ad1b057f66e1af0adaaa0ce063e46d3efd0000000100000202', '9bf5c562fca7d23b1d3aef33a847011e5924d4b002f373ba0000000100000203']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 102, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 402, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 38, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 118, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'uid millisecond' is not close enough. error: `answer[2] not in approximation`, answer: ['eb477fe53b995a5db3f744577d978f030b4c3441723250c20000000100000200', 'c67309f08723bad8c4a462ed6b626d64b388dbe1fdab63e70000000100000201', 'a34bb746e81c66fb626a2502664b643d85b8afc6febe57cf0000000100000200', 'ca60d537d41918ffcae596285212754f7c3e54515b6b8aea0000000100000202', 'a401c320b165cf20893a561cd09e538b29d115e5bf19a96a0000000100000200', 'aa43ab2c426432560ecfea3dfe9c18412a8c5d9eb71e47f70000000100000200', 'cc62459e21f45e9183a03d5491d04a0600b5d56a21226e0e000000010000021a', '0c27c576c15fd76248dc69f7c130690fa1ba0fd5aee9e7dc0000000100000220', '438696528797e0cea206e229c04c5e3d8ff2bd8ecb6561200000000100000201', '1a01fc72814e7e4c1241776dab4086ecb28b9ecc6b5b6af30000000100000200'], approximation: ['eb477fe53b995a5db3f744577d978f030b4c3441723250c20000000100000200', 'c67309f08723bad8c4a462ed6b626d64b388dbe1fdab63e70000000100000201', 'ca60d537d41918ffcae596285212754f7c3e54515b6b8aea0000000100000202', 'aa43ab2c426432560ecfea3dfe9c18412a8c5d9eb71e47f70000000100000200', '0c27c576c15fd76248dc69f7c130690fa1ba0fd5aee9e7dc0000000100000220', '5a9aa69519171f78b318b3c4f47c53d57d1fa61f6e6bbcea0000000100000200', 'd56d2a40441eff2319ef35902b1da831efae36466966e91f0000000100000200', '9a67f08092060d919044364700b3f66155f1f54dba67ce4d0000000100000204', 'e33951aa606d59ad1b057f66e1af0adaaa0ce063e46d3efd0000000100000202', '9bf5c562fca7d23b1d3aef33a847011e5924d4b002f373ba0000000100000203']\n",
+            "elapsed_ms": 129132
+        },
+        "cat_file": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14784
+        },
+        "images": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3935
+        },
+        "markdown_reader": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4891
+        },
+        "csv_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2314
+        },
+        "subdir": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8363
+        },
+        "tfidf": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10002
+        },
+        "merge": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13368
+        },
+        "external_bases": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50062
+        },
+        "end_to_end dummy": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 40562
+        },
+        "end_to_end gpt-4o-mini": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 66897
+        },
+        "prompts dummy": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5329
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 39719
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 149207
+        },
+        "empty dummy": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1861
+        },
+        "empty gpt-4o-mini": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2534
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8206
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 35537
+        },
+        "extract_keywords dummy": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1624
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8143
+        },
+        "ragit_api llama3.2-11b-groq": {
+            "seq": 34,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 402, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 370, in <lambda>\n    (\"ragit_api llama3.2-11b-groq\", lambda: ragit_api(test_model=\"llama3.2-11b-groq\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 992
+        },
+        "ragit_api command-r": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 885
+        },
+        "ragit_api phi-4-14b-ollama": {
+            "seq": 36,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'phi-4-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 402, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 372, in <lambda>\n    (\"ragit_api phi-4-14b-ollama\", lambda: ragit_api(test_model=\"phi-4-14b-ollama\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'phi-4-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 5164
+        },
+        "migrate": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 88861
+        },
+        "migrate2": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 601275
+        }
+    },
+    "result": {
+        "total": 39,
+        "complete": 39,
+        "pass": 36,
+        "fail": 3,
+        "remaining": 0
+    }
+}

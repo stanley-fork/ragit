@@ -163,14 +163,19 @@ def server():
 # 1. spawns a ragit-server process
 # 2. waits until the server becomes healthy
 # 3. go to root and return the server process
-def spawn_ragit_server():
+def spawn_ragit_server(
+    truncate: bool = True,
+):
     goto_root()
 
     if health_check():
         raise Exception("ragit-server is already running. Please run this test in an isolated environment.")
 
     os.chdir("crates/server")
-    subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force", "--repo-data", "./data", "--blob-data", "./blobs"]).wait()
+
+    if truncate:
+        subprocess.Popen(["cargo", "run", "--release", "--", "truncate-all", "--force", "--repo-data", "./data", "--blob-data", "./blobs"]).wait()
+
     server_process = subprocess.Popen(["cargo", "run", "--release", "--features=log_sql", "--", "run", "--force-default-config"])
 
     for _ in range(300):

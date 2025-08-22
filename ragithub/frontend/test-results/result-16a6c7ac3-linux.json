@@ -1,0 +1,407 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-05-24 19:07:13.595688Z",
+        "commit": "16a6c7ac3c520d2cc0a4e96bd6cfdb4472971a19",
+        "platform": {
+            "cargo_version": "cargo 1.87.0-nightly (6cf826701 2025-03-14)",
+            "rustc_version": "rustc 1.87.0-nightly (78948ac25 2025-03-20)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-136-generic-x86_64-with-glibc2.35"
+        },
+        "rand_seed": 20250524190713,
+        "ended_at": "2025-05-24 20:40:39.036733Z",
+        "elapsed_ms": 5605441,
+        "ragit_version": "ragit 0.4.0-dev",
+        "commit_title": "add error handling to `tests/tests.py`",
+        "commit_message": "There's an edge case was clean up process of the test harness. When a\ntest dies, it removes tmp directories and changes directory to root. But\nsometimes, a test case spawns children and dies while the children are\nstill running. The children are still writing something to tmp\ndirectories and it would mess up `shutil.rmtree()`. So I added another\n`try-catch` to the cleanup code, and added the error message to the\nresult.\n\nThe error messages from cleanup code are not visible from the ci\ndashboard, but we can still see them when we open the result file.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 291758
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34533
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11640
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3196
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3099
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 126926
+        },
+        "clone_empty": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5382
+        },
+        "pull": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8979
+        },
+        "server": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 137829
+        },
+        "server_permission": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34286
+        },
+        "cli": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5605
+        },
+        "outside": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3027
+        },
+        "archive": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 181736
+        },
+        "many_chunks": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 568013
+        },
+        "many_jobs": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 154813
+        },
+        "ls": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 77940
+        },
+        "meta": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1717
+        },
+        "symlink": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3083
+        },
+        "gh_issue_20": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2732
+        },
+        "ii": {
+            "seq": 19,
+            "pass": false,
+            "error": "tfidf result on term 'let bitxor' is not close enough. error: `answer[2] not in approximation`, answer: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', '445d453adb1948c8f9cce13eb8f0974869152c2f1e9e4b95000000010000016e', 'ddd47326a625b60b374ab71c97a87a8e3de207a73288da380000000100000204', '78973af7ecb7137f86b7e126889bdb947505308e35fad8b50000000100000200', '5b252d0f47ac8d0bee53b3c3c0387897869e9834d9e43edf000000010000020f', 'f28f8995ed5aad84ba253b191d1257e234e37f8f1ad572240000000100000202', '74a9821e38482554bd3e78b0f1c474a927848122a54223420000000100000212', '63cb62bb8a33a334f049b70be4cdd592d385215ade59690c0000000100000207', '5d6c16dc1991936cb1b2a3d821c43a8bf648d298a24992a70000000100000200'], approximation: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', '78973af7ecb7137f86b7e126889bdb947505308e35fad8b50000000100000200', '5b252d0f47ac8d0bee53b3c3c0387897869e9834d9e43edf000000010000020f', '74a9821e38482554bd3e78b0f1c474a927848122a54223420000000100000212', '63cb62bb8a33a334f049b70be4cdd592d385215ade59690c0000000100000207', 'd2178deab15f668fd917a5bc4fc39360e3c3d3d87a353a920000000100000200', 'b82a8fb6160d01b1c8a289e0af1b714cf92d89aaced6cbdb0000000100000202', 'b7f52a1abcdae26519257214f1837e3885856589649424170000000100000203', 'fa10425e1445e6bd8b59f7c047762787e114d2a8d4d1ef5b0000000100000200']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 100, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 672, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'let bitxor' is not close enough. error: `answer[2] not in approximation`, answer: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', '445d453adb1948c8f9cce13eb8f0974869152c2f1e9e4b95000000010000016e', 'ddd47326a625b60b374ab71c97a87a8e3de207a73288da380000000100000204', '78973af7ecb7137f86b7e126889bdb947505308e35fad8b50000000100000200', '5b252d0f47ac8d0bee53b3c3c0387897869e9834d9e43edf000000010000020f', 'f28f8995ed5aad84ba253b191d1257e234e37f8f1ad572240000000100000202', '74a9821e38482554bd3e78b0f1c474a927848122a54223420000000100000212', '63cb62bb8a33a334f049b70be4cdd592d385215ade59690c0000000100000207', '5d6c16dc1991936cb1b2a3d821c43a8bf648d298a24992a70000000100000200'], approximation: ['549a87567bd9ec4c3145df3f3db3c7f285e9b1551269c1720000000100000200', 'faae85ed9ecfe34ecc388f777a6adabbde32f4628b65cd820000000100000200', '78973af7ecb7137f86b7e126889bdb947505308e35fad8b50000000100000200', '5b252d0f47ac8d0bee53b3c3c0387897869e9834d9e43edf000000010000020f', '74a9821e38482554bd3e78b0f1c474a927848122a54223420000000100000212', '63cb62bb8a33a334f049b70be4cdd592d385215ade59690c0000000100000207', 'd2178deab15f668fd917a5bc4fc39360e3c3d3d87a353a920000000100000200', 'b82a8fb6160d01b1c8a289e0af1b714cf92d89aaced6cbdb0000000100000202', 'b7f52a1abcdae26519257214f1837e3885856589649424170000000100000203', 'fa10425e1445e6bd8b59f7c047762787e114d2a8d4d1ef5b0000000100000200']\n",
+            "elapsed_ms": 154964
+        },
+        "cat_file": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14142
+        },
+        "generous_file_reader": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 297970
+        },
+        "clean_up_erroneous_chunk": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1421
+        },
+        "images": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4389
+        },
+        "markdown_reader": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5193
+        },
+        "csv_reader": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2809
+        },
+        "real_repos": {
+            "seq": 26,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'init']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 672, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/real_repos.py\", line 64, in real_repos\n    cargo_run([\"init\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 74, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'init']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 2320500
+        },
+        "real_repos_regression": {
+            "seq": 27,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 672, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/real_repos_regression.py\", line 157, in real_repos_regression\n    assert count_files() == (len(reproductions), 1, len(reproductions) - 1)  # (total, staged, processed)\nAssertionError\n",
+            "elapsed_ms": 2543
+        },
+        "subdir": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9002
+        },
+        "tfidf": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10134
+        },
+        "merge": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14380
+        },
+        "external_bases": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 70458
+        },
+        "end_to_end dummy": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 42427
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 54228
+        },
+        "audit llama3.3-70b": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5978
+        },
+        "logs llama3.3-70b": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3843
+        },
+        "prompts dummy": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4576
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 44748
+        },
+        "prompts gemini-2.0-flash": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 26573
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 61614
+        },
+        "empty dummy": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2797
+        },
+        "empty llama3.3-70b": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3791
+        },
+        "server_chat llama3.3-70b": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 21599
+        },
+        "server_chat gemini-2.0-flash": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 44996
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6645
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8662
+        },
+        "pdl gpt-4o-mini": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 18365
+        },
+        "pdf gpt-4o-mini": {
+            "seq": 47,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 672, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 622, in <lambda>\n    (\"pdf gpt-4o-mini\", lambda: pdf(test_model=\"gpt-4o-mini\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/pdf.py\", line 51, in pdf\n    assert any([pdf[\"name\"] in r[\"source\"] for r in search_result])\nAssertionError\n",
+            "elapsed_ms": 142277
+        },
+        "svg gpt-4o-mini": {
+            "seq": 48,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 672, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 623, in <lambda>\n    (\"svg gpt-4o-mini\", lambda: svg(test_model=\"gpt-4o-mini\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/svg.py\", line 123, in svg\n    assert \"ragit\" in cargo_run([\"pdl\", \"test1.pdl\"], stdout=True).lower()\nAssertionError\n",
+            "elapsed_ms": 7873
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 49,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 62873
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 50,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9756
+        },
+        "extract_keywords dummy": {
+            "seq": 51,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1632
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 52,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9060
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 53,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 99776
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 54,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 83057,
+            "cleanup_error": "[Errno 39] Directory not empty: '.ragit'\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 699, in <module>\n    clean()\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 29, in clean\n    shutil.rmtree(d)\n  File \"/usr/lib/python3.10/shutil.py\", line 725, in rmtree\n    _rmtree_safe_fd(fd, path, onerror)\n  File \"/usr/lib/python3.10/shutil.py\", line 658, in _rmtree_safe_fd\n    _rmtree_safe_fd(dirfd, fullname, onerror)\n  File \"/usr/lib/python3.10/shutil.py\", line 664, in _rmtree_safe_fd\n    onerror(os.rmdir, fullname, sys.exc_info())\n  File \"/usr/lib/python3.10/shutil.py\", line 662, in _rmtree_safe_fd\n    os.rmdir(entry.name, dir_fd=topfd)\nOSError: [Errno 39] Directory not empty: '.ragit'\n"
+        },
+        "ragit_api command-r": {
+            "seq": 55,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1049
+        },
+        "query_options llama3.3-70b": {
+            "seq": 56,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5559
+        },
+        "query_with_schema llama3.3-70b": {
+            "seq": 57,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1624
+        },
+        "models_init": {
+            "seq": 58,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 283
+        },
+        "test_home_config_override": {
+            "seq": 59,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 134
+        },
+        "config": {
+            "seq": 60,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 32730
+        },
+        "migrate": {
+            "seq": 61,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 143731
+        },
+        "migrate2": {
+            "seq": 62,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 43784
+        }
+    },
+    "result": {
+        "total": 63,
+        "complete": 63,
+        "pass": 58,
+        "fail": 5,
+        "remaining": 0
+    }
+}

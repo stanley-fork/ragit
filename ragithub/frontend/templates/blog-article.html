@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="flex-container-column">
+    <div class="flex-container-lr">
+        <div></div>
+        <div>
+            <div>{{index.date}}</div>
+            <div>author: {{index.author}}</div>
+            {% if index.tags %}<div class="markdown">tags: {% for tag in index.tags %}<a href="/blog?tag={{tag}}">{{tag}}</a>{% if not loop.last %}, {% endif %}{% endfor %}</div>{% endif %}
+        </div>
+    </div>
+    <div class="markdown">{{article|markdown|safe}}</div>
+</div>
+{% endblock %}

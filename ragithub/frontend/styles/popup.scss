@@ -1,0 +1,29 @@
+@import "colors";
+@import "units";
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.popup-container {
+    position: fixed;
+    z-index: 1;
+    width: 100%;
+    bottom: 15%;
+
+    .popup-box {
+        padding: $padding-big;
+        background-color: var(--black);
+        border: $border-big solid var(--gray);
+        border-radius: $round-border-big;
+        animation: fadeOut 6s forwards;
+    }
+}

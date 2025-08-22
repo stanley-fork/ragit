@@ -1,0 +1,214 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-08 08:10:46.101724Z",
+        "commit": "e049b3670f75187c126b2d20825879121e19e7ab",
+        "platform": {
+            "cargo_version": "cargo 1.82.0 (8f40fc59f 2024-08-21)",
+            "rustc_version": "rustc 1.82.0 (f6e511eec 2024-10-15)",
+            "python_version": "3.12.3",
+            "platform": "Linux-6.8.0-1016-aws-x86_64-with-glibc2.39"
+        },
+        "ended_at": "2025-02-08 09:14:50.625391Z",
+        "elapsed_ms": 3844523,
+        "ragit_version": "ragit 0.3.0-dev",
+        "commit_title": "add `--json` to `cat-file` command",
+        "commit_message": "",
+        "rand_seed": 0
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1407222
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 69599
+        },
+        "recover": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8695
+        },
+        "clone": {
+            "seq": 3,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'clone', 'http://127.0.0.1/test-user/repo1']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/clone.py\", line 50, in clone\n    cargo_run([\"clone\", \"http://127.0.0.1/test-user/repo1\"])\n  File \"/home/ubuntu/Documents/ci/ragit/tests/utils.py\", line 61, in cargo_run\n    result = subprocess.run(args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'clone', 'http://127.0.0.1/test-user/repo1']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 12709
+        },
+        "clone2": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 381543
+        },
+        "cli": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7389
+        },
+        "many_chunks": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 275659
+        },
+        "ls": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 181053
+        },
+        "meta": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5543
+        },
+        "ii": {
+            "seq": 9,
+            "pass": false,
+            "error": "tfidf result on term 'map at model term els' is not close enough. error: `approximation[1] not in answer`, answer: ['8263007c6657eb8198091a61e08ec02238666cd8cb9399d40000000100000200', 'c79737f5734123fb820514caac9c3594dbcc24725d2a438a0000000100000204', '0816a9bd08b80de4d1f6d24a292d8ee399cac0300573a4bc0000000100000206', '99989a326c1115dccea6d4d99b95b9e3407f9507c38a113c0000000100000207', '69c04bc9fc9731e2278b085ce33d638bbb49de3c477632f60000000100000201', 'bc12c5fc2b9c4f2b6695219b587149679ed3a51e5aaf06500000000100000200', '61d42fbbd970b5205a62384dc114e7a88d1b570164b3e3330000000100000212', '543a05d4619d741de236c79d8b7b7ea2b9cef87b22bdceed0000000100000205', 'd8e10f11b39c45ef1262eece2bc0a3dd40adebe69d9dea0e0000000100000203', 'd6a2db88832a55e2753bb9047e19121ea485b8491d02f1b80000000100000220'], approximation: ['8263007c6657eb8198091a61e08ec02238666cd8cb9399d40000000100000200', 'e8a5962f9b54ee9431c93df83595f5dd412edf0bc0b7f7e60000000100000216', 'c79737f5734123fb820514caac9c3594dbcc24725d2a438a0000000100000204', 'bc12c5fc2b9c4f2b6695219b587149679ed3a51e5aaf06500000000100000200', '0816a9bd08b80de4d1f6d24a292d8ee399cac0300573a4bc0000000100000206', '99989a326c1115dccea6d4d99b95b9e3407f9507c38a113c0000000100000207', '69c04bc9fc9731e2278b085ce33d638bbb49de3c477632f60000000100000201', '543a05d4619d741de236c79d8b7b7ea2b9cef87b22bdceed0000000100000205', '61d42fbbd970b5205a62384dc114e7a88d1b570164b3e3330000000100000212', 'd8e10f11b39c45ef1262eece2bc0a3dd40adebe69d9dea0e0000000100000203']\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ii.py\", line 91, in ii\n    raise AssertionError(f\"approximation[{i}] not in answer\")\nAssertionError: approximation[1] not in answer\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ii.py\", line 104, in ii\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'map at model term els' is not close enough. error: `approximation[1] not in answer`, answer: ['8263007c6657eb8198091a61e08ec02238666cd8cb9399d40000000100000200', 'c79737f5734123fb820514caac9c3594dbcc24725d2a438a0000000100000204', '0816a9bd08b80de4d1f6d24a292d8ee399cac0300573a4bc0000000100000206', '99989a326c1115dccea6d4d99b95b9e3407f9507c38a113c0000000100000207', '69c04bc9fc9731e2278b085ce33d638bbb49de3c477632f60000000100000201', 'bc12c5fc2b9c4f2b6695219b587149679ed3a51e5aaf06500000000100000200', '61d42fbbd970b5205a62384dc114e7a88d1b570164b3e3330000000100000212', '543a05d4619d741de236c79d8b7b7ea2b9cef87b22bdceed0000000100000205', 'd8e10f11b39c45ef1262eece2bc0a3dd40adebe69d9dea0e0000000100000203', 'd6a2db88832a55e2753bb9047e19121ea485b8491d02f1b80000000100000220'], approximation: ['8263007c6657eb8198091a61e08ec02238666cd8cb9399d40000000100000200', 'e8a5962f9b54ee9431c93df83595f5dd412edf0bc0b7f7e60000000100000216', 'c79737f5734123fb820514caac9c3594dbcc24725d2a438a0000000100000204', 'bc12c5fc2b9c4f2b6695219b587149679ed3a51e5aaf06500000000100000200', '0816a9bd08b80de4d1f6d24a292d8ee399cac0300573a4bc0000000100000206', '99989a326c1115dccea6d4d99b95b9e3407f9507c38a113c0000000100000207', '69c04bc9fc9731e2278b085ce33d638bbb49de3c477632f60000000100000201', '543a05d4619d741de236c79d8b7b7ea2b9cef87b22bdceed0000000100000205', '61d42fbbd970b5205a62384dc114e7a88d1b570164b3e3330000000100000212', 'd8e10f11b39c45ef1262eece2bc0a3dd40adebe69d9dea0e0000000100000203']\n",
+            "elapsed_ms": 44077
+        },
+        "cat_file": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 24862
+        },
+        "images": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6134
+        },
+        "markdown_reader": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11072
+        },
+        "csv_reader": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6038
+        },
+        "subdir": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 16875
+        },
+        "tfidf": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 19917
+        },
+        "merge": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 35677
+        },
+        "external_bases": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 69208
+        },
+        "end_to_end dummy": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 47705
+        },
+        "end_to_end gpt-4o-mini": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 74894
+        },
+        "prompts dummy": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9278
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 52338
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 84633
+        },
+        "empty dummy": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4384
+        },
+        "empty gpt-4o-mini": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5348
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10980
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13159
+        },
+        "ragit_api llama3.2-11b-groq": {
+            "seq": 27,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 299, in <lambda>\n    (\"ragit_api llama3.2-11b-groq\", lambda: ragit_api(test_model=\"llama3.2-11b-groq\")),\n                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 8956
+        },
+        "ragit_api command-r": {
+            "seq": 28,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'command-r', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 300, in <lambda>\n    (\"ragit_api command-r\", lambda: ragit_api(test_model=\"command-r\")),\n                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'command-r', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 416
+        },
+        "ragit_api phi-3-14b-ollama": {
+            "seq": 29,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'phi-3-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 301, in <lambda>\n    (\"ragit_api phi-3-14b-ollama\", lambda: ragit_api(test_model=\"phi-3-14b-ollama\")),\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'phi-3-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 319
+        },
+        "migrate": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 544360
+        }
+    },
+    "result": {
+        "total": 31,
+        "complete": 31,
+        "pass": 26,
+        "fail": 5,
+        "remaining": 0
+    }
+}

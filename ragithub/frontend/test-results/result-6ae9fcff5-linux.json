@@ -1,0 +1,250 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-24 20:30:50.086500Z",
+        "commit": "6ae9fcff5dfbdd3040387224499bde529bb07894",
+        "platform": {
+            "cargo_version": "cargo 1.84.1 (66221abde 2024-11-19)",
+            "rustc_version": "rustc 1.84.1 (e71f9a9a9 2025-01-27)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-133-generic-x86_64-with-glibc2.35"
+        },
+        "ended_at": "2025-02-24 21:11:27.969515Z",
+        "elapsed_ms": 2437883,
+        "ragit_version": "ragit 0.3.0-dev",
+        "commit_title": "write docs for `--quiet` option",
+        "commit_message": "",
+        "rand_seed": 0
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 115621
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34056
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8594
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2948
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2892
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 95841
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4430
+        },
+        "cli": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3429
+        },
+        "archive": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 190576
+        },
+        "many_chunks": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 580693
+        },
+        "many_jobs": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 133885
+        },
+        "ls": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 57499
+        },
+        "meta": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1586
+        },
+        "symlink": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2905
+        },
+        "ii": {
+            "seq": 14,
+            "pass": false,
+            "error": "tfidf result on term 'file bit' is not close enough. error: `answer[2] not in approximation`, answer: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '62c87b79b38b0cef2e1bf1699f3beb9fa05dadc647b2c7c20000000100000200', '3ff468c629255504b26f4396374bc20de7b27ce25b79e1e00000000100000211', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', '9e32427659389711bfc3764e45299e7b2ff430db0da92ea70000000100000202', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200', '73a8a9e86f54bec7dab6678626c4f6da88564076977d4de60000000100000200', 'a13216c20ea27166caf0de37e9ba0e8b152aac6c305e5350000000010000020e', '7e7b04bc676e5b0356382c07edac8a103d5e7dc3dac55d6a00000001000001ab'], approximation: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200', 'a13216c20ea27166caf0de37e9ba0e8b152aac6c305e5350000000010000020e', 'fe2785367aa4a9382af4982ce9fb6c06ce5f29e845b9828f0000000100000209', '1da1341fa8f8011ab5e65a2c8bfe1ed192fe34bb622b28560000000100000200', '260b0d1b6384cf4dd589f005c59bc64fd9a9b078013c2ef70000000100000202', '7c36035328bdadfc7212bf853468ef3833ecc38a21e0974b0000000100000202', '5e6ef5a3692cf3e3e08cc22cf8f7501ac7a7bea69e8a0a590000000100000200']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 102, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[2] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 398, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 38, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 118, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'file bit' is not close enough. error: `answer[2] not in approximation`, answer: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '62c87b79b38b0cef2e1bf1699f3beb9fa05dadc647b2c7c20000000100000200', '3ff468c629255504b26f4396374bc20de7b27ce25b79e1e00000000100000211', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', '9e32427659389711bfc3764e45299e7b2ff430db0da92ea70000000100000202', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200', '73a8a9e86f54bec7dab6678626c4f6da88564076977d4de60000000100000200', 'a13216c20ea27166caf0de37e9ba0e8b152aac6c305e5350000000010000020e', '7e7b04bc676e5b0356382c07edac8a103d5e7dc3dac55d6a00000001000001ab'], approximation: ['67a9aa5ab96ac1fbf864840e636ba712fb94c38e664884340000000100000200', '4f98c4341a1c1e58e0d3319a016da6bf2a3866aeff0aec4e0000000100000203', '03fb8fa50a27ee46979abb3af31240120f9004c18ee3babc0000000100000228', 'bafded8759c9e99107f67f1d03ee1addc7be61909eed58550000000100000200', 'a13216c20ea27166caf0de37e9ba0e8b152aac6c305e5350000000010000020e', 'fe2785367aa4a9382af4982ce9fb6c06ce5f29e845b9828f0000000100000209', '1da1341fa8f8011ab5e65a2c8bfe1ed192fe34bb622b28560000000100000200', '260b0d1b6384cf4dd589f005c59bc64fd9a9b078013c2ef70000000100000202', '7c36035328bdadfc7212bf853468ef3833ecc38a21e0974b0000000100000202', '5e6ef5a3692cf3e3e08cc22cf8f7501ac7a7bea69e8a0a590000000100000200']\n",
+            "elapsed_ms": 127068
+        },
+        "cat_file": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14845
+        },
+        "images": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3927
+        },
+        "markdown_reader": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4895
+        },
+        "csv_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2331
+        },
+        "subdir": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8505
+        },
+        "tfidf": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9887
+        },
+        "merge": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13506
+        },
+        "external_bases": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 49775
+        },
+        "end_to_end dummy": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 40583
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 24,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'check', '--recover']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 398, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 355, in <lambda>\n    (\"end_to_end llama3.3-70b\", lambda: end_to_end(test_model=\"llama3.3-70b\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/end_to_end.py\", line 88, in end_to_end\n    cargo_run([\"check\", \"--recover\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 66, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'check', '--recover']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 31909
+        },
+        "prompts dummy": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5324
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 48400
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 77685
+        },
+        "empty dummy": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2610
+        },
+        "empty llama3.3-70b": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3568
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10819
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9202
+        },
+        "extract_keywords dummy": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1699
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7943
+        },
+        "ragit_api command-r": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1772
+        },
+        "migrate": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 92319
+        },
+        "migrate2": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 608572
+        }
+    },
+    "result": {
+        "total": 37,
+        "complete": 37,
+        "pass": 35,
+        "fail": 2,
+        "remaining": 0
+    }
+}

@@ -1,0 +1,68 @@
+@import "colors";
+@import "units";
+
+div.title-and-ball {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+    line-height: 1;
+}
+
+div.title-text {
+    font-size: $h3-font-size;
+}
+
+{% for color in colors %}
+    span.{{color.name}}-ball-big {
+        width: $h3-font-size;
+        height: $h3-font-size;
+        border-radius: 500px;
+        background-color: var(--{{color.name}});
+        display: inline-block;
+    }
+
+    span.{{color.name}}-ball-small {
+        width: $font-medium;
+        height: $font-medium;
+        border-radius: 500px;
+        background-color: var(--{{color.name}});
+        display: inline-block;
+    }
+{% endfor %}
+
+div.space-between-cases {
+    margin: $h3-margin * 2;
+}
+
+// TODO: style for `.sort-by` appears 3 times in `styles/` with small variations.
+.sort-by {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: $padding-medium;
+    margin: $padding-medium;
+
+    a {
+        margin: $padding-small;
+        padding: $padding-medium;
+        border-radius: 500px;
+    }
+
+    a.unselected-category {
+        background-color: var(--black);
+        color: var(--white);
+    }
+
+    a.selected-category {
+        background-color: var(--white);
+        color: var(--black);
+    }
+
+    a:link {
+        text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+}

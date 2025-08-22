@@ -1,0 +1,214 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-08 06:14:34.262382Z",
+        "commit": "936dff1b86ebb036d7d6f314b893dc23b116ccad",
+        "platform": {
+            "cargo_version": "cargo 1.82.0 (8f40fc59f 2024-08-21)",
+            "rustc_version": "rustc 1.82.0 (f6e511eec 2024-10-15)",
+            "python_version": "3.12.3",
+            "platform": "Linux-6.8.0-1016-aws-x86_64-with-glibc2.39"
+        },
+        "ended_at": "2025-02-08 07:18:57.662601Z",
+        "elapsed_ms": 3863400,
+        "ragit_version": "ragit 0.3.0-dev",
+        "commit_title": "more logs for api request",
+        "commit_message": "",
+        "rand_seed": 0
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1419675
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 69518
+        },
+        "recover": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8677
+        },
+        "clone": {
+            "seq": 3,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'clone', 'http://127.0.0.1/test-user/repo1']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/clone.py\", line 50, in clone\n    cargo_run([\"clone\", \"http://127.0.0.1/test-user/repo1\"])\n  File \"/home/ubuntu/Documents/ci/ragit/tests/utils.py\", line 61, in cargo_run\n    result = subprocess.run(args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'clone', 'http://127.0.0.1/test-user/repo1']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 13710
+        },
+        "clone2": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 381699
+        },
+        "cli": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7321
+        },
+        "many_chunks": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 276268
+        },
+        "ls": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 179996
+        },
+        "meta": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5395
+        },
+        "ii": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 46028
+        },
+        "cat_file": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 18011
+        },
+        "images": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6061
+        },
+        "markdown_reader": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10981
+        },
+        "csv_reader": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5962
+        },
+        "subdir": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 16773
+        },
+        "tfidf": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 19831
+        },
+        "merge": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 35603
+        },
+        "external_bases": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 68593
+        },
+        "end_to_end dummy": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 47635
+        },
+        "end_to_end gpt-4o-mini": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 73785
+        },
+        "prompts dummy": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9222
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 55347
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 89674
+        },
+        "empty dummy": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4319
+        },
+        "empty gpt-4o-mini": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5451
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11222
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12298
+        },
+        "ragit_api llama3.2-11b-groq": {
+            "seq": 27,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 299, in <lambda>\n    (\"ragit_api llama3.2-11b-groq\", lambda: ragit_api(test_model=\"llama3.2-11b-groq\")),\n                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'llama3.2-11b-groq', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 8746
+        },
+        "ragit_api command-r": {
+            "seq": 28,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'command-r', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 300, in <lambda>\n    (\"ragit_api command-r\", lambda: ragit_api(test_model=\"command-r\")),\n                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'command-r', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 402
+        },
+        "ragit_api phi-3-14b-ollama": {
+            "seq": 29,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', '--model', 'phi-3-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 330, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ci/ragit/tests/tests.py\", line 301, in <lambda>\n    (\"ragit_api phi-3-14b-ollama\", lambda: ragit_api(test_model=\"phi-3-14b-ollama\")),\n                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ci/ragit/tests/ragit_api.py\", line 11, in ragit_api\n    subprocess.run([\"cargo\", \"run\", \"--release\", '--', '--model', test_model, '--input', 'hello_world.pdl'], check=True)\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', '--model', 'phi-3-14b-ollama', '--input', 'hello_world.pdl']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 319
+        },
+        "migrate": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 544942
+        }
+    },
+    "result": {
+        "total": 31,
+        "complete": 31,
+        "pass": 27,
+        "fail": 4,
+        "remaining": 0
+    }
+}

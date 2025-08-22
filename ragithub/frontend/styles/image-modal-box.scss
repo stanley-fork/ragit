@@ -1,0 +1,38 @@
+@import "colors";
+@import "units";
+
+img {
+    cursor: pointer;
+    max-width: 60%;
+    max-height: 60%;
+}
+
+#modal-box {
+    display: none;
+    z-index: 1;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: #0000;
+    backdrop-filter: blur(5px);
+}
+
+#modal-img {
+    display: block;
+    margin: auto;
+    max-width: 93%;
+    max-height: 93%;
+}
+
+#close-button {
+    font-size: $font-giant;
+    color: var(--white);
+    text-align: center;
+    background-color: var(--black);
+    width: 60%;
+    margin-left: 20%;
+    margin-right: 20%;
+}

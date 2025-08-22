@@ -1,0 +1,34 @@
+:root {
+    {% for color in colors %}
+        --{{color.name}}: {{color.hex}};
+    {% endfor %}
+}
+
+{% for color in colors %}
+    ${{color.name}}: {{color.hex}};
+{% endfor %}
+
+/* Colors */
+{% for color in colors %}
+    .color-{{color.name}} {
+        color: var(--{{color.name}});
+    }
+
+    .color-{{color.name}}::selection, .color-{{color.name}} ::selection {
+        color: var(--{{color.name}}-compl);
+    }
+
+    .highlight-{{color.name}} {
+        background-color: var(--{{color.name}});
+    }
+
+    .highlight-{{color.name}}::selection {
+        background-color: var(--{{color.name}}-compl);
+    }
+
+    .color-{{color.name}} svg {
+        path, rect, circle {
+            fill: var(--{{color.name}});
+        }
+    }
+{% endfor %}

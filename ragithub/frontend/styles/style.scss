@@ -1,0 +1,80 @@
+@import "colors";
+@import "units";
+
+html {
+    font-family: 'Nanum Gothic Coding';
+    scroll-padding: $header-height;
+    background-color: var(--dark);
+    color: var(--white);
+}
+
+hr {
+    width: 100%;
+}
+
+details summary {
+    cursor: pointer;
+}
+
+.flex-container-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-container-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-container-column-reverse {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.flex-container-row-reverse {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.flex-container-column-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.flex-container-row-center {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.flex-container-lr {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.no-bullet {
+    list-style-type: none;
+}
+
+input.search-bar {
+    width: 65%;
+    border-radius: $round-border-medium;
+}
+
+footer {
+    margin-top: $margin-giant * 2;
+}
+
+@media screen and (orientation: portrait) {
+    .landscape-only {
+        display: none;
+    }
+}
+
+@media screen and (orientation: landscape) {
+    .portrait-only {
+        display: none;
+    }
+}

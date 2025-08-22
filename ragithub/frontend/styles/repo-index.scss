@@ -1,0 +1,89 @@
+@import "colors";
+@import "units";
+
+.repo-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.repo-card {
+    border-radius: $round-border-medium;
+    background: var(--black);
+    padding: $padding-medium;
+    margin: $padding-medium;
+    max-width: 600px;
+    width: 80%;
+
+    a {
+        color: var(--white);
+    }
+
+    a:hover {
+        border-bottom: $border-medium solid var(--white);
+    }
+
+    a:link {
+        text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+}
+
+.repo-clone-count {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+}
+
+.repo-created-at {
+    margin-top: $padding-big;
+}
+
+.sort-by {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: $padding-medium;
+    margin: $padding-medium;
+
+    a {
+        margin: $padding-small;
+        padding: $padding-medium;
+        border-radius: 500px;
+    }
+
+    a.unselected-category {
+        background-color: var(--black);
+        color: var(--white);
+    }
+
+    a.selected-category {
+        background-color: var(--white);
+        color: var(--black);
+    }
+
+    a:link {
+        text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+}
+
+div.search-bar-long {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    input.submit-button {
+        margin-left: $padding-small;
+    }
+}
+
+form.search-bar-long {
+    width: 80%;
+}

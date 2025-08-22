@@ -1,0 +1,262 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-02-27 21:34:27.073512Z",
+        "commit": "b08604d5bfaefdf2050166f7b378373c4806f7ce",
+        "platform": {
+            "cargo_version": "cargo 1.84.1 (66221abde 2024-11-19)",
+            "rustc_version": "rustc 1.84.1 (e71f9a9a9 2025-01-27)",
+            "python_version": "3.10.12",
+            "platform": "Linux-5.15.0-133-generic-x86_64-with-glibc2.35"
+        },
+        "rand_seed": 2025227213427,
+        "ended_at": "2025-02-27 22:17:10.555252Z",
+        "elapsed_ms": 2563481,
+        "ragit_version": "ragit 0.3.2-dev",
+        "commit_title": "refactor `ragit-server`",
+        "commit_message": "1. Added a helper trait `HandleError`. Now you can use `?` operators in\n   methods!\n2. Moved api endpoints document from `main.rs` to `README.md`.\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 125227
+        },
+        "add_and_rm": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 33575
+        },
+        "add_and_rm2": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8715
+        },
+        "ignore": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2969
+        },
+        "recover": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2898
+        },
+        "clone": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 93660
+        },
+        "clone2": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3762
+        },
+        "cli": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3450
+        },
+        "archive": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 189154
+        },
+        "many_chunks": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 579810
+        },
+        "many_jobs": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 138887
+        },
+        "ls": {
+            "seq": 11,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 73648
+        },
+        "meta": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1591
+        },
+        "symlink": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2897
+        },
+        "ii": {
+            "seq": 14,
+            "pass": false,
+            "error": "tfidf result on term 'main crate build into all' is not close enough. error: `approximation[1] not in answer`, answer: ['799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', '0d4fafb4e2410e369b8b2b01f1028098af982abdb891a6790000000100000207', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204', '01632c8715a20988f1d1ee95aa8d5cd1fc4c7c0e7b70c4570000000100000205', '07edccd7468f00ef416e169bb45eeec81e91e583cce8aa8e0000000100000200', '787e2c52575c48133ffde911106c06bba30603371f754ef20000000100000212', '52071601888dbbfd851b3188ad73454b2f566441d31c871e0000000100000207', '73f3b15a8d584c9252dc807e7d72f355852318257b12dac60000000100000200', '344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205'], approximation: ['344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205', '959571cc4d4ddd87dbd356ec2c47db33e21828f5d9b9a4d90000000100000205', '4067940b7279a68d63d39f24f3fb04cf5b6b25c9211bec820000000100000203', '6e7981be3fbc8db066f1bc4bbe0a2ddc2125df397c253a030000000100000204', '799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'b339028f8314802ef2d037e64b6fcb5ac5680baee8188e720000000100000217', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', 'b6f621988c1c030bcb6f6b25e048c83897eb707c7bfec17800000001000001ec', 'a4108b3bb5b84d19c62119cca82b25dafa5d69617af38ae70000000100000174', 'f53abaa5da04cc7b686f73ab29e6e6161ac05f5f1ff449d2000000010000020b']\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 103, in ii_worker\n    raise AssertionError(f\"approximation[{i}] not in answer\")\nAssertionError: approximation[1] not in answer\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 437, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 36, in ii\n    ii_worker()\n  File \"/home/baehyunsol/Documents/ragit/tests/ii.py\", line 116, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'main crate build into all' is not close enough. error: `approximation[1] not in answer`, answer: ['799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', '0d4fafb4e2410e369b8b2b01f1028098af982abdb891a6790000000100000207', '7689aa16093bee7c396f30d25cb8a512ea7cec4bf45f42060000000100000204', '01632c8715a20988f1d1ee95aa8d5cd1fc4c7c0e7b70c4570000000100000205', '07edccd7468f00ef416e169bb45eeec81e91e583cce8aa8e0000000100000200', '787e2c52575c48133ffde911106c06bba30603371f754ef20000000100000212', '52071601888dbbfd851b3188ad73454b2f566441d31c871e0000000100000207', '73f3b15a8d584c9252dc807e7d72f355852318257b12dac60000000100000200', '344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205'], approximation: ['344e42adabf8ed79fd4681c3f6ae1e3379404a502a14dfff0000000100000205', '959571cc4d4ddd87dbd356ec2c47db33e21828f5d9b9a4d90000000100000205', '4067940b7279a68d63d39f24f3fb04cf5b6b25c9211bec820000000100000203', '6e7981be3fbc8db066f1bc4bbe0a2ddc2125df397c253a030000000100000204', '799fecfd3dce4231daa21ca8f4c3bda4dccb0ee1019ea3d20000000100000204', 'b339028f8314802ef2d037e64b6fcb5ac5680baee8188e720000000100000217', 'c2b54a503a1ef3737b50b828489fc3624c7ed0bf9de113870000000100000200', 'b6f621988c1c030bcb6f6b25e048c83897eb707c7bfec17800000001000001ec', 'a4108b3bb5b84d19c62119cca82b25dafa5d69617af38ae70000000100000174', 'f53abaa5da04cc7b686f73ab29e6e6161ac05f5f1ff449d2000000010000020b']\n",
+            "elapsed_ms": 136596
+        },
+        "cat_file": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15778
+        },
+        "images": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3937
+        },
+        "markdown_reader": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4922
+        },
+        "csv_reader": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2338
+        },
+        "subdir": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8400
+        },
+        "tfidf": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9908
+        },
+        "merge": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13435
+        },
+        "external_bases": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 55342
+        },
+        "end_to_end dummy": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 41503
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 24,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--', 'check', '--recover']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 437, in <module>\n    test()\n  File \"/home/baehyunsol/Documents/ragit/tests/tests.py\", line 390, in <lambda>\n    (\"end_to_end llama3.3-70b\", lambda: end_to_end(test_model=\"llama3.3-70b\")),\n  File \"/home/baehyunsol/Documents/ragit/tests/end_to_end.py\", line 87, in end_to_end\n    cargo_run([\"check\", \"--recover\"])\n  File \"/home/baehyunsol/Documents/ragit/tests/utils.py\", line 66, in cargo_run\n    result = subprocess.run(args, **kwargs)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--', 'check', '--recover']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 32854
+        },
+        "prompts dummy": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 5405
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 55128
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 78381
+        },
+        "empty dummy": {
+            "seq": 28,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2603
+        },
+        "empty llama3.3-70b": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3950
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8598
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12755
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 22609
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9701
+        },
+        "extract_keywords dummy": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1592
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7386
+        },
+        "ragit_api command-r": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 2009
+        },
+        "migrate": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 103352
+        },
+        "migrate2": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 640136
+        }
+    },
+    "result": {
+        "total": 39,
+        "complete": 39,
+        "pass": 37,
+        "fail": 2,
+        "remaining": 0
+    }
+}

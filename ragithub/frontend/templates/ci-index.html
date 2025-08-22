@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="markdown">
+    <h1>Ragit CI</h1>
+</div>
+
+<div class="flex-container-row">
+    <div class="sort-by">
+        {% for category in sort_categories %}
+            <a class={% if category.selected %}"selected-category"{% else %}"unselected-category"{% endif %} href="?sort_by={{category.short}}">{{category.long}}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="markdown">
+    <ul>
+        {% for i in index %}
+            <li>
+                <a href="/ci/{{i.title}}">{{i.title}}</a>
+                <ul>
+                    <li>{{i.git_title}}</li>
+                    <li>{{i.ragit_version}}</li>
+                    <li>total: {{i.pass + i.fail}}, pass: {{i.pass}}, fail: {{i.fail}}</li>
+                    <li>{{i.ended_at}} ({{i.ended_at|render_time}})</li>
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}

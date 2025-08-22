@@ -1,0 +1,705 @@
+{
+    "meta": {
+        "complete": true,
+        "started_at": "2025-08-01 07:48:06.419370Z",
+        "commit": "ad17ef1a22c4009c5c7da8fff695c0ad625cbffa",
+        "platform": {
+            "cargo_version": "cargo 1.87.0 (99624be96 2025-05-06)",
+            "rustc_version": "rustc 1.87.0 (17067e9ac 2025-05-09)",
+            "python_version": "3.12.3",
+            "platform": "Linux-6.14.0-1009-aws-x86_64-with-glibc2.39"
+        },
+        "ragit_version": "ragit 0.4.2-dev",
+        "rand_seed": 20250801074806,
+        "ended_at": "2025-08-01 14:20:52.926510Z",
+        "elapsed_ms": 23566507,
+        "commit_title": "fix pdl schema",
+        "commit_message": "Previously, pdl didn't treat `\"7.\"` as an integer because it looks like\na floating point. But it's indeed an integer...\n"
+    },
+    "tests": {
+        "cargo_tests": {
+            "seq": 0,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1776468,
+            "message": null
+        },
+        "cargo_features": {
+            "seq": 1,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 548119,
+            "message": null
+        },
+        "add_and_rm": {
+            "seq": 2,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 119429,
+            "message": null
+        },
+        "add_and_rm2": {
+            "seq": 3,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 40605,
+            "message": null
+        },
+        "ignore": {
+            "seq": 4,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10293,
+            "message": null
+        },
+        "recover": {
+            "seq": 5,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11040,
+            "message": null
+        },
+        "cannot_read_images": {
+            "seq": 6,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14815,
+            "message": null
+        },
+        "clone": {
+            "seq": 7,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 562069,
+            "message": null
+        },
+        "clone_empty": {
+            "seq": 8,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11106,
+            "message": null
+        },
+        "pull": {
+            "seq": 9,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 19094,
+            "message": null
+        },
+        "pull_ragithub": {
+            "seq": 10,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7332,
+            "message": null
+        },
+        "server": {
+            "seq": 11,
+            "pass": false,
+            "error": "{'ragit_version': '0.4.2-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'Complete'}, 'uid': {'high': 226965926617079404232257257017206136310, 'low': 98353210059702837338669213515912314881}, 'summary': None} != {'ragit_version': '0.4.2-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'None'}, 'uid': {'high': 226965926617079404232257257017206136310, 'low': 98353210059702837338669213515912314881}, 'summary': None}\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 802, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/server.py\", line 53, in server\n    assert_eq_json(\"index.json\", index_json)\n  File \"/home/ubuntu/Documents/ragit/tests/server.py\", line 393, in assert_eq_json\n    raise ValueError(f\"{file.__repr__()} != {value.__repr__()}\")\nValueError: {'ragit_version': '0.4.2-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'Complete'}, 'uid': {'high': 226965926617079404232257257017206136310, 'low': 98353210059702837338669213515912314881}, 'summary': None} != {'ragit_version': '0.4.2-dev', 'chunk_count': 0, 'staged_files': [], 'processed_files': {}, 'curr_processing_file': None, 'repo_url': None, 'ii_status': {'type': 'None'}, 'uid': {'high': 226965926617079404232257257017206136310, 'low': 98353210059702837338669213515912314881}, 'summary': None}\n",
+            "elapsed_ms": 13031,
+            "message": null
+        },
+        "server_ai_model": {
+            "seq": 12,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1518,
+            "message": null
+        },
+        "server_permission": {
+            "seq": 13,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 83246,
+            "message": null
+        },
+        "server_file_tree": {
+            "seq": 14,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50265,
+            "message": null
+        },
+        "fetch_models": {
+            "seq": 15,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 34640,
+            "message": null
+        },
+        "cli": {
+            "seq": 16,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 19520,
+            "message": null
+        },
+        "outside": {
+            "seq": 17,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11126,
+            "message": null
+        },
+        "archive": {
+            "seq": 18,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 849895,
+            "message": null
+        },
+        "many_chunks": {
+            "seq": 19,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1780572,
+            "message": null
+        },
+        "erroneous_llm": {
+            "seq": 20,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 225422,
+            "message": null
+        },
+        "pdl_escape": {
+            "seq": 21,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 17050,
+            "message": null
+        },
+        "many_jobs": {
+            "seq": 22,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 476240,
+            "message": null
+        },
+        "ls": {
+            "seq": 23,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 308727,
+            "message": null
+        },
+        "ls_dedup": {
+            "seq": 24,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14236,
+            "message": null
+        },
+        "meta": {
+            "seq": 25,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 6409,
+            "message": null
+        },
+        "symlink": {
+            "seq": 26,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13910,
+            "message": null
+        },
+        "gh_issue_20": {
+            "seq": 27,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12231,
+            "message": null
+        },
+        "ii": {
+            "seq": 28,
+            "pass": false,
+            "error": "tfidf result on term 'advertis produc whether necessari search' is not close enough. error: `answer[1] not in approximation`, answer: ['1b1d98c1d7d571a34cf86a7f2bbec417ddd122f5a52de4280000000100000c15', 'c5406542eea53121aab7f4743be81cf947da75ce007f3c180000000100000377', '27b6fc2b9f4e9bd9a5f089ffc5d90cdf1c584013bd30d1a00000000100000fa9', '9ced635e349957dee5be69535354356fb8638c0bc871fb7f00000001000007a5', 'e8c8f62816bd7ccda2f21296398822bff29e7c9d2f3e2f5e0000000100000e5c', '52e45c0f1150854d440e7c7dedd85f6d59b395c8aeff3c640000000100000c47', 'f4c5567a659291a7a41aae14a66abd0d9a74d9598a920ced0000000100000fa2', 'c52095466451a4240a9572e4b191e704c110c578be60155d0000000100000d36', 'e343362a5dd71a44378d83653d0d2c55ff01b6d907e3d7420000000100000801', '6c464947dc44f0c3165311044c6db16b34341b51b91f34000000000100000fa2'], approximation: ['1b1d98c1d7d571a34cf86a7f2bbec417ddd122f5a52de4280000000100000c15', '52e45c0f1150854d440e7c7dedd85f6d59b395c8aeff3c640000000100000c47', 'c52095466451a4240a9572e4b191e704c110c578be60155d0000000100000d36', 'e8c8f62816bd7ccda2f21296398822bff29e7c9d2f3e2f5e0000000100000e5c', '6c464947dc44f0c3165311044c6db16b34341b51b91f34000000000100000fa2', 'aaca4b0160f181c6635c770f2faa237611237c9159d4f2de0000000100000fa2', 'b5960bc66c1407deff56f522e1dc06c89b435e5bbec067370000000100000d88', 'f4c5567a659291a7a41aae14a66abd0d9a74d9598a920ced0000000100000fa2', '8601f65738a3bc5b457682822aabd919351a261e9c653dcd0000000100000fa7', '3b51f2a1241ff95f03406ad001d1a583489b1c9ebae929160000000100000a72']\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/ii.py\", line 103, in ii_worker\n    raise AssertionError(f\"answer[{i}] not in approximation\")\nAssertionError: answer[1] not in approximation\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 802, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/ii.py\", line 52, in ii\n    ii_worker()\n  File \"/home/ubuntu/Documents/ragit/tests/ii.py\", line 119, in ii_worker\n    raise AssertionError(f\"tfidf result on term '{term}' is not close enough. error: `{e}`, answer: {answer}, approximation: {approximation}\")\nAssertionError: tfidf result on term 'advertis produc whether necessari search' is not close enough. error: `answer[1] not in approximation`, answer: ['1b1d98c1d7d571a34cf86a7f2bbec417ddd122f5a52de4280000000100000c15', 'c5406542eea53121aab7f4743be81cf947da75ce007f3c180000000100000377', '27b6fc2b9f4e9bd9a5f089ffc5d90cdf1c584013bd30d1a00000000100000fa9', '9ced635e349957dee5be69535354356fb8638c0bc871fb7f00000001000007a5', 'e8c8f62816bd7ccda2f21296398822bff29e7c9d2f3e2f5e0000000100000e5c', '52e45c0f1150854d440e7c7dedd85f6d59b395c8aeff3c640000000100000c47', 'f4c5567a659291a7a41aae14a66abd0d9a74d9598a920ced0000000100000fa2', 'c52095466451a4240a9572e4b191e704c110c578be60155d0000000100000d36', 'e343362a5dd71a44378d83653d0d2c55ff01b6d907e3d7420000000100000801', '6c464947dc44f0c3165311044c6db16b34341b51b91f34000000000100000fa2'], approximation: ['1b1d98c1d7d571a34cf86a7f2bbec417ddd122f5a52de4280000000100000c15', '52e45c0f1150854d440e7c7dedd85f6d59b395c8aeff3c640000000100000c47', 'c52095466451a4240a9572e4b191e704c110c578be60155d0000000100000d36', 'e8c8f62816bd7ccda2f21296398822bff29e7c9d2f3e2f5e0000000100000e5c', '6c464947dc44f0c3165311044c6db16b34341b51b91f34000000000100000fa2', 'aaca4b0160f181c6635c770f2faa237611237c9159d4f2de0000000100000fa2', 'b5960bc66c1407deff56f522e1dc06c89b435e5bbec067370000000100000d88', 'f4c5567a659291a7a41aae14a66abd0d9a74d9598a920ced0000000100000fa2', '8601f65738a3bc5b457682822aabd919351a261e9c653dcd0000000100000fa7', '3b51f2a1241ff95f03406ad001d1a583489b1c9ebae929160000000100000a72']\n",
+            "elapsed_ms": 548276,
+            "message": null
+        },
+        "cat_file": {
+            "seq": 29,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 60159,
+            "message": null
+        },
+        "generous_file_reader": {
+            "seq": 30,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1032689,
+            "message": null
+        },
+        "clean_up_erroneous_chunk": {
+            "seq": 31,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 4583,
+            "message": null
+        },
+        "images": {
+            "seq": 32,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 14623,
+            "message": null
+        },
+        "markdown_reader": {
+            "seq": 33,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 25035,
+            "message": null
+        },
+        "csv_reader": {
+            "seq": 34,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 18778,
+            "message": null
+        },
+        "real_repos": {
+            "seq": 35,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 9311383,
+            "message": "started creating a knowledge-base of ragit\n\nfinished creating a knowledge-base of ragit: it took 165 seconds\n\n----- ragit (0 errors) -----\n\n\nstarted creating a knowledge-base of git\n\nfinished creating a knowledge-base of git: it took 684 seconds\n\n----- git (0 errors) -----\n\n\nstarted creating a knowledge-base of postgresql\n\nfinished creating a knowledge-base of postgresql: it took 1306 seconds\n\n----- postgresql (0 errors) -----\n\n\nstarted creating a knowledge-base of rustc\n\nfinished creating a knowledge-base of rustc: it took 190 seconds\n\n----- rustc (0 errors) -----\n\n\nstarted creating a knowledge-base of docker\n\nfinished creating a knowledge-base of docker: it took 1187 seconds\n\n----- docker (38 errors) -----\n    `content/get-started/docker-concepts/the-basics/what-is-an-image.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/the-basics/images/click-image.webp?border=true&w=1050&h=400`)\n    `content/get-started/docker-concepts/the-basics/what-is-docker-compose.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/the-basics/images/todo-list-delete.webp?w=930&h=400`)\n    `content/get-started/docker-concepts/the-basics/what-is-a-container.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/the-basics/images/search-the-docker-image.webp?border=true&w=1000&h=700`)\n    `content/get-started/docker-concepts/the-basics/what-is-a-registry.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/the-basics/images/dockerhub-signup.webp?border`)\n    `content/get-started/docker-concepts/running-containers/sharing-local-files.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/running-containers/images/mounted-files.webp?border=true`)\n    `content/get-started/docker-concepts/building-images/multi-stage-builds.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/building-images/images/multi-stage-builds-spring-initializer.webp?border=true`)\n    `content/get-started/docker-concepts/building-images/understanding-image-layers.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/docker-concepts/building-images/images/container_image_layers.webp?border=true`)\n    `content/get-started/workshop/07_multi_container.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/workshop/images/multi-container.webp?w=350h=250`)\n    `content/get-started/introduction/get-docker-desktop.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/get-started/introduction/../docker-concepts/the-basics/images/access-the-frontend.webp?border=true`)\n    `content/manuals/scout/integrations/team-collaboration/slack.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/scout/integrations/team-collaboration/../../images/scout-slack-notification.png?border=true \"Example Slack notification from Docker Scout\"`)\n    `content/manuals/scout/explore/dashboard.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/scout/explore/../images/dashboard-overview.webp?border=true`)\n    `content/manuals/scout/explore/metrics-exporter.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/scout/explore/../images/scout-metrics-prom-target.png \"Docker Scout metrics exporter Prometheus target\"`)\n    `content/manuals/scout/explore/exceptions.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./scout/images/suppressed-cve-cli.png`)\n    `content/manuals/extensions/private-marketplace.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./assets/images/extensions-private-marketplace.webp`)\n    `content/manuals/extensions/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./assets/images/extensions.webp`)\n    `content/manuals/extensions/extensions-sdk/architecture/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/extensions/extensions-sdk/architecture/images/extensions-architecture.png?w=600h=400`)\n    `content/manuals/engine/storage/drivers/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/engine/storage/drivers/images/container-layers.webp?w=450&h=300`)\n    `content/manuals/engine/storage/drivers/zfs-driver.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/engine/storage/drivers/images/zfs_clones.webp?w=450`)\n    `content/manuals/engine/storage/drivers/btrfs-driver.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/engine/storage/drivers/images/btfs_subvolume.webp?w=350&h=100`)\n    `content/manuals/engine/swarm/how-swarm-mode-works/services.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/engine/swarm/how-swarm-mode-works/../images/services-diagram.webp?w=550`)\n    `content/manuals/engine/swarm/how-swarm-mode-works/nodes.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./engine/swarm/images/swarm-diagram.webp`)\n    `content/manuals/engine/swarm/how-swarm-mode-works/pki.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./engine/swarm/images/tls.webp?w=600`)\n    `content/manuals/engine/network/drivers/ipvlan.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/engine/network/drivers/images/macvlan-bridge-ipvlan-l2.webp?w=700`)\n    `content/manuals/scout/policy/scores.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/scout/policy/../images/score-a-shiny.png?w=450px`)\n    `content/manuals/build-cloud/usage.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./build/images/set-default-builder-gui.webp`)\n    `content/manuals/enterprise/security/roles-and-permissions.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/enterprise/security/../images/roles-and-permissions-member-editor-roles.png`)\n    `content/manuals/desktop/use-desktop/builds.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/desktop/use-desktop/../images/build-ui-jaeger-screenshot.png \"Screenshot of a build trace in the Jaeger UI\"`)\n    `content/manuals/ai/mcp-catalog-and-toolkit/toolkit.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./assets/images/mcp_servers.png`)\n    `content/manuals/ai/gordon/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/ai/gordon/../../images/gordon-run-ctr.png`)\n    `content/manuals/build/building/multi-platform.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./build/images/single-vs-multiplatform-image.svg`)\n    `content/manuals/copilot/usage.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/copilot/images/copilot-button.png?w=400px`)\n    `content/manuals/copilot/examples.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/copilot/images/copilot-vuln-report.png?w=500px&border=1`)\n    `content/manuals/admin/organization/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./admin/images/org-structure.webp`)\n    `content/manuals/admin/company/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./admin/images/docker-admin-structure.webp`)\n    `content/contribute/components/images.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./assets/images/footer_moby_icon.png`)\n    `content/guides/java/develop.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/guides/java/images/debug-menu.webp?w=300`)\n    `layouts/shortcodes/admin-sso-config.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/./docker-hub/images/saml-create-connection.png`)\n    `content/manuals/engine/storage/drivers/device-mapper-driver.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/docker/content/manuals/engine/storage/drivers/images/two_dm_container.webp?w=450&h=100`)\n\nstarted creating a knowledge-base of kubernetes\n\nfinished creating a knowledge-base of kubernetes: it took 2480 seconds\n\n----- kubernetes (152 errors) -----\n    `content/en/releases/release.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/releases/release-cycle.jpg`)\n    `content/en/docs/test.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/pencil.png`)\n    `content/en/docs/tasks/access-application-cluster/web-ui-dashboard.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/ui-dashboard.png`)\n    `content/en/docs/tasks/administer-cluster/reserve-compute-resources.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/node-capacity.svg`)\n    `content/en/docs/tasks/administer-cluster/ip-masq-agent.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/ip-masq.png`)\n    `content/en/docs/tasks/administer-cluster/migrating-from-dockershim/check-if-dockershim-removal-affects-you.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-05-24-kubernetes-containerd-integration-goes-ga/cri-containerd.png`)\n    `content/en/docs/tasks/administer-cluster/memory-manager.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/memory-manager-diagram.svg`)\n    `content/en/docs/tasks/extend-kubernetes/configure-aggregation-layer.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/aggregation-api-auth-flow.png`)\n    `content/en/docs/setup/production-environment/tools/kubeadm/ha-topology.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/kubeadm/kubeadm-ha-topology-stacked-etcd.svg`)\n    `content/en/docs/concepts/overview/_index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/Container_Evolution.svg`)\n    `content/en/docs/concepts/architecture/cloud-controller.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/components-of-kubernetes.svg`)\n    `content/en/docs/concepts/cluster-administration/logging.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/user-guide/logging/logging-node-level.png`)\n    `content/en/docs/concepts/security/controlling-access.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/admin/access-control-overview.svg`)\n    `content/en/blog/_posts/2018-10-08-support-for-azure-vmss.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-10-08-support-for-azure-vmss/sample-azure-cluster.png`)\n    `content/en/blog/_posts/2018-05-17-gardener-the-kubernetes-botanist.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-05-17-gardener-the-kubernetes-botanist/dashboard.gif`)\n    `content/en/docs/tutorials/services/source-ip.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/sourceip-externaltrafficpolicy.svg`)\n    `content/en/blog/_posts/2017-02-00-Inside-Jd-Com-Shift-To-Kubernetes-From-Openstack.md`: FileReaderError(\"GET https://upload.wikimedia.org/wikipedia/en/7/79/JD_logo.png returned 403.\")\n    `content/en/blog/_posts/2019-08-06-OPA-Gatekeeper-Policy-and-Governance-for-Kubernetes.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-08-06-opa-gatekeeper/v3.png`)\n    `content/en/blog/_posts/2018-06-06-4-years-of-k8s.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-06-06-4-years-of-k8s/k8s-first-commit.png`)\n    `README.md`: ImageError(Unsupported(UnsupportedError { format: Unknown, kind: Format(Unknown) }))\n    `content/en/blog/_posts/2017-04-00-Configuring-Private-Dns-Zones-Upstream-Nameservers-Kubernetes.md`: FileReaderError(\"GET https://2.bp.blogspot.com/-Jj4r6bGt1f8/WORRugYMobI/AAAAAAAABBE/HXH-wBGqweQcJbyQA3bqnUtYeN5aOtE9ACEw/s400/dns2.png returned 404.\")\n    `content/en/docs/tutorials/stateful-application/mysql-wordpress-persistent-volume.md`: FileReaderError(\"GET https://raw.githubusercontent.com/kubernetes/examples/master/mysql-wordpress-pd/WordPress.png returned 404.\")\n    `content/en/blog/_posts/2017-02-00-Run-Deep-Learning-With-Paddlepaddle-On-Kubernetes.md`: FileReaderError(\"GET https://3.bp.blogspot.com/-Mwn3FU9hffI/WJk8QBxA6SI/AAAAAAAAA8w/AS5QoMdPTN8bL9jnixlsCXzj1IfYerhRQCLcB/s200/baidu_research_logo_rgb.png returned 404.\")\n    `content/en/blog/_posts/2020-12-08-kubernetes-release-1.20.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-12-08-kubernetes-1.20-release-announcement/laser.png`)\n    `content/en/blog/_posts/2017-11-00-Certified-Kubernetes-Conformance.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-YasPeoIh8tA/Wg28rH4dzXI/AAAAAAAAAHg/Hfk2dnUoav4XMefGyjzMWdJMZbu1QJFagCK4BGAYYCw/s200/certified_kubernetes_color.png returned 404.\")\n    `content/en/blog/_posts/2017-10-00-Enforcing-Network-Policies-In-Kubernetes.md`: FileReaderError(\"GET https://lh4.googleusercontent.com/e8JzhKYICOzh44sHcedjt4IRRpw2zpFNbJ2UY83fBdWYCIvFVSlHJNmIwLzIHVxrScc2eNCyv37mm903TVT9VkMuHPxe_5Hk8CvJTqGsSK7WtEDCbn1Q25S-o_kHcEiKUUl1NV9g returned 404.\")\n    `content/en/blog/_posts/2020-01-15-Kubernetes-on-MIPS.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-01-15-Kubernetes-on-MIPS/kubernetes-on-mips.png`)\n    `content/en/blog/_posts/2018-07-20-history-kubernetes-community.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-07-20-history-kubernetes-community.png`)\n    `content/en/blog/_posts/2016-06-00-Bringing-End-To-End-Testing-To-Azure.md`: FileReaderError(\"GET https://3.bp.blogspot.com/-U2KYWNzJpFI/V3QMYbKRX8I/AAAAAAAAAks/SqEvCDJHJ8QtbB9hJVM8WAkFuAUlrFl8ACLcB/s400/Kubernetes%2BBlog%2BPost%2B-%2BKubernetes%2Bon%2BAzure%2B%2528Part%2B1%2529.png returned 404.\")\n    `content/en/blog/_posts/2020-05-05-introducing-podtopologyspread.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-05-05-introducing-podtopologyspread/api.png`)\n    `content/en/blog/_posts/2018-03-00-Apache-Spark-23-With-Native-Kubernetes.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-hl4pnOqiH4M/Wp4w9QmzghI/AAAAAAAAAL4/jcWoDOKEp3Y6lCzGxzTOlbvl2Mq1-2YeQCK4BGAYYCw/s1600/Screen%2BShot%2B2018-03-05%2Bat%2B10.10.14%2BPM.png returned 404.\")\n    `content/en/blog/_posts/2016-03-00-How-Container-Metadata-Changes-Your-Point-Of-View.md`: FileReaderError(\"GET https://2.bp.blogspot.com/-7hrB4V8zAkg/VvmJRpLcQQI/AAAAAAAAAYA/Fz7pul56ZQ8Xus6u4zHBFAwe8HJesyeRw/s640/Kubernetes%2BMetadata%2BBlog%2B2.png returned 404.\")\n    `content/en/blog/_posts/2016-07-00-Kubernetes-In-Rancher-Further-Evolution.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_Ga_E7cGiCpRD3ObgvwIXnobw6j6bB7QUI0rHWYK_lYeFDxodLd2oamqz6opPDLIg32BEuLYPO0v7Ms3I0xtqHNRZqAxQ8oaHWjvZZjfqklet9ohcklJ_Xc9M_qWOnIz8d1SH2Ogl2QL3SAJ-vmAEd2Q9sfC8D7jrK2jHGAsZgOXyLoUct9auU3BsDyeb2zeRUcUJYMItT3IOZNWsOc7aMTaeHsslVu0KVCJOidLnJRvxnHXdIqyAatCRBpmS99TAcHCG89135IpWtmfTzF-I61YpxgD_CbfgUZdVyivVIKlMKpVqdRqetnK8P3HamyuBpDseDpwG-iKs-eu6ETIqTzG1CATfq2C40SLtqbPfikBG7ox_ELPtm63_1bcEi9VqkDTJxg1mZbP7Y63okYzvdmquWuRZxhJlGvLy2EuOjNqOXz7YQpoxlZTzOgJ6xQcGpqXvdHilzrpBnZQABp669xBQakA7-1mYsQPz_CZRMAkGUy278eaiYa10EV3FTiOXwviq1XMBtO2Goo32ruJ6llLn4UGKGV07QQu-heaoUc41S5=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2017-02-00-Postgresql-Clusters-Kubernetes-Statefulsets.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_Gr_laJjIWEpChCesJ3wfTtq1L4B_iiTxqWEjt5OI_dR1RcSZ9d3BpCrDcUuGxevYUz_7eICroo0vM2rAJSBwK6DjbFgWw7zTDEpfDrkZDnEy14-TJMMhdkUWBHOALsktwS6owZHsV-0j628Ue8qw9kxls1SHOEKrTTzmJbtt63zPYnc61PPoYaNPBdkAP5IDKTXE69hZyKq07cgg2uJ6P9EInCI7vkbqyNHJ2FyrylGzIvNSSgYnQJsf4p44o2qCUFW-n8mgIetoSkAMu96JIKarRGtSo35SZ_icCv96MQdCwp5bo52BFusmTQI8mehcFGHTdETaQ4R6t9LRyy1Y6_ZDT_bRUD9vx461VaIyfJ2kC3iXprLEmAvA1ZLPBMa6J5nSU2SatNU4V_qcJFPUb1U3c7ZbOF2cwwbwVAQkWYHYUNFPwMbh5fFn_9HtPqbBJ6SHTwkPho9oGvNTzHkCi5gtSsahbrGd6CVp2tHHh5CBFH7B7UlduhWjmRX5HIktcHufpVWIOqsyWeSzoAuHfewxTPEz1vPrGrvmAR8pa-tS6T=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-07-00-Cross-Cluster-Services.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_FgNEonbaVxcdZ70h1unmB838VcZrUZkjzfusWaIuxtysMSiihBShxcvivbQQs_0SXZrMFfr-EolV15qccmcz7ACXHHzgQg85PkekusIv5ih4Ql4TbcEYu6EDH7wTDjw7BC8-gfHdCK2Cvc3Ty05Gb_moTisbiJqjSvU0rOl3srgi_DPiAd3WbF1PFlPfGPXsrPCRmDEALH0vFVPCGoH81AiOSWUIBTaF4ZPqAkxVBhfkWdBAD3Hfa9RPe_vPxdL1xZuc3uBqIXgoR9V4Apc8HE-Kj4zSn7xCm2cpwW4gmGTXCBhVShb59FwhQdPl-1SmnB-gZuHjYbY8G4iDb_EnOOXspHA3nphn6XVpwHK2Pyu4kAgBmL32QjZ-eE5OKkvr-QHPMqN8SYqbgobT3LcwN-Ig-0gn9IF8eXfljEFCugoKRpulEn0qx9RYLCymYG-SbC0EAf_AEqLMKvaXiJuJe_oyUkC06NqsBu8iJWCBPF295OdoVvP8TuyX43GFyw-DWxYLGfhTAN3Zplmmh7TFE4CTvabFwodVLDbxNXUUYhdocF=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2018-04-24-kubernetes-application-survey-results-2018.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/survey-results/2018-application-survey/minikube-os-usage.png`)\n    `content/en/blog/_posts/2018-08-02-dynamically-expand-volume-csi.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-08-02-dynamically-expand-volume-csi/csi-diagram.png`)\n    `content/en/blog/_posts/2016-03-00-1000-Nodes-And-Beyond-Updates-To-Kubernetes-Performance-And-Scalability-In-12.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_EwlylWRs4SWKLGMO7ur6EqkI5aPABbC3S_fb61qmiu4GX8ATMVGbbybU1X2BsTGzSDMXHHV3XkTNtnOXgqX9VrXG8dVcp1rFdAPLKIyY0BbjZi38AhWrm8Un6ZSNBxBa2TNAMLPB9_HDUr26X3pbBB1lYtd1Y_uO-AQVxd-Og-qFKcy-qH1jJBgIOzmOw2Z6XL7JtUo5nv5SU4QPEjhPZR2qz9BxLOsg_Zzh7kqKH8Oyv610QdAmOvgfjSiN8vt9vDnUb0JrnM799LQjlCZuglIHC5AFt9NYw-uJ2uXr9TseLbcb-rsP7Ft-_gUdzL9azGcQ8ejnGc6XhXT5OHyNK2IzM0ZZWV3T_wEqBtLKfne9l__zEwg_LBz8JEEWVP-K8b7yRxcPVwvOHfQhnRplpqK_VR_Q9G-A3jCq34Pa7J49nglH8GmSAjClnpKj_AxzmSLUFWK2DiLlaf34nZC5m3RoqQPd-eyrEh3ZaqHNW-dzae_EUisf2S3rh4BbX4-2fAnTLPQNacje_jZacIsy4FGqmVp0uSTd7IDzOBF5CjFn8Q=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-10-00-Helm-Charts-Making-It-Simple-To-Package-And-Deploy-Apps-On-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_HbxNnr8A9zAvULDnatIPcnR6gSQOGQ5Z_3jOTBsaK6AftAPQoucFzG2Y1hLwra0UDiyhtSbMGoBykWReUhnzKooWyMBaLZAgeVXHBEXT-EXVv1htA88jUwTwPLG5lgqTPHsArk09rcSARmz99pKCjWDZCq4GEeDAUhPOmcCoYQ7TsLWwA6U_jWtRpHMTDRXKXb2nh4R4hFtd0ICfgV98Q-UuGsOLzM35jXfRJ2-ag5_wqnM0snhB0RuFAkVQnq2rEb6NO0NRBeiY7YsoYTjsjI3LEluk7GvQFOjuD5ZjxQLhtXG5ZC8uUagb48DkUqiSNOBK3qcjh3KMIXNeiGWSQLU-VU7Ahvdo3MRFJrtnuFeEZDVxc0O_wk4g_QnIUQOg2-Q2MwSzPNi36aWBfJ_rvHWRlLyMnn2dfI-Nt058NyS_jNPRFjXayBdIOMeX34pHe1MZfb8JDqhmAnVcVAtx0gsQa-aDJmk4oD3gYz-NeCwO3KWpNUYuRF_46PHfBSD7qjD8YoHIJJvrTNirGbipF4VHN0Vf5ljzdmjXyYCKQ7mV8Q=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-04-00-Kubernetes-Network-Policy-APIs.md`: FileReaderError(\"GET https://lh5.googleusercontent.com/zMEpLMYmask-B-rYWnbMyGb0M7YusPQFPS6EfpNOSLbkf-cM49V7rTDBpA6k9-Zdh2soMul39rz9rHFJfL-jnEn_mHbpg0E1WlM-wjU-qvQu9KDTQqQ9uBmdaeWynDDNhcT3UjX5 returned 404.\")\n    `content/en/blog/_posts/2016-09-00-How-Qbox-Saved-50-Percent-On-Aws-Bills.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_EZfKz-NwBtRZFOQrl-Gw6Je2oNbtLfyM7mo_CuDO_0ByQXPyq39tfxZsU5aExZ95TKu-oJQUOAITe5t9TzOudbaSY-30AbzZKFpwvw7oyiHt-TDKkHft4oDYKbXaF-cH3DrxnxRKBacba6OYUBBESSlC-TBYuG3JperolHSqkwkdH2s0R36IPylNxSL-224MGhVEntS-hBtamKhI0rRwA1OSP6t97zGSWtQoLw3eQcPWDwRgIRcn6QOsdMuqYBkg1lQrXPsUxz-iRlCcB3Ducf0EDzV7lo365ZV_UR6PUE2WfvuylQDct59Ipc3BprBrcfQw78HRF68KjmX6bjh9-8tEdC9cta4JriPbx-Fvr5h_jsfNcVt_nI5jRcgpKUW8PBr7SJKQFnYKNz4h4Ps_Xgj5KWXGXB6IA9241a2jYxLqdx_7DhO5i3LqWG61l8J7v0olcCzep7R6wwxq_bhZj-UUlQsaNyYcAn-U_eMbU5-bcafXzJZOsEoHkwz4FNZL6SJvKyw4VJFhuNLI1TjaYg710qUksFIn2N6-vuxMX9b__x=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-10-00-Production-Kubernetes-Dashboard-UI-1-4-improvements_3.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_EjSj9dzLtUSz8mUFyTcol78nDOo-3Sq4LgzX5L0a025t1QITUP187oUFj2SxhplKsLRoTFL7mlnsH32sEMmUXVaZxcNru2pF6-g2jXkF7vgYvtIlmjvZQEw_TinXo1dA_TgZ34a9pSVOMpOh9GHMh8F4ptZXlwkkhznHIqSy4vOrfRkPJ5mJBxes5QS4nsLDVW6M8XIcT3VkXsVl_gcUFDZaU67fimNs3lg5GX3FHsu4yk9voxT4nDBIfJ9gtP0lkpTB-LgHC5R1BsOUDwWx1LhMBhqcVJuNY6mMqhjAon1qf_HioWvEVKbBGFPQtTzKLL-aw9waff-k9PQIIlbuGp7sJqeGfaig5Ez0VNWjfMncv7Re9umZe5WIVoAB4jYNH8RZ-yRl2vJg7w6mQQ6EV-APAT-43PtsAEIDzctOOu3tqYfIIO1mgLIw0alaeHl3m-bsbtbB6uP8IN-lf3OrtDPggOYykDctfkzlDmWgsRrKQCWTN2-Y02Rc5LixOD7bmW1bfFUfNqPighxg1BdcmojAoJZoUDEdm4klgntL3Ku8B5=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2015-05-00-Kubernetes-On-Openstack.md`: FileReaderError(\"GET https://3.bp.blogspot.com/-EOrCHChZJZE/VVZzq43g6CI/AAAAAAAAF-E/JUilRHk369E/s400/Untitled%2Bdrawing.jpg returned 404.\")\n    `content/en/blog/_posts/2020-12-16-third-party-device-metrics-hits-ga.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-12-16-third-party-device-metrics-hits-ga/metrics-chart.png`)\n    `content/en/blog/_posts/2024-05-20-cloud-provider-migration.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/docs/components-of-kubernetes.svg`)\n    `content/en/blog/_posts/2020-03-25-kubernetes-1.18-release-announcement.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-03-25-kubernetes-1.18-release-announcement/release-logo.png`)\n    `content/en/blog/_posts/2021-08-04-kubernetes-release-1.22.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-08-04-kubernetes-release-1.22/kubernetes-1.22.png`)\n    `content/en/blog/_posts/2018-07-11-dynamic-kubelet-configuration.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-07-11-dynamic-kubelet-configuration/kubelet-diagram.png`)\n    `content/en/blog/_posts/2016-11-00-Visualize-Kubelet-Performance-With-Node-Dashboard.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_FZ8XaUUbk367Sva0C4wV8kFHCw907VIZW7WNWF4ttYKPDPS5o8J1-EG2CJJEjQ8p82DzItuVZHkZS7B4ZYg7KcDUU7KSicXOLRGG7h3pXzTXzScfGOGEX57iiaDrC5a6lFSLxTDb5POEkJocOVDDyzf74bmttekgzq8NsrQqfmi7Zqmc6I_II3Fh-hSxLuNz8S2KStwxDN1Z3sLttgspZq05ri7gh4CtdO62t6FAmlWDg36HE0EqhQLQNGSyLEr81hi43qhLJ-tYIhsHjgqoTYCYphiG28k11rJJVquwmiL2svArtKX94JWcR7Kkc4ZEQlYbYZw_0RhxBXFzR_QOBFJP8FaKXxWNsBXKF5-CZvi1vxcojV5ACjHHSWcLLbO92hSs0_3MFEA38UVVhz5k5gctTyubS0UOovaDWO9z8Dv_lnPTKYzyeJVb5k_Eb5t05pbv6q3R-ZCYEM6gzTdn0Rw6qVymPhnpnlqfIZA0eFKO3Wb2jQbokR3V8WLq7ldw56ZOrC52Om9dJgLFIQegTAoMpMdY0SgotSNcGjUI9QMxGs=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-03-00-Kubernetes-In-Enterprise-With-Fujitsus.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GIX5YWe77E-JFKVy1V7ZwqlAwJ1cYMuCK1GRun1uux6wmZBIz_Bd0fKagdEGdQ8MS5CyAfP2neHLy-EpYbAvz587Io46BJWY2amPorxkmEK2xJo4CLVnCl9hC9ALpZW9n0J7tHOu5dcMvJUIIkWmxsATBnJXZOJeRcrVoVvoSUwp4I6okvkme4CA85jUT4yKOkT_R1_PbJSurVFu6wdNqkDCh3IO2xIKUsv3GF-ND5ApjDXJfcfjjewGpsMXFdmMvKVXo4WYg6kU9PHPviG-VNWnQtcstc0SwtL-s_G_fdK2_MhhKvw0f-RFAdhJSYOKz0KH69pk9dXa_R7ZDX_BVXIpCnz4GAG9KxiEAzC_Kq61-_T-cc5GkMJl7WqzkUXnVkmwwcGRHxZizpbC-sBtMR82zhxQrNX2ENm-tsi0r4TsSKE47eURCJwVMYI5aM9v9wJ5ckV6Hs2S34Qdpi1aoSwy9db5_EXAgYwVBY0TLg9P0irXBIfVdz_TqQdcwMrO3VccAqBYPqapcdTT1Idoe2OkFkdn4zZwZFB7HJkILHloMO=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2017-03-00-Scalability-Updates-In-Kubernetes-1-6.md`: FileReaderError(\"GET https://lh6.googleusercontent.com/LdjAOmsLGdxLNTo222uif1V0Eupoyaq6dY-leg1FBGkyQxUNt5ROjrFh_XzW27P7nP865FYUVwTOaUpDEnirdHSBKvh9xl8PsBNEFlVWpJUbnj0FEdLX4MywqbjwK9oc8avLRNAX \\\"Wykres\\\" returned 400.\")\n    `content/en/blog/_posts/2017-12-00-Paddle-Paddle-Fluid-Elastic-Learning.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-sp_sVZvhMbU/WiYgXMLQKuI/AAAAAAAAAIM/uc_3iT9BZmAtQGiGGSErgueHK71uWMBCACEwYBhgL/s640/figure-1.png returned 404.\")\n    `content/en/blog/_posts/2018-06-05-meet-our-contributors-youtube-mentoring-series.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-06-05-meet-our-contributors-youtube-mentoring-series/meet-our-contributors.png`)\n    `content/en/blog/_posts/2020-09-02-scaling-kubernetes-networking-endpointslices.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-09-02-scaling-kubernetes-networking-endpointslices/endpoint-slices.png`)\n    `content/en/blog/_posts/2015-05-00-Resource-Usage-Monitoring-Kubernetes.md`: FileReaderError(\"GET https://2.bp.blogspot.com/-6Bu15356Zqk/V4mGINP8eOI/AAAAAAAAAmk/-RwvkJUt4rY2cmjqYFBmRo25FQQPRb27ACEw/s640/monitoring-architecture.png returned 404.\")\n    `content/en/blog/_posts/2021-12-21-admission-controllers-for-container-drift/index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/sequence_diagram.svg`)\n    `content/en/blog/_posts/2018-01-00-Core-Workloads-Api-Ga.md`: FileReaderError(\"GET https://lh5.googleusercontent.com/0T36knExav8JAr41ict3EVOPOqaIJPMBQrOT2N5jehXw_12jEILD87tKW8BvaK2UCOtCHzS700Oki8Fxja3bF37J3eceanEBjbHpRsATBhC1y3P0mas7DvPeQjt6QmfYuNWDqZVl returned 404.\")\n    `content/en/blog/_posts/2018-10-01-health-checking-grpc.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-09-30-health-checking-grpc/options.png`)\n    `content/en/blog/_posts/2016-03-00-State-Of-Container-World-February-2016.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh6.googleusercontent.com/Ug0Bzcj6LZ__KYwUsHgMB5MFGnRHhexu6YKPaooShWCCpfYsCiynpod5cTZR_WnQdm4ox3GcHjMuGkfG863C3aiMy-sP-mX2vWJCv5gY3JzjOvCbzIvz0_pNZJSlHieTNWZZRJCv\", source: TimedOut })\n    `content/en/blog/_posts/2021-04-22-gateway-api/index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/content/en/blog/_posts/2021-04-22-gateway-api/route-binding.png `)\n    `content/en/blog/_posts/2018-04-25-open-source-charts-2017.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog-logging/2018-04-24-open-source-charts-2017/most-discussed.png`)\n    `content/en/blog/_posts/2020-05-21-wsl2-dockerdesktop-k8s.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-05-21-wsl2-dockerdesktop-k8s/wsl2-windows-store-terminal.png`)\n    `content/en/blog/_posts/2016-07-00-Bringing-End-To-End-Kubernetes-Testing-To-Azure-2.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh6.googleusercontent.com/TZiUu4sQ7G0XDvJgv9a1a4UEdxntOZDT9I3S42c8BOAyigxaysKmhJMen8vLaJ3UYaYKPIG9h-cyBOvTSI6kBgqnUQabe4xxZXhrUyVKGEaCDUnmNlBo__HNjzoYc_U7zM77_Dxe\", source: TimedOut })\n    `content/en/blog/_posts/2017-10-00-Software-Conformance-Certification.md`: FileReaderError(\"GET https://lh3.googleusercontent.com/-seEomiDY4syaWVbl0KT7k9fcJmylYK1n9_VANKyo5oIP5gH9MuIq_dcB_q3qvjE5YzOdM2HthMyc_wduC4xLmPStsb6Q6ASPBfOWi7ssGylfy1I7Pbd64THobytWa_1JX-pscH4 returned 404.\")\n    `content/en/blog/_posts/2016-07-00-Dashboard-Web-Interface-For-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_HIqoNF9Vm7BQzLNPUQAMQOH3-qJk-LTrdM19T3Unk2_VFWS_jD9hNyhysipruylHvYtxKgAqBC-cazAw_fibtkFdz5wIu3_Tz5I0iNgercPyWL87jbTsXRhmRif17DfjH2KZ8wvP75u4EhXY6HdXQFeBvYEBwqKQfps43QYoIeGr5YuYLzx91MgGUejax45mjRhNghmWqbMpCMTAyHIrtAiG3ldrlN5vK9oyrfFh8xk_CnMzD71E59f6oKheRZKUmn6lBItFt5M62pkeaPFLbeg9K_bVFErkH0uo1tm_OG7pZnXTvQTlec2WATMadgGL59ueTcmvdQsvZ0iD8BPRAb4yuh-_nwQ6diWBUguJADIS53N64R5J-Ma6q_ow6hHVU654mQQwQX5yxw05GK9OhMCnE_9pd0Ts7IEksJdYoY5uXEwCMiD0umGskUq5ZRabxhFk3jw41Mp_eXRXXc9B2vFzOZozGRVpttTO_qsjUI5Jx3O-6YlnIMkrO5Q1DYxBz0AlLXxYxCppVkSO_0jtJIwwtDoNwc9emzX9y_7SVUyztZ=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2019-09-18-kubernetes-1-16-release-announcement.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-09-18-kubernetes-1-16-release-announcement/endpoint-slices.png`)\n    `content/en/blog/_posts/2017-01-00-Running-Mongodb-On-Kubernetes-With-Statefulsets.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh4.googleusercontent.com/ohALxLD4Ugj5FCwWqgqZ4xP9al4lTgrPDc9HsgPWYRZRz_buuYK6LKSC7A5n98DdOO-Po3Zq77Yt43-QhTWdIaXqltHI7PX0zMXAXbpiilYgdowGZapG0lJ9lgubwBj1CwNHHtXA\", source: TimedOut })\n    `content/en/blog/_posts/2016-09-00-High-Performance-Network-Policies-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh3.googleusercontent.com/2M6D3zIPSiBE1LUZ3I5oVlZtfVVGP-aK6P3Qsb_siG0Jy16zeE1pNIZGLxeRh4SLCNUKY53A0Qbcm-dwwqz6ResSLjdb1oosXywOK5oK_uU6inVWQTPtztj9cv_6JK-EESVeeoq9\", source: TimedOut })\n    `content/en/blog/_posts/2016-12-00-From-Network-Policies-To-Security-Policies.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_H6u7gn6f5t1PJXnEAmRIgSCLTOAAoMwfavLniF6fnUMWWYEGoKmIzKJDAWhgUXjoB-23wDc9dxzNWoQ0sk23eWIwOhwKY3D2MakzTNWU3Trb0HIQSf9fK1osH8Vd3I8S1OLbYntIxXcDrEXuC5koSN5UDsYO1UEz7VKbEeeDxnTSoGiLXYxSDO2cb1ZsESrKeQqo0xPGm67r_S5vuAKbk3RlaS2Cn6MPcbZ0hXeMJTNxJlUmygGOm0N_VPG2EJHEthO07PRym8aT8guCnoPukpu3827sttIepnT07zS9oHXELLuGuHaNcEeJo99RWBt6J0t1gNZ38SUzd7KUsNgg11O3n_OhceMasWHUQLXYoDLL6F2MVNQ61y3xsbLxLIVO7T_5UppoAP1Bh-SYPA08_-tGhBrM6vWC6qtwEBbrCJseCtAbFn9lh5_ANZPEuvJfyvkDeoGd7mq44xd9ccXN-_tZ0KuyeVfB6ScQHwBbL02gtb8bUhvtKN3vLeBeILb5PvjggIn-GeWYCkpIwhqRDB-zACFLhKcO_1qugtnnpdqoh8=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2017-01-00-Kubernetes-Ux-Survey-Infographic.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-aSAimiXhbkw/WHPgEveTIzI/AAAAAAAAA5s/BMa-6jVzW4Ir-JExg-njJJge2tQg6QSOwCLcB/s640/satisfaction-with-dashboard.png returned 404.\")\n    `content/en/blog/_posts/2019-05-23-Kyma-extend-and-build-on-kubernetes-with-ease.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-05-23-Kyma-extend-and-build-on-kubernetes-with-ease/ac-s-sc.svg`)\n    `content/en/blog/_posts/2019-06-24-kubeadm-ha-v115.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-06-24-kubeadm-ha-v115/overview.png`)\n    `content/en/blog/_posts/2016-11-00-Kubernetes-Containers-Logging-Monitoring-With-Sematext.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_HY5C9uR62NTxMqdTU0CQ3YnNu_PKR8fqpYaCUfnhejdyj0EDRhZYdiA4gNQw_n7vU1EZkKS3aLxUUlimN3KcJ2ht7LZzAxrK4O-jLkPVqgBxCJXRSVLKhbDdSAiUuaKoUaK5Ak0u5rPkhzh5Y1HpVncj6lkf5jLekLzdNxPoCCcxHde3UFFSXItWxJ8sZK_MyfNwLd8I94CnOeASXB6rgi9mhyXQU9xx3BNYWp4SbMG67ow0XXyxTMfl8FM5yWajf72r7Erp7imu1h1I_SfyWW6EZeJe4pBXRDAhK31s6qQMPK81LQeDQVdwATpOoULXbM5_-MDx8-NDY19pRvom0Rjhpjobuubzk_Z7aOCE-P33ksbe34GoMxFwuMMu5okXzt1cuULzO8E5nFDepJcYKJHdFhcC92RlwPGGA-LnrSsbmbrLjdc2Ceu2u7-acT9WhOUlsEug04eES_vZBqz2kHVIWLnNb1AaAHfqyeFPX4xQQtaJJCY6H7osAdaMH5Z_-eaDjhs06mi5wzePPsIW9myULuFyxD5F4hgOMHddATTxSB=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2019-06-19-kubernetes-1-15-release-announcement.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-06-19-kubernetes-1-15-release-announcement/kubeadm-logo.png`)\n    `content/en/blog/_posts/2017-10-00-Request-Routing-And-Policy-Management.md`: FileReaderError(\"GET https://lh3.googleusercontent.com/kGRJnhkf30FBOY2pyZzID90f_zxlyMUv43hEvfq70bcmYhKrGv2em2qph21k-ahlwfBthV3XQSf6CuUQXMlvgSlOUJr4W1ksDVXIvChEd6a5Y51lwepHmyQx2ksJgUpyTiEbZN11 returned 404.\")\n    `content/en/blog/_posts/2020-02-18-Contributor-Summit-Amsterdam-Schedule-Announced.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-02-18-Contributor-Summit-Amsterdam-Schedule-Announced/contribsummit.jpg`)\n    `content/en/blog/_posts/2017-01-00-Scaling-Kubernetes-Deployments-With-Policy-Base-Networking.md`: FileReaderError(\"GET https://3.bp.blogspot.com/-jJK65zh2wE8/WIE5o3HkXFI/AAAAAAAAA7U/QkoCoYnTWAEz60H0nyP4_wN0tVG3WVWAwCEw/s640/k8spolicy.png returned 404.\")\n    `content/en/blog/_posts/2020-08-26-kubernetes-release-1.19.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-08-26-kubernetes-1.19-release-announcement/accentuate.png`)\n    `content/en/blog/_posts/2018-10-03-kubedirector.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-10-03-kubedirector/kubedirector.png`)\n    `content/en/blog/_posts/2016-11-00-Skytap-Modernizing-Microservice-Architecture-With-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_H47qjqK46laQi9BR9gq7GWPcvIE8Bw03YAXOaEja2LjbnZqthybZTcv2EnFEum-UIJfx2ZzbVFHMiY6T-H2drOOtrpLdCkN4YJOx1iS8kmhzguV4xAEOjf8AO2ntcTKN-RtmzbV6qcgJUJTAW1hQPKmOvGZj8NiG4DC-Cs0Pb4VdFBdW4-LqY4mVJyuCA88ATpxYtQFIp-YkW8oHjdfv7TnRsx64S0ppkQO6ULl-p1BuMpIE2Mdwym17C3UPz01KZjowbN2OyA01vjmv9RJzSMI90Fxbp3WmHmoe4oBztAQdrbED2vqaVamwed7KW5Mw9WopycX3nSRDWRuvqT2CEMI6bWf6M_NfyibHx-qKMcgJPty5DGD5BK3Eh9KDZQCOvcPdEaTojDgIkyc9OG3O0TXVFKLUCPVLdgP2JCHGaz6y948vsyyTIJYa59IysZOBCOs_RP-L8dh6xI9nlEbx4ksR4Yd1bOdHLsoHAf2DR61zj4cODoDIu-Zuyg1Phkjv3sUPvlOg88Scpmuru816LXxjTt_Hp1lAGi28yCYilSr2qV=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-07-00-happy-k8sbday-1.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-Wn9QJb6wQ7w/V5Cm1Y2iKhI/AAAAAAAAAnc/SZ3yFFcxjmoqAmz9chp8o2KJJUoKI0KQwCLcB/s640/k8s%2BCommit%2BInfographic.png returned 404.\")\n    `content/en/blog/_posts/2015-06-00-Cluster-Level-Logging-With-Kubernetes.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-FSXnrHLDMJs/Vxfzx2rsreI/AAAAAAAAAbk/PaDTpksKEZk4e8YQff5-JhGPoEpgyWaHgCLcB/s400/cloud-logging.png returned 404.\")\n    `content/en/blog/_posts/2015-11-00-Monitoring-Kubernetes-With-Sysdig.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://1.bp.blogspot.com/-lQ-P2gLywlY/Vkz9MOoTgGI/AAAAAAAAAtk/UB6pW7sUbQA/s640/image09.gif\", source: TimedOut })\n    `content/en/blog/_posts/2017-05-00-Managing-Microservices-With-Istio-Service-Mesh.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh6.googleusercontent.com/2l4VGkujZ2U_Ujuo55vTz08JBKhMVjNgQqlnX7DZHttDhJs_rKudWsXh6kU4JkwkKZETR7ljN70zAzhb__LqC0CondM_ps3h3viYGqxfvVcIYnFhbahEjXvGEZSmmEOET1oc7dRL\", source: TimedOut })\n    `content/en/blog/_posts/2021-10-08-clusterclass-and-managed-topologies.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-10-08-clusterclass-and-managed-topologies/clusterclass.svg`)\n    `content/en/blog/_posts/2018-03-00-How-To-Integrate-Rollingupdate-Strategy.md`: FileReaderError(\"GET https://lh5.googleusercontent.com/4WiSkxX-XBqARVqQ0No-1tZ31op90LAUkTco3FdIO1mFScNOTVtMCgnjaO8SRUmms-6MAb46CzxlXDhLBqAAAmbx26atJnu4t1FTTALZx_CbUPqrCxjL746DW4TD42-03Ac9VB2c returned 404.\")\n    `content/en/blog/_posts/2020-04-22-two-phased-canary-rollout-with-gloo.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-04-22-two-phased-canary-rollout-with-gloo/setup.png`)\n    `content/en/blog/_posts/2017-12-00-Using-Ebpf-In-Kubernetes.md`: FileReaderError(\"GET https://lh4.googleusercontent.com/Xe8qee5yYsJton2NHFLOhHevxdbpCHHPPgttOLP18ZWtoUJp9ChFKtKJiTxqNFn8zQPRJu4BdtG7xc24vlGkD2gtfbkCuHq_eU3Tx6z2m6ld4iYGEZv-MsSCcJ3jAcJO2HkMc_d_ returned 404.\")\n    `content/en/blog/_posts/2016-09-00-Deploying-To-Multiple-Kubernetes-With-Kit.md`: FileReaderError(\"GET https://4.bp.blogspot.com/-BdD0AgQKFWY/V87u5p7uw2I/AAAAAAAAArM/Z6_279MSn2AVDmO192GtPPTuVBbLgsHCQCLcB/s640/kit.png returned 404.\")\n    `content/en/blog/_posts/2015-07-00-How-Did-Quake-Demo-From-Dockercon-Work.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh4.googleusercontent.com/MectR1Mh-7XA0Q5cqiQPrtNxnBE-EDkKR6XJQfazYcIJg3mSbWTcV9EyRfhu6VbIP_sFdMVCXRH1l8YYIuG05SiuO_WqaXPvOf41j0CN8eD9djd6E4joS9Y5Aljlpi64NnffiRY\", source: TimedOut })\n    `content/en/blog/_posts/2018-06-07-dynamic-ingress-kubernetes.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-06-01-dynamic-ingress-kubernetes/kubeflow.png`)\n    `content/en/blog/_posts/2016-07-00-Automation-Platform-At-Wercker-With-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GG-YRk7Cax_jR6nrOKCiDgydhORW1ny133m6yF9kWNlPugkuhBPOR01WGamDkd9rIzP_shVrt2wHytt-7swVcO-fho0-xc_UWeI4FCkuJf4IW5J7VYVsSoavedV4LXU-PtwD2dXicmhFdHttdNxBxUurR_C_0W7sztyPcKKni2-wxm_KHACKXZ7u7xaWrHIibIeev4-t96shrDJOQZUSAtbrVWOntoMIXI_pnXAPfPRTWBeu2rWkuMql5QJ9IXq2iiYMZIwl4H9EGmyoWvhfWN_kBLwPy_olcZTTklHvIQGSqpYf9xygp0L2DSaOBEDmzLcRqtzeNPw7drXtOPp81Q8HjxhlC54UglAF0-TMLoQyIIlV7WqLmEt73ZaJS05j2joBJ1CPj5x_0c7jOrXYYkJGRl6fit_pqjky-cjR1m4bKO1qhf_wRNOkqSfCUB69dcO1ErYyYNe74Op-cxjhQUUUnsKz_Wmw-ORDCmPFjOjBNKsxpoK4jHVEjOpvfuB135Mp2ZiDHO8UucHn6-yExeTCKtg6qLW7GMrGBP8oYvjWBM=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2023-10-31-Gateway-API-GA/index.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/content/en/blog/_posts/2023-10-31-Gateway-API-GA/gateway-api-logo.png \"Gateway API Logo\"`)\n    `content/en/blog/_posts/2018-05-30-say-hello-to-discuss-kubernetes.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-05-30-say-hello-to-discuss-kubernetes.png`)\n    `content/en/blog/_posts/2018-04-10-container-storage-interface-beta.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog-logging/2018-04-10-container-storage-interface-beta/csi-kubernetes.png`)\n    `content/en/blog/_posts/2016-05-00-Hypernetes-Security-And-Multi-Tenancy-In-Kubernetes.md`: FileReaderError(\"GET https://lh6.googleusercontent.com/8DjNb9IE0HjinFxkaoGbPaaKbts5_Osbj-8NVWQMgY_8D32643Aum0SaMc2OedV2gECG3EXov8qj_f8XDe0IfpptZt61HxfJEonLo3RA5xkr5zSmd2nxqVc8yESc423nPEZTj1H3 returned 404.\")\n    `content/en/blog/_posts/2016-11-00-Kompose-Tool-Go-From-Docker-Compose-To-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GWbaI0V3BjqjdXZD_5hhSaWxfVLWSoMpvtY57iFsjZ-BaCLPabgHr5bWM_cOhySl2XTYYuoQUstbEGL7Xx6wtEEkmIHJoncqH8kJH03rJGBXetuChY-FNMH2eDElrutxnKmR-xiOuZOCMxR8Vx5iVP3A6Z2vyyX8kYQzEPgixD8hq4fCGCoz68lO0K4ClIZb9et83Eo86ZBwKwFfIuvYNvvQcqBjZSaneodkWhraRH1ara_K2xe6QlK8zz7gOIVgTieb0vDwSwkrCd3s2d6NhH5fSt3EkzZxLJB2bol9QGpIsvW44llzfaP4kOtM5KrS143YghVhHeyS_nkvUwpioW2Td41gjCuiK4xvtJuBZ7Q3JhudEynLrjTrbM12O1BCWS9LccbrF_sXT96BjaXqHZVzWh6oEdw0zhtK1z2Uy1SA6d3DA7JtO9rXPvsl-BbtxFW67ohGHK36dIRdBpJlPkVpf3U4feE-NqY0XNeJMGnu6AxwvQ2hzr_IzMiTNxgt3wryrvM5OKJ8A7QxXCsDUZ7Db8TrD3STxY4xdHxxaR1LzJ=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2018-03-00-Expanding-User-Support-With-Office-Hours.md`: FileReaderError(\"GET https://3.bp.blogspot.com/-Iy2GaddJp78/WqnFbVUu9FI/AAAAAAAAAM4/xUzhOSIlRDEMMZNl3SzPBd1Pa0T5y0pKQCLcBGAs/s400/24xkey.jpg returned 404.\")\n    `content/en/blog/_posts/2015-09-00-Kubernetes-Performance-Measurements-And.md`: FileReaderError(\"GET https://lh4.googleusercontent.com/NrKLoz2iB-TNdOxISL7OcqquCKL-MijDBCokf-u4ASAqgmo6zT7ZU24mXDvIwUUlRsFSsL3KF17dEAfUT41TSgNPvId5HN5ELQTXJSSBF0dp9EOccx4Y4WZ9fC9v9B_kCA=s1600 returned 403.\")\n    `content/en/blog/_posts/2020-08-31-increase-kubernetes-support-one-year.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-08-31-increase-kubernetes-support-one-year/versions-in-production-text-2.png`)\n    `content/en/blog/_posts/2017-04-00-Rbac-Support-In-Kubernetes.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-v6KLs1tT_xI/WOa0anGP4sI/AAAAAAAABBo/KIgYfp8PjusuykUVTfgu9-2uKj_wXo4lwCLcB/s400/rbac1.png returned 404.\")\n    `content/en/blog/_posts/2017-04-00-Multi-Stage-Canary-Deployments-With-Kubernetes-In-The-Cloud-Onprem.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_G3UjxpJ35tnAAS_tlfBkzLw3rne8Ilp_NDwxZc9e9Yx_6xs1lGISzAoNRovN9M9XV1HAnKZhHE1z3HcWBgGweYKjSixJIgRMs5qQYKzUA7dl3SUYBSLPwtJR1HpvVvDWACzqq55ZxtTRtOUikF3-v3Nkp2R_h3-QhXTAhmNaWdqrYPZeAwB5wcB6AqnVtAzs4BhEqEAxejXMtB3WifJgraikplxhRFCnBD40l5XVEk5ZbJP6NCONqMKu5fylb-OkTbYN9XpU6fuoq44lO33uSBfbf0WH72v1xtlcdANLU1XEisZAWiy4vXV3FeLb3sAF_HknvyJscVIfHXkVC71zKsMZnjNNKt6HDcXN8jme6HCHjkll-Z4bY6tzv-FUGtkDFi-mb1lzTmpYSBlS6SyyIXZaQ9W_ZLcVC7TQbOc7sFn8GoVAHZ01BXIDjJ29x6V_K7hBfiJemCsMKO5AEALUUUvg5UuucjUD5VNsSZarpJHwkzURd9UB_nbVgvdRyjWRG96Ws4YX6RBudoaoxeVpD9oZ__dBfj1ItnHdXLIUfIEE3w=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-04-00-Adding-Support-For-Kubernetes-In-Rancher.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_F1HeWHbnXmVRw33lImkG3sDn7rxzs1dlmwLwulcARp0E9pvyh3ImczFEOhUWT3soFxl6tVIzoOyxhH3NYMznNoX914KVvcdXhJRYBnctlWBpLBoPGTf_X2kxu49WWtUR0BEua21OAkIAdWECW08UpPCMd0H13wwWXuwZJELKmcgJvm46Q7V-v8pIk40SsnxubnWKbSVkBnknGrEJGhsYNFNi0WYfEXcZ7RHSTPrZHUcUfc-pd8KxtFMHeoUkTB-PHpl5bqvasEfE9MonJItCPxZkUJEABQSraWK4a_9rNhtAUK9DgXLXX5ow0-l3swRXR4jlQeIWtN9rgCZe6mR88HMaYjBTQlJerTRicHB2p33PShwIqkfQDHCI8Nl86U9-04ZZuBboVicHQ3AJBBZzMbQBOW-kgkLCGRQ7lKEF3Ucy9-xxkENTJf9diIfOoLlFewcBFYyD6pSHYeLDkQ4AFD0UekQg8qaO_ld0_RPqyxHXQXUFpz2tmddKXY-P3H_Q6E6mdpUfUAlJ9YvjY4ThN1oYAPGAw5qvxSTnC2P1cP3HGL=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2019-01-15-container-storage-interface-ga.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog-logging/2018-04-10-container-storage-interface-beta/csi-kubernetes.png`)\n    `content/en/blog/_posts/2016-07-00-Minikube-Easily-Run-Kubernetes-Locally.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GFlumoNz99s5g9QdcaGAnBl-wuds9ed0rG29EA3lS7AiujICX6KJLXT7tcxtmPeex-7IydnECXURQFBSJgSFSUxXGn3Q20n-iZZkoMzBJDwMJHrt3ZKItPNpdwiNVwz3XC64q1QZop6tt_Ol5CHssvlCwP5e_BZ7OyVeiBxdj_8lPBcMPC0zOYFnfqZPSy7zJy4UzhxA6NXiA2-Qm-iThu1gryCDilYhee7q3D3prloWBY2iz4DbFhdk73RT60RVLhDvo4KMIwupSlokVqhaWQ8GlK_qEZqap2XwlNAFrildDfDAHKjuoW_hm7VIJnvNp24cYaSgv4-986RmyeLTAmb0DkIyKbaBJqN0rEomVgfD4Hr7l1_xOY1dztGWgcnVcveEVGcYc5RIUJ8g21fUjDnAQ1922lrBwAlVM-5WxEllp22H-9nLXkaUa8TqVWoPh3OuWuoJGswM8UXYhf2r4usZoPQuBby4rZx-vYyXWhAvXicMCfSbo9VZEFT0zLToA2lkjSg3j6a6pc4U4HnkJTEO7tFbr8ygdbwSpfYT3W2Z4z=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2017-08-00-Kubernetes-Meets-High-Performance.md`: FileReaderError(\"GET https://lh6.googleusercontent.com/nKTtfQVVmL4qBoSR0lBmBuLt8KOrVEyjn9YcAu7hrhhV-rwnxRY3p-Y5Qfddf7BI6u1KN85VKfeaaU74xDl-oDk5NzybdIxAp0SJ42x14gwzpmwLwjVy5nIng6K8Ih-bRDlOmA9j returned 404.\")\n    `content/en/blog/_posts/2019-10-10-contributor-summit-san-diego-schedule.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-10-10-contributor-summit-san-diego-schedule/DSCF0806.jpg`)\n    `content/en/blog/_posts/2016-07-00-Update-On-Kubernetes-For-Windows-Server-Containers.md`: FileReaderError(\"GET https://lh4.googleusercontent.com/muN6ySMhN7XhmNU_cuEu7CJbcnNuun_FeNidcvv1QVqtpWxTJUZVnKNDwXj9ttAsLBPDBlMi6l_-_sBxEWYvfK7SVp9bjxVa91VrR60v6Y8P8c5AQEl01Bt1cDTj4uVRPOUBn89e \\\"Wykres\\\" returned 400.\")\n    `content/en/blog/_posts/2018-01-00-Extensible-Admission-Is-Beta.md`: FileReaderError(\"GET https://2.bp.blogspot.com/-p8WGg2BATsY/WlfywbD_tAI/AAAAAAAAAJw/mDqZV0dB4_Y0gXXQp_1tQ7CtMRSd6lHVwCK4BGAYYCw/s640/Screen%2BShot%2B2018-01-11%2Bat%2B3.22.07%2BPM.png returned 404.\")\n    `content/en/blog/_posts/2018-11-07-grpc-load-balancing-with-linkerd.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/grpc-load-balancing-with-linkerd/Screenshot2018-11-0116-c4d86100-afc1-4a08-a01c-16da391756dd.34.36.png`)\n    `content/en/blog/_posts/2019-09-24-san-diego-contributor-summit.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-09-24-san-diego-contributor-summit/IMG_2588.JPG`)\n    `content/en/blog/_posts/2018-05-01-developing-on-kubernetes.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-05-01-developing-on-kubernetes/dok-devmodes_preview.png`)\n    `content/en/blog/_posts/2018-07-12-resizing-persistent-volumes-using-kubernetes.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-07-12-resizing-persistent-volumes-using-kubernetes/pvc-storageclass.png`)\n    `content/en/blog/_posts/2016-10-00-Tail-Kubernetes-With-Stern.md`: FileReaderError(\"GET https://4.bp.blogspot.com/-oNscZEvpzVw/WBeWc4cW4zI/AAAAAAAAAyw/71okg07IPHM6dtBOubO_0kxdYxzwoUGOACLcB/s640/stern-long.gif returned 404.\")\n    `content/en/blog/_posts/2016-03-00-Appformix-Helping-Enterprises.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_EEypSwLSyyThls9qN0DU5ybQpKOAbybkEOwTgEAYtextNFmrq5_DKuZMXzrteMyNwxvp1vw-sGr0Ez0-LUSqwmbA27t7eVQ-66VO9NirUkp9slolVSyFahCy6zhJZ9WFhJ3MgmJhm2Xcaz2hhUglmbCLz-lkQM6BSYn4xrrNBpb03F7zrAqV76qbxF-LDIcuB29MlLAg5UjRNrdxHivUgQ-sQCH9c4A5vOi-rkcvMocVPRqwqwE50aWlS57cei32QAsm0wPDdxHFzyKavgEXDjojIWVNtFKtF5zXLYHcj0BmizkJKEW96ZQabCW71-sVkDLfhmGfTR-Bm9ZG1gHVajUHZUyUhG-XtreQrkIVALCPRB5L3kY-hforE2smU3SdDF871grdwKJYNVV-4L0Z58z3rwpkjO_rz9g3RaCz3_evMyN-S6xsGAz-5uDtjxRg0Bdb5hUPX-WWm49X9DeLXcsVDlsbe6OQSUuOxJ4AtwN37W8aFTbjnixwDhht-2Cdcm3Dt9b6ShMPF65S_g2EIT4xDRTcbR7wJnMV5lh0vyXA7B=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-04-00-Building-Awesome-User-Interfaces-For-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh4.googleusercontent.com/jsHjTjFstXaq17Axu0xduW6Dd5g3EkEUmtStNsPmhvw5pxGuYxnhSRSkspHnpExKd0lBnhkD_F58sM7DVfjlYsGZLOYcKJghhK0cTxAdgk2Cun02RY-hSuUztugHJG8MmTmH8OPM\", source: TimedOut })\n    `content/en/blog/_posts/2018-08-03-make-kubernetes-production-grade-anywhere.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-08-03-make-kubernetes-production-grade-anywhere/without-incidence.png`)\n    `content/en/blog/_posts/2018-10-02-network-bootable-farm-with-ltsp.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-10-01-network-bootable-farm-with-ltsp/k8s+ltsp.svg`)\n    `content/en/blog/_posts/2019-06-12-contributor-summit-shanghai.md`: FileReaderError(\"Cannot find image link reference: \\\"picture of contributor panel at 2018 shanghai contributor summit. photo by josh berkus, licensed cc-by 4.0\\\"\")\n    `content/en/blog/_posts/2021-12-22-kubernetes-in-kubernetes-and-pxe-bootable-server-farm.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-12-22-kubernetes-in-kubernetes-and-pxe-bootable-server-farm/screenshot01.svg`)\n    `content/en/blog/_posts/2016-08-00-Stateful-Applications-Using-Kubernetes-Datera.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_H9jsX17slJGZllyaqscTnAWnAqgXFtrmf1NcbP-vw-MCHGj-MXOeB5ojxlW4CvwMTCXjomEdpQI5P58lXmX0gcB_40pKaaziyRSNr7XHPXTycz_iURT0tGGnd6a9Q4E-RjNjiNzGQ4hH0sD6EoDK90JRGCuTgW1EE8m1f2Y8aXtha-w_Ih-SiVoGUnKJGxbqO3zmMSMc5qUnJ0V219ZCjqmB62PcwG0DS2nluQn73t2k2-tcVfArbqOGje4dFXryVKOkQ0-Cmo5RK0f1YOzAHiF5ZH1nTwML6H_GDacUdZgPEDJSJp1a7IpsIdEHjP4wEanXLoBCsbJAF-1tVkr9dJqA5pfyWtVpQev8AC-4KNbjypZTyMLQ3lUXP4R7BYG7-OkMKNhWuv38s5ranBY3H1ibDgRi7QX2Q_7kI3KcUcJi18mrfOZuwMsNQKLav0ZI5klIyPh8GAKhLiBxQs5iiH5AY9x6GWxNa5YYcfT1O0lgENeXHmSEk_6mF5KI6OZ3fdloBjZGZ6sZR5iEjwOyjRXgXZ1QTEjAmUmBQOXRCRFlqO=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-08-00-Challenges-Remotely-Managed-Onpremise-Kubernetes-Cluster.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh3.googleusercontent.com/Tn67P9fhhPqCNF6xYl6mfVehG8AtLcLOM0NMW3YukBkWB5cSpYofkLQo1vrqsZiDBON05GC4ZQwWgEV9YBdoNA6Hzy_loS0cvT3BzkxmLesk6UsX_xugsrGppJD-Mc8fjHIF2QrU\", source: TimedOut })\n    `content/en/blog/_posts/2016-07-00-Rktnetes-Brings-Rkt-Container-Engine-To-Kubernetes.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-k3RRYf70fsg/V4a_-lVypxI/AAAAAAAAAl4/m9lVW0mxw7s35dzLlT4XJO5gdMzy_RBiQCLcB/s640/rkt%2Bstages.png returned 404.\")\n    `content/en/blog/_posts/2016-10-00-Globally-Distributed-Services-Kubernetes-Cluster-Federation.md`: FileReaderError(\"GET https://2.bp.blogspot.com/-Gj83DdcKqTI/WAE8pwAEZYI/AAAAAAAAAwI/9dbyBFipvDIGkPQWRB1dRxNwkrvzlcYMwCLcB/s400/k8s%2Bfed%2Bmap.png returned 404.\")\n    `content/en/blog/_posts/2017-05-00-Kubernetes-Monitoring-Guide.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh5.googleusercontent.com/tN8tzKcXWAFWF0TD9u9UkTFJakHsrdjtRx56WiF75UYwMKu8teFyr6LpLGjpuOWSr52M-l3do5r3a6VWi6VwhRWuaquCpGty8ksI585D9YuCL3t7DAcItJUwW6mlrM2jUw_jVq6A\", source: TimedOut })\n    `content/en/blog/_posts/2021-04-08-kubernetes-release-1.21.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-04-08-kubernetes-release-1.21/globe_250px.png`)\n    `content/en/blog/_posts/2018-07-24-cpu-manager.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-07-24-cpu-manager/cpu-manager.png`)\n    `content/en/blog/_posts/2016-07-00-Thousand-Instances-Of-Cassandra-Using-Kubernetes-Pet-Set.md`: FileReaderError(\"GET https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Cassandra1.jpeg/283px-Cassandra1.jpeg returned 403.\")\n    `content/en/blog/_posts/2019-08-30-announcing-etcd-3.4.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2019-08-30-announcing-etcd-3.4/figure-1.png`)\n    `content/en/blog/_posts/2021-08-09-csi-windows-support-with-csi-proxy-reaches-ga.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-08-09-csi-windows-support-with-csi-proxy-reaches-ga/csi-proxy.png`)\n    `content/en/blog/_posts/2015-06-00-The-Distributed-System-Toolkit-Patterns.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2015-06-00-The-Distributed-System-Toolkit-Patterns/sidecar-containers.png`)\n    `content/en/blog/_posts/2020-03-18-Kong-Ingress-Controller-and-Service-Mesh.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/Kong-Ingress-Controller-and-Service-Mesh/KIC-gRPC.png`)\n    `content/en/blog/_posts/2020-05-28-my-exciting-journey-into-kubernetes-history.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2020-05-28-my-exciting-journey-into-kubernetes-history/created-all.svg`)\n    `content/en/blog/_posts/2017-01-00-How-We-Run-Kubernetes-In-Kubernetes-Kubeception.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_HfU2GM84cVTA4gGGVIlyiwmZle0UZdw1E83Zx5k5On_jHwR5KruW_VLtoi8MWKYBIYE3k5FYKxuxJUbuwPDnlApi8BebuzAz1iX1zQ_N8uxES5vkPp1r8-hizp1yZU3UdSUks3b8zK8_2hcsgRAErUoC589XNdYmAtDgscdTdSWX_TisrgNQpSx5EH4zum8TOZm5ZzRNNFYpclA4JpKjs1hqTgw30BKSeL5Ks12sTzAvc2NSX5ptOh3u1LodGLZu_KjMUdFcihzsx1sILEMQjx1aUJLpoEkrJHIwarWLFseYYAmtZP_jk286EXxLd1y9jHcANS3eMtNgvdSoE5_pgJaJXWIPfr1vGwH0SL8-U1iV5co1I6_ftqLhGwlws0v1MORVAi55OBOC0VPbT3ReQQlHU2kYAP9eEEWpyh5Et0QalmoSne75IiQ7oPyLGHGhm_l6B_RUtDZz1Z3X8psgMyVqfjHTOhBN0TzTFVMjPaJ9RoiuAxgw_4Tjy40UlZUpSTwlc6vbKigRCFvsissYxwOCtCWu_3cNakPT3f1AetUmQ5=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2017-11-00-Kubernetes-Easy-Way.md`: FileReaderError(\"GET https://lh6.googleusercontent.com/dqvtK-xyGelr_LW3qlFiamYRrpiq633R68cKitrbCZPtDY_uLBF7R7_PGVNvWja24_mG74vDBzpXddYhbRNeyBGPbQ_yfCq367Zp7eJZoiJEWurFWdmJ0AJlNJJ9TzDivE-8Ak9E returned 404.\")\n    `content/en/blog/_posts/2016-08-00-Create-Couchbase-Cluster-Using-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GOr3LS7JgdtKYnayxRX7CNA9U0vP1dcqA-pBxEcYfOp0SYhWhLXKmJtY8V80RnZgbwdTXjswLfIjLgAF_DAw4MTyl1j9N4YrTWCe3rcX-qIQWeojzcpYjjs0ku_WU5Fu7ckvMDOh9Rr42S7ue05haiWjrclnZW1NxaWdZJTqGxHHCEMUHLJCtSX9URNgiU4ljbRXjmLtts0Z3FAb-rpdHUWS3tcJcG5s7wWm6JBbUCoS68B8ur5VzXRVqmit9iu5fwCy481d9bxkNeh2lwzD8S0HWUnzLnxfCUHJpT9suaUfxJiCt-YsHwuJddUFoA9hvTjX2bUdpb4-tCvj7iGZ1mjM_lDTWoVK4cZBMPOn94sspFHlAa8ZKCwqBMMRv1Ex4k5Ghi6aDJrC9g6RA3MtEvGK5KPhCBjYkmIjIwplfqWr2BYp56d-ytqwbRNgApASnx4QB9v9_VrjT-OsJZHjnWM26qkkg64Fx9vcuiqckP2saoNE3pL25ZN_foImX6SjVkruP5nm2fblUVgX4efuJlvdPhhEV1zfnzAz9zVoHgdWvp=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2017-03-00-K8Sport-Engaging-The-Kubernetes-Community.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_E5ITFTnFvJrnWHhwd-9l2OUEd0IPDOpuAlrA6L42HqXrX8nrWXlM-dX_tv0FNBytm6cHK70ygdar-VBmlku1NiNcAYKR9zJsIA7ErTs5EgOIn8OuvH_kzqRruZiAsWEXwfqq41_IPTCD2XCT1WeYg0Bf79J65U4izcWu-YNSIAZerpyj2kJ9ghnAVBwkkZUeLEgYFT61_LFWNxNrtt0l9kU2NaPsJigzr0MPsVChgEdtsuKYI9jOA_vqLJW7Mncq5g8lNbbrj0I-YD2rRe-BcMQiodxRARhoV-ZW-Sg1FiMfhCVFOdHQUq3yiwxRPSeLF0VJuquwjPdpXWOTg6SSy9P9iJ_I6tF16Z0ahtFYDhq2IQekUewybd0aW0PW_pgIMMUayvzHzupXrwXEFdd2YOmS0fI0KfRJzdVx0hfV3iIcL2Uw7QE4NdMbbuN1n3KKAgr_K5l1B1v0vbY3ldkOAXGApAKZVkm2kxjRxk8Sv1M1Mi81wiS61D9uTOnZpqheIbRLrt9OmJdLm6XEKnH_p0LHx9ukgr_-QNSjpMni6F3hIW=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-12-00-Windows-Server-Support-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://lh6.googleusercontent.com/1Lqqd5m0gHECz_yHvTas4eOOkFnB64h9j65Flrb5OHmIoaAZLUr64y2kukx5m7_QbBxnk_plxfxsQymhnO9UrcGGixDx_ZG7w0tJIzV_pnljLJLk3u3o8P1wJxNJiKbf0L077eYO\", source: TimedOut })\n    `content/en/blog/_posts/2018-04-30-zero-downtime-deployment-kubernetes-jenkins.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-04-30-zero-downtime-deployment-kubernetes-jenkins/deployment-process.png`)\n    `content/en/blog/_posts/2021-08-11-memory-manager-moves-to-beta.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-08-11-memory-manager-moves-to-beta/MemoryManagerDiagram.svg \"MemoryManagerDiagram\"`)\n    `content/en/blog/_posts/2017-11-00-Securing-Software-Supply-Chain-Grafeas.md`: FileReaderError(\"GET https://2.bp.blogspot.com/-TDD4slMA7gg/WfzDeKVLr2I/AAAAAAAAAGw/dhfWOrCMdmogSNhGr5RrA2ovr02K5nn8ACK4BGAYYCw/s400/Screen%2BShot%2B2017-11-03%2Bat%2B12.28.13%2BPM.png returned 404.\")\n    `content/en/blog/_posts/2017-07-00-Happy-Second-Birthday-Kubernetes.md`: FileReaderError(\"GET https://lh3.googleusercontent.com/ldb4PfuqammWmcPiFpMa48ALxD0kGrSre0WGMpuXKqAqnKhyWEmIcJXnQcAK2sdVCiE5cvw0H2FXtLt_dVihAk4b-XTA2HIQba3A0irnRaIHup4bhFUwPLSSFmw3zFk9ZOt61TKc returned 404.\")\n    `content/en/blog/_posts/2017-07-00-How-Watson-Health-Cloud-Deploys.md`: FileReaderError(\"GET https://lh4.googleusercontent.com/LeKfLOkNldqReFh47f2AuFU42dhvKDwDxac_Psil_bdZWldKY80ZZi4Rv3n0--jq8Mqq9qRFVa1AbLIt9TIPLLRVmon4DaBsltFYbUJikrOp0qcavJQ9XHjRL-A1yvWR6mTNayBP returned 404.\")\n    `content/en/blog/_posts/2017-01-00-Fission-Serverless-Functions-As-Service-For-Kubernetes.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_H8vTvOfan4R3E8XFRvZI4UoinhZnHzErqrfV2qKTjJ2LAHny0HNfTFJJ3YwOYJy3x_K1tCyASw_6ctJpSwIgaxxWejc65_ZJjgkIoizcvJWv0PTzUAihEtbzHGb3NpEtZs5MrK6_X9KhRz__YG7Fz5gbBykLetx9H0autX6PydWtf4t8NJ_5qpqqYLC4snCj8PvCcFHvB8QbtVsCDUtv3-5lqER-jNnxkdyYe_fs4Dgatt2KSyJmpNDkP35hebVmzH60Fu37Uc6OCgY1cUOhC_qbiGlt11O3Fe1iwc_h8W_JQQsy2PARnS66y8ZLELfX1pBh9JgzF8UnlEmkgMjhFxN5UCNtLe6KNOL8bbR41uuEqZ61HTRXMq5SP2tmnrQnJngDgFWqDn5tvh7sMNfy67vlseKnAh0HOTdfV3y2MHgAZngt4ymcT5AbRMtbgEpL9o9SSg_kF6JCo7jU5MmbZ2eD4fkgBnR9xZzvJoFFuUU5JWLJ6ZOUs-q2nMJhslfEzZUHJu4vYFDgBWjrino6Kh95J_k-9EbPIeF8CmT5MsOI6y=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2021-09-03-api-server-tracing.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2021-09-03-api-server-tracing/example-trace-1.png \"Jaeger screenshot showing API server and etcd trace\"`)\n    `content/en/blog/_posts/2015-05-00-Kubernetes-Release-0170.md`: FileReaderError(\"Cannot find image link reference: \\\"327\\\"\")\n    `content/en/blog/_posts/2015-07-00-Strong-Simple-Ssl-For-Kubernetes.md`: FileReaderError(\"GET https://1.bp.blogspot.com/-ccmpTmulrng/VaVxOs7gysI/AAAAAAAAAU8/bCEzgGGm-pE/s400/0.png returned 404.\")\n    `content/en/blog/_posts/2023-11-28-Gateway-API-Future.md`: FileReaderError(\"GET https://gateway-api.sigs.k8s.io/geps/images/1897-TLStermtypes.png returned 404.\")\n    `content/en/blog/_posts/2018-10-09-volume-snapshot-alpha.md`: FileError(file not found: `/home/ubuntu/Documents/ragit/__tmp_fd6a9bf30b34a343/kubernetes/./images/blog/2018-10-09-volume-snapshot-alpha/snapshot.png`)\n    `content/en/blog/_posts/2016-10-00-Kubernetes-And-Openstack-At-Yahoo-Japan.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GSeJMd4qgRlylPDF8Iw3Ih9mj_ggyxGkPzSe4GmPARyenHvrAr8oXQFmS9hTtZmesYlz8xRJf9HpM3XJKFQH9QsXIfEYagdKJMLXPQQ3CxdU3YnTYJJXxMs_8uP8igBwmaU2M9T3CJhFAAZ7WGmD1wMHLa9XjVRI6Y8LDNFbSlbV2YURZ_NUkgHPHHTHH2FsnWnDksNOFvO0nOI0OKyUfMhWCgWSSNsiwGBqrjoVT_5m0ilDhx_6aE7ioFN_d_G9KXh-m-iDkeTFVv-pXiqQ0hWKTgDVGgrRvBIBu4PoL2dQkEDJMekwqFhIkR8VIuWcofWIAtVmMRzoRQBDNBdrIh93HqTtsLrMQRXXAUqR2EDNh2ESk_cZwkiqXCVoiyu4vdd_W2AtbDrxZ65IgJ4oMG3YY6Gzzio-dvdOvO2HuoIXASSEBfqWcAZ1PbTc0I0E8fP1ycKfiIv8JSYH1ZmVrlriOeX20c5T_MsSVFOu391KDugbkb7KsXSLV-14pEk8aLdvJQ4lDKcda1ALZKuUkWQn-US9h8OuGcQSmtrjRMKSv5=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2015-07-00-The-Growing-Kubernetes-Ecosystem.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/rd-docsd/ANYlcfAa6wNzwAJl7EL3__0WsYGHHNbtS2qzgLpfJm6tgOznEle9Mld9EDliNfXx9PvsjGd6c_yMp4on-QXgKYIEqjL9yblCXmnXfUkb-k1gK4olZhunz-vhezvGmUdg5nvA7ClcuDuWPhzsV0JCOg3C_ayn1DXqG2oJuz1FOvEvsQt0ivzjVVgdIDRhitxEh5CeoCarcrSr3qBqddBLJj0mmEwvpatwpzw3LoqtOxJEuqo_R9wQ-8FnLhHYQIskXSuG4BC3QBktA3nwX4tVh-Xcw9374A0ktLXIIXgGCzaDTawxxbNlqpN6ihKxKNn-QNcqc2qEd-e2mKtcoYtYlkaVvoeUoSam1b0qPNyy8B8FoJQExlNb1z0ucX9jElneqzhd2I5eRMkT_BQj8OPuw22a_3Ybi_DFjbVcNb1RyOK6beM3cgvCUb4S0QqyQtjqtHH9ZhsKpnhNOi7TJ2y0A53FsxTxFy8zuGTPREr4Mz5SzErnr7VtNN-QGgqR41BxSgureJXln-Vg7nTVA0R6hMuEsGnl-NW1T7a_zDTzg5h94o16VkA=s1600\", source: TooManyRedirects })\n    `content/en/blog/_posts/2016-09-00-Creating-Postgresql-Cluster-Using-Helm.md`: ReqwestError(reqwest::Error { kind: Redirect, url: \"https://lh3.googleusercontent.com/fife/ALs6j_GhWC3_mQLn-CaL1KtbRknU_-Zd3p0dVAz6y-gRv5vBwpaJ3gYylNCXzbQTxVuNUDWFXHyyCcZv0Oy-0XCdNKQjpVr5GQzhx-QomZW9s6Y_lyEu8xGoXmTAf5vjedf8Z0k0gI-Zzd75BEEAk6BV-ZVGgBshzkYm2ac9bLQ-R5M0Yx-KSfJAQZZroWnRgdrPmSpzQvD2TsEhdu5nZvrUWoOEwLRjaKLuq1A44Yecp-fdf8On_mjN1r6le4TFMwOipTp47tkSoncYrDYekP7cAf8S129RZjk--cUEdMJWVQhjGh-z_SHdR1mVnQHdXOA1PkxBGBp6LJnHuoTojDBGOgzr9FhAgnf4ED3sYiv7WQbEXMIupLhcPn5-mcsSYO2NBuWbw309vvwFmVUOA3B8OYxTWSOzvHq1XQiu_xVoRbyMeFI3HsdfUTRNLBjMiLVIyvb_KAzOjiz2W3kuwXov6REBKOnUOY9uEe8wTtjW8K_eLC_y4dHGceH0F-ukBtQ_LYFzKljHocLOk9zEpqteMzZDN69jEQRdl9KYUcDhPRCCSoVJ=s1600\", source: TooManyRedirects })\n\nstarted creating a knowledge-base of tera\n\nfinished creating a knowledge-base of tera: it took 27 seconds\n\n----- tera (0 errors) -----\n\n\nstarted creating a knowledge-base of neovim\n\nfinished creating a knowledge-base of neovim: it took 585 seconds\n\n----- neovim (0 errors) -----\n\n\nstarted creating a knowledge-base of nushell\n\nfinished creating a knowledge-base of nushell: it took 771 seconds\n\n----- nushell (1 errors) -----\n    `blog/2024-04-30-30k_blog.md`: ReqwestError(reqwest::Error { kind: Request, url: \"https://starchart.cc/nushell/nushell.svg?variant=adaptive\", source: TimedOut })\n\nstarted creating a knowledge-base of nix\n\nfinished creating a knowledge-base of nix: it took 182 seconds\n\n----- nix (0 errors) -----\n\n\nstarted creating a knowledge-base of nixpkgs\n\nfinished creating a knowledge-base of nixpkgs: it took 409 seconds\n\n----- nixpkgs (1 errors) -----\n    `pkgs/misc/documentation-highlighter/README.md`: FileReaderError(\"GET https://packagephobia.now.sh/badge?p=highlight.js returned 429.\")\n\nstarted creating a knowledge-base of zed\n\nfinished creating a knowledge-base of zed: it took 1314 seconds\n\n----- zed (2 errors) -----\n    `README.md`: ImageError(Unsupported(UnsupportedError { format: Unknown, kind: Format(Unknown) }))\n    `docs/src/ai/edit-prediction.md`: ReqwestError(reqwest::Error { kind: Decode, source: reqwest::Error { kind: Body, source: TimedOut } })"
+        },
+        "real_repos_regression": {
+            "seq": 36,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 21166,
+            "message": null
+        },
+        "subdir": {
+            "seq": 37,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 43993,
+            "message": null
+        },
+        "tfidf": {
+            "seq": 38,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 43657,
+            "message": null
+        },
+        "korean": {
+            "seq": 39,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 10880,
+            "message": null
+        },
+        "merge": {
+            "seq": 40,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 51529,
+            "message": null
+        },
+        "summary": {
+            "seq": 41,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 22487,
+            "message": null
+        },
+        "external_bases": {
+            "seq": 42,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 101881,
+            "message": null
+        },
+        "end_to_end dummy": {
+            "seq": 43,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 102263,
+            "message": "--- summary of the knowledge-base ---\n\ndummy\n\n\n--- What makes ragit special? ---\n\ndummy\n\n\n--- What makes ragit special? (super rerank mode) ---\n\ndummy\n"
+        },
+        "end_to_end llama3.3-70b": {
+            "seq": 44,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 113148,
+            "message": "--- summary of the knowledge-base ---\n\nThe knowledge-base is made up of 52 Markdown and text files. It contains documentation for the RAGIT tool, focusing on natural language processing and AI topics, including features, platform support, and commands. The files are structured into directories like \"commands\" and \"server\", with additional standalone files like \"index.md\" and \"quick_guide.md\".\n\n\n--- What makes ragit special? ---\n\nRagit is special because of its unique features, which include:\n\n1. Adding a title and summary to every chunk, making it easy for AIs to rerank chunks.\n2. Using tfidf scores instead of vector searches, which involves asking an AI to generate keywords from a query and then running tfidf search with the keywords.\n3. Supporting markdown files with images.\n4. Supporting multi-turn queries (experimental).\n5. Allowing users to clone/push knowledge-bases, similar to git.\n\nThese features differentiate Ragit from other RAG frameworks and make it a special tool for creating and sharing knowledge-bases.\n\n---- sources ----\n1st chunk of index.md (f6a2e735)\n1st chunk of chunks.md (b2b66793)\n1st chunk of pipeline.md (9f12b2a1)\n\n\n--- What makes ragit special? (super rerank mode) ---\n\nAccording to the documents, RAGIT is special because it:\n\n1. Adds a title and summary to every chunk, making it easy for AIs to re-rank chunks.\n2. Uses tfidf scores instead of vector searches, which involves asking an AI to generate keywords from a query and then running a tfidf search with those keywords.\n3. Supports markdown files with images.\n4. Supports multi-turn queries (although this is still experimental).\n5. Allows users to clone and push knowledge-bases, similar to how Git works.\n\nThese features distinguish RAGIT from other RAG frameworks, making it unique and special in its own way.\n\n---- sources ----\n1st chunk of intro.txt (83110176)\n1st chunk of pipeline.md (9f12b2a1)\n1st chunk of index.md (f6a2e735)\n"
+        },
+        "audit llama3.3-70b": {
+            "seq": 45,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15920,
+            "message": null
+        },
+        "logs llama3.3-70b": {
+            "seq": 46,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 7235,
+            "message": null
+        },
+        "prompts dummy": {
+            "seq": 47,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 13029,
+            "message": null
+        },
+        "prompts gpt-4o-mini": {
+            "seq": 48,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 104917,
+            "message": null
+        },
+        "prompts gemini-2.0-flash": {
+            "seq": 49,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 50186,
+            "message": null
+        },
+        "prompts claude-3.5-sonnet": {
+            "seq": 50,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 123817,
+            "message": null
+        },
+        "empty dummy": {
+            "seq": 51,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11864,
+            "message": null
+        },
+        "empty llama3.3-70b": {
+            "seq": 52,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12651,
+            "message": null
+        },
+        "server_chat llama3.3-70b": {
+            "seq": 53,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 24364,
+            "message": null
+        },
+        "server_chat gemini-2.0-flash": {
+            "seq": 54,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 46685,
+            "message": null
+        },
+        "images2 gpt-4o-mini": {
+            "seq": 55,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12233,
+            "message": null
+        },
+        "images3 gpt-4o-mini": {
+            "seq": 56,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11978,
+            "message": null
+        },
+        "pdl gpt-4o-mini": {
+            "seq": 57,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 11141,
+            "message": null
+        },
+        "pdf gpt-4o-mini": {
+            "seq": 58,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 94132,
+            "message": null
+        },
+        "svg gpt-4o-mini": {
+            "seq": 59,
+            "pass": false,
+            "error": "\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 802, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 751, in <lambda>\n    (\"svg gpt-4o-mini\", lambda: svg(test_model=\"gpt-4o-mini\")),\n                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ragit/tests/svg.py\", line 130, in svg\n    assert \"ragit\" in cargo_run([\"pdl\", \"test1.pdl\"], stdout=True).lower()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+            "elapsed_ms": 19369,
+            "message": null
+        },
+        "web_images gpt-4o-mini": {
+            "seq": 60,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 23621,
+            "message": null
+        },
+        "images2 claude-3.5-sonnet": {
+            "seq": 61,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 15937,
+            "message": null
+        },
+        "extract_keywords dummy": {
+            "seq": 62,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3771,
+            "message": null
+        },
+        "extract_keywords gpt-4o-mini": {
+            "seq": 63,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 12195,
+            "message": null
+        },
+        "orphan_process llama3.3-70b": {
+            "seq": 64,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 111497,
+            "message": null
+        },
+        "write_lock llama3.3-70b": {
+            "seq": 65,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'check']' returned non-zero exit status 1.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 802, in <module>\n    test()\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 760, in <lambda>\n    (\"write_lock llama3.3-70b\", lambda: write_lock(test_model=\"llama3.3-70b\")),\n                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ragit/tests/write_lock.py\", line 96, in write_lock\n    cargo_run([\"check\"])\n  File \"/home/ubuntu/Documents/ragit/tests/utils.py\", line 82, in cargo_run\n    result = subprocess.run(args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'check']' returned non-zero exit status 1.\n",
+            "elapsed_ms": 166182,
+            "message": null
+        },
+        "ragit_api command-r": {
+            "seq": 66,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1447,
+            "message": null
+        },
+        "query_options llama3.3-70b": {
+            "seq": 67,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 8242,
+            "message": null
+        },
+        "query_with_schema llama3.3-70b": {
+            "seq": 68,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 3255,
+            "message": null
+        },
+        "models_init": {
+            "seq": 69,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 850,
+            "message": null
+        },
+        "test_home_config_override": {
+            "seq": 70,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 419,
+            "message": null
+        },
+        "config": {
+            "seq": 71,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 501299,
+            "message": null
+        },
+        "migrate": {
+            "seq": 72,
+            "pass": false,
+            "error": "Command '['cargo', 'run', '--release', '--no-default-features', '--', 'migrate']' returned non-zero exit status 101.\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 802, in <module>\n    finally:\n        ^^^^^\n  File \"/home/ubuntu/Documents/ragit/tests/migrate.py\", line 110, in migrate\n    cargo_run([\"migrate\"])\n  File \"/home/ubuntu/Documents/ragit/tests/utils.py\", line 82, in cargo_run\n    kwargs[\"capture_output\"] = True\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.12/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['cargo', 'run', '--release', '--no-default-features', '--', 'migrate']' returned non-zero exit status 101.\n",
+            "elapsed_ms": 1106509,
+            "message": null
+        },
+        "migrate2": {
+            "seq": 73,
+            "pass": true,
+            "error": null,
+            "elapsed_ms": 1656647,
+            "message": null
+        },
+        "migrate3": {
+            "seq": 74,
+            "pass": false,
+            "error": "failed to run `ragit-server`\nTraceback (most recent call last):\n  File \"/home/ubuntu/Documents/ragit/tests/tests.py\", line 802, in <module>\n    finally:\n        ^^^^^\n  File \"/home/ubuntu/Documents/ragit/tests/migrate3.py\", line 23, in migrate3\n    server_process = spawn_ragit_server()\n                     ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/Documents/ragit/tests/server.py\", line 184, in spawn_ragit_server\n    raise Exception(\"failed to run `ragit-server`\")\nException: failed to run `ragit-server`\n",
+            "elapsed_ms": 564468,
+            "message": null
+        }
+    },
+    "result": {
+        "total": 75,
+        "complete": 75,
+        "pass": 69,
+        "fail": 6,
+        "remaining": 0
+    },
+    "coverage": [
+        "",
+        "--file",
+        "add",
+        "add --all",
+        "add --all --force",
+        "add --dry-run",
+        "add --dry-run --force",
+        "add --dry-run --reject",
+        "add --file",
+        "add --force",
+        "add --force -f",
+        "add --invalid-flag",
+        "add --reject",
+        "add -C",
+        "add -c",
+        "add -f",
+        "archive-creat",
+        "archive-create",
+        "archive-create --configs --no-prompts --output",
+        "archive-create --force --no-configs --no-prompts --output",
+        "archive-create --no-configs --no-prompts --output",
+        "archive-create --no-configs --no-prompts --output --size-limit",
+        "archive-create --no-configs --output --prompts",
+        "archive-create --output --size-limit",
+        "archive-create -o",
+        "archive-extract --force --output",
+        "archive-extract --output",
+        "archive-extract -o",
+        "audit --json --only-tokens",
+        "audit --json --only-tokens -c",
+        "audit -c",
+        "build",
+        "build --invalid-flag",
+        "build --jobs",
+        "build -C",
+        "cat-file",
+        "cat-file --json",
+        "cat-file -C",
+        "check",
+        "check --recover",
+        "clone",
+        "config --get",
+        "config --get-all",
+        "config --invalid-flag",
+        "config --set",
+        "extract-keywords",
+        "extract-keywords --full-schema",
+        "extract-keywords --full-schema --json",
+        "extract-keywords --json",
+        "gc --audit",
+        "gc --images",
+        "gc --logs",
+        "ii-build",
+        "ii-reset",
+        "ii-status",
+        "init",
+        "init -C",
+        "invalid-command",
+        "ls-chunks",
+        "ls-chunks --json",
+        "ls-chunks --json --stat-only",
+        "ls-chunks --json --uid-only",
+        "ls-files",
+        "ls-files --cached --json --name-only",
+        "ls-files --json",
+        "ls-files --json --name-only",
+        "ls-files --json --name-only --processed",
+        "ls-files --json --name-only --staged",
+        "ls-files --json --stat-only",
+        "ls-files --json --uid-only",
+        "ls-images",
+        "ls-images --json",
+        "ls-images --json --stat-only",
+        "ls-images --json --uid-only",
+        "ls-images --uid-only",
+        "ls-models --json",
+        "ls-models --json --name-only",
+        "ls-models --json --selected",
+        "ls-models --name-only --selected",
+        "ls-terms",
+        "ls-terms --json --term-only",
+        "merge",
+        "merge --force --prefix",
+        "merge --prefix",
+        "merge --prefix --reject",
+        "meta --get",
+        "meta --get-all --json",
+        "meta --remove",
+        "meta --set",
+        "migrate",
+        "model --all --existing-only --fetch --remote",
+        "model --all --fetch --remote",
+        "model --all --remove",
+        "model --existing-only --fetch --remote",
+        "model --fetch --remote",
+        "model --json --remote --search",
+        "model --json --search",
+        "model --remove",
+        "pdl",
+        "pdl --context",
+        "pdl --context --log --model",
+        "pdl --context --model",
+        "pdl --context --model --no-strict",
+        "pdl --context --model --strict",
+        "pdl --log --model",
+        "pdl --log --model --schema",
+        "pdl --model",
+        "pull",
+        "push",
+        "push --configs --prompts --remote",
+        "push --configs --remote",
+        "push --remote",
+        "qeury",
+        "query",
+        "query --agent",
+        "query --disable-rag",
+        "query --iterative",
+        "query --josn",
+        "query --max-retrieval",
+        "query --max-summaries",
+        "query --model",
+        "query --schema",
+        "query --super-rerank",
+        "query -json",
+        "remove",
+        "remove --all",
+        "remove --all --auto",
+        "remove --all --auto --dry-run",
+        "remove --all --processed",
+        "remove --all --staged",
+        "remove --dry-run --processed",
+        "remove --dry-run --staged",
+        "remove --processed",
+        "remove --staged",
+        "remove --staged -r",
+        "remove -C",
+        "remove -r",
+        "summary",
+        "summary --cached",
+        "summary --force",
+        "summary --remove",
+        "summary --set",
+        "tfidf",
+        "tfidf --json",
+        "tfidf --json --limit",
+        "tfidf --limit",
+        "tfidf --limit --uid-only",
+        "uid",
+        "version",
+        "version --build-options --json"
+    ]
+}
