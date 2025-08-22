@@ -23,7 +23,7 @@ use ragit_pdl::encode_base64;
 use regex::Regex;
 use serde_json::Map;
 use std::thread;
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
@@ -291,9 +291,13 @@ impl Index {
                         Response::Compressed(block_type, block_path) => {
                             let block_size = file_size(&block_path)?;
 
-                            match status.block_count.get_mut(&block_type) {
-                                Some(n) => { *n += 1; },
-                                None => { status.block_count.insert(block_type, 1); },
+                            match status.block_count.entry(block_type) {
+                                Entry::Occupied(mut n) => {
+                                    *n.get_mut() += 1;
+                                },
+                                Entry::Vacant(e) => {
+                                    e.insert(1);
+                                },
                             }
 
                             // a file consists of multiple blocks and a block consists of a header and a body

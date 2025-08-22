@@ -22,7 +22,7 @@ use ragit_fs::{
     try_create_dir,
     write_bytes,
 };
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::fmt;
 
 pub type Path = String;
@@ -112,12 +112,12 @@ impl Index {
 
             let ChunkSource::File { path, index, page: _ } = &chunk_.source;
 
-            match processed_files.get_mut(path) {
-                Some(chunks) => {
-                    chunks.push((chunk_.uid, *index));
+            match processed_files.entry(path.to_string()) {
+                Entry::Occupied(mut chunks) => {
+                    chunks.get_mut().push((chunk_.uid, *index));
                 },
-                None => {
-                    processed_files.insert(path.clone(), vec![(chunk_.uid, *index)]);
+                Entry::Vacant(e) => {
+                    e.insert(vec![(chunk_.uid, *index)]);
                 },
             }
 

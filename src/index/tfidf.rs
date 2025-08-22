@@ -15,7 +15,7 @@ use ragit_pdl::JsonType;
 use rust_stemmers::{Algorithm, Stemmer};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::hash::Hash;
 use std::io::Read;
 
@@ -100,9 +100,13 @@ impl ProcessedDoc {
         for term in tokenize(doc_content) {
             length += 1;
 
-            match term_frequency.get_mut(&term) {
-                Some(n) => { *n += 1; },
-                None => { term_frequency.insert(term, 1); },
+            match term_frequency.entry(term) {
+                Entry::Occupied(mut n) => {
+                    *n.get_mut() += 1;
+                },
+                Entry::Vacant(e) => {
+                    e.insert(1);
+                },
             }
         }
 
@@ -129,9 +133,13 @@ impl ProcessedDoc {
         self.length += other.length;
 
         for (term, count) in other.term_frequency.iter() {
-            match self.term_frequency.get_mut(term) {
-                Some(n) => { *n += *count; },
-                None => { self.term_frequency.insert(term.clone(), *count); },
+            match self.term_frequency.entry(term.to_string()) {
+                Entry::Occupied(mut n) => {
+                    *n.get_mut() += *count;
+                },
+                Entry::Vacant(e) => {
+                    e.insert(*count);
+                },
             }
         }
     }
@@ -215,9 +223,13 @@ impl<DocId: Clone + Eq + Hash> TfidfState<DocId> {
 
         for (term, _) in self.terms.clone().iter() {
             if processed_doc.contains_term(term) {
-                match self.document_frequency.get_mut(term) {
-                    Some(n) => { *n += 1; },
-                    None => { self.document_frequency.insert(term.to_string(), 1); },
+                match self.document_frequency.entry(term.to_string()) {
+                    Entry::Occupied(mut n) => {
+                        *n.get_mut() += 1;
+                    },
+                    Entry::Vacant(e) => {
+                        e.insert(1);
+                    },
                 }
             }
 
@@ -259,12 +271,12 @@ impl<DocId: Clone + Eq + Hash> TfidfState<DocId> {
                 let tf = (t * (k + 1.0)) / (t + k * (1.0 - b + b * (len / avg_len)));
                 let tfidf = tf * idf;
 
-                match tfidfs.get_mut(doc) {
-                    Some(val) => {
-                        *val += tfidf * weight;
+                match tfidfs.entry(doc.clone()) {
+                    Entry::Occupied(mut val) => {
+                        *val.get_mut() += tfidf * weight;
                     },
-                    None => {
-                        tfidfs.insert(doc.clone(), tfidf * weight);
+                    Entry::Vacant(e) => {
+                        e.insert(tfidf * weight);
                     },
                 }
             }

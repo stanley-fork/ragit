@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
@@ -133,20 +133,17 @@ impl FileTree {
         else {
             let dir_name = &path_elements[0];
 
-            match self.children.get_mut(*dir_name) {
-                Some(f) => {
-                    f.insert_worker(&path_elements[1..]);
+            match self.children.entry(dir_name.to_string()) {
+                Entry::Occupied(mut f) => {
+                    f.get_mut().insert_worker(&path_elements[1..]);
                 },
-                None => {
+                Entry::Vacant(e) => {
                     let mut children = FileTree {
                         is_dir: true,
                         children: HashMap::new(),
                     };
                     children.insert_worker(&path_elements[1..]);
-                    self.children.insert(
-                        dir_name.to_string(),
-                        children,
-                    );
+                    e.insert(children);
                 },
             }
         }

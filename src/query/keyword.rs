@@ -7,7 +7,7 @@ use ragit_pdl::{
     parse_pdl,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Keywords {
@@ -47,12 +47,12 @@ impl Keywords {
 
         for (keyword, weight) in self.with_weights(4.0) {
             for token in tokenize(&keyword) {
-                match tokens.get_mut(&token) {
-                    Some(w) => {
-                        *w += weight;
+                match tokens.entry(token) {
+                    Entry::Occupied(mut w) => {
+                        *w.get_mut() += weight;
                     },
-                    None => {
-                        tokens.insert(token, weight);
+                    Entry::Vacant(e) => {
+                        e.insert(weight);
                     },
                 }
             }

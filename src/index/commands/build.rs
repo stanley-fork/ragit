@@ -20,7 +20,7 @@ use ragit_fs::{
     write_bytes,
 };
 use sha3::{Digest, Sha3_256};
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
@@ -149,16 +149,14 @@ impl Index {
                         Response::ChunkComplete { file, chunk_uid, index } => {
                             buffered_chunk_count += 1;
 
-                            match buffer.get_mut(&file) {
-                                Some(chunks) => {
-                                    if let Some(prev_uid) = chunks.insert(index, chunk_uid) {
+                            match buffer.entry(file.to_string()) {
+                                Entry::Occupied(mut chunks) => {
+                                    if let Some(prev_uid) = chunks.get_mut().insert(index, chunk_uid) {
                                         return Err(Error::Internal(format!("{}th chunk of {file} is created twice: {prev_uid}, {chunk_uid}", index + 1)));
                                     }
                                 },
-                                None => {
-                                    let mut chunks = HashMap::new();
-                                    chunks.insert(index, chunk_uid);
-                                    buffer.insert(file, chunks);
+                                Entry::Vacant(e) => {
+                                    e.insert([(index, chunk_uid)].into_iter().collect());
                                 },
                             }
                         },

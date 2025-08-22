@@ -32,7 +32,7 @@ use ragit_pdl::JsonType;
 use regex::Regex;
 use serde_json::{Number, Value};
 use std::{cmp, fmt};
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::io::Read;
 use std::str::FromStr;
 
@@ -477,12 +477,12 @@ fn migrate_0_1_1_to_0_2_x(root_dir: &Path) -> Result<(), Error> {
                                             try_create_dir(&chunk_at)?;
                                         }
 
-                                        match file_to_chunks_map.get_mut(&file_name) {
-                                            Some(uids) => {
-                                                uids.push((new_uid.to_string(), file_index));
+                                        match file_to_chunks_map.entry(file_name) {
+                                            Entry::Occupied(mut uids) => {
+                                                uids.get_mut().push((new_uid.to_string(), file_index));
                                             },
-                                            None => {
-                                                file_to_chunks_map.insert(file_name, vec![(new_uid.to_string(), file_index)]);
+                                            Entry::Vacant(e) => {
+                                                e.insert(vec![(new_uid.to_string(), file_index)]);
                                             },
                                         }
 

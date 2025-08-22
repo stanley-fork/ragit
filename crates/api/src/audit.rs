@@ -10,7 +10,7 @@ use ragit_fs::{
 };
 use ragit_pdl::{Message, JsonType};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::ops::AddAssign;
 
 #[derive(Clone, Debug)]
@@ -124,9 +124,13 @@ fn records_from_json(j: &Value) -> Result<HashMap<String, AuditRecord>, Error> {
                     output_cost: output * output_weight / 1000,
                 };
 
-                match result.get_mut(&date) {
-                    Some(record) => { *record += new_record; },
-                    None => { result.insert(date, new_record); },
+                match result.entry(date) {
+                    Entry::Occupied(mut e) => {
+                        *e.get_mut() += new_record;
+                    },
+                    Entry::Vacant(e) => {
+                        e.insert(new_record);
+                    },
                 }
             }
 
@@ -224,17 +228,17 @@ pub fn dump_api_usage(
         output_cost: output_tokens * output_weight / 1000,
     };
 
-    match tracker.0.get_mut(&at.id) {
-        Some(records) => match records.get_mut(&today) {
-            Some(record) => {
-                *record += new_record;
+    match tracker.0.entry(at.id.to_string()) {
+        Entry::Occupied(mut e) => match e.get_mut().entry(today) {
+            Entry::Occupied(mut e) => {
+                *e.get_mut() += new_record;
             },
-            None => {
-                records.insert(today, new_record);
+            Entry::Vacant(e) => {
+                e.insert(new_record);
             },
         },
-        None => {
-            tracker.0.insert(at.id.clone(), [(today, new_record)].into_iter().collect());
+        Entry::Vacant(e) => {
+            e.insert([(today, new_record)].into_iter().collect());
         },
     }
 

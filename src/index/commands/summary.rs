@@ -8,7 +8,8 @@ use crate::uid::Uid;
 use ragit_fs::extension;
 use ragit_pdl::Schema;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use std::collections::hash_map::{Entry, HashMap};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Summary {
@@ -168,9 +169,13 @@ impl Index {
             file_tree.insert(file);
             file_chunk_count += chunks.len();
 
-            match count_by_extension.get_mut(&extension) {
-                Some(n) => { *n += chunks.len() },
-                _ => { count_by_extension.insert(extension, chunks.len()); },
+            match count_by_extension.entry(extension) {
+                Entry::Occupied(mut n) => {
+                    *n.get_mut() += chunks.len();
+                },
+                Entry::Vacant(e) => {
+                    e.insert(chunks.len());
+                },
             }
 
             for chunk in chunks.iter() {

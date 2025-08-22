@@ -10,7 +10,7 @@ use ragit_api::{
     save_models,
 };
 use reqwest::Url;
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 
 pub struct FetchModelResult {
     pub fetched: usize,
@@ -65,21 +65,19 @@ impl Index {
         for remote_model in remote_models.iter() {
             let remote_model: Model = remote_model.try_into()?;
 
-            match local_models.get_mut(&remote_model.name) {
-                Some(local_model) => {
-                    let new_model = update_model(&local_model, &remote_model);
-
-                    if let Some(new_model) = new_model {
-                        local_models.insert(new_model.name.to_string(), new_model);
+            match local_models.entry(remote_model.name.to_string()) {
+                Entry::Occupied(mut local_model) => {
+                    if let Some(new_model) = update_model(local_model.get(), &remote_model) {
+                        *local_model.get_mut() = new_model;
                         updated += 1;
                     }
                 },
-                None => {
+                Entry::Vacant(e) => {
                     if existing_only {
                         continue;
                     }
 
-                    local_models.insert(remote_model.name.to_string(), remote_model);
+                    e.insert(remote_model);
                     fetched += 1;
                 },
             }
@@ -137,21 +135,19 @@ impl Index {
         for remote_model in remote_models.iter() {
             let remote_model: Model = remote_model.try_into()?;
 
-            match local_models.get_mut(&remote_model.name) {
-                Some(local_model) => {
-                    let new_model = update_model(&local_model, &remote_model);
-
-                    if let Some(new_model) = new_model {
-                        local_models.insert(new_model.name.to_string(), new_model);
+            match local_models.entry(remote_model.name.to_string()) {
+                Entry::Occupied(mut local_model) => {
+                    if let Some(new_model) = update_model(local_model.get(), &remote_model) {
+                        *local_model.get_mut() = new_model;
                         updated += 1;
                     }
                 },
-                None => {
+                Entry::Vacant(e) => {
                     if existing_only {
                         continue;
                     }
 
-                    local_models.insert(remote_model.name.to_string(), remote_model);
+                    e.insert(remote_model);
                     fetched += 1;
                 },
             }

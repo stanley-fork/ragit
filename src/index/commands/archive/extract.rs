@@ -35,7 +35,7 @@ use ragit_fs::{
 use ragit_pdl::decode_base64;
 use serde_json::Value;
 use std::thread;
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry, HashMap};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
@@ -118,9 +118,13 @@ impl Index {
                 let header = read_bytes_offset(&archive, cursor, cursor + 5)?;
 
                 if header[0] == BlockType::Splitted.to_byte() {
-                    match status.block_count.get_mut(&BlockType::Splitted) {
-                        Some(n) => { *n += 1; },
-                        None => { status.block_count.insert(BlockType::Splitted, 1); },
+                    match status.block_count.entry(BlockType::Splitted) {
+                        Entry::Occupied(mut n) => {
+                            *n.get_mut() += 1;
+                        },
+                        Entry::Vacant(e) => {
+                            e.insert(1);
+                        },
                     }
 
                     let header = read_bytes_offset(&archive, cursor, cursor + 8)?;
@@ -131,9 +135,10 @@ impl Index {
                     let inner_index = ((header[4] as usize) << 8) + header[5] as usize;
                     let total_count = ((header[6] as usize) << 8) + header[7] as usize;
 
-                    match splitted_blocks.get_mut(&outer_index) {
-                        Some(blocks) => {
-                            blocks.insert(inner_index, body);
+                    match splitted_blocks.entry(outer_index) {
+                        Entry::Occupied(mut blocks) => {
+                            blocks.get_mut().insert(inner_index, body);
+                            let blocks = blocks.get();
 
                             if blocks.len() == total_count {
                                 let mut blocks = blocks.iter().map(
@@ -154,10 +159,8 @@ impl Index {
                                 tmp_files_for_splitted_blocks.push(tmp_file_for_splitted_blocks);
                             }
                         },
-                        None => {
-                            let mut blocks = HashMap::new();
-                            blocks.insert(inner_index, body);
-                            splitted_blocks.insert(outer_index, blocks);
+                        Entry::Vacant(e) => {
+                            e.insert([(inner_index, body)].into_iter().collect());
                         },
                     }
 
@@ -170,9 +173,13 @@ impl Index {
                     ((header[3] as u64) << 8) +
                     header[4] as u64;
 
-                match status.block_count.get_mut(&block_type) {
-                    Some(n) => { *n += 1; },
-                    None => { status.block_count.insert(block_type, 1); },
+                match status.block_count.entry(block_type) {
+                    Entry::Occupied(mut n) => {
+                        *n.get_mut() += 1;
+                    },
+                    Entry::Vacant(e) => {
+                        e.insert(1);
+                    },
                 }
 
                 workers[round_robin % workers.len()].send(Request::Extract {
@@ -225,9 +232,13 @@ impl Index {
                 match worker.try_recv() {
                     Ok(msg) => match msg {
                         Response::Complete(block_type) => {
-                            match status.block_complete.get_mut(&block_type) {
-                                Some(n) => { *n += 1; },
-                                None => { status.block_complete.insert(block_type, 1); },
+                            match status.block_complete.entry(block_type) {
+                                Entry::Occupied(mut n) => {
+                                    *n.get_mut() += 1;
+                                },
+                                Entry::Vacant(e) => {
+                                    e.insert(1);
+                                },
                             }
                         },
                         Response::IAmDone => {

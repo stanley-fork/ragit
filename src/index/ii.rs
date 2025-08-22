@@ -24,7 +24,8 @@ use ragit_fs::{
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
+use std::collections::hash_map::{Entry, HashMap};
 
 pub type Term = String;
 pub type Weight = f32;
@@ -65,16 +66,20 @@ impl Index {
         terms: &HashMap<Term, Weight>,
         limit: usize,
     ) -> Result<Vec<Uid>, Error> {
-        let mut result = HashMap::new();
+        let mut result: HashMap<Uid, f32> = HashMap::new();
 
         for (term, weight) in terms.iter() {
             let chunk_uids = self.search_ii_by_term(term)?;
             let score = weight * ((self.chunk_count + 1) as f32 / (chunk_uids.len() + 1) as f32).log2();
 
             for chunk_uid in chunk_uids.iter() {
-                match result.get_mut(chunk_uid) {
-                    Some(score_) => { *score_ += score; },
-                    None => { result.insert(*chunk_uid, score); },
+                match result.entry(*chunk_uid) {
+                    Entry::Occupied(mut score_) => {
+                        *score_.get_mut() += score;
+                    },
+                    Entry::Vacant(e) => {
+                        e.insert(score);
+                    },
                 }
             }
         }
@@ -226,9 +231,13 @@ impl Index {
                 if from_ii.contains_key(&term_hash) {
                     term_hash_map.insert(term_hash.to_string(), term.to_string());
 
-                    match from_tfidf.get_mut(&term_hash) {
-                        Some(uids) => { uids.push(uid) },
-                        None => { from_tfidf.insert(term_hash.clone(), vec![uid]); },
+                    match from_tfidf.entry(term_hash.to_string()) {
+                        Entry::Occupied(mut uids) => {
+                            uids.get_mut().push(uid);
+                        },
+                        Entry::Vacant(e) => {
+                            e.insert(vec![uid]);
+                        },
                     }
                 }
 
@@ -310,12 +319,12 @@ impl Index {
         let tfidf = self.get_tfidf_by_chunk_uid(uid)?;
 
         for term in tfidf.term_frequency.keys() {
-            match buffer.get_mut(term) {
-                Some(uids) => {
-                    uids.push(uid);
+            match buffer.entry(term.to_string()) {
+                Entry::Occupied(mut uids) => {
+                    uids.get_mut().push(uid);
                 },
-                None => {
-                    buffer.insert(term.to_string(), vec![uid]);
+                Entry::Vacant(e) => {
+                    e.insert(vec![uid]);
                 },
             }
         }
