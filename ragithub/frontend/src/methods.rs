@@ -16,6 +16,7 @@ use std::time::Duration;
 use tera::{Context as TeraContext, Tera};
 use warp::reply::{Reply, html};
 
+mod ai_model;
 mod blog;
 mod chunk;
 mod ci;
@@ -26,6 +27,9 @@ mod index;
 mod proxy;
 mod repo;
 
+pub use ai_model::{
+    get_model_index,
+};
 pub use blog::{
     get_blog_index,
     get_blog_article,
@@ -172,6 +176,7 @@ impl<'a> TeraContextBuilder<'a> {
                     ("Home", "/"),
                     ("Explore", "/list"),
                     ("Blog", "/blog"),
+                    ("Models", "/model"),
                     ("CI", "/ci"),
                 ],
             ));

@@ -1,3 +1,4 @@
+pub mod ai_model;
 pub mod blog;
 pub mod chunk;
 pub mod ci;
@@ -7,6 +8,7 @@ pub mod menu;
 pub mod repo;
 pub mod sort;
 
+pub use ai_model::AiModel;
 pub use blog::BlogIndex;
 pub use chunk::{ChunkDetail, RenderableChunk};
 pub use ci::{CiDetail, CiHistoryDetail, CiIndex};

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="model-list">
+    {% for model in models %}
+        <div class="model-card">
+            {{model.name}}
+
+            {% if model.explanation %}
+                <hr />
+                {{model.explanation}}
+            {% endif %}
+
+            <hr />
+            {% if model.api_provider == 'openai' %}
+                api: openai-compatible{% if model.api_url %} ({{model.api_url}}){% endif %}
+            {% else %}
+                api: {{model.api_provider}}
+            {% endif %}
+            <br />
+            price: input {{model.input_price}}$, output {{model.output_price}}$
+            <br />
+            modality: {% if model.can_read_images %}text & image{% else %}text only{% endif %}
+
+            {% if model.tags | length > 0 %}
+                <hr />
+                tags: {% for tag in model.tags %}<span class="model-tag"><a href="/model?tags={{tag}}">#{{tag}}</a></span>{% endfor %}
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
