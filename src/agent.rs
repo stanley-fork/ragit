@@ -179,6 +179,7 @@ impl Default for AgentState {
 
 #[derive(Serialize)]
 pub struct AgentResponse {
+    pub model: String,
     pub response: String,
     pub actions: Vec<ActionTrace>,
 }
@@ -274,6 +275,7 @@ impl Index {
 
             if state.has_enough_information {
                 return Ok(AgentResponse {
+                    model: self.get_model_by_name(&self.api_config.model)?.name,
                     response: state.response.unwrap(),
                     actions: action_traces,
                 });

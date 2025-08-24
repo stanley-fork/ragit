@@ -103,12 +103,15 @@ async fn post_chat_(
         real_history.push(QueryTurn {
             query: h.query.to_string(),
             response: QueryResponse {
+                model: h.model.to_string(),
                 response: h.response.to_string(),
                 multi_turn_schema: h.multi_turn_schema.clone(),
 
-                // NOTE: `index.query` doesn't read this field
+                // NOTE: `index.query` doesn't read this field.
+                //       I can fill this vector since I have the uids, but that's a waste of time.
                 retrieved_chunks: vec![],
             },
+            timestamp: h.created_at.timestamp(),
         });
     }
 

@@ -2060,13 +2060,15 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             match (agent_mode, interactive_mode, json_mode, &schema) {
                 (true, false, json_mode, schema) => {
+                    let query = parsed_args.get_args_exact(1)?[0].to_string();
                     let response = index.agent(
-                        &parsed_args.get_args_exact(1)?[0],
+                        &query,
                         String::from("There's no information yet."),
                         AgentAction::all_actions(),
                         schema.clone(),
                         false,  // don't hide_summary
                     ).await?;
+                    index.log_query(&[QueryTurn::from_agent_response(&index, &query, &response)?])?;
 
                     if json_mode {
                         println!("{}", serde_json::to_string_pretty(&response)?);
@@ -2117,15 +2119,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                             None,  // schema
                         ).await?;
                         println!("{}", response.response);
-                        history.push(QueryTurn::new(curr_input, response));
+                        history.push(QueryTurn::new(&curr_input, &response));
+                        index.log_query(&history)?;
                     }
                 },
                 _ => {
+                    let query = parsed_args.get_args_exact(1)?[0].to_string();
                     let response = index.query(
-                        &parsed_args.get_args_exact(1)?[0],
+                        &query,
                         vec![],  // no history
                         schema.clone(),
                     ).await?;
+                    let turn = QueryTurn::new(&query, &response);
+                    index.log_query(&[turn])?;
 
                     if json_mode {
                         println!("{}", serde_json::to_string_pretty(&response.prettify()?)?);

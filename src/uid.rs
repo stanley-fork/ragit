@@ -2,6 +2,7 @@ use crate::chunk::Chunk;
 use crate::constant::{CHUNK_DIR_NAME, IMAGE_DIR_NAME, INDEX_DIR_NAME};
 use crate::error::Error;
 use crate::index::Index;
+use crate::query::QueryTurn;
 use ragit_fs::{
     WriteMode,
     extension,
@@ -174,6 +175,7 @@ impl Uid {
     const GROUP_TYPE: u128 = (0x4 << 32);
     const KNOWLEDGE_BASE_TYPE: u128 = (0x5 << 32);
     const SUMMARY_TYPE: u128 = (0x6 << 32);
+    const QUERY_TURN_TYPE: u128 = (0x7 << 32);
 
     pub(crate) fn decode_partial(bytes: &[u8]) -> Result<Self, Error> {
         match bytes.len() {
@@ -316,6 +318,25 @@ impl Uid {
         result = result.clear_metadata();
         result.low |= Uid::SUMMARY_TYPE;
         result.low |= (summary.len() as u128) & 0xffff_ffff;
+        result
+    }
+
+    pub fn new_query_turn(turn: &QueryTurn) -> Self {
+        let mut hasher = Sha3_256::new();
+        hasher.update(turn.query.as_bytes());
+        hasher.update(turn.response.model.as_bytes());
+        hasher.update(turn.response.response.as_bytes());
+        hasher.update(&turn.timestamp.to_le_bytes());
+
+        let mut result = format!("{:064x}", hasher.finalize()).parse::<Uid>().unwrap();
+
+        for chunk in turn.response.retrieved_chunks.iter() {
+            result += chunk.uid;
+        }
+
+        result = result.clear_metadata();
+        result.low |= Uid::QUERY_TURN_TYPE;
+        result.low |= (turn.query.len() as u128) & 0xffff_ffff;
         result
     }
 

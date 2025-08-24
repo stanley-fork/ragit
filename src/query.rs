@@ -1,7 +1,18 @@
+use chrono::Local;
+use crate::agent::AgentResponse;
 use crate::chunk::{Chunk, merge_and_convert_chunks};
+use crate::constant::QUERY_LOG_DIR_NAME;
 use crate::error::Error;
 use crate::index::Index;
+use crate::uid::Uid;
 use ragit_api::Request;
+use ragit_fs::{
+    WriteMode,
+    create_dir_all,
+    exists,
+    parent,
+    write_string,
+};
 use ragit_pdl::{
     Pdl,
     Schema,
@@ -20,20 +31,48 @@ pub use keyword::Keywords;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryResponse {
+    pub model: String,
     pub multi_turn_schema: Option<MultiTurnSchema>,
     pub retrieved_chunks: Vec<Chunk>,
     pub response: String,
+}
+
+impl QueryResponse {
+    pub fn from_agent_response(index: &Index, response: &AgentResponse) -> Result<Self, Error> {
+        Ok(QueryResponse {
+            model: response.model.to_string(),
+
+            // NOTE: multi-turn conversations for agents are not implemented yet
+            //       we have to fix this when that's implemented
+            multi_turn_schema: None,
+            retrieved_chunks: response.retrieved_chunks(index)?,
+            response: response.response.to_string(),
+        })
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryTurn {
     pub query: String,
     pub response: QueryResponse,
+    pub timestamp: i64,
 }
 
 impl QueryTurn {
-    pub fn new(query: String, response: QueryResponse) -> Self {
-        QueryTurn { query, response }
+    pub fn new(query: &str, response: &QueryResponse) -> Self {
+        QueryTurn {
+            query: query.to_string(),
+            response: response.clone(),
+            timestamp: Local::now().timestamp(),
+        }
+    }
+
+    pub fn from_agent_response(index: &Index, query: &str, response: &AgentResponse) -> Result<Self, Error> {
+        Ok(QueryTurn {
+            query: query.to_string(),
+            response: QueryResponse::from_agent_response(index, response)?,
+            timestamp: Local::now().timestamp(),
+        })
     }
 }
 
@@ -150,6 +189,7 @@ impl Index {
         };
 
         Ok(QueryResponse {
+            model: self.get_model_by_name(&self.api_config.model)?.name,
             multi_turn_schema,
             retrieved_chunks: chunks,
             response,
@@ -341,6 +381,33 @@ impl Index {
         };
 
         Ok(response)
+    }
+
+    pub fn log_query(&self, turns: &[QueryTurn]) -> Result<(), Error> {
+        if turns.is_empty() {
+            return Err(Error::NoQueryToLog);
+        }
+
+        let uid = Uid::new_query_turn(&turns[0]);
+        let query_path = Index::get_uid_path(
+            &self.root_dir,
+            QUERY_LOG_DIR_NAME,
+            uid,
+            None,
+        )?;
+
+        // Logging queries is added at ragit 0.4.3, so older knowledge-base
+        // do not have this directory. We have to create one.
+        if !exists(&parent(&query_path)?) {
+            create_dir_all(&parent(&query_path)?)?;
+        }
+
+        write_string(
+            &query_path,
+            &serde_json::to_string_pretty(turns)?,
+            WriteMode::Atomic,
+        )?;
+        Ok(())
     }
 }
 

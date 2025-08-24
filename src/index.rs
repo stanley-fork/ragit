@@ -20,6 +20,7 @@ use crate::constant::{
     MODEL_FILE_NAME,
     PROMPT_DIR_NAME,
     QUERY_CONFIG_FILE_NAME,
+    QUERY_LOG_DIR_NAME,
 };
 use crate::error::Error;
 use crate::prompts::PROMPTS;
@@ -192,6 +193,7 @@ impl Index {
             IMAGE_DIR_NAME,
             FILE_INDEX_DIR_NAME,
             II_DIR_NAME,
+            QUERY_LOG_DIR_NAME,
         ] {
             create_dir_all(&Index::get_rag_path(
                 &root_dir,

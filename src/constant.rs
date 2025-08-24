@@ -13,3 +13,4 @@ pub const METADATA_FILE_NAME: &str = "meta.json";
 pub const MODEL_FILE_NAME: &str = "models.json";
 pub const PROMPT_DIR_NAME: &str = "prompts";
 pub const QUERY_CONFIG_FILE_NAME: &str = "query.json";
+pub const QUERY_LOG_DIR_NAME: &str = "queries";

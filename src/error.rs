@@ -24,6 +24,7 @@ pub enum Error {
     NoRemoteToPullFrom,
     NoSuchMeta(String),
     NoSummary,
+    NoQueryToLog,
     CorruptedFile { path: Path, message: Option<String> },
     CliError {
         message: String,
