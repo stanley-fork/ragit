@@ -57,9 +57,9 @@ pub struct QueryConfig {
     #[serde(default = "_true")]
     pub enable_rag: bool,
 
-    #[serde(default = "_false")]
     /// If it's enabled, it runs `rerank_summary.pdl` multiple times (usually 5 times) with much more candidates.
     /// It takes more time and money, but is likely to yield better result.
+    #[serde(default = "_false")]
     pub super_rerank: bool,
 }
 
