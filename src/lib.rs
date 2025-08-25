@@ -50,6 +50,7 @@ pub use index::{
     Summary,
     SummaryMode,
     TfidfResult,
+    UidOrStagedFile,
     VersionInfo,
     get_compatibility_warning,
 };

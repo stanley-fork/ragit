@@ -80,6 +80,7 @@ pub use commands::{
     RemoveResult,
     Summary,
     SummaryMode,
+    UidOrStagedFile,
     VersionInfo,
     get_compatibility_warning,
 };

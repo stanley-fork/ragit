@@ -18,6 +18,7 @@ use ragit::{
     QueryTurn,
     RemoveResult,
     SummaryMode,
+    UidOrStagedFile,
     UidQueryConfig,
     get_build_options,
     get_compatibility_warning,
@@ -904,7 +905,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
-            let chunks = if args.is_empty() {
+            let chunk_uids = if args.is_empty() {
                 if !uid_only {
                     if !json_mode {
                         println!("{} chunks", index.chunk_count);
@@ -921,40 +922,33 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 index.list_chunks(
                     &|_| true,  // no filter
-                    &|c| c,  // no map
                     &|chunk: &ChunkSchema| chunk.source.sortable_string(),  // sort by source
                 )?
             } else {
                 let query = index.uid_query(&args, UidQueryConfig::new().file_or_chunk_only())?;
-                let mut chunks = vec![];
+                let mut chunk_uids = query.get_chunk_uids();
 
-                for uid in query.get_chunk_uids() {
-                    let chunk = index.get_chunk_by_uid(uid)?;
-                    chunks.push(chunk);
-                }
-
-                if chunks.is_empty() {
+                if chunk_uids.is_empty() {
                     for file_uid in query.get_file_uids() {
                         let uids = index.get_chunks_of_file(file_uid)?;
 
                         for uid in uids.iter() {
-                            let chunk = index.get_chunk_by_uid(*uid)?;
-                            chunks.push(chunk);
+                            chunk_uids.push(*uid);
                         }
                     }
                 }
 
-                if chunks.is_empty() {
+                if chunk_uids.is_empty() {
                     return Err(Error::UidQueryError(format!("There's no chunk/file that matches `{}`.", args.join(" "))));
                 }
 
                 if !uid_only {
                     if !json_mode {
-                        println!("{} chunks", chunks.len());
+                        println!("{} chunks", chunk_uids.len());
                     }
 
                     else if stat_only {
-                        println!("{}\"chunks\": {}{}", "{", chunks.len(), "}");
+                        println!("{}\"chunks\": {}{}", "{", chunk_uids.len(), "}");
                     }
                 }
 
@@ -962,7 +956,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     return Ok(());
                 }
 
-                chunks
+                // In this branch, the user is likely to be looking for a specific chunk/file,
+                // and `chunk_uids` is likely to be small. So, it'd be okay to load everything to memory.
+                let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+                for chunk_uid in chunk_uids.iter() {
+                    chunks.push(index.get_chunk_by_uid(*chunk_uid)?);
+                }
+
+                chunks.sort_by_key(|chunk| chunk.sortable_string());
+                chunks.iter().map(|chunk| chunk.uid).collect()
             };
 
             if json_mode {
@@ -970,14 +973,20 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!(
                         "{}",
                         serde_json::to_string_pretty(
-                            &chunks.iter().map(
-                                |chunk| chunk.uid.abbrev(abbrev)
+                            &chunk_uids.iter().map(
+                                |uid| uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
                 }
 
                 else {
+                    let mut chunks = Vec::with_capacity(chunk_uids.len());
+
+                    for chunk_uid in chunk_uids.iter() {
+                        chunks.push(index.get_chunk_by_uid(*chunk_uid)?);
+                    }
+
                     println!(
                         "{}",
                         serde_json::to_string_pretty(&chunks.prettify()?)?,
@@ -986,12 +995,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             else {
-                for chunk in chunks.iter() {
+                for chunk_uid in chunk_uids.iter() {
                     if uid_only {
-                        println!("{}", chunk.uid.abbrev(abbrev));
+                        println!("{}", chunk_uid.abbrev(abbrev));
                         continue;
                     }
 
+                    let chunk = index.get_chunk_by_uid(*chunk_uid)?;
                     println!("----------");
                     println!("{}", chunk.render_source());
                     println!("uid: {}", chunk.uid.abbrev(abbrev));
@@ -1020,12 +1030,19 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let name_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--name-only";
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
-            let staged = parsed_args.get_flag(1).unwrap_or(String::from("--staged")) == "--staged";
-            let processed = parsed_args.get_flag(1).unwrap_or(String::from("--processed")) == "--processed";
+            let mut staged = parsed_args.get_flag(1).unwrap_or(String::from("--staged")) == "--staged";
+            let mut processed = parsed_args.get_flag(1).unwrap_or(String::from("--processed")) == "--processed";
             let json_mode = parsed_args.get_flag(2).is_some();
             let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
+
+            // If it's `--uid-only` there's no point of listing staged files because
+            // staged files do not have uids.
+            if uid_only {
+                staged = false;
+                processed = true;
+            }
 
             let files = if args.is_empty() {
                 if !uid_only && !name_only {
@@ -1058,8 +1075,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 index.list_files(
+                    // respect `--staged` and `--processed` options
                     &|f| staged && !f.is_processed || processed && f.is_processed,
-                    &|f| f,  // no map
+
+                    // sort by path
                     &|f| f.path.to_string(),
                 )?
             } else {
@@ -1069,16 +1088,16 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 let mut staged_files_len = 0;
 
                 if processed {
-                    for (path, uid) in query.get_processed_files() {
+                    for (_, uid) in query.get_processed_files() {
                         processed_files_len += 1;
-                        files.push(index.get_file_schema(Some(path), Some(uid))?);
+                        files.push(UidOrStagedFile::Uid(uid));
                     }
                 }
 
                 if staged {
                     for path in query.get_staged_files() {
                         staged_files_len += 1;
-                        files.push(index.get_file_schema(Some(path), None)?);
+                        files.push(UidOrStagedFile::StagedFile(path));
                     }
                 }
 
@@ -1116,45 +1135,72 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             };
 
             if json_mode {
-                if name_only {
+                if uid_only {
                     println!(
                         "{}",
                         serde_json::to_string_pretty(
                             &files.iter().map(
-                                |file| file.path.to_string()
-                            ).collect::<Vec<_>>(),
-                        )?,
-                    );
-                }
-
-                else if uid_only {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(
-                            &files.iter().map(
-                                |file| file.uid.abbrev(abbrev)
+                                |file| match file {
+                                    UidOrStagedFile::Uid(uid) => uid.abbrev(abbrev),
+                                    UidOrStagedFile::StagedFile(_) => unreachable!(),
+                                }
                             ).collect::<Vec<_>>(),
                         )?,
                     );
                 }
 
                 else {
-                    println!(
-                        "{}",
-                        serde_json::to_string_pretty(&files.prettify()?)?,
-                    );
+                    let mut file_schemas = Vec::with_capacity(files.len());
+
+                    for file in files.iter() {
+                        let file = match file {
+                            UidOrStagedFile::Uid(uid) => index.get_file_schema(None, Some(*uid))?,
+                            UidOrStagedFile::StagedFile(file) => index.get_file_schema(Some(file.to_string()), None)?,
+                        };
+
+                        file_schemas.push(file);
+                    }
+
+                    if name_only {
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(
+                                &file_schemas.iter().map(
+                                    |file| file.path.to_string()
+                                ).collect::<Vec<_>>(),
+                            )?,
+                        );
+                    }
+
+                    else {
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&file_schemas.prettify()?)?,
+                        );
+                    }
                 }
             }
 
             else {
                 for file in files.iter() {
-                    if name_only {
-                        println!("{}", file.path);
+                    if uid_only {
+                        println!(
+                            "{}",
+                            match file {
+                                UidOrStagedFile::Uid(uid) => uid.abbrev(abbrev),
+                                UidOrStagedFile::StagedFile(_) => unreachable!(),
+                            },
+                        );
                         continue;
                     }
 
-                    else if uid_only {
-                        println!("{}", file.uid.abbrev(abbrev));
+                    let file = match file {
+                        UidOrStagedFile::Uid(uid) => index.get_file_schema(None, Some(*uid))?,
+                        UidOrStagedFile::StagedFile(file) => index.get_file_schema(Some(file.to_string()), None)?,
+                    };
+
+                    if name_only {
+                        println!("{}", file.path);
                         continue;
                     }
 
@@ -1190,11 +1236,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
-            let images = if args.is_empty() {
+            let image_uids = if args.is_empty() {
                 let result = index.list_images(
                     &|_| true,  // no filter
-                    &|image| image,  // no map
-                    &|_| 0,  // no sort
+                    &|image| image.uid,  // sort by uid
                 )?;
 
                 result
@@ -1239,15 +1284,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
                 }
 
-                // dedup
+                // dedup and sort
                 image_uids = image_uids.into_iter().collect::<HashSet<_>>().into_iter().collect();
-                let mut result = Vec::with_capacity(image_uids.len());
+                image_uids.sort();
 
-                for image_uid in image_uids.iter() {
-                    result.push(index.get_image_schema(*image_uid, false)?);
-                }
-
-                result
+                image_uids
             };
 
             if uid_only {
@@ -1255,32 +1296,38 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!(
                         "{}",
                         serde_json::to_string_pretty(
-                            &images.iter().map(
-                                |image| image.uid.abbrev(abbrev)
+                            &image_uids.iter().map(
+                                |uid| uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
                 }
 
                 else {
-                    for image in images.iter() {
-                        println!("{}", image.uid.abbrev(abbrev));
+                    for uid in image_uids.iter() {
+                        println!("{}", uid.abbrev(abbrev));
                     }
                 }
             }
 
             else if stat_only {
                 if json_mode {
-                    println!("{}\"images\": {}{}", '{', images.len(), '}');
+                    println!("{}\"images\": {}{}", '{', image_uids.len(), '}');
                 }
 
                 else {
-                    println!("{} images", images.len());
+                    println!("{} images", image_uids.len());
                 }
             }
 
             else {
                 if json_mode {
+                    let mut images = Vec::with_capacity(image_uids.len());
+
+                    for image_uid in image_uids.iter() {
+                        images.push(index.get_image_schema(*image_uid, false)?);
+                    }
+
                     println!(
                         "{}",
                         serde_json::to_string_pretty(&images.prettify()?)?,
@@ -1288,9 +1335,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 }
 
                 else {
-                    println!("{} images", images.len());
+                    println!("{} images", image_uids.len());
 
-                    for image in images.iter() {
+                    for image_uid in image_uids.iter() {
+                        let image = index.get_image_schema(*image_uid, false)?;
+
                         println!("--------");
                         println!("uid: {}", image.uid.abbrev(abbrev));
                         println!("explanation: {}", image.explanation);

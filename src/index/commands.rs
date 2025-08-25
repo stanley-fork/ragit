@@ -27,6 +27,7 @@ mod uid;
 pub use add::{AddMode, AddResult};
 pub use audit::Audit;
 pub use build::BuildResult;
+pub use ls::UidOrStagedFile;
 pub use merge::{MergeMode, MergeResult};
 pub use migrate::{VersionInfo, get_compatibility_warning};
 pub use pull::PullResult;
