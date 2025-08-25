@@ -51,6 +51,7 @@ impl Index {
         output: String,
         include_configs: bool,
         include_prompts: bool,
+        include_queries: bool,
         force: bool,
         quiet: bool,
     ) -> Result<(), Error> {
@@ -84,6 +85,7 @@ impl Index {
             output.clone(),
             include_configs,
             include_prompts,
+            include_queries,
             quiet,
         ) {
             Ok(()) => Ok(()),
@@ -149,6 +151,7 @@ impl Index {
         output: String,
         include_configs: bool,
         include_prompts: bool,
+        include_queries: bool,
         quiet: bool,
     ) -> Result<(), Error> {
         let mut curr_block = vec![];
@@ -179,6 +182,36 @@ impl Index {
         if include_configs {
             workers[round_robin % workers.len()].send(Request::Compress(BlockType::Config, vec![])).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
             round_robin += 1;
+        }
+
+        if include_queries {
+            for query_history in self.get_all_query_history_files()? {
+                // Since it's uncompressed json file, `file_size` almost correct.
+                let curr_query_size = file_size(&query_history)? as usize;
+                let uid = Uid::from_prefix_and_suffix(
+                    &file_name(&parent(&query_history)?)?,
+                    &file_name(&query_history)?,
+                )?;
+
+                if curr_query_size + curr_block_size > BLOCK_SIZE {
+                    workers[round_robin % workers.len()].send(Request::Compress(BlockType::Chunk, curr_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
+                    curr_block = vec![uid];
+                    curr_block_size = curr_query_size;
+                    round_robin += 1;
+                }
+
+                else {
+                    curr_block_size += curr_query_size;
+                    curr_block.push(uid);
+                }
+            }
+
+            if !curr_block.is_empty() {
+                workers[round_robin % workers.len()].send(Request::Compress(BlockType::Chunk, curr_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
+                round_robin += 1;
+                curr_block = vec![];
+                curr_block_size = 0;
+            }
         }
 
         for file_index in self.get_all_file_indexes()? {
@@ -535,6 +568,16 @@ fn event_loop(
                         compress(&bytes, compression_level)?
                     },
                     BlockType::Splitted { .. } => unreachable!(),
+                    BlockType::QueryHistory => {
+                        let mut query_histories = Vec::with_capacity(uids.len());
+
+                        for uid in uids.iter() {
+                            query_histories.push(index.get_query_by_uid(*uid)?);
+                        }
+
+                        let bytes = serde_json::to_vec(&query_histories)?;
+                        compress(&bytes, compression_level)?
+                    },
                 };
 
                 if !block_data.is_empty() {

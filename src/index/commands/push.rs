@@ -27,6 +27,7 @@ impl Index {
         mut remote: Option<String>,
         include_configs: bool,
         include_prompts: bool,
+        include_queries: bool,
         quiet: bool,
     ) -> Result<PushResult, Error> {
         if remote.is_none() {
@@ -90,6 +91,7 @@ impl Index {
             join(&archives_at, "ar")?,
             include_configs,
             include_prompts,
+            include_queries,
             false,
             quiet,
         )?;

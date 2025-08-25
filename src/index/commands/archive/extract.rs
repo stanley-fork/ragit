@@ -15,6 +15,7 @@ use crate::index::{
     Index,
     LoadMode,
 };
+use crate::query::{QueryTurn, log_query_history};
 use crate::uid::Uid;
 use ragit_fs::{
     WriteMode,
@@ -390,6 +391,16 @@ fn event_loop(
                                 3,
                                 &root_dir,
                                 false,  // create tfidf
+                            )?;
+                        }
+                    },
+                    BlockType::QueryHistory => {
+                        let query_histories = serde_json::from_slice::<Vec<Vec<QueryTurn>>>(&bytes)?;
+
+                        for query_history in query_histories.iter() {
+                            log_query_history(
+                                &root_dir,
+                                &query_history,
                             )?;
                         }
                     },

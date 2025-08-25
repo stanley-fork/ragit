@@ -8,7 +8,8 @@ rag-push - Push a knowledge-base to remote
 SYNOPSIS
 --------
 [verse]
-'rag push' [--remote=<remote url>] [--[no-]configs] [--[no-]prompts] [--quiet | -q]
+'rag push' [--remote=<remote url>] [--[no-]configs] [--[no-]prompts]
+            [--[no-]queries] [--quiet | -q]
 
 DESCRIPTION
 -----------
@@ -24,3 +25,6 @@ of ragithub you're using.
 
 If the knowledge-base in the server is private, you need an api key. You have
 to set `RAGIT_API_KEY` environment variable.
+
+It uses archive format to send data to server. Run `rag help archive` to see
+more information about the archives.

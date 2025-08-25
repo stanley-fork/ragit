@@ -404,31 +404,35 @@ impl Index {
     }
 
     pub fn log_query_history(&self, turns: &[QueryTurn]) -> Result<(), Error> {
-        if turns.is_empty() {
-            return Err(Error::NoQueryToLog);
-        }
-
-        let uid = Uid::new_query_turn(&turns[0]);
-        let query_path = Index::get_uid_path(
-            &self.root_dir,
-            QUERY_HISTORY_DIR_NAME,
-            uid,
-            Some("json"),
-        )?;
-
-        // Logging queries is added at ragit 0.4.3, so older knowledge-base
-        // do not have this directory. We have to create one.
-        if !exists(&parent(&query_path)?) {
-            create_dir_all(&parent(&query_path)?)?;
-        }
-
-        write_string(
-            &query_path,
-            &serde_json::to_string_pretty(turns)?,
-            WriteMode::Atomic,
-        )?;
-        Ok(())
+        log_query_history(&self.root_dir, turns)
     }
+}
+
+pub(crate) fn log_query_history(root_dir: &str, turns: &[QueryTurn]) -> Result<(), Error> {
+    if turns.is_empty() {
+        return Err(Error::NoQueryToLog);
+    }
+
+    let uid = Uid::new_query_turn(&turns[0]);
+    let query_path = Index::get_uid_path(
+        root_dir,
+        QUERY_HISTORY_DIR_NAME,
+        uid,
+        Some("json"),
+    )?;
+
+    // Logging queries is added at ragit 0.4.3, so older knowledge-base
+    // do not have this directory. We have to create one.
+    if !exists(&parent(&query_path)?) {
+        create_dir_all(&parent(&query_path)?)?;
+    }
+
+    write_string(
+        &query_path,
+        &serde_json::to_string_pretty(turns)?,
+        WriteMode::Atomic,
+    )?;
+    Ok(())
 }
 
 /// Ragit supports multi-turn conversations. Since the pipeline

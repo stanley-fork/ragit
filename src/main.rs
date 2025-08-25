@@ -216,6 +216,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .arg_flag("--output", ArgType::String)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
+                .flag_with_default(&["--no-queries", "--queries"])
                 .optional_flag(&["--force"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--force", "--output", "--quiet"])
@@ -232,6 +233,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let output = parsed_args.arg_flags.get("--output").as_ref().unwrap().to_string();
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
+            let include_queries = parsed_args.get_flag(1).unwrap() == "--queries";
             let force = parsed_args.get_flag(2).is_some();
             let quiet = parsed_args.get_flag(3).is_some();
             index.create_archive(
@@ -240,6 +242,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 output,
                 include_configs,
                 include_prompts,
+                include_queries,
                 force,
                 quiet,
             )?;
@@ -2180,6 +2183,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--remote", ArgType::String)
                 .flag_with_default(&["--no-configs", "--configs"])
                 .flag_with_default(&["--no-prompts", "--prompts"])
+                .flag_with_default(&["--no-queries", "--queries"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .parse(&args, 2)?;
@@ -2193,11 +2197,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let remote = parsed_args.arg_flags.get("--remote").map(|s| s.to_string());
             let include_configs = parsed_args.get_flag(0).unwrap() == "--configs";
             let include_prompts = parsed_args.get_flag(1).unwrap() == "--prompts";
+            let include_queries = parsed_args.get_flag(1).unwrap() == "--queries";
             let quiet = parsed_args.get_flag(2).is_some();
             let result = index.push(
                 remote,
                 include_configs,
                 include_prompts,
+                include_queries,
                 quiet,
             ).await?;
 

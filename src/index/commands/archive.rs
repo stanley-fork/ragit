@@ -18,6 +18,7 @@ pub enum BlockType {
     Prompt,
     Config,
     Splitted,
+    QueryHistory,
 }
 
 impl BlockType {
@@ -31,6 +32,7 @@ impl BlockType {
             BlockType::Prompt => 5,
             BlockType::Config => 6,
             BlockType::Splitted => 7,
+            BlockType::QueryHistory => 8,
         }
     }
 }
@@ -47,6 +49,8 @@ impl TryFrom<u8> for BlockType {
             4 => Ok(BlockType::Meta),
             5 => Ok(BlockType::Prompt),
             6 => Ok(BlockType::Config),
+            7 => Ok(BlockType::Splitted),
+            8 => Ok(BlockType::QueryHistory),
             _ => Err(()),
         }
     }
