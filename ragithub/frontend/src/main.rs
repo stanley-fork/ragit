@@ -469,9 +469,12 @@ async fn main() {
                     let headers = info.request_headers();
 
                     write_log(
-                        &info.remote_addr().map(
-                            |remote_addr| remote_addr.to_string()
-                        ).unwrap_or_else(|| String::from("NO REMOTE ADDR")),
+                        // NOTE: It's used to be `info.remote_addr`, but is now `info.host`
+                        // because warp 0.4.2 doesn't have the method anymore. I'm not sure
+                        // whether the 2 are the same thing.
+                        &info.host().map(
+                            |host| host.to_string()
+                        ).unwrap_or_else(|| String::from("CANNOT FIND HOST")),
                         &format!(
                             "{:4} {:16} {:4} {headers:?}",
                             info.method().as_str(),

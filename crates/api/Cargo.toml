@@ -8,17 +8,16 @@ repository = "https://github.com/baehyunsol/ragit"
 documentation = "https://docs.rs/ragit-api"
 
 [dependencies]
-async-std = "1.13.0"
+async-std = "1.13.2"
 base64 = "0.22.1"
-chrono = "0.4.40"
-clap = { version = "4.5.26", features = ["derive"] }
+chrono = "0.4.41"
 futures = "0.3.31"
-image = "0.25.5"
+image = "0.25.6"
 lazy_static = "1.5.0"
 ragit-fs = { path = "../fs", version = "0.4.3", features = ["log"] }
 ragit-pdl = { path = "../pdl", version = "0.4.3" }
-reqwest = "0.12.12"
-serde = { version = "1.0.218", features = ["derive"] }
-serde_json = "1.0.139"
+reqwest = "0.12.23"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.143"
 tera = "1.20.0"
-tokio = { version = "1.43.0", features = ["full"] }
+tokio = { version = "1.47.1", features = ["full"] }
