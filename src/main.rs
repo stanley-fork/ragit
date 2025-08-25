@@ -887,6 +887,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
+                .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
                 .short_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Any)  // uid or path
                 .parse(&args, 2)?;
@@ -899,6 +900,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let json_mode = parsed_args.get_flag(1).is_some();
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
@@ -969,7 +971,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         "{}",
                         serde_json::to_string_pretty(
                             &chunks.iter().map(
-                                |chunk| chunk.uid.to_string()
+                                |chunk| chunk.uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
@@ -986,13 +988,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             else {
                 for chunk in chunks.iter() {
                     if uid_only {
-                        println!("{}", chunk.uid);
+                        println!("{}", chunk.uid.abbrev(abbrev));
                         continue;
                     }
 
                     println!("----------");
                     println!("{}", chunk.render_source());
-                    println!("uid: {}", chunk.uid);
+                    println!("uid: {}", chunk.uid.abbrev(abbrev));
                     println!("character_len: {}", chunk.char_len);
                     println!("title: {}", chunk.title);
                     println!("summary: {}", chunk.summary);
@@ -1004,6 +1006,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--name-only", "--uid-only", "--stat-only"])
                 .optional_flag(&["--staged", "--processed"])
                 .optional_flag(&["--json"])
+                .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
                 .short_flag(&["--json"])
                 .alias("--cached", "--staged")
                 .args(ArgType::String, ArgCount::Any)  // uid or path
@@ -1020,6 +1023,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let staged = parsed_args.get_flag(1).unwrap_or(String::from("--staged")) == "--staged";
             let processed = parsed_args.get_flag(1).unwrap_or(String::from("--processed")) == "--processed";
             let json_mode = parsed_args.get_flag(2).is_some();
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
@@ -1128,7 +1132,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         "{}",
                         serde_json::to_string_pretty(
                             &files.iter().map(
-                                |file| file.uid.to_string()
+                                |file| file.uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
@@ -1150,7 +1154,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
 
                     else if uid_only {
-                        println!("{}", file.uid);
+                        println!("{}", file.uid.abbrev(abbrev));
                         continue;
                     }
 
@@ -1159,7 +1163,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                     if file.is_processed {
                         println!("length: {}", file.length);
-                        println!("uid: {}", file.uid);
+                        println!("uid: {}", file.uid.abbrev(abbrev));
                         println!("chunks: {}", file.chunks);
                     }
                 }
@@ -1169,6 +1173,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only", "--stat-only"])
                 .optional_flag(&["--json"])
+                .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
                 .short_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Any)  // uid or path
                 .parse(&args, 2)?;
@@ -1181,6 +1186,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let json_mode = parsed_args.get_flag(1).is_some();
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
@@ -1250,7 +1256,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         "{}",
                         serde_json::to_string_pretty(
                             &images.iter().map(
-                                |image| image.uid.to_string()
+                                |image| image.uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
@@ -1258,7 +1264,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 else {
                     for image in images.iter() {
-                        println!("{}", image.uid);
+                        println!("{}", image.uid.abbrev(abbrev));
                     }
                 }
             }
@@ -1286,7 +1292,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                     for image in images.iter() {
                         println!("--------");
-                        println!("uid: {}", image.uid);
+                        println!("uid: {}", image.uid.abbrev(abbrev));
                         println!("explanation: {}", image.explanation);
                         println!("extracted_text: {}", image.extracted_text);
                         println!("size: {}", image.size);
@@ -1412,6 +1418,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only", "--stat-only", "--content-only"])
                 .optional_flag(&["--json"])
+                .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
                 .short_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Any)  // uid
                 .parse(&args, 2)?;
@@ -1425,6 +1432,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
             let content_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--content-only";
             let json_mode = parsed_args.get_flag(1).is_some();
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let args = parsed_args.get_args();
 
@@ -1469,14 +1477,14 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 if json_mode {
                     println!(
                         "{}",
-                        serde_json::to_string_pretty(&queries.iter().map(|uid| uid.to_string()).collect::<Vec<_>>())?,
+                        serde_json::to_string_pretty(&queries.iter().map(|uid| uid.abbrev(abbrev)).collect::<Vec<_>>())?,
                     );
                 }
 
                 else {
                     println!(
                         "{}",
-                        queries.iter().map(|uid| uid.to_string()).collect::<Vec<_>>().join("\n"),
+                        queries.iter().map(|uid| uid.abbrev(abbrev)).collect::<Vec<_>>().join("\n"),
                     );
                 }
             }
@@ -1514,7 +1522,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                         else {
                             println!("--------");
-                            println!("uid: {}", uid.get_short_name());
+                            println!("uid: {}", uid.abbrev(abbrev));
                             println!(
                                 "query: {}",
                                 if query[0].query.len() > 80 {
@@ -2379,6 +2387,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .flag_with_default(&["--rerank", "--no-rerank"])
                 .optional_arg_flag("--max-retrieval", ArgType::uinteger())
                 .optional_arg_flag("--max-summaries", ArgType::uinteger())
+                .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
                 .short_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Exact(1))  // query
                 .parse(&args, 2)?;
@@ -2391,6 +2400,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let uid_only = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
             let rerank = parsed_args.get_flag(2).unwrap() == "--rerank";
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
             let max_retrieval = match parsed_args.arg_flags.get("--max-chunks") {
@@ -2439,7 +2449,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         "{}",
                         serde_json::to_string_pretty(
                             &chunks.iter().map(
-                                |chunk| chunk.uid.to_string()
+                                |chunk| chunk.uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
@@ -2451,7 +2461,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         serde_json::to_string_pretty(
                             &chunks.iter().map(
                                 |chunk| [
-                                    (String::from("uid"), chunk.uid.to_string().into()),
+                                    (String::from("uid"), chunk.uid.abbrev(abbrev).into()),
                                     (String::from("source"), chunk.render_source().into()),
                                     (String::from("title"), chunk.title.to_string().into()),
                                     (String::from("summary"), chunk.summary.to_string().into()),
@@ -2470,7 +2480,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
 
                     println!("--------------------------");
-                    println!("uid: {}", chunk.uid);
+                    println!("uid: {}", chunk.uid.abbrev(abbrev));
                     println!("source: {}", chunk.render_source());
                     println!("title: {}", chunk.title);
                     println!("summary: {}", chunk.summary);
@@ -2624,6 +2634,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--json"])
                 .flag_with_default(&["--keyword", "--query"])
                 .arg_flag_with_default("--limit", "10", ArgType::uinteger())
+                .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
                 .short_flag(&["--json"])
                 .args(ArgType::String, ArgCount::Exact(1))
                 .parse(&args, 2)?;
@@ -2636,6 +2647,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let uid_only = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
             let query_mode = parsed_args.get_flag(2).unwrap_or(String::new()) == "--query";
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
 
             let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
             let started_at = std::time::Instant::now();
@@ -2701,7 +2713,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         "{}",
                         serde_json::to_string_pretty(
                             &chunks.iter().map(
-                                |chunk| chunk.uid.to_string()
+                                |chunk| chunk.uid.abbrev(abbrev)
                             ).collect::<Vec<_>>(),
                         )?,
                     );
@@ -2714,7 +2726,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                             &tfidf_results.iter().zip(chunks.iter()).map(
                                 |(tfidf, chunk)| [
                                     (String::from("score"), Value::from(tfidf.score)),
-                                    (String::from("uid"), chunk.uid.to_string().into()),
+                                    (String::from("uid"), chunk.uid.abbrev(abbrev).into()),
                                     (String::from("source"), chunk.render_source().into()),
                                     (String::from("title"), chunk.title.to_string().into()),
                                     (String::from("summary"), chunk.summary.to_string().into()),
@@ -2728,13 +2740,13 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             else {
                 for (tfidf, chunk) in tfidf_results.iter().zip(chunks.iter()) {
                     if uid_only {
-                        println!("{}", chunk.uid);
+                        println!("{}", chunk.uid.abbrev(abbrev));
                         continue;
                     }
 
                     println!("--------------------------");
                     println!("score: {}", tfidf.score);
-                    println!("uid: {}", chunk.uid);
+                    println!("uid: {}", chunk.uid.abbrev(abbrev));
                     println!("source: {}", chunk.render_source());
                     println!("title: {}", chunk.title);
                     println!("summary: {}", chunk.summary);
@@ -2754,15 +2766,18 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
         },
         Some("uid") => {
-            let parsed_args = ArgParser::new().parse(&args, 2)?;
+            let parsed_args = ArgParser::new()
+                .arg_flag_with_default("--abbrev", "64", ArgType::integer_between(Some(4), Some(64)))
+                .parse(&args, 2)?;
 
             if parsed_args.show_help() {
                 println!("{}", include_str!("../docs/commands/uid.txt"));
                 return Ok(());
             }
 
+            let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
-            println!("{}", index.calculate_and_save_uid()?);
+            println!("{}", index.calculate_and_save_uid()?.abbrev(abbrev));
         },
         Some("version") => {
             let parsed_args = ArgParser::new()

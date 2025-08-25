@@ -8,7 +8,7 @@ rag-uid - Display uid of the knowledge-base.
 SYNOPSIS
 --------
 [verse]
-'rag uid'
+'rag uid' [--abbrev <n=64>]
 
 DESCRIPTION
 -----------

@@ -8,13 +8,18 @@ rag-ls-chunks - Show information about chunks
 SYNOPSIS
 --------
 [verse]
-'rag ls-chunks' [--uid-only | --stat-only] [--json | -j] [<uid>..]
+'rag ls-chunks' [--uid-only | --stat-only] [--json | -j] [--abbrev <n=9>]
+            [<uid>..]
 
 DESCRIPTION
 -----------
 Run `rag help uid-query` to read how uid-query works. If the uid is of a chunk,
 if shows the information about the chunk. If it's a file, it shows the
 information about the chunks of the file. If it's an image, it dies.
+
+Instead of showing the full 64-byte uid, it shows the first `n` bytes of uid,
+where `n` is set by `--abbrev` option. Unlike git, it doesn't use any
+heuristics to guarantee that the abbreviated uid is unique.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

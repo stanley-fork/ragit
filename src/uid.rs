@@ -383,15 +383,20 @@ impl Uid {
         format!("{:030x}{:032x}", self.high & 0xff_ffff_ffff_ffff_ffff_ffff_ffff_ffff, self.low)
     }
 
-    pub fn get_short_name(&self) -> String {
-        format!("{:08x}", self.high >> 96)
-    }
-
     /// It returns the first `n` characters of the uid.
-    /// It returns the full uid if `n` is greater than 64.
+    /// It returns the full uid if `n` is greater than or equal to 64.
     pub fn abbrev(&self, n: usize) -> String {
-        let s = self.to_string();
-        s.get(0..n.min(64)).unwrap().to_string()
+        match n {
+            0 => String::new(),
+            1..=32 => {
+                let s = format!("{:032x}", self.high);
+                s.get(0..n).unwrap().to_string()
+            },
+            33.. => {
+                let s = self.to_string();
+                s.get(0..n.min(64)).unwrap().to_string()
+            },
+        }
     }
 
     pub fn is_valid_prefix(s: &str) -> bool {

@@ -8,7 +8,7 @@ rag-retrieve-chunks - Retrive chunks that are relevant to a query
 SYNOPSIS
 --------
 [verse]
-'rag retrive-chunks' [--uid-only] [--max-retrieval <n>]
+'rag retrive-chunks' [--uid-only] [--max-retrieval <n>] [--abbrev <n=9>]
             [--max-summaries <n>] [--[no-]rerank] [--json | -j] <query>
 
 DESCRIPTION
@@ -23,6 +23,10 @@ If it's not set, it uses the value in config.
 `max-retrieval` decides how many chunks are selected by reranker (step 4).
 If it's not, it uses the value in config. If `--no-rerank` is set, this
 value is ignored.
+
+Instead of showing the full 64-byte uid, it shows the first `n` bytes of uid,
+where `n` is set by `--abbrev` option. Unlike git, it doesn't use any
+heuristics to guarantee that the abbreviated uid is unique.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 

@@ -9,7 +9,8 @@ SYNOPSIS
 --------
 [verse]
 'rag ls-files' [--name-only | --stat-only | --uid-only]
-            [--staged | --processed] [--json | -j] [<uid>..]
+            [--staged | --processed] [--json | -j] [--abbrev <n=9>]
+            [<uid>..]
 
 DESCRIPTION
 -----------
@@ -18,6 +19,10 @@ or an image, it dies.
 
 If multiple files are matched, it shows the information about all the matched
 files.
+
+Instead of showing the full 64-byte uid, it shows the first `n` bytes of uid,
+where `n` is set by `--abbrev` option. Unlike git, it doesn't use any
+heuristics to guarantee that the abbreviated uid is unique.
 
 If `--json` is set, it dumps a valid json to stdout. Its schema is,
 
