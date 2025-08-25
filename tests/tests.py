@@ -1,3 +1,4 @@
+from abbrev import abbrev
 from add_and_rm import add_and_rm
 from add_and_rm2 import add_and_rm2
 from archive import archive
@@ -126,6 +127,9 @@ Commands
 
     merge                       run `merge` test
                                 It's like `external_bases` test, but with `--prefix` option.
+
+    abbrev                      run `abbrev` test
+                                It tests `--abbrev` option.
 
     add_and_rm                  run `add_and_rm` test
                                 It runs tons of `rag add` and `rag rm` with different options.
@@ -436,6 +440,9 @@ if __name__ == "__main__":
         elif command == "merge":
             merge()
 
+        elif command == "abbrev":
+            abbrev()
+
         elif command == "add_and_rm":
             add_and_rm()
 
@@ -702,6 +709,7 @@ if __name__ == "__main__":
             tests = [
                 ("cargo_tests", cargo_tests),
                 ("cargo_features", cargo_features),
+                ("abbrev", abbrev),
                 ("add_and_rm", add_and_rm),
                 ("add_and_rm2", add_and_rm2),
                 ("ignore", ignore),
