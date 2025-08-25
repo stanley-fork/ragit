@@ -13,6 +13,11 @@ def ls_queries():
 
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
+
+    # I want to make sure that the queries are sorted by timestamp. But if I do multiple
+    # queries in a second, they will have the same timestamp and I cannot compare them.
+    cargo_run(["config", "--set", "sleep_after_llm_call", "500"])
+
     write_string("sample.md", "Hello, World!")
     cargo_run(["add", "sample.md"])
     cargo_run(["build"])
@@ -104,3 +109,6 @@ def ls_queries():
     # There should be no queries
     assert len(json.loads(cargo_run(["ls-queries", "--json"], stdout=True))) == 0
     assert json.loads(cargo_run(["ls-queries", "--stat-only", "--json"], stdout=True))["queries"] == 0
+
+    # TODO: create a lot of query histories, and check if `ls-queries` sort them by timestamp
+    #       I have to check: with/without uid prefix, with/without --uid-only, with/without --json

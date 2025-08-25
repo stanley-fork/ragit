@@ -336,7 +336,10 @@ impl Uid {
 
         result = result.clear_metadata();
         result.low |= Uid::QUERY_TURN_TYPE;
-        result.low |= (turn.query.len() as u128) & 0xffff_ffff;
+
+        // It encodes the timestamp to uid, so that you can sort the query histories
+        // by uid. I know it makes my code messier, but it makes my life easier :)
+        result.low |= turn.timestamp.max(0) as u128 & 0xffff_ffff;
         result
     }
 

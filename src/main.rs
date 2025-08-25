@@ -1494,23 +1494,17 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     &|q| -q[0].timestamp,  // ORDER BY timestamp DESC
                 )?
             } else {
-                let query_uids = index.uid_query(&args, UidQueryConfig::new().query_history_only())?;
+                let mut query_uids = index.uid_query(&args, UidQueryConfig::new().query_history_only())?.query_histories;
 
                 if query_uids.is_empty() {
                     return Err(Error::UidQueryError(format!("There's no query history that matches `{}`.", args.join(" "))));
                 }
 
-                let mut query_uids_with_timestamp = Vec::with_capacity(query_uids.len());
-
-                for query_uid in query_uids.query_histories.iter() {
-                    let query = index.get_query_schema(*query_uid)?;
-                    query_uids_with_timestamp.push((*query_uid, query[0].timestamp));
-                }
-
-                query_uids_with_timestamp.sort_by_key(|(_, timestamp)| -*timestamp);
-                query_uids_with_timestamp.iter().map(
-                    |(uid, _)| *uid
-                ).collect()
+                // The last 8 characters of uid is a timestamp.
+                query_uids.sort_by_key(
+                    |uid| u32::MAX - u32::from_str_radix(uid.to_string().get(56..64).unwrap(), 16).unwrap()
+                );
+                query_uids
             };
 
             if stat_only {
