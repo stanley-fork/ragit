@@ -20,11 +20,11 @@ use crate::constant::{
     MODEL_FILE_NAME,
     PROMPT_DIR_NAME,
     QUERY_CONFIG_FILE_NAME,
-    QUERY_LOG_DIR_NAME,
+    QUERY_HISTORY_DIR_NAME,
 };
 use crate::error::Error;
 use crate::prompts::PROMPTS;
-use crate::query::{Keywords, QueryConfig};
+use crate::query::{Keywords, QueryConfig, QueryTurn};
 use crate::uid::{self, Uid, UidWriteMode};
 use ragit_api::{
     Model,
@@ -193,7 +193,7 @@ impl Index {
             IMAGE_DIR_NAME,
             FILE_INDEX_DIR_NAME,
             II_DIR_NAME,
-            QUERY_LOG_DIR_NAME,
+            QUERY_HISTORY_DIR_NAME,
         ] {
             create_dir_all(&Index::get_rag_path(
                 &root_dir,
@@ -305,7 +305,19 @@ impl Index {
         // Load models before initializing API config to ensure we can validate the model
         result.load_or_init_prompts()?;
         result.load_or_init_models()?;
-        
+
+        // `.ragit/queries/` is added at version 0.4.3, so older knowledge-bases do not
+        // have this directory.
+        let query_history_dir = join3(
+            &result.root_dir,
+            INDEX_DIR_NAME,
+            QUERY_HISTORY_DIR_NAME,
+        )?;
+
+        if !exists(&query_history_dir) {
+            create_dir_all(&query_history_dir)?;
+        }
+
         // Check if the model in api_config exists in the loaded models
         let model_exists = ragit_api::get_model_by_name(&result.models, &result.api_config.model).is_ok();
 
@@ -503,6 +515,24 @@ impl Index {
         Ok(result)
     }
 
+    pub fn get_all_query_history_files(&self) -> Result<Vec<Path>, Error> {
+        let mut result = vec![];
+
+        for internal in read_dir(&join3(&self.root_dir, &INDEX_DIR_NAME, &QUERY_HISTORY_DIR_NAME)?, false)? {
+            if !is_dir(&internal) {
+                continue;
+            }
+
+            for query_history_file in read_dir(&internal, false)? {
+                result.push(query_history_file.to_string());
+            }
+        }
+
+        // the result has to be deterministic
+        result.sort();
+        Ok(result)
+    }
+
     async fn add_image_description(&self, uid: Uid) -> Result<(), Error> {
         let description_path = Index::get_uid_path(
             &self.root_dir,
@@ -690,6 +720,25 @@ impl Index {
 
         result.uid = Some(uid);
         Ok(result)
+    }
+
+    pub fn get_query_by_uid(
+        &self,
+        uid: Uid,
+    ) -> Result<Vec<QueryTurn>, Error> {
+        let query_at = Index::get_uid_path(
+            &self.root_dir,
+            QUERY_HISTORY_DIR_NAME,
+            uid,
+            Some("json"),
+        )?;
+
+        if exists(&query_at) {
+            let q = read_string(&query_at)?;
+            return Ok(serde_json::from_str(&q)?);
+        }
+
+        Err(Error::NoSuchQuery(uid))
     }
 
     // every path in index.json are relative path to root_dir

@@ -2,7 +2,7 @@
 
 Uid is like hash of git. For example, `git log` shows you commit hashes, and you use the hashes to branch, checkout, etc. There are also many commands that show you hash values of objects. In ragit, every chunk, file and image have uids. It's a 64 characters hexadecimal string. It's based on sha3-256 hash, but has more metadata.
 
-There are many commands that ask uid from you: `cat-file`, `ls-chunks`, `ls-files`, `ls-images` and `ls-terms`. For example, let's say "abcd1234" is a uid of a file, and "efgh5678" is a uid of a chunk. `rag ls-chunks abcd1234` shows you the chunks that belongs to "abcd1234" and `rag ls-terms efgh5678` shows you the term-frequency of "efab5678".
+There are many commands that ask uid from you: `cat-file`, `ls-chunks`, `ls-files`, `ls-images`, `ls-queries` and `ls-terms`. For example, let's say "abcd1234" is a uid of a file, and "efgh5678" is a uid of a chunk. `rag ls-chunks abcd1234` shows you the chunks that belongs to "abcd1234" and `rag ls-terms efgh5678` shows you the term-frequency of "efab5678".
 
 ## Full match
 

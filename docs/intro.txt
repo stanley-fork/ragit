@@ -35,6 +35,9 @@ Get information about a knowledge-base
 Query a knowledge-base
     query
 
+List query history
+    ls-queries
+
 Simulate each pipeline
     extract-keywords
     tfidf

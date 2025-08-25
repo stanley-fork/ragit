@@ -163,7 +163,7 @@ async fn get_content_(user: String, repo: String, uid: String, api_key: Option<S
         &repo,
     ).handle_error(400)?;
     let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
-    let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
+    let query = index.uid_query(&[uid.clone()], UidQueryConfig::new().no_query_history()).handle_error(400)?;
 
     let data = if query.has_multiple_matches() {
         return Err((400, format!("There are multiple file/chunk that match `{uid}`.")));
@@ -201,7 +201,7 @@ async fn get_cat_file_(user: String, repo: String, uid: String, api_key: Option<
         &repo,
     ).handle_error(400)?;
     let index = Index::load(rag_path, LoadMode::OnlyJson).handle_error(404)?;
-    let query = index.uid_query(&[uid.clone()], UidQueryConfig::new()).handle_error(400)?;
+    let query = index.uid_query(&[uid.clone()], UidQueryConfig::new().no_query_history()).handle_error(400)?;
 
     if query.has_multiple_matches() {
         Err((400, format!("There are multiple file/chunk that match `{uid}`.")))

@@ -19,6 +19,7 @@ pub enum Error {
     PromptMissing(String),
     IndexNotFound,
     NoSuchChunk(Uid),
+    NoSuchQuery(Uid),
     NoSuchFile { path: Option<Path>, uid: Option<Uid> },
     NoFileToRemove,
     NoRemoteToPullFrom,

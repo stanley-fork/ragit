@@ -1,7 +1,7 @@
 use chrono::Local;
 use crate::agent::AgentResponse;
 use crate::chunk::{Chunk, merge_and_convert_chunks};
-use crate::constant::QUERY_LOG_DIR_NAME;
+use crate::constant::QUERY_HISTORY_DIR_NAME;
 use crate::error::Error;
 use crate::index::Index;
 use crate::uid::Uid;
@@ -25,9 +25,11 @@ use tokio::task::JoinSet;
 
 pub mod config;
 mod keyword;
+mod render;
 
 pub use config::QueryConfig;
 pub use keyword::Keywords;
+pub use render::{RenderedQueryTurn, render_query_turns};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct QueryResponse {
@@ -48,6 +50,24 @@ impl QueryResponse {
             retrieved_chunks: response.retrieved_chunks(index)?,
             response: response.response.to_string(),
         })
+    }
+
+    pub fn render_with_source(&self) -> String {
+        format!(
+            "{}{}",
+            self.response,
+            if self.retrieved_chunks.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "\n---- source{} ----\n{}",
+                    if self.retrieved_chunks.len() == 1 { "" } else { "s" },
+                    self.retrieved_chunks.iter().map(
+                        |chunk| format!("{} ({})", chunk.render_source(), chunk.uid.abbrev(8))
+                    ).collect::<Vec<_>>().join("\n"),
+                )
+            },
+        )
     }
 }
 
@@ -383,7 +403,7 @@ impl Index {
         Ok(response)
     }
 
-    pub fn log_query(&self, turns: &[QueryTurn]) -> Result<(), Error> {
+    pub fn log_query_history(&self, turns: &[QueryTurn]) -> Result<(), Error> {
         if turns.is_empty() {
             return Err(Error::NoQueryToLog);
         }
@@ -391,9 +411,9 @@ impl Index {
         let uid = Uid::new_query_turn(&turns[0]);
         let query_path = Index::get_uid_path(
             &self.root_dir,
-            QUERY_LOG_DIR_NAME,
+            QUERY_HISTORY_DIR_NAME,
             uid,
-            None,
+            Some("json"),
         )?;
 
         // Logging queries is added at ragit 0.4.3, so older knowledge-base

@@ -1,5 +1,5 @@
 use async_recursion::async_recursion;
-use chrono::{Days, Local};
+use chrono::{DateTime, Days, Local};
 use ragit::{
     AddMode,
     AgentAction,
@@ -22,6 +22,7 @@ use ragit::{
     get_build_options,
     get_compatibility_warning,
     into_multi_modal_contents,
+    render_query_turns,
 };
 use ragit::schema::{ChunkSchema, Prettify};
 use ragit_api::{Model, ModelRaw, get_model_by_name};
@@ -471,6 +472,24 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 else {
                     std::io::stdout().write_all(&image.bytes)?;
+                }
+            }
+
+            else if let Some(query_uid) = query_result.get_query_history_uid() {
+                let query_turns = index.get_query_schema(query_uid)?;
+                let query_turns = render_query_turns(&query_turns);
+
+                if json_mode {
+                    println!("{}", serde_json::to_string_pretty(&query_turns)?);
+                }
+
+                else {
+                    for turn in query_turns.iter() {
+                        println!("<|{}|>", turn.role);
+                        println!("");
+                        println!("{}", turn.content);
+                        println!("");
+                    }
                 }
             }
 
@@ -1174,7 +1193,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
                 result
             } else {
-                let query = index.uid_query(&args, UidQueryConfig::new())?;
+                let query = index.uid_query(&args, UidQueryConfig::new().no_query_history())?;
                 let mut image_uids = vec![];
                 let mut matched_files = false;
                 let mut matched_chunks = false;
@@ -1386,6 +1405,137 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     println!("can_read_images: {}", model.can_read_images);
                     println!("dollars_per_1b_input_tokens: {}", model.dollars_per_1b_input_tokens);
                     println!("dollars_per_1b_output_tokens: {}", model.dollars_per_1b_output_tokens);
+                }
+            }
+        },
+        Some("ls-queries") => {
+            let parsed_args = ArgParser::new()
+                .optional_flag(&["--uid-only", "--stat-only", "--content-only"])
+                .optional_flag(&["--json"])
+                .short_flag(&["--json"])
+                .args(ArgType::String, ArgCount::Any)  // uid
+                .parse(&args, 2)?;
+
+            if parsed_args.show_help() {
+                println!("{}", include_str!("../docs/commands/ls-queries.txt"));
+                return Ok(());
+            }
+
+            let uid_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--uid-only";
+            let stat_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--stat-only";
+            let content_only = parsed_args.get_flag(0).unwrap_or(String::new()) == "--content-only";
+            let json_mode = parsed_args.get_flag(1).is_some();
+            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let args = parsed_args.get_args();
+
+            let queries = if args.is_empty() {
+                index.list_queries(
+                    &|_| true,  // no filter
+                    &|q| -q[0].timestamp,  // ORDER BY timestamp DESC
+                )?
+            } else {
+                let query_uids = index.uid_query(&args, UidQueryConfig::new().query_history_only())?;
+
+                if query_uids.is_empty() {
+                    return Err(Error::UidQueryError(format!("There's no query history that matches `{}`.", args.join(" "))));
+                }
+
+                let mut query_uids_with_timestamp = Vec::with_capacity(query_uids.len());
+
+                for query_uid in query_uids.query_histories.iter() {
+                    let query = index.get_query_schema(*query_uid)?;
+                    query_uids_with_timestamp.push((*query_uid, query[0].timestamp));
+                }
+
+                query_uids_with_timestamp.sort_by_key(|(_, timestamp)| -*timestamp);
+                query_uids_with_timestamp.iter().map(
+                    |(uid, _)| *uid
+                ).collect()
+            };
+
+            if stat_only {
+                if json_mode {
+                    println!("{}\"queries\": {}{}", "{", queries.len(), "}");
+                }
+
+                else {
+                    println!("{} queries", queries.len());
+                }
+
+                return Ok(());
+            }
+
+            if uid_only {
+                if json_mode {
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&queries.iter().map(|uid| uid.to_string()).collect::<Vec<_>>())?,
+                    );
+                }
+
+                else {
+                    println!(
+                        "{}",
+                        queries.iter().map(|uid| uid.to_string()).collect::<Vec<_>>().join("\n"),
+                    );
+                }
+            }
+
+            else {
+                let mut json_array: Vec<Value> = if json_mode {
+                    Vec::with_capacity(queries.len())
+                } else {
+                    vec![]
+                };
+
+                for uid in queries.iter() {
+                    let query = index.get_query_by_uid(*uid)?;
+
+                    // TODO: it has to include the uids of queries
+                    if json_mode {
+                        if content_only {
+                            json_array.push(serde_json::to_value(render_query_turns(&query))?);
+                        }
+
+                        else {
+                            json_array.push(query.prettify()?);
+                        }
+                    }
+
+                    else {
+                        if content_only {
+                            for turn in render_query_turns(&query).iter() {
+                                println!("<|{}|>", turn.role);
+                                println!("");
+                                println!("{}", turn.content);
+                                println!("");
+                            }
+                        }
+
+                        else {
+                            println!("--------");
+                            println!("uid: {}", uid.get_short_name());
+                            println!(
+                                "query: {}",
+                                if query[0].query.len() > 80 {
+                                    format!("{}...", String::from_utf8_lossy(&query[0].query.replace("\n", " ").as_bytes()[..80]))
+                                } else {
+                                    query[0].query.replace("\n", " ")
+                                },
+                            );
+                            println!("model: {}", query[0].response.model);
+                            println!(
+                                "created_at: {}",
+                                DateTime::from_timestamp(query[0].timestamp, 0).map(
+                                    |t| t.to_rfc3339()
+                                ).unwrap_or(String::from("error")),
+                            );
+                        }
+                    }
+                }
+
+                if json_mode {
+                    println!("{}", serde_json::to_string_pretty(&json_array)?);
                 }
             }
         },
@@ -2068,23 +2218,15 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         schema.clone(),
                         false,  // don't hide_summary
                     ).await?;
-                    index.log_query(&[QueryTurn::from_agent_response(&index, &query, &response)?])?;
+                    let turn = QueryTurn::from_agent_response(&index, &query, &response)?;
+                    index.log_query_history(&[turn.clone()])?;
 
                     if json_mode {
                         println!("{}", serde_json::to_string_pretty(&response)?);
                     }
 
                     else {
-                        println!("{}", response.response);
-                        let retrieved_chunks = response.retrieved_chunks(&index)?;
-
-                        if !retrieved_chunks.is_empty() {
-                            println!("\n---- sources ----");
-
-                            for chunk in retrieved_chunks.iter() {
-                                println!("{} ({})", chunk.render_source(), chunk.uid.get_short_name());
-                            }
-                        }
+                        println!("{}", turn.response.render_with_source());
                     }
                 },
                 (true, true, _, _) => {
@@ -2118,9 +2260,10 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                             history.clone(),
                             None,  // schema
                         ).await?;
-                        println!("{}", response.response);
+
+                        println!("{}", response.render_with_source());
                         history.push(QueryTurn::new(&curr_input, &response));
-                        index.log_query(&history)?;
+                        index.log_query_history(&history)?;
                     }
                 },
                 _ => {
@@ -2131,7 +2274,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                         schema.clone(),
                     ).await?;
                     let turn = QueryTurn::new(&query, &response);
-                    index.log_query(&[turn])?;
+                    index.log_query_history(&[turn])?;
 
                     if json_mode {
                         println!("{}", serde_json::to_string_pretty(&response.prettify()?)?);
@@ -2142,15 +2285,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     }
 
                     else {
-                        println!("{}", response.response);
-
-                        if !response.retrieved_chunks.is_empty() {
-                            println!("\n---- sources ----");
-
-                            for chunk in response.retrieved_chunks.iter() {
-                                println!("{} ({})", chunk.render_source(), chunk.uid.get_short_name());
-                            }
-                        }
+                        println!("{}", response.render_with_source());
                     }
                 },
             }
@@ -2699,6 +2834,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     "ls-files",
                     "ls-images",
                     "ls-models",
+                    "ls-queries",
                     "ls-terms",
                     "merge",
                     "meta",

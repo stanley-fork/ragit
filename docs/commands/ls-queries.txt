@@ -1,0 +1,31 @@
+rag-ls-queries(1)
+==========
+
+NAME
+----
+rag-ls-queries - List query histories
+
+SYNOPSIS
+--------
+[verse]
+'rag ls-queries' [--stat-only | --uid-only | --content-only] [--json | -j] [<uid>..]
+
+DESCRIPTION
+-----------
+Run `rag help uid-query` to read how uid-query works. If the uid is not of
+a query history, it dies.
+
+If you want to see a specific query history, run
+`rag ls-queries --content-only <query_uid>`.
+
+You can also continue a conversation with `rag query --continue <query_uid>`
+command.
+
+If `--json` is set, it dumps a valid json to stdout. Its schema is,
+
+- no flags: `[query: object]`
+- `--uid-only`: `[uid: string]`
+- `--stat-only`: `{ "queries": integer }`
+- `--content-only`: `[[{ "role": "user" | "assistant", "content": string }]]`
+  - It's an array of arraies because there are multiple query histories and
+    a query history has multiple turns.

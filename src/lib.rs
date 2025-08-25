@@ -59,6 +59,8 @@ pub use query::{
     QueryConfig,
     QueryResponse,
     QueryTurn,
+    RenderedQueryTurn,
+    render_query_turns,
 };
 pub use uid::{Uid, UidQueryConfig, UidQueryResult};
 

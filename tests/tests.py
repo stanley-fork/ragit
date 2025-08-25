@@ -29,6 +29,7 @@ from korean import korean
 from logs import logs
 from ls import ls
 from ls_dedup import ls_dedup
+from ls_queries import ls_queries
 from many_chunks import many_chunks
 from many_jobs import many_jobs
 from markdown_reader import markdown_reader
@@ -258,6 +259,13 @@ Commands
                                 There's a possibility that a chunk and a file have the same
                                 uid prefix. It tests whether ragit can deduplicate the same
                                 uids in such cases.
+
+    ls_queries                  run `ls_queries` test
+                                It runs `ls-queries` multiple times with different options,
+                                and check if it behaves as expected. It also tests other
+                                commands that deal with query histories. I implemented an
+                                extra test case instead of updating the `ls` test, because
+                                the test is getting too long.
 
     logs [model]                run `logs` test
                                 It checks if `rag config --set dump_log true` and
@@ -542,6 +550,9 @@ if __name__ == "__main__":
         elif command == "ls_dedup":
             ls_dedup()
 
+        elif command == "ls_queries":
+            ls_queries()
+
         elif command == "logs":
             if test_model is None or test_model == "dummy":
                 print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
@@ -714,6 +725,7 @@ if __name__ == "__main__":
                 ("many_jobs", many_jobs),
                 ("ls", ls),
                 ("ls_dedup", ls_dedup),
+                ("ls_queries", ls_queries),
                 ("meta", meta),
                 ("symlink", symlink),
                 ("gh_issue_20", gh_issue_20),

@@ -1,7 +1,13 @@
 use super::Index;
 use crate::chunk;
 use crate::error::Error;
-use crate::schema::{ChunkSchema, FileSchema, ImageSchema, ModelSchema};
+use crate::schema::{
+    ChunkSchema,
+    FileSchema,
+    ImageSchema,
+    ModelSchema,
+    QueryTurnSchema,
+};
 use crate::uid::Uid;
 use ragit_api::load_models;
 use ragit_fs::{file_name, parent};
@@ -129,5 +135,35 @@ impl Index {
 
         result.sort_by_key(sort_key);
         Ok(result)
+    }
+
+    /// `rag ls-queries`
+    ///
+    /// It iterates all the queries, which can be very expensive. If you know the uid of the query,
+    /// use `get_query_schema` instead.
+    pub fn list_queries<Filter, Sort, Key: Clone + Ord>(
+        &self,
+        filter: &Filter,
+        sort_key: &Sort,
+    ) -> Result<Vec<Uid>, Error> where Filter: Fn(&[QueryTurnSchema]) -> bool, Sort: Fn(&[QueryTurnSchema]) -> Key {
+        let mut result = vec![];
+
+        for query_file in self.get_all_query_history_files()? {
+            let query_uid = Uid::from_prefix_and_suffix(
+                &file_name(&parent(&query_file)?)?,
+                &file_name(&query_file)?,
+            )?;
+            let query = self.get_query_schema(query_uid)?;
+
+            if !filter(&query) {
+                continue;
+            }
+
+            let key = sort_key(&query);
+            result.push((query_uid, key));
+        }
+
+        result.sort_by_key(|(_, key)| key.clone());
+        Ok(result.into_iter().map(|(uid, _)| uid).collect())
     }
 }

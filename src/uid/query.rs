@@ -4,6 +4,7 @@ use crate::constant::{
     FILE_INDEX_DIR_NAME,
     IMAGE_DIR_NAME,
     INDEX_DIR_NAME,
+    QUERY_HISTORY_DIR_NAME,
 };
 use crate::error::Error;
 use crate::index::Index;
@@ -41,6 +42,7 @@ impl Index {
         let mut images_set = HashSet::new();
         let mut processed_files_map = HashMap::new();
         let mut staged_files_set = HashSet::new();
+        let mut query_histories_set = HashSet::new();
 
         for q in qs.iter() {
             let curr = self.uid_query_unit(q, config)?;
@@ -60,24 +62,31 @@ impl Index {
             for staged_file in curr.staged_files.iter() {
                 staged_files_set.insert(staged_file.to_string());
             }
+
+            for query_history in curr.query_histories.iter() {
+                query_histories_set.insert(*query_history);
+            }
         }
 
         let mut chunks = chunks_set.into_iter().collect::<Vec<_>>();
         let mut images = images_set.into_iter().collect::<Vec<_>>();
         let mut processed_files = processed_files_map.into_iter().map(|(uid, path)| (path, uid)).collect::<Vec<_>>();
         let mut staged_files = staged_files_set.into_iter().collect::<Vec<_>>();
+        let mut query_histories = query_histories_set.into_iter().collect::<Vec<_>>();
 
         // The result has to be deterministic
         chunks.sort();
         images.sort();
         processed_files.sort_by_key(|(_, uid)| *uid);
         staged_files.sort();
+        query_histories.sort();
 
         Ok(UidQueryResult {
             chunks,
             images,
             processed_files,
             staged_files,
+            query_histories,
         })
     }
 
@@ -89,6 +98,7 @@ impl Index {
         let mut chunks = vec![];
         let mut images = vec![];
         let mut staged_files = vec![];
+        let mut query_histories = vec![];
 
         // below 2 are for processed files
         let mut file_uids = vec![];
@@ -151,6 +161,26 @@ impl Index {
                         }
                     }
                 }
+
+                if config.search_query_history {
+                    for query_history_dir in read_dir(&join3(
+                        &self.root_dir,
+                        INDEX_DIR_NAME,
+                        QUERY_HISTORY_DIR_NAME,
+                    )?, false).unwrap_or(vec![]) {
+                        let query_history_prefix = file_name(&query_history_dir)?;
+
+                        if query_history_prefix.starts_with(q) {
+                            for query_history_file in read_dir(&query_history_dir, false)? {
+                                if extension(&query_history_file)?.unwrap_or(String::new()) != "json" {
+                                    continue;
+                                }
+
+                                query_histories.push(Uid::from_prefix_and_suffix(&query_history_prefix, &file_name(&query_history_file)?)?);
+                            }
+                        }
+                    }
+                }
             }
 
             else if q.len() == 2 {
@@ -192,6 +222,21 @@ impl Index {
                         }
 
                         images.push(Uid::from_prefix_and_suffix(q, &file_name(&image_file)?)?);
+                    }
+                }
+
+                if config.search_query_history {
+                    for query_history_file in read_dir(&join4(
+                        &self.root_dir,
+                        INDEX_DIR_NAME,
+                        QUERY_HISTORY_DIR_NAME,
+                        q,
+                    )?, false).unwrap_or(vec![]) {
+                        if extension(&query_history_file)?.unwrap_or(String::new()) != "json" {
+                            continue;
+                        }
+
+                        query_histories.push(Uid::from_prefix_and_suffix(q, &file_name(&query_history_file)?)?);
                     }
                 }
             }
@@ -318,6 +363,48 @@ impl Index {
                         }
                     }
                 }
+
+                if config.search_query_history {
+                    if q.len() == 64 {
+                        let query_history_at = join(
+                            &join3(
+                                &self.root_dir,
+                                INDEX_DIR_NAME,
+                                QUERY_HISTORY_DIR_NAME,
+                            )?,
+                            &join(
+                                &prefix,
+                                &set_extension(
+                                    &suffix,
+                                    "json",
+                                )?,
+                            )?,
+                        )?;
+
+                        if exists(&query_history_at) {
+                            query_histories.push(q.parse::<Uid>()?);
+                        }
+                    }
+
+                    else {
+                        for query_history_file in read_dir(&join4(
+                            &self.root_dir,
+                            INDEX_DIR_NAME,
+                            QUERY_HISTORY_DIR_NAME,
+                            &prefix,
+                        )?, false).unwrap_or(vec![]) {
+                            if extension(&query_history_file)?.unwrap_or(String::new()) != "json" {
+                                continue;
+                            }
+
+                            let query_history_file = file_name(&query_history_file)?;
+
+                            if query_history_file.starts_with(&suffix) {
+                                query_histories.push(Uid::from_prefix_and_suffix(&prefix, &query_history_file)?);
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -379,6 +466,7 @@ impl Index {
             images,
             processed_files,
             staged_files,
+            query_histories,
         })
     }
 }
@@ -389,6 +477,7 @@ pub struct UidQueryConfig {
     pub search_image: bool,
     pub search_file_path: bool,
     pub search_file_uid: bool,
+    pub search_query_history: bool,
 
     /// It searches staged files when both `search_file_path` and `search_staged_file` are set.
     pub search_staged_file: bool,
@@ -401,6 +490,7 @@ impl UidQueryConfig {
             search_image: true,
             search_file_path: true,
             search_file_uid: true,
+            search_query_history: true,
             search_staged_file: true,
         }
     }
@@ -410,6 +500,7 @@ impl UidQueryConfig {
         self.search_file_path = true;
         self.search_file_uid = true;
         self.search_image = false;
+        self.search_query_history = false;
         self
     }
 
@@ -418,6 +509,7 @@ impl UidQueryConfig {
         self.search_image = false;
         self.search_file_path = true;
         self.search_file_uid = true;
+        self.search_query_history = false;
         self
     }
 
@@ -426,11 +518,26 @@ impl UidQueryConfig {
         self.search_image = false;
         self.search_file_path = false;
         self.search_file_uid = false;
+        self.search_query_history = false;
+        self
+    }
+
+    pub fn query_history_only(mut self) -> Self {
+        self.search_chunk = false;
+        self.search_image = false;
+        self.search_file_path = false;
+        self.search_file_uid = false;
+        self.search_query_history = true;
         self
     }
 
     pub fn no_staged_file(mut self) -> Self {
         self.search_staged_file = false;
+        self
+    }
+
+    pub fn no_query_history(mut self) -> Self {
+        self.search_query_history = false;
         self
     }
 }
@@ -441,6 +548,7 @@ pub struct UidQueryResult {
     pub images: Vec<Uid>,
     pub processed_files: Vec<(String, Uid)>,
     pub staged_files: Vec<String>,
+    pub query_histories: Vec<Uid>,
 }
 
 impl UidQueryResult {
@@ -450,6 +558,7 @@ impl UidQueryResult {
             images: vec![],
             processed_files: vec![],
             staged_files: vec![],
+            query_histories: vec![],
         }
     }
 
@@ -462,7 +571,7 @@ impl UidQueryResult {
     }
 
     pub fn len(&self) -> usize {
-        self.chunks.len() + self.images.len() + self.processed_files.len() + self.staged_files.len()
+        self.chunks.len() + self.images.len() + self.processed_files.len() + self.staged_files.len() + self.query_histories.len()
     }
 
     pub fn get_chunk_uids(&self) -> Vec<Uid> {
@@ -522,6 +631,17 @@ impl UidQueryResult {
     pub fn get_image_uid(&self) -> Option<Uid> {
         if self.images.len() == 1 {
             Some(self.images[0])
+        }
+
+        else {
+            None
+        }
+    }
+
+    /// It returns `Some` iff there's only 1 match.
+    pub fn get_query_history_uid(&self) -> Option<Uid> {
+        if self.query_histories.len() == 1 {
+            Some(self.query_histories[0])
         }
 
         else {
