@@ -85,7 +85,7 @@ def ls():
         cargo_run(["check"])
 
     print("step 2: construct `file_map` from `ls-files`")
-    ls_files_result = cargo_run(["ls-files"], stdout=True).split("-----")
+    ls_files_result = cargo_run(["ls-files", "--abbrev=64"], stdout=True).split("-----")
 
     for file in ls_files_result:
         if "uid: " not in file:
@@ -94,7 +94,7 @@ def ls():
         lines = file.split("\n")
 
         for line in lines:
-            if (r := re.match(r"^uid\:\s([a-f0-9]{32,})$", line)) is not None:
+            if (r := re.match(r"^uid\:\s([a-f0-9]{64})$", line)) is not None:
                 file_uid = r.group(1)
 
             if (r := re.match(r"^name\:\s(.+)$", line)) is not None:
@@ -104,7 +104,7 @@ def ls():
         file_map[file_uid] = file_name
 
     print("step 3: construct `uid_map` from `ls-chunks`")
-    ls_chunks_result = cargo_run(["ls-chunks"], stdout=True).split(" chunk of ")
+    ls_chunks_result = cargo_run(["ls-chunks", "--abbrev=64"], stdout=True).split(" chunk of ")
 
     for chunk in ls_chunks_result:
         if "uid: " not in chunk:
@@ -114,7 +114,7 @@ def ls():
         file_name = lines[0]
 
         for line in lines:
-            if (r := re.match(r"^uid\:\s([a-f0-9]{32,})$", line)) is not None:
+            if (r := re.match(r"^uid\:\s([a-f0-9]{64})$", line)) is not None:
                 chunk_uid = r.group(1)
                 uid_map[chunk_uid] = file_map_rev[file_name]
                 break
@@ -123,7 +123,7 @@ def ls():
 
     for chunk_uid, file_uid in uid_map.items():
         for search_key in [chunk_uid, chunk_uid[:8]]:  # prefix search
-            ls_chunks_result = cargo_run(["ls-chunks", search_key], stdout=True)
+            ls_chunks_result = cargo_run(["ls-chunks", search_key, "--abbrev=64"], stdout=True)
             file_name = file_map[file_uid]
             assert chunk_uid in ls_chunks_result
             assert file_name in ls_chunks_result
@@ -140,7 +140,7 @@ def ls():
 
     for file_uid, file_name in file_map.items():
         for search_key in [file_uid, file_uid[:8], file_name]:
-            ls_chunks_result = cargo_run(["ls-chunks", search_key], stdout=True)
+            ls_chunks_result = cargo_run(["ls-chunks", search_key, "--abbrev=64"], stdout=True)
             assert file_name in ls_chunks_result
 
             for chunk_uid in uid_map.keys():
@@ -158,7 +158,7 @@ def ls():
 
     for file_uid, file_name in file_map.items():
         for search_key in [file_uid, file_uid[:8], file_name]:
-            ls_files_result = cargo_run(["ls-files", search_key], stdout=True)
+            ls_files_result = cargo_run(["ls-files", search_key, "--abbrev=64"], stdout=True)
             assert file_name in ls_files_result
             assert file_uid in ls_files_result
 
@@ -213,7 +213,7 @@ def ls():
     print("step 9: file path query in other directories")
     os.mkdir("dir")
     os.chdir("dir")
-    ls_files_result = cargo_run(["ls-files", f"../{file_names[0]}"], stdout=True)
+    ls_files_result = cargo_run(["ls-files", f"../{file_names[0]}", "--abbrev=64"], stdout=True)
     assert file_map_rev[file_names[0]] in ls_files_result
     assert file_map_rev[file_names[1]] not in ls_files_result
 
@@ -229,7 +229,7 @@ def ls():
     print("step 10: construct `image_uid_map` from `ls-images`")
 
     for file_name, image_name in file_image_map.items():
-        ls_images_result = cargo_run(["ls-images", file_name], stdout=True)
+        ls_images_result = cargo_run(["ls-images", file_name, "--abbrev=64"], stdout=True)
 
         for line in ls_images_result.split("\n"):
             if (r := re.match(r"uid\:\s([a-f0-9]{64})", line)) is not None:
@@ -243,7 +243,7 @@ def ls():
     for file_uid, file_name in file_map.items():
         for search_key in [file_uid, file_uid[:8], file_name]:
             if file_name in file_image_map:
-                ls_images_result = cargo_run(["ls-images", search_key], stdout=True)
+                ls_images_result = cargo_run(["ls-images", search_key, "--abbrev=64"], stdout=True)
                 image_uid = image_uid_map[file_image_map[file_name]]
                 assert image_uid in ls_images_result
 
@@ -261,7 +261,7 @@ def ls():
 
         for search_key in [chunk_uid, chunk_uid[:8]]:
             if file_name in file_image_map:
-                ls_images_result = cargo_run(["ls-images", search_key], stdout=True)
+                ls_images_result = cargo_run(["ls-images", search_key, "--abbrev=64"], stdout=True)
                 image_uid = image_uid_map[file_image_map[file_name]]
                 assert image_uid in ls_images_result
 
@@ -276,7 +276,7 @@ def ls():
     for image_uid in image_uid_map.values():
         for search_key in [image_uid, image_uid[:8]]:
             ls_images_result = cargo_run(["ls-images", search_key], stdout=True)
-            assert "1 images" in ls_images_result
+            assert "1 image" in ls_images_result
 
     print("step 14: make sure that `--json` option makes the output a valid json")
     sample_chunk_uid = list(uid_map.keys())[0]

@@ -52,7 +52,7 @@ def images2(test_model: str):
 
     # step 2: ls-images
     assert count_images() == 1
-    ls_file_result = cargo_run(["ls-files", "sample.md"], stdout=True)
+    ls_file_result = cargo_run(["ls-files", "sample.md", "--abbrev=64"], stdout=True)
     assert "1 total files" in ls_file_result
     file_uid = re.search(r"uid\:\s([0-9a-f]{64})", ls_file_result).group(1)
 

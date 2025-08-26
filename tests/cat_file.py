@@ -52,7 +52,7 @@ def cat_file():
     write_string("sample.md", "this is an image: ![sample](empty.png)")
     cargo_run(["add", "sample.md"])
     cargo_run(["build"])
-    image_uid = cargo_run(["ls-images", "--uid-only"], stdout=True).strip()
+    image_uid = cargo_run(["ls-images", "--uid-only", "--abbrev=64"], stdout=True).strip()
 
     with open("empty.png", "rb") as f:
         assert f.read() == cargo_run(["cat-file", image_uid], stdout=True, raw_output=True)

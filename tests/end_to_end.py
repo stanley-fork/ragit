@@ -90,11 +90,11 @@ def end_to_end(test_model: str):
     cargo_run(["check"])
 
     # step 4: ls-chunks
-    chunks = cargo_run(["ls-chunks"], stdout=True)
+    chunks = cargo_run(["ls-chunks", "--abbrev=32"], stdout=True)
     chunk_uids = []
 
     for line in chunks.split("\n"):
-        if (r := re.match(r"^uid\:\s([0-9a-f]{32,})$", line)) is not None:
+        if (r := re.match(r"^uid\:\s([0-9a-f]{32})$", line)) is not None:
             chunk_uids.append(r.group(1))
 
     # step 5: check whether tfidf index has token "ragit"

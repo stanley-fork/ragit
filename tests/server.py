@@ -50,7 +50,12 @@ def server():
             cargo_run(["uid"])  # `index.json` has `uid` field. in order to `assert_eq_json`, we have to init uid of the local index
             cargo_run(["push", "--configs", "--prompts", f"--remote=http://127.0.0.1:41127/test-user/{repo}/"])
             index_json = get_json(url="index", repo=repo)
-            assert_eq_json("index.json", index_json)
+
+            # running `rag init` in local initializes an ii, but not in server.
+            # That's intentional: local knowledge-base is usually for querying,
+            # and server is usually for storing. So building an ii for server
+            # is waste of time.
+            assert_eq_json("index.json", index_json, ignore_keys=["ii_status"])
 
             for config in ["build", "api", "query"]:
                 config_json = get_json(url=f"config/{config}", repo=repo)
@@ -65,10 +70,10 @@ def server():
             assert chunk_count == len(json.loads(cargo_run(["ls-chunks", "--json"], stdout=True)))
 
             all_chunk_uids = get_json(url="chunk-list", repo=repo)
-            all_chunk_uids_local = json.loads(cargo_run(["ls-chunks", "--json", "--uid-only"], stdout=True))
+            all_chunk_uids_local = json.loads(cargo_run(["ls-chunks", "--json", "--uid-only", "--abbrev=64"], stdout=True))
             assert set(all_chunk_uids) == set(all_chunk_uids_local)
 
-            all_image_uids = json.loads(cargo_run(["ls-images", "--json", "--uid-only"], stdout=True))
+            all_image_uids = json.loads(cargo_run(["ls-images", "--json", "--uid-only", "--abbrev=64"], stdout=True))
 
             for chunk_uid in all_chunk_uids:
                 chunk = get_json(url = f"chunk/{chunk_uid}", repo = repo)
@@ -91,7 +96,7 @@ def server():
 
                 if any([uid.startswith(prefix) for uid in all_chunk_uids]):
                     uids_from_api = get_json(url=f"chunk-list/{prefix}", repo=repo)
-                    uids_local = json.loads(cargo_run(["ls-chunks", "--json", "--uid-only", prefix], stdout=True))
+                    uids_local = json.loads(cargo_run(["ls-chunks", "--json", "--uid-only", prefix, "--abbrev=64"], stdout=True))
                     assert set(uids_from_api) == set(uids_local)
 
                 else:
@@ -99,7 +104,7 @@ def server():
 
                 if any([uid.startswith(prefix) for uid in all_image_uids]):
                     uids_from_api = get_json(url=f"image-list/{prefix}", repo=repo)
-                    uids_local = json.loads(cargo_run(["ls-images", "--json", "--uid-only", prefix], stdout=True))
+                    uids_local = json.loads(cargo_run(["ls-images", "--json", "--uid-only", prefix, "--abbrev=64"], stdout=True))
                     assert set(uids_from_api) == set(uids_local)
 
                 else:
@@ -391,8 +396,13 @@ def put_json(
         query=query,
     )
 
-def assert_eq_json(path: str, value):
+def assert_eq_json(path: str, value, ignore_keys: Optional[list[str]] = None):
     file = json.loads(read_string(os.path.join(".ragit", path)))
+
+    if ignore_keys is not None:
+        for key in ignore_keys:
+            file.pop(key)
+            value.pop(key)
 
     if file != value:
         raise ValueError(f"{file.__repr__()} != {value.__repr__()}")

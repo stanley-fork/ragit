@@ -13,7 +13,6 @@ def cargo_tests():
             ["cargo", "doc", "--features=csv,korean,pdf,svg"],
         ],
     )
-    os.chdir("crates")
 
     for crate in [
         "crates/api",
