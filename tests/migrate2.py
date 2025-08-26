@@ -6,10 +6,10 @@ from utils import cargo_run, goto_root, mk_and_cd_tmp_dir
 def migrate2():
     goto_root()
     mk_and_cd_tmp_dir()
-    curr_version = "0.4.2"
+    curr_version = "0.4.3"
 
     # ragit 0.2.1 or older versions are not compatible with the current implementation of ragit-server
-    for old_version in ["0.3.0", "0.3.5", "0.4.0"]:
+    for old_version in ["0.3.0", "0.3.5", "0.4.0", "0.4.2"]:
         checkout(old_version)
 
         for base, url in [
