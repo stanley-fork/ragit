@@ -57,8 +57,8 @@ def normalize_test_result(r: dict) -> Optional[dict]:
     return r
 
 def get_test_descriptions() -> dict[str, str]:  # dict[test_name, description]
-    # I don't want to import this script. I don't want to execute any line of ragit.
-    with open("../../ragit/tests/tests.py", "r") as f:
+    # I don't want to import this script.
+    with open("../../../tests/tests.py", "r") as f:
         d = f.read()
 
     help_message = re.search(r'help_message\s=\s"""(.+)"""', d, flags=re.DOTALL).group(1)
@@ -71,18 +71,17 @@ def get_test_descriptions() -> dict[str, str]:  # dict[test_name, description]
     return { [dd for dd in d.split(" ") if dd != ""][0]: d for d in descriptions }
 
 help_message = """
-Whatever you're doing, please make sure that you're at `ragithub/test-results/` and `../../ragit/` exists.
-
 # How to add new test result
 
 1. On whatever machine
   - Run test. Make sure to checkout to the most recent commit after you run the test.
-  - Copy `result.json` to `ragithub/test-results/result.json`.
+  - Copy `result.json` to `ragithub/frontend/test-results/result.json`.
+  - Cd to `ragithub/frontend/test-results/`
   - Run `python3 manage.py fetch_git_info`.
   - Run `python3 manage.py import`.
   - Git add, commit and push.
 2. On the server
-  - Run `git pull` (in `ragithub/`, not in `ragit/`).
+  - Run `git pull`.
   - Run `python3 manage.py fetch_git_info`.
   - Run `python3 manage.py create_index`.
 
@@ -90,7 +89,7 @@ Whatever you're doing, please make sure that you're at `ragithub/test-results/` 
 
 Remove the file in the file system and run `python3 manage.py create_index`.
 
-The remaining are the same as adding a result.
+The remaining is the same as adding a result.
 
 # If there're some updates with manage.py
 
@@ -225,10 +224,8 @@ if __name__ == "__main__":
                     },
                 }, ensure_ascii=False, indent=4))
 
-    # You should run this in `ragithub/test-results/` and `../../ragit` must exist.
     elif command == "fetch_git_info":
-        subprocess.run(["git", "-C", "../../ragit", "pull"])
-        log = subprocess.run(["git", "-C", "../../ragit", "log", "--pretty=%h<|delim|>%an<|delim|>%ae<|delim|>%at<|delim|>%s<|delim|>%b<|delim|>%p<|end-of-commit|>", "--abbrev=9"], capture_output=True, text=True).stdout
+        log = subprocess.run(["git", "log", "--pretty=%h<|delim|>%an<|delim|>%ae<|delim|>%at<|delim|>%s<|delim|>%b<|delim|>%p<|end-of-commit|>", "--abbrev=9"], capture_output=True, text=True).stdout
         commits = [commit.strip() for commit in log.split("<|end-of-commit|>") if commit.strip() != ""]
         commits = [
             {
