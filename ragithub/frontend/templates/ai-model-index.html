@@ -2,10 +2,100 @@
 
 {% block body %}
 
+<div class="flex-container-row-center">
+    <div class="flex-column">
+        <div class="search-bar-long">
+            <form class="search-bar-long" id="search-ai-model" method="post">
+                <div class="flex-container-row-center">
+                    {% if search_keyword %}
+                        <input class="search-bar" name="search" value="{{search_keyword}}" type="text">
+                    {% else %}
+                        <input class="search-bar" name="search" placeholder="Find ai models!" type="text">
+                    {% endif %}
+
+                    {# I want every information to be encoded in url. #}
+                    {# In order to do that, this form must include all the information in the query. #}
+                    <input name="tags" value="{{tags_str}}" type="text" style="display: none;">
+
+                    <input class="submit-button" type="submit" value="Search">
+                </div>
+            </form>
+        </div>
+        <div class="flex-container-row-center">
+            <div class="tags">
+                {% for tag in tags %}
+                    <a class={% if tag.selected %}"selected-tag"{% else %}"unselected-tag"{% endif %} href="?tags={{tag.href}}">{{tag.name}}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="model-list">
+    <div class="flex-container-lr model-list-header">
+        <div class="markdown">
+            models {{model_seq_start}} ~ {{model_seq_end}}
+
+            {% if prev_page_href %}
+                <a href="{{prev_page_href}}">prev page</a>
+            {% endif %}
+
+            {% if next_page_href %}
+                <a href="{{next_page_href}}">next page</a>
+            {% endif %}
+        </div>
+        <div>
+            Help (TODO)
+        </div>
+    </div>
+
     {% for model in models %}
         <div class="model-card">
-            {{model.name}}
+            <div class="flex-container-lr">
+                <div>{{model.name}}</div>
+                <div>
+                    <span class="tooltip-container">
+                        <a href="https://github.com/baehyunsol/ragit/issues/new"><svg width="18" height="18"><use href="#issue-icon"></svg></a>
+                        <span class="tooltip-message">
+                            Report Issue
+                        </span>
+                    </span>
+                    &nbsp;
+                    {# TODO: show download message #}
+                    <button id="download-button-{{loop.index}}" class="download-button" onclick="toggle_download_info_{{loop.index}}()">
+                        <svg width="18" height="18"><use href="#download-icon"></svg>
+                    </button>
+                    <div id="download-info-{{loop.index}}" class="download-info" style="display: none;">
+                        rag model --fetch '{{model.name}}'
+                        <svg width="16" height="16" onclick="copy_download_code_{{loop.index}}()">
+                            <use href="#copy-icon">
+                        </svg>
+                    </div>
+                    <script>
+                        var download_info_{{loop.index}} = document.getElementById("download-info-{{loop.index}}");
+                        var download_button_{{loop.index}} = document.getElementById("download-button-{{loop.index}}");
+                        var is_download_info_visible_{{loop.index}} = false;
+
+                        function toggle_download_info_{{loop.index}}() {
+                            if (is_download_info_visible_{{loop.index}}) {
+                                download_info_{{loop.index}}.style.display = "none";
+                                download_button_{{loop.index}}.style.backgroundColor = "var(--black)";
+                                download_button_{{loop.index}}.style.color = "var(--white)";
+                                is_download_info_visible_{{loop.index}} = false;
+                            } else {
+                                download_info_{{loop.index}}.style.display = "flex";
+                                download_button_{{loop.index}}.style.backgroundColor = "var(--white)";
+                                download_button_{{loop.index}}.style.color = "var(--black)";
+                                is_download_info_visible_{{loop.index}} = true;
+                            }
+                        }
+
+                        function copy_download_code_{{loop.index}}() {
+                          navigator.clipboard.writeText("rag model --fetch '{{model.name}}'");
+                        }
+                    </script>
+                </div>
+            </div>
 
             {% if model.explanation %}
                 <hr />
@@ -25,7 +115,7 @@
 
             {% if model.tags | length > 0 %}
                 <hr />
-                tags: {% for tag in model.tags %}<span class="model-tag"><a href="/model?tags={{tag}}">#{{tag}}</a></span>{% endfor %}
+                tags: {% for tag in model.tags %}<span class="model-tag"><a href="/ai-model?tags={{tag}}">#{{tag}}</a></span>{% endfor %}
             {% endif %}
         </div>
     {% endfor %}

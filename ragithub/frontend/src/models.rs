@@ -7,6 +7,7 @@ pub mod image;
 pub mod menu;
 pub mod repo;
 pub mod sort;
+pub mod tag;
 
 pub use ai_model::AiModel;
 pub use blog::BlogIndex;
@@ -22,3 +23,8 @@ pub use repo::{
     load_repositories,
 };
 pub use sort::SortCategory;
+pub use tag::{
+    Tag,
+    fetch_tags,
+    load_tags,
+};

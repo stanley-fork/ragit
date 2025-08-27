@@ -3,6 +3,7 @@ Cargo.lock
 *-logs*
 static/
 repositories.json
+tags.json
 test-results/commits
 test-results/history
 _index.json

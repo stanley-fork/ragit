@@ -17,6 +17,10 @@
         {% endif %}
         {% block head %}
         {% endblock head %}
+
+        {% if include_svgs %}
+            {% include "svgs.html" %}
+        {% endif %}
     </head>
     <body>
         {% if top_menu %}

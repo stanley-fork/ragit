@@ -49,8 +49,7 @@ pub async fn load_repositories() -> Result<Vec<RepoIndex>, Error> {
 
 fn load_repositories_worker() -> Result<Vec<RepoIndex>, Error> {
     let j = read_string("repositories.json")?;
-    let j: Vec<RepoIndex> = serde_json::from_str(&j)?;
-    Ok(j)
+    Ok(serde_json::from_str(&j)?)
 }
 
 pub async fn fetch_repositories() -> Result<(), Error> {

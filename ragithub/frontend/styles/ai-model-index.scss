@@ -15,6 +15,17 @@
     max-width: 800px;
     width: 80%;
     line-height: 1.2;
+
+    a svg {
+        color: var(--white);
+    }
+}
+
+.model-list-header {
+    margin-top: $padding-big;
+    margin-bottom: $padding-big;
+    max-width: 800px;
+    width: 80%;
 }
 
 .model-tag {
@@ -27,5 +38,77 @@
     a {
         color: var(--black);
         text-decoration: none;
+    }
+}
+
+// From here is copy-pasted from repo-index.scss.
+.tags {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: $padding-medium;
+    margin: $padding-medium;
+    width: 50%;
+
+    a {
+        margin: $padding-small;
+        padding: $padding-medium;
+        border-radius: 500px;
+    }
+
+    a.unselected-tag {
+        background-color: var(--black);
+        color: var(--white);
+    }
+
+    a.selected-tag {
+        background-color: var(--white);
+        color: var(--black);
+    }
+
+    a:link {
+        text-decoration: none;
+    }
+
+    a:visited {
+        text-decoration: none;
+    }
+}
+
+div.search-bar-long {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+
+    input.submit-button {
+        margin-left: $padding-small;
+    }
+}
+
+form.search-bar-long {
+    width: 80%;
+}
+
+button.download-button {
+    cursor: pointer;
+    background-color: var(--black);
+    color: var(--white);
+    border: none;
+    border-radius: 500px;
+}
+
+.download-info {
+    margin-top: $padding-medium;
+    padding: $padding-medium;
+    background-color: var(--dark);
+    border-radius: $round-border-big;
+    border: $border-big solid var(--gray);
+    position: absolute;
+    z-index: 1;
+    right: 0;
+
+    svg {
+        margin-left: $padding-medium;
+        cursor: pointer;
     }
 }

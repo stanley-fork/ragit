@@ -19,6 +19,7 @@ use ragit_pdl::ImageType;
 use ragithub_backend::utils::fetch_form_data;
 use std::collections::HashMap;
 use std::env;
+use std::time::Duration;
 use warp::Filter;
 use warp::filters::multipart::FormData;
 use warp::http::StatusCode;
@@ -61,7 +62,7 @@ async fn main() {
 
     goto_root().unwrap();
     init_server().unwrap();
-    tokio::spawn(methods::background_worker());
+    tokio::spawn(methods::background_worker(Duration::from_secs(300)));
 
     // GET `/`
     let get_index_handler = warp::get()
@@ -188,11 +189,12 @@ async fn main() {
         .then(get_image_detail)
         .or(warp::fs::dir("./static"));
 
-    let get_model_index_handler = warp::get()
-        .and(warp::path("model"))
+    // GET `/ai-model`
+    let get_ai_model_index_handler = warp::get()
+        .and(warp::path("ai-model"))
         .and(warp::query::<HashMap<String, String>>())
         .and(warp::path::end())
-        .then(get_model_index)
+        .then(get_ai_model_index)
         .or(warp::fs::dir("./static"));
 
     // GET `/ci`
@@ -448,7 +450,7 @@ async fn main() {
             .or(image_fetch)
             .or(fetch_repo_image_handler)
             .or(get_image_detail_handler)
-            .or(get_model_index_handler)
+            .or(get_ai_model_index_handler)
             .or(get_ci_index_handler)
             .or(get_ci_detail_handler)
             .or(get_ci_history_handler)

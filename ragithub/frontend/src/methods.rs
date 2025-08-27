@@ -1,5 +1,5 @@
 use async_std::task;
-use crate::models::{TopMenu, fetch_repositories};
+use crate::models::{TopMenu, fetch_repositories, fetch_tags};
 use crate::utils::{
     int_comma,
     render_time,
@@ -28,7 +28,7 @@ mod proxy;
 mod repo;
 
 pub use ai_model::{
-    get_model_index,
+    get_ai_model_index,
 };
 pub use blog::{
     get_blog_index,
@@ -103,7 +103,9 @@ pub fn error_page(_: u16, message: &str) -> Box<dyn Reply> {
         top_menu: true,
         default_top_menu: true,
         nav: true,
-        show_versions: true,
+        tooltip: false,
+        show_version: true,
+        include_svgs: false,
         extra_styles: vec![],
         extra_scripts: vec![],
         extra_components: vec![],
@@ -145,7 +147,9 @@ pub struct TeraContextBuilder<'a> {
     pub top_menu: bool,
     pub default_top_menu: bool,
     pub nav: bool,
-    pub show_versions: bool,
+    pub tooltip: bool,
+    pub show_version: bool,
+    pub include_svgs: bool,
     pub extra_styles: Vec<&'a str>,
     pub extra_scripts: Vec<&'a str>,
     pub extra_components: Vec<&'a str>,
@@ -176,7 +180,7 @@ impl<'a> TeraContextBuilder<'a> {
                     ("Home", "/"),
                     ("Explore", "/list"),
                     ("Blog", "/blog"),
-                    ("Models", "/model"),
+                    ("Models", "/ai-model"),
                     ("CI", "/ci"),
                 ],
             ));
@@ -192,7 +196,12 @@ impl<'a> TeraContextBuilder<'a> {
             components.push(include_str!("../components/nav.html"));
         }
 
-        if self.show_versions {
+        if self.tooltip {
+            styles.push("/tooltip.css");
+            scripts.push("/tooltip.js");
+        }
+
+        if self.show_version {
             tera_context.insert("ragithub_version", &VERSION.to_string());
         }
 
@@ -211,6 +220,7 @@ impl<'a> TeraContextBuilder<'a> {
         tera_context.insert("styles", &styles);
         tera_context.insert("scripts", &scripts);
         tera_context.insert("components", &components);
+        tera_context.insert("include_svgs", &self.include_svgs);
         tera_context
     }
 }
@@ -223,7 +233,9 @@ impl<'a> Default for TeraContextBuilder<'a> {
             top_menu: false,
             default_top_menu: true,
             nav: true,
-            show_versions: true,
+            tooltip: false,
+            show_version: true,
+            include_svgs: false,
             extra_styles: vec![],
             extra_scripts: vec![],
             extra_components: vec![],
@@ -280,9 +292,7 @@ pub fn set_backend(s: &str) {
     }
 }
 
-// It runs every 5 minutes in the background.
-// It's usually used to create local caches.
-pub async fn background_worker() {
+pub async fn background_worker(period: Duration) {
     loop {
         write_log(
             "background_worker",
@@ -296,10 +306,17 @@ pub async fn background_worker() {
             );
         }
 
+        if let Err(e) = fetch_tags().await {
+            write_log(
+                "fetch_tags",
+                &format!("{e:?}"),
+            );
+        }
+
         write_log(
             "background_worker",
             "going back to sleep...",
         );
-        task::sleep(Duration::from_secs(300)).await;
+        task::sleep(period).await;
     }
 }
