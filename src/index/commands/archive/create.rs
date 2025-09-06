@@ -194,7 +194,7 @@ impl Index {
                 )?;
 
                 if curr_query_size + curr_block_size > BLOCK_SIZE {
-                    workers[round_robin % workers.len()].send(Request::Compress(BlockType::Chunk, curr_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
+                    workers[round_robin % workers.len()].send(Request::Compress(BlockType::QueryHistory, curr_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
                     curr_block = vec![uid];
                     curr_block_size = curr_query_size;
                     round_robin += 1;
@@ -207,7 +207,7 @@ impl Index {
             }
 
             if !curr_block.is_empty() {
-                workers[round_robin % workers.len()].send(Request::Compress(BlockType::Chunk, curr_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
+                workers[round_robin % workers.len()].send(Request::Compress(BlockType::QueryHistory, curr_block)).map_err(|_| Error::MPSCError(String::from("Create-archive worker hung up.")))?;
                 round_robin += 1;
                 curr_block = vec![];
                 curr_block_size = 0;

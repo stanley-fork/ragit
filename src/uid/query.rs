@@ -594,6 +594,10 @@ impl UidQueryResult {
         self.staged_files.clone()
     }
 
+    pub fn get_query_histories(&self) -> Vec<Uid> {
+        self.query_histories.clone()
+    }
+
     /// It returns `Some` iff there's only 1 match.
     pub fn get_processed_file(&self) -> Option<(String, Uid)> {
         if self.processed_files.len() == 1 {

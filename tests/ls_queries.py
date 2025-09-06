@@ -1,4 +1,5 @@
 import json
+import time
 import os
 from utils import (
     cargo_run,
@@ -7,9 +8,13 @@ from utils import (
     write_string,
 )
 
+# NOTE: ragit uses 32-bit unsigned integer to represent time.
+#       So, everything will break after February 7, 2106.
 def ls_queries():
     goto_root()
     mk_and_cd_tmp_dir()
+    os.mkdir("base1")
+    os.chdir("base1")
 
     cargo_run(["init"])
     cargo_run(["config", "--set", "model", "dummy"])
@@ -71,8 +76,9 @@ def ls_queries():
     query1_content = json.loads(cargo_run(["ls-queries", query_uid1, "--content-only", "--json"], stdout=True))[0]
     assert len(query1_content) == 4
 
-    # We can even `--continue` with an agent!
-    cargo_run(["query", "--agent", "--continue", query_uid1, "Let's continue the conversation! But now you're an agent."])
+    # TODO: multiturn agent mode
+    # cargo_run(["query", "--agent", "--continue", query_uid1, "Let's continue the conversation! But now you're an agent."])
+    cargo_run(["query", "--continue", query_uid1, "TODO: run this in agent mode after implementing multiturn agent mode"])
 
     # We still have 2 queries
     assert len(json.loads(cargo_run(["ls-queries", "--json"], stdout=True))) == 2
@@ -110,5 +116,30 @@ def ls_queries():
     assert len(json.loads(cargo_run(["ls-queries", "--json"], stdout=True))) == 0
     assert json.loads(cargo_run(["ls-queries", "--stat-only", "--json"], stdout=True))["queries"] == 0
 
-    # TODO: create a lot of query histories, and check if `ls-queries` sort them by timestamp
-    #       I have to check: with/without uid prefix, with/without --uid-only, with/without --json
+    # let's create a lot of query histories, and check if `ls-queries` sort them by timestamp
+    os.chdir("../with-queries")
+
+    # we didn't create an archive with configs
+    cargo_run(["config", "--set", "model", "dummy"])
+
+    for _ in range(10):
+        cargo_run(["query", "What makes ragit so special??"])
+        time.sleep(1)
+
+    queries = json.loads(cargo_run(["ls-queries", "--json"], stdout=True))
+    assert len(queries) == 12
+
+    timestamps = [q[0]["timestamp"] for q in queries]
+    timestamps_sorted = eval(str(timestamps))  # deepcopy
+    timestamps_sorted.sort()
+    timestamps_sorted = timestamps_sorted[::-1]
+    assert timestamps == timestamps_sorted
+
+    # query by uid
+    uids = [q[0]["uid"] for q in queries]
+    uids2 = json.loads(cargo_run(["ls-queries", "--json", "--uid-only", "--abbrev=64"], stdout=True))
+    assert uids == uids2
+
+    for uid in uids:
+        assert len(uid) == 64
+        assert uid in cargo_run(["ls-queries", uid[:9], "--uid-only", "--abbrev=64"], stdout=True)

@@ -2218,7 +2218,8 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--max-summaries", ArgType::uinteger())
                 .optional_arg_flag("--max-retrieval", ArgType::uinteger())
-                .optional_arg_flag("--schema", ArgType::String)
+                .optional_arg_flag("--schema", ArgType::String)    // pdl schema
+                .optional_arg_flag("--continue", ArgType::String)  // uid
                 .optional_flag(&["--agent"])
                 .short_flag(&["--interactive", "--json"])
                 .args(ArgType::String, ArgCount::Any)  // query
@@ -2264,9 +2265,37 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let interactive_mode = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
             let agent_mode = parsed_args.get_flag(5).is_some();
+            let mut chat_history = if let Some(query_uid) = parsed_args.arg_flags.get("--continue") {
+                let queries = index.uid_query(
+                    &[query_uid.to_string()],
+                    UidQueryConfig::new().query_history_only(),
+                )?.get_query_histories();
+
+                match queries.len() {
+                    0 => {
+                        return Err(Error::UidQueryError(format!("There's no query history that matches `{query_uid}`")));
+                    },
+                    1 => {
+                        index.get_query_schema(queries[0])?
+                    },
+                    _ => {
+                        return Err(Error::UidQueryError(format!("There're multiple query histories that match `{query_uid}`")));
+                    },
+                }
+            } else {
+                vec![]
+            };
 
             match (agent_mode, interactive_mode, json_mode, &schema) {
+                // TODO: multiturn agent mode
                 (true, false, json_mode, schema) => {
+                    if !chat_history.is_empty() {
+                        return Err(Error::CliError {
+                            message: String::from("You cannot continue conversation in an agent mode."),
+                            span: None,
+                        });
+                    }
+
                     let query = parsed_args.get_args_exact(1)?[0].to_string();
                     let response = index.agent(
                         &query,
@@ -2305,33 +2334,41 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                     });
                 },
                 (_, true, _, _) => {
-                    let mut history = vec![];
+                    for turn in chat_history.iter() {
+                        println!(">>> {}", turn.query);
+                        println!("");
+                        println!("{}", turn.response.render_with_source());
+                        println!("");
+                    }
 
                     loop {
                         let mut curr_input = String::new();
                         print!(">>> ");
                         std::io::stdout().flush()?;
                         std::io::stdin().read_line(&mut curr_input)?;
+                        println!("");
                         let response = index.query(
                             &curr_input,
-                            history.clone(),
+                            chat_history.clone(),
                             None,  // schema
                         ).await?;
 
                         println!("{}", response.render_with_source());
-                        history.push(QueryTurn::new(&curr_input, &response));
-                        index.log_query_history(&history)?;
+                        println!("");
+                        chat_history.push(QueryTurn::new(&curr_input, &response));
+                        index.log_query_history(&chat_history)?;
                     }
                 },
                 _ => {
                     let query = parsed_args.get_args_exact(1)?[0].to_string();
                     let response = index.query(
                         &query,
-                        vec![],  // no history
+                        chat_history.clone(),
                         schema.clone(),
                     ).await?;
                     let turn = QueryTurn::new(&query, &response);
-                    index.log_query_history(&[turn])?;
+                    chat_history.push(turn);
+                    index.log_query_history(&chat_history)?;
 
                     if json_mode {
                         println!("{}", serde_json::to_string_pretty(&response.prettify()?)?);

@@ -25,6 +25,7 @@ impl Index {
 impl Prettify for QueryTurnSchema {
     fn prettify(&self) -> Result<Value, Error> {
         let mut result = serde_json::to_value(self)?;
+        let uid = Uid::new_query_turn(self);
 
         if let Value::Object(obj) = &mut result {
             if let Some(response) = obj.get_mut("response") {
@@ -35,6 +36,8 @@ impl Prettify for QueryTurnSchema {
             if let Some(timestamp) = obj.get_mut("timestamp") {
                 *timestamp = prettify_timestamp(timestamp);
             }
+
+            obj.insert(String::from("uid"), uid.to_string().into());
         }
 
         Ok(result)
