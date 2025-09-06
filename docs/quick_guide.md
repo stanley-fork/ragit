@@ -97,77 +97,11 @@ After it's built, you'll see many data files in the `.ragit/` directory. You can
 
 NOTE: You can ask queries on an incomplete knowledge-base, too.
 
-## 2. (Optional) Clone Knowledge-Bases from web
+## 2. Clone Knowledge-Bases from web
 
-This is the key part. You can download knowledge-bases from the internet and extend your knowledge-base with those. You can also share your knowledge-base with others.
+This is the key part. You can download knowledge-bases from the internet. You can also share your knowledge-base with others.
 
-First, let's make a fresh directory. Run `mkdir playground; cd playground`.
-
-```
-playground
-```
-
-Before downloading knowledge-bases, we have to init a rag index. Run `rag init`.
-
-```
-playground
-  |
-  *-- .ragit/
-      |
-      *-- chunks/
-      |
-      *-- configs/
-      |
-      *-- files/
-      |
-      *-- prompts/
-      |
-      *-- index.json
-      |
-      *-- models.json
-```
-
-You'll see an empty rag index. Now we have to download knowledge-bases from the web. I have uploaded a few sample knowledge-bases for you. You can `rag clone` them, like `rag clone https://ragit.baehyunsol.com/sample/git`
-
-- [git](https://ragit.baehyunsol.com/sample/git)
-- [ragit](https://ragit.baehyunsol.com/sample/ragit)
-- [rustc-dev-guide](https://ragit.baehyunsol.com/sample/rustc)
-
-Let's clone all of them. You cannot clone them inside `playground/`, because you knowledge-bases cannot be nested. Please make sure to `cd ..;` before you clone them.
-
-Run `cd ..; rag clone https://ragit.baehyunsol.com/sample/git; rag clone https://ragit.baehyunsol.com/sample/ragit; rag clone https://ragit.baehyunsol.com/sample/rustc;`
-
-```
-<cwd>
-  |
-  *-- playground
-  |   |
-  |   *-- .ragit/
-  |       |
-  |       *-- .. many files and directories
-  |
-  *-- git
-  |   |
-  |   *-- .ragit/
-  |       |
-  |       *-- .. many files and directories
-  |
-  *-- ragit
-  |   |
-  |   *-- .ragit/
-  |       |
-  |       *-- .. many files and directories
-  |
-  *-- rustc
-      |
-      *-- .ragit/
-          |
-          *-- .. many files and directories
-```
-
-Now we have 1 empty knowledge-base and 3 complete knowledge-bases. We're gonna use the empty knowledge-base as the main one. Let's extend the empty one (playground).
-
-Run `cd playground`. `rag merge ../git --prefix=git`, `rag merge ../ragit --prefix=ragit` and `rag merge ../rustc --prefix=rustc`.
+I have uploaded some sample knowledge-bases to [https://ragit.baehyunsol.com](https://ragit.baehyunsol.com). You can clone one like `rag clone https://ragit.baehyunsol.com/sample/ragit`. This is a knowledge-base of ragit's documents.
 
 ## 3. Change Configs
 
@@ -199,11 +133,7 @@ These files can contain just the specific fields you want to override - you don'
 
 When you run `rag init` to create a new repository, these global configurations will be used as defaults. This is especially useful if you always want to use a specific model or have specific build parameters.
 
-## 4. Build an inverted-index
-
-[Inverted-index](https://en.wikipedia.org/wiki/Inverted_index) is a special kind of data structure that makes full-text searching much faster. By running `rag ii-build`, you can build an inverted index. Once you're done, run `rag ii-status` and see if it says "complete". If so, you're good to go. Text retrieval will get much faster.
-
-## 5. Ask questions on a Knowledge-Base
+## 4. Ask questions on a Knowledge-Base
 
 Asking query is straight forward: `rag query "Tell me how the rust compiler uses git"`
 

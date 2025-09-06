@@ -45,6 +45,15 @@ Other than those 3 platforms, I haven't tested ragit on any platform.
 cargo install ragit;
 rag clone https://ragit.baehyunsol.com/sample/ragit;
 cd ragit;
+
+# The default model is groq's llama.
+# If you have groq api key, you can use the model.
 export GROQ_API_KEY=YOUR_API_KEY;
+
+# If you want to use another model, you can change the model like this.
+rag config --set model gpt-4o;
+export OPENAI_API_KEY=YOUR_API_KEY;
+
+
 rag query "How do I contribute to ragit?";
 ```
