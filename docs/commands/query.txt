@@ -59,6 +59,13 @@ OPTIONS
 
         You cannot use `--schema` option in `--interactive` mode.
 
+--continue <uid>::
+        You can continue previous conversation. If it's `--interactive` mode,
+        it loads the history. Otherwise, it asks a follow up question. You
+        cannot use it in agent mode, but it's coming soon.
+
+        You can find query history uids with `ls-queries` command.
+
 --json::
         If `--json` is set, it dumps the result as a json. The json contains
         AI's response and retrieved chunks. `--json` option and `--schema`
