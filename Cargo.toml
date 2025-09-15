@@ -1,6 +1,6 @@
 [package]
 name = "ragit"
-version = "0.4.3"
+version = "0.4.4"
 edition = "2024"
 license = "MIT"
 description = "git-like rag pipeline"
@@ -20,12 +20,12 @@ image = "0.25.6"
 lazy_static = "1.5.0"
 mupdf = { version = "0.5.0", optional = true }
 png = { version = "0.17.16", optional = true }  # `resvg`'s function returns `png::EncodingError`
-ragit-api = { path = "./crates/api", version = "0.4.3" }
-ragit-cli = { path = "./crates/cli", version = "0.4.3" }
-ragit-fs = { path = "./crates/fs", version = "0.4.3", features = ["diff"] }
-ragit-ignore = { path = "./crates/ignore", version = "0.4.3" }
-ragit-korean = { path = "./crates/korean", version = "0.4.3", optional = true }
-ragit-pdl = { path = "./crates/pdl", version = "0.4.3" }
+ragit-api = { path = "./crates/api", version = "0.4.4" }
+ragit-cli = { path = "./crates/cli", version = "0.4.4" }
+ragit-fs = { path = "./crates/fs", version = "0.4.4", features = ["diff"] }
+ragit-ignore = { path = "./crates/ignore", version = "0.4.4" }
+ragit-korean = { path = "./crates/korean", version = "0.4.4", optional = true }
+ragit-pdl = { path = "./crates/pdl", version = "0.4.4" }
 regex = "1.11.2"
 reqwest = { version = "0.12.23", features = ["multipart"] }
 resvg = { version = "0.45.1", optional = true }
