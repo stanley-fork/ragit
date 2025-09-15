@@ -224,6 +224,9 @@ if __name__ == "__main__":
                     },
                 }, ensure_ascii=False, indent=4))
 
+    # FIXME: We don't need this anymore. Previously, ragithub and ragit were different repositories,
+    #        so we had to regularly fetch git info from ragit. But now it's just unnecessarily
+    #        complicating the workflow.
     elif command == "fetch_git_info":
         log = subprocess.run(["git", "log", "--pretty=%h<|delim|>%an<|delim|>%ae<|delim|>%at<|delim|>%s<|delim|>%b<|delim|>%p<|end-of-commit|>", "--abbrev=9"], capture_output=True, text=True).stdout
         commits = [commit.strip() for commit in log.split("<|end-of-commit|>") if commit.strip() != ""]
