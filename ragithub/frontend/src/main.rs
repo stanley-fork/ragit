@@ -197,6 +197,13 @@ async fn main() {
         .then(get_ai_model_index)
         .or(warp::fs::dir("./static"));
 
+    // POST `/ai-model`
+    let post_ai_model_index_handler = warp::post()
+        .and(warp::path("ai-model"))
+        .and(warp::path::end())
+        .and(warp::body::form::<HashMap<String, String>>())
+        .map(post_ai_model_index);
+
     // GET `/ci`
     let get_ci_index_handler = warp::get()
         .and(warp::path("ci"))
@@ -451,6 +458,7 @@ async fn main() {
             .or(fetch_repo_image_handler)
             .or(get_image_detail_handler)
             .or(get_ai_model_index_handler)
+            .or(post_ai_model_index_handler)
             .or(get_ci_index_handler)
             .or(get_ci_detail_handler)
             .or(get_ci_history_handler)

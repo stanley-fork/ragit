@@ -7,10 +7,10 @@
         <div class="search-bar-long">
             <form class="search-bar-long" id="search-ai-model" method="post">
                 <div class="flex-container-row-center">
-                    {% if search_keyword %}
-                        <input class="search-bar" name="search" value="{{search_keyword}}" type="text">
+                    {% if name_query %}
+                        <input class="search-bar" name="name" value="{{name_query}}" type="text">
                     {% else %}
-                        <input class="search-bar" name="search" placeholder="Find ai models!" type="text">
+                        <input class="search-bar" name="name" placeholder="Find ai models!" type="text">
                     {% endif %}
 
                     {# I want every information to be encoded in url. #}
@@ -24,7 +24,7 @@
         <div class="flex-container-row-center">
             <div class="tags">
                 {% for tag in tags %}
-                    <a class={% if tag.selected %}"selected-tag"{% else %}"unselected-tag"{% endif %} href="?tags={{tag.href}}">{{tag.name}}</a>
+                    <a class={% if tag.selected %}"selected-tag"{% else %}"unselected-tag"{% endif %} href="?{% if name_query %}name={{name_query}}&{% endif %}tags={{tag.href}}">{{tag.name}}</a>
                 {% endfor %}
             </div>
         </div>
@@ -45,14 +45,31 @@
             {% endif %}
         </div>
         <div>
-            Help (TODO)
+            <span onclick="open_help_modal_box()" style="cursor: pointer;">Help</span>
+            <div id="help-modal">
+                <div class="box">
+                    <div class="top-bar" onclick="close_help_modal_box()">X</div>
+                    <div class="content markdown">{{help_message|markdown|safe}}</div>
+                </div>
+            </div>
+            <script>
+                var help_modal_box = document.getElementById("help-modal");
+
+                function open_help_modal_box() {
+                    help_modal_box.style.display = "block";
+                }
+
+                function close_help_modal_box() {
+                    help_modal_box.style.display = "none";
+                }
+            </script>
         </div>
     </div>
 
     {% for model in models %}
         <div class="model-card">
             <div class="flex-container-lr">
-                <div>{{model.name}}</div>
+                <div>{{model.name|safe}}</div>
                 <div>
                     <span class="tooltip-container">
                         <a href="https://github.com/baehyunsol/ragit/issues/new"><svg width="18" height="18"><use href="#issue-icon"></svg></a>

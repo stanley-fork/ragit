@@ -6,6 +6,7 @@ use super::{
     get_backend,
     get_or,
     handler,
+    redirect,
 };
 use crate::models::{
     AiModel,
@@ -21,6 +22,31 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::hash_map::{Entry, HashMap};
 use warp::reply::{Reply, html};
+
+const HELP_MESSAGE: &str = "
+Ragit uses AI models to answer your queries. You can use various AI models.
+Most models are pre-installed, so you don't have to download one from here.
+
+### Changing models
+
+You can use `rag config --set model gpt-4o` command to change the model. If
+the model is not pre-installed, it will throw an error.
+
+### Downloading models
+
+Ragit's model list can be found at `.ragit/models.json` (local) or
+`~/.config/ragit` (global, if exists). You can either edit the json file
+manually, or use `rag model` command.
+
+Using `rag model` command is simple. You'll see download button in each model
+card. Click the download button, paste the command, and run it. Then you'll
+have the model in your knowledge-base.
+
+### List models
+
+You can use `rag ls-models` command to see available models in your local
+machine.
+";
 
 pub async fn get_ai_model_index(query: HashMap<String, String>) -> Box<dyn Reply> {
     handler(get_ai_model_index_(query).await)
@@ -127,6 +153,14 @@ async fn get_ai_model_index_(query: HashMap<String, String>) -> RawResponse {
         }
     }
 
+    if !name_query.is_empty() {
+        tera_context.insert("name_query", &name_query);
+
+        for model in models.iter_mut() {
+            model.name = model.name.replace(&name_query, &format!("<span class=\"model-name-highlight\">{name_query}</span>"));
+        }
+    }
+
     let mut tags: Vec<Tag> = tags.into_values().collect();
     tags.sort_by_key(|tag| tag_sort_key(&tag.name));
 
@@ -160,7 +194,16 @@ async fn get_ai_model_index_(query: HashMap<String, String>) -> RawResponse {
 
     tera_context.insert("model_seq_start", &(offset + 1));
     tera_context.insert("model_seq_end", &(offset + models.len()));
+    tera_context.insert("help_message", HELP_MESSAGE);
     Ok(Box::new(html(tera.render("ai-model-index.html", &tera_context).unwrap())))
+}
+
+pub fn post_ai_model_index(form: HashMap<String, String>) -> Box<dyn Reply> {
+    handler(post_ai_model_index_(form))
+}
+
+fn post_ai_model_index_(form: HashMap<String, String>) -> RawResponse {
+    Ok(Box::new(redirect(&format!("/ai-model?{}", into_query_string(&form)))))
 }
 
 lazy_static! {

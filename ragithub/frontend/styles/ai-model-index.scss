@@ -112,3 +112,46 @@ button.download-button {
         cursor: pointer;
     }
 }
+
+.model-name-highlight {
+    background-color: rgb(128, 128, 64);
+}
+
+#help-modal {
+    display: none;
+    z-index: 1;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0000;
+    backdrop-filter: blur(5px);
+
+    .box {
+        position: fixed;
+        left: 10%;
+        top: 10%;
+        width: 80%;
+        height: 80%;
+        background-color: var(--dark);
+        border: $border-medium solid var(--white);
+        display: flex;
+        flex-direction: column;
+
+        .top-bar {
+            cursor: pointer;
+            padding: $padding-medium;
+            font-size: $font-giant;
+            text-align: right;
+            background-color: var(--black);
+            flex-shrink: 0;
+        }
+
+        .content {
+            padding: $padding-medium;
+            overflow: auto;
+            flex: 1;
+        }
+    }
+}

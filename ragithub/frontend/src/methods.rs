@@ -29,6 +29,7 @@ mod repo;
 
 pub use ai_model::{
     get_ai_model_index,
+    post_ai_model_index,
 };
 pub use blog::{
     get_blog_index,
