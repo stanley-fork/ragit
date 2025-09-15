@@ -2470,7 +2470,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let parsed_args = ArgParser::new()
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
-                .flag_with_default(&["--rerank", "--no-rerank"])
+                .optional_flag(&["--super-rerank"])
                 .optional_arg_flag("--max-retrieval", ArgType::uinteger())
                 .optional_arg_flag("--max-summaries", ArgType::uinteger())
                 .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
@@ -2485,9 +2485,9 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
 
             let uid_only = parsed_args.get_flag(0).is_some();
             let json_mode = parsed_args.get_flag(1).is_some();
-            let rerank = parsed_args.get_flag(2).unwrap() == "--rerank";
+            let super_rerank = parsed_args.get_flag(2).is_some();
             let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
-            let index = Index::load(root_dir?, LoadMode::OnlyJson)?;
+            let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
             let max_retrieval = match parsed_args.arg_flags.get("--max-chunks") {
                 Some(n) => n.parse::<usize>().unwrap(),
@@ -2499,35 +2499,12 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             };
             let query = parsed_args.get_args_exact(1)?[0].clone();
 
-            let keywords = {
-                let keywords = index.extract_keywords(&parsed_args.get_args_exact(1)?[0]).await?;
+            // It's okay to change the config because we're not gonna save this.
+            index.query_config.enable_rag = true;
+            index.query_config.max_summaries = max_summaries;
+            index.query_config.max_retrieval = max_retrieval;
 
-                if keywords.is_empty() {
-                    eprintln!("Warning: failed to extract keywords!");
-                    Keywords::from_raw(parsed_args.get_args())
-                }
-
-                else {
-                    keywords
-                }
-            };
-            let tfidf_results = index.run_tfidf(
-                keywords,
-                max_summaries,
-            )?;
-            let mut chunks = Vec::with_capacity(tfidf_results.len());
-
-            for tfidf_result in tfidf_results.iter() {
-                chunks.push(index.get_chunk_by_uid(tfidf_result.id)?);
-            }
-
-            if rerank {
-                chunks = index.summaries_to_chunks(
-                    &query,
-                    chunks,
-                    max_retrieval,
-                ).await?;
-            }
+            let chunks = index.retrieve_chunks(&query, super_rerank).await?;
 
             if json_mode {
                 if uid_only {
