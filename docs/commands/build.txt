@@ -8,7 +8,7 @@ rag-build - Build knowledge-base from staged files
 SYNOPSIS
 --------
 [verse]
-'rag build' [--jobs <n=8>] [--quiet | -q]
+'rag build' [--jobs <n=8>] [--quiet | -q] [--dry-run]
 
 DESCRIPTION
 -----------
@@ -20,3 +20,6 @@ processed, you can ask queries on them.
 It might take long time to build because LLMs have to read each file and create
 index. This command regularly flushes the result (you can see that in the
 dashboard), and when you terminate the process, the flushed results are safe.
+
+`--dry-run` does not call LLMs, but gives you a list of potential file errors,
+and how many chunks it will create.

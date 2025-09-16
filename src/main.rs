@@ -281,6 +281,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
         Some("build") => {
             let parsed_args = ArgParser::new()
                 .arg_flag_with_default("--jobs", "8", ArgType::uinteger())
+                .optional_flag(&["--dry-run"])
                 .optional_flag(&["--quiet"])
                 .short_flag(&["--quiet"])
                 .parse(&args, 2)?;
@@ -291,9 +292,17 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             }
 
             let jobs = parsed_args.arg_flags.get("--jobs").as_ref().unwrap().parse::<usize>().unwrap();
-            let quiet = parsed_args.get_flag(0).is_some();
+            let dry_run = parsed_args.get_flag(0).is_some();
+            let quiet = parsed_args.get_flag(1).is_some();
             let mut index = Index::load(root_dir?, LoadMode::QuickCheck)?;
-            index.build(jobs, quiet).await?;
+
+            if dry_run {
+                index.build_dry_run(quiet).await;
+            }
+
+            else {
+                index.build(jobs, quiet).await?;
+            }
         },
         Some("audit") => {
             let parsed_args = ArgParser::new()

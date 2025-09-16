@@ -25,7 +25,8 @@ use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 
 pub struct BuildResult {
-    pub success: usize,
+    pub built_chunks: usize,
+    pub built_files: usize,
 
     /// Vec<(file, error)>
     pub errors: Vec<(String, String)>,
@@ -49,9 +50,11 @@ impl Index {
                     println!("completed building a knowledge-base");
                     println!("total elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
                     println!(
-                        "successfully processed {} file{}",
-                        result.success,
-                        if result.success > 1 { "s" } else { "" },
+                        "successfully processed {} file{} ({} chunk{})",
+                        result.built_files,
+                        if result.built_files > 1 { "s" } else { "" },
+                        result.built_chunks,
+                        if result.built_chunks > 1 { "s" } else { "" },
                     );
                     println!(
                         "{} error{}",
@@ -90,7 +93,8 @@ impl Index {
         let mut killed_workers = vec![];
         let mut staged_files = self.staged_files.clone();
         let mut curr_completed_files = vec![];
-        let mut success = 0;
+        let mut built_chunks = 0;
+        let mut built_files = 0;
         let mut errors = vec![];
         let mut buffered_chunk_count = 0;
         let mut flush_count = 0;
@@ -199,7 +203,8 @@ impl Index {
                             }
 
                             curr_completed_files.push(file);
-                            success += 1;
+                            built_chunks += chunk_count;
+                            built_files += 1;
                         },
                         Response::Error(e) => {
                             if let Some(file) = curr_processing_file.get(&worker_index) {
@@ -231,7 +236,7 @@ impl Index {
 
                             // very small QoL hack: if there's no api key, every file will
                             // fail with the same error. We escape before that happens
-                            if matches!(e, Error::ApiKeyNotFound { .. }) && success == 0 {
+                            if matches!(e, Error::ApiKeyNotFound { .. }) && built_files == 0 {
                                 return Err(e);
                             }
 
@@ -357,9 +362,107 @@ impl Index {
         }
 
         Ok(BuildResult {
-            success,
+            built_chunks,
+            built_files,
             errors,
         })
+    }
+
+    pub async fn build_dry_run(&self, quiet: bool) -> BuildResult {
+        let mut built_chunks = 0;
+        let mut built_files = 0;
+        let mut errors = vec![];
+        let mut staged_files = self.staged_files.clone();
+        let mut has_to_erase_lines = false;
+        let started_at = Instant::now();
+
+        // I don't want it to render dashboard too often.
+        let mut last_dashboard_at = None;
+
+        while let Some(staged_file) = staged_files.pop() {
+            match self.build_dry_run_worker(&staged_file).await {
+                Ok(n) => {
+                    built_files += 1;
+                    built_chunks += n;
+                },
+                Err(e) => {
+                    errors.push((staged_file, format!("{e:?}")));
+                },
+            }
+
+            if !quiet {
+                if last_dashboard_at.is_none() || Instant::now().duration_since(last_dashboard_at.unwrap()).as_millis() > 50 {
+                    self.render_build_dry_run_dashboard(
+                        &staged_files,
+                        built_chunks,
+                        &errors,
+                        started_at,
+                        has_to_erase_lines,
+                    );
+                    has_to_erase_lines = true;
+                    last_dashboard_at = Some(Instant::now());
+                }
+            }
+        }
+
+        if !quiet {
+            self.render_build_dry_run_dashboard(
+                &staged_files,
+                built_chunks,
+                &errors,
+                started_at,
+                has_to_erase_lines,
+            );
+
+            let elapsed_time = Instant::now().duration_since(started_at).as_secs();
+            println!("---");
+            println!("completed building a knowledge-base");
+            println!("total elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+            println!(
+                "successfully processed {} file{} ({} chunk{})",
+                built_files,
+                if built_files > 1 { "s" } else { "" },
+                built_chunks,
+                if built_chunks > 1 { "s" } else { "" },
+            );
+            println!(
+                "{} error{}",
+                errors.len(),
+                if errors.len() > 1 { "s" } else { "" },
+            );
+
+            for (file, error) in errors.iter() {
+                println!("    `{file}`: {error}");
+            }
+        }
+
+        BuildResult {
+            built_chunks,
+            built_files,
+            errors,
+        }
+    }
+
+    pub async fn build_dry_run_worker(&self, file: &str) -> Result<usize, Error> {
+        let real_path = Index::get_data_path(
+            &self.root_dir,
+            &file.to_string(),
+        )?;
+        let mut fd = FileReader::new(
+            file.to_string(),
+            real_path.clone(),
+            &self.root_dir,
+            self.build_config.clone(),
+        )?;
+        let mut chunk_count = 0;
+
+        while fd.can_generate_chunk() {
+            let (tokens, _) = fd.next_chunk()?;
+            fd.fetch_images_from_web(tokens).await?;
+            chunk_count += 1;
+        }
+
+        Ok(chunk_count)
     }
 
     fn render_build_dashboard(
@@ -432,6 +535,31 @@ impl Index {
                 println!("input tokens: ??? (????$), output tokens: ??? (????$)");
             },
         }
+    }
+
+    fn render_build_dry_run_dashboard(
+        &self,
+        staged_files: &[String],
+        built_chunks: usize,
+        errors: &[(String, String)],
+        started_at: Instant,
+        has_to_erase_lines: bool,
+    ) {
+        if has_to_erase_lines {
+            erase_lines(9);
+        }
+
+        let elapsed_time = Instant::now().duration_since(started_at).as_secs();
+
+        println!("---");
+        println!("elapsed time: {:02}:{:02}", elapsed_time / 60, elapsed_time % 60);
+        println!("staged files: {}, processed files: {}", staged_files.len(), self.processed_files.len() + (self.staged_files.len() - staged_files.len()));
+        println!("errors: {}", errors.len());
+        println!("committed chunks: {}", self.chunk_count + built_chunks);
+        println!("buffered files: N/A, buffered chunks: N/A");
+        println!("flush count: N/A");
+        println!("model: {}", self.api_config.model);
+        println!("input tokens: ??? (????$), output tokens: ??? (????$)");
     }
 }
 

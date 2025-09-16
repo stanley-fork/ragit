@@ -247,7 +247,7 @@ impl FileReader {
     }
 
     /// It replaces `AtomicToken::WebImage` in `tokens` with `AtomicToken::Image`.
-    async fn fetch_images_from_web(&mut self, tokens: Vec<AtomicToken>) -> Result<Vec<AtomicToken>, Error> {
+    pub(crate) async fn fetch_images_from_web(&mut self, tokens: Vec<AtomicToken>) -> Result<Vec<AtomicToken>, Error> {
         let mut new_tokens = Vec::with_capacity(tokens.len());
 
         for token in tokens.into_iter() {
