@@ -104,7 +104,7 @@ async fn get_repo_index_(query: HashMap<String, String>) -> RawResponse {
             repositories.sort_by_key(|r| usize::MAX - r.clone_total);
         },
         "new" => {
-            repositories.sort_by_key(|r| r.created_at);
+            repositories.sort_by_key(|r| r.updated_at);
             repositories = repositories.into_iter().rev().collect();
         },
         "abc" => {

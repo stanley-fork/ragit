@@ -71,22 +71,31 @@
             <div class="flex-container-lr">
                 <div>{{model.name|safe}}</div>
                 <div>
-                    <span class="tooltip-container">
-                        <a href="https://github.com/baehyunsol/ragit/issues/new"><svg width="18" height="18"><use href="#issue-icon"></svg></a>
-                        <span class="tooltip-message">
+                    <span id="tooltip-container-{{loop.index0 * 3}}" class="tooltip-container">
+                        <a target="_blank" href="https://github.com/baehyunsol/ragit/issues/new"><svg width="18" height="18"><use href="#issue-icon"></svg></a>
+                        <span id="tooltip-message-{{loop.index0 * 3}}" class="tooltip-message">
                             Report Issue
                         </span>
                     </span>
                     &nbsp;
-                    {# TODO: show download message #}
-                    <button id="download-button-{{loop.index}}" class="download-button" onclick="toggle_download_info_{{loop.index}}()">
-                        <svg width="18" height="18"><use href="#download-icon"></svg>
-                    </button>
+                    <span id="tooltip-container-{{loop.index0 * 3 + 1}}" class="tooltip-container">
+                        <button id="download-button-{{loop.index}}" class="download-button" onclick="toggle_download_info_{{loop.index}}()">
+                            <svg width="18" height="18"><use href="#download-icon"></svg>
+                        </button>
+                        <span id="tooltip-message-{{loop.index0 * 3 + 1}}" class="tooltip-message">
+                            Download
+                        </span>
+                    </span>
                     <div id="download-info-{{loop.index}}" class="download-info" style="display: none;">
                         rag model --fetch '{{model.name}}'
-                        <svg width="16" height="16" onclick="copy_download_code_{{loop.index}}()">
-                            <use href="#copy-icon">
-                        </svg>
+                        <span id="tooltip-container-{{loop.index0 * 3 + 2}}" class="tooltip-container">
+                            <svg width="16" height="16" onclick="copy_download_code_{{loop.index}}()">
+                                <use href="#copy-icon">
+                            </svg>
+                            <span id="tooltip-message-{{loop.index0 * 3 + 2}}" class="tooltip-message">
+                                Copy
+                            </span>
+                        </span>
                     </div>
                     <script>
                         var download_info_{{loop.index}} = document.getElementById("download-info-{{loop.index}}");
