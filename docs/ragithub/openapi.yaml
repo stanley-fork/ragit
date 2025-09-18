@@ -944,6 +944,16 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/AiModelCreation'
+    delete:
+      description: It deletes an ai model.
+      operationId: DeleteAiModelList
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: a name of the ai model
+          schema:
+            type: string
 components:
   schemas:
     UserDetail:

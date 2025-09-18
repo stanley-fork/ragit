@@ -46,3 +46,24 @@ async fn put_ai_model_list_(model: Value, api_key: Option<String>) -> RawRespons
         StatusCode::from_u16(200).unwrap(),
     )))
 }
+
+pub async fn delete_ai_model_list(name: String, api_key: Option<String>) -> Box<dyn Reply> {
+    handler(delete_ai_model_list_(name, api_key).await)
+}
+
+async fn delete_ai_model_list_(name: String, api_key: Option<String>) -> RawResponse {
+    let pool = get_pool().await;
+
+    // only admin can delete an ai model
+    auth::is_admin(api_key, pool).await.handle_error(500)?.handle_error(403)?;
+    let deleted_models = ai_model::delete(&name, pool).await.handle_error(500)?;
+
+    if deleted_models == 0 {
+        return Err((404, format!("No such ai-model: {name:?}")));
+    }
+
+    Ok(Box::new(with_status(
+        String::new(),
+        StatusCode::from_u16(200).unwrap(),
+    )))
+}

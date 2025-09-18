@@ -498,6 +498,13 @@ async fn main() {
         .and(warp::header::optional::<String>("x-api-key"))
         .then(put_ai_model_list);
 
+    let delete_ai_model_list_handler = warp::delete()
+        .and(warp::path("ai-model-list"))
+        .and(warp::path::param::<String>())
+        .and(warp::path::end())
+        .and(warp::header::optional::<String>("x-api-key"))
+        .then(delete_ai_model_list);
+
     let get_health_handler = warp::get()
         .and(warp::path("health"))
         .map(get_health);
@@ -550,6 +557,7 @@ async fn main() {
             .or(search_handler)
             .or(get_ai_model_list_handler)
             .or(put_ai_model_list_handler)
+            .or(delete_ai_model_list_handler)
             .or(get_health_handler)
             .or(not_found_handler)
             .with(warp::log::custom(

@@ -156,6 +156,17 @@ pub async fn upsert_and_return_id(model: &AiModelCreation, pool: &PgPool) -> Res
     Ok(model_id)
 }
 
+// It returns how many rows it deleted. Since there's a unique constraint on
+// the `name` column, the return value must be either 0 or 1.
+pub async fn delete(name: &str, pool: &PgPool) -> Result<usize, Error> {
+    let result = crate::query!(
+        "DELETE FROM ai_model WHERE name = $1",
+        name,
+    ).execute(pool).await?;
+
+    Ok(result.rows_affected() as usize)
+}
+
 pub async fn get_list(
     name: Option<String>,
     tags: Vec<String>,

@@ -1,5 +1,6 @@
 from server import (
     create_user,
+    delete_json,
     get_api_key,
     get_json,
     put_json,
@@ -58,6 +59,39 @@ def server_ai_model():
         assert len(ai_models1) + 1 == len(ai_models3)
         assert new_model2 not in ai_models1
         assert new_model2 not in ai_models3
+
+        # check if we can get a model by name
+        assert get_json(
+            url=f"http://127.0.0.1:41127/ai-model-list?name={new_model2['name']}",
+            raw_url=True,
+        )[0]["explanation"] == new_model2["explanation"]
+
+        # test 4: only admin can delete a model
+        delete_json(
+            url=f"http://127.0.0.1:41127/ai-model-list/{new_model1['name']}",
+            raw_url=True,
+            api_key=None,
+            expected_status_code=403,
+        )
+
+        # test 5: delete a model
+        delete_json(
+            url=f"http://127.0.0.1:41127/ai-model-list/{new_model1['name']}",
+            raw_url=True,
+            api_key=admin_api_key,
+        )
+        assert len(get_json(
+            url=f"http://127.0.0.1:41127/ai-model-list?name={new_model1['name']}",
+            raw_url=True,
+        )) == 0
+
+        # test 6: since it's already deleted, we cannot delete this again
+        delete_json(
+            url=f"http://127.0.0.1:41127/ai-model-list/{new_model1['name']}",
+            raw_url=True,
+            api_key=admin_api_key,
+            expected_status_code=404,
+        )
 
     finally:
         if server_process is not None:

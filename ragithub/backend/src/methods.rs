@@ -30,6 +30,7 @@ pub use admin::{
     truncate_all,
 };
 pub use ai_model::{
+    delete_ai_model_list,
     get_ai_model_list,
     put_ai_model_list,
 };

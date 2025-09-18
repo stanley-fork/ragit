@@ -396,6 +396,30 @@ def put_json(
         query=query,
     )
 
+def delete_json(
+    url: str,
+    body = None,
+    user: Optional[str] = "test-user",
+    repo: Optional[str] = None,
+    raw_url: bool = False,
+    api_key: Optional[str] = None,
+    expected_status_code: Optional[int] = 200,
+    parse_response: bool = False,
+    query: Optional[dict[str, str]] = None,
+):
+    return rest_api(
+        method="DELETE",
+        url=url,
+        body=body,
+        user=user,
+        repo=repo,
+        raw_url=raw_url,
+        api_key=api_key,
+        expected_status_code=expected_status_code,
+        parse_response=parse_response,
+        query=query,
+    )
+
 def assert_eq_json(path: str, value, ignore_keys: Optional[list[str]] = None):
     file = json.loads(read_string(os.path.join(".ragit", path)))
 
