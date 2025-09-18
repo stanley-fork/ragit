@@ -6,23 +6,25 @@ Let's say the latest published version is 0.3.1, and you want to publish 0.3.2.
 
 ## Before publish
 
-1. Run `tests/tests.py all`.
+1. Run `tests/dump_models_dot_json.py`.
+  - It has to be run as regularly as possible, and it must be run before a publish.
+2. Run `tests/tests.py all`.
   - Run on linux, mac, windows.
   - Please make sure that `tests/migrate.py` and `tests/migrate2.py` are looking at the newest version, so that the new version does not cause a compatibility issue.
   - Sometimes I publish a new version even when there's a failing test. Those cases are 1) not that critical and 2) takes too long to fix.
-2. Write release note before release (see `RelNotes/` for examples).
+3. Write release note before release (see `RelNotes/` for examples).
   - `git diff v0.3.1 main > release.diff` to see the differences.
   - If there's a compatilibity issue, please stop the publish process.
-3. Search for "TODO" and "FIXME" in the entire repo.
+4. Search for "TODO" and "FIXME" in the entire repo.
   - If there's a serious issue, please stop the publish process.
-4. Bump versions in `lib.rs`.
+5. Bump versions in `lib.rs`.
   - You'll find `pub const VERSION: &str = "0.3.2-dev";` in the file. Please change that to `"0.3.2"`.
   - You don't have to edit `Cargo.toml` files. You'll have to edit them after the publish.
-5. Run `git commit`. The commit title must be `release 0.3.2`.
-6. Run `cargo publish` in all the crates.
+6. Run `git commit`. The commit title must be `release 0.3.2`.
+7. Run `cargo publish` in all the crates.
   - In order to avoid dependency issues, I recommend you to publish in this order: fs -> ignore -> korean -> pdl -> api -> cli -> core.
   - I'm not publishing ragithub-related crates anymore.
-7. Run `git push`.
+8. Run `git push`.
   - Don't push until you publish all. If something goes wrong in step 6, do something and run `git commit --amend` before you push.
 
 ## After publish

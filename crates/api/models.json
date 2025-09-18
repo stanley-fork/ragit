@@ -1,398 +1,715 @@
 [
-  {
-    "name": "llama3.3-70b-groq",
-    "api_name": "llama-3.3-70b-versatile",
-    "can_read_images": false,
-    "api_provider": "openai",
-    "api_url": "https://api.groq.com/openai/v1/chat/completions",
-    "input_price": 0.59,
-    "output_price": 0.79,
-    "explanation": null,
-    "tags": ["llama", "meta", "groq", "70b"],
-    "api_env_var": "GROQ_API_KEY"
-  },
-  {
-    "name": "llama3.1-8b-groq",
-    "api_name": "llama-3.1-8b-instant",
-    "can_read_images": false,
-    "api_provider": "openai",
-    "api_url": "https://api.groq.com/openai/v1/chat/completions",
-    "input_price": 0.05,
-    "output_price": 0.08,
-    "explanation": null,
-    "tags": ["llama", "meta", "groq", "8b"],
-    "api_env_var": "GROQ_API_KEY"
-  },
-  {
-    "name": "gpt-4o",
-    "api_name": "gpt-4o",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "https://api.openai.com/v1/chat/completions",
-    "input_price": 2.5,
-    "output_price": 10.0,
-    "explanation": null,
-    "tags": ["gpt", "openai"],
-    "api_env_var": "OPENAI_API_KEY"
-  },
-  {
-    "name": "gpt-4o-mini",
-    "api_name": "gpt-4o-mini",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "https://api.openai.com/v1/chat/completions",
-    "input_price": 0.15,
-    "output_price": 0.6,
-    "explanation": null,
-    "tags": ["gpt", "openai"],
-    "api_env_var": "OPENAI_API_KEY"
-  },
-  {
-    "name": "gpt-4.1",
-    "api_name": "gpt-4.1",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "https://api.openai.com/v1/chat/completions",
-    "input_price": 2.0,
-    "output_price": 8.0,
-    "explanation": null,
-    "tags": ["gpt", "openai"],
-    "api_env_var": "OPENAI_API_KEY"
-  },
-  {
-    "name": "gpt-4.1-mini",
-    "api_name": "gpt-4.1-mini",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "https://api.openai.com/v1/chat/completions",
-    "input_price": 0.4,
-    "output_price": 1.6,
-    "explanation": null,
-    "tags": ["gpt", "openai"],
-    "api_env_var": "OPENAI_API_KEY"
-  },
-  {
-    "name": "gpt-4.1-nano",
-    "api_name": "gpt-4.1-nano",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "https://api.openai.com/v1/chat/completions",
-    "input_price": 0.1,
-    "output_price": 0.4,
-    "explanation": null,
-    "tags": ["gpt", "openai"],
-    "api_env_var": "OPENAI_API_KEY"
-  },
-  {
-    "name": "gemini-2.0-flash",
-    "api_name": "gemini-2.0-flash",
-    "can_read_images": true,
-    "api_provider": "google",
-    "api_url": null,
-    "input_price": 0.1,
-    "output_price": 0.4,
-    "explanation": null,
-    "tags": ["gemini", "google"],
-    "api_env_var": "GOOGLE_API_KEY"
-  },
-  {
-    "name": "gemini-1.5-pro",
-    "api_name": "gemini-1.5-pro",
-    "can_read_images": true,
-    "api_provider": "google",
-    "api_url": null,
-    "input_price": 1.25,
-    "output_price": 5.0,
-    "explanation": null,
-    "tags": ["gemini", "google"],
-    "api_env_var": "GOOGLE_API_KEY"
-  },
-  {
-    "name": "claude-4-opus",
-    "api_name": "claude-4-opus-20250514",
-    "can_read_images": true,
-    "api_provider": "anthropic",
-    "api_url": "https://api.anthropic.com/v1/messages",
-    "input_price": 15.0,
-    "output_price": 75.0,
-    "explanation": null,
-    "tags": ["claude", "anthropic"],
-    "api_env_var": "ANTHROPIC_API_KEY"
-  },
-  {
-    "name": "claude-4-sonnet",
-    "api_name": "claude-4-sonnet-20250514",
-    "can_read_images": true,
-    "api_provider": "anthropic",
-    "api_url": "https://api.anthropic.com/v1/messages",
-    "input_price": 3.0,
-    "output_price": 15.0,
-    "explanation": null,
-    "tags": ["claude", "anthropic"],
-    "api_env_var": "ANTHROPIC_API_KEY"
-  },
-  {
-    "name": "claude-3.7-sonnet",
-    "api_name": "claude-3-7-sonnet-20250219",
-    "can_read_images": true,
-    "api_provider": "anthropic",
-    "api_url": "https://api.anthropic.com/v1/messages",
-    "input_price": 3.0,
-    "output_price": 15.0,
-    "explanation": null,
-    "tags": ["claude", "anthropic"],
-    "api_env_var": "ANTHROPIC_API_KEY"
-  },
-  {
-    "name": "claude-3.5-sonnet",
-    "api_name": "claude-3-5-sonnet-20240620",
-    "can_read_images": true,
-    "api_provider": "anthropic",
-    "api_url": "https://api.anthropic.com/v1/messages",
-    "input_price": 3.0,
-    "output_price": 15.0,
-    "explanation": null,
-    "tags": ["claude", "anthropic"],
-    "api_env_var": "ANTHROPIC_API_KEY"
-  },
-  {
-    "name": "claude-3.5-haiku",
-    "api_name": "claude-3-5-haiku-20241022",
-    "can_read_images": true,
-    "api_provider": "anthropic",
-    "api_url": "https://api.anthropic.com/v1/messages",
-    "input_price": 0.8,
-    "output_price": 4.0,
-    "explanation": null,
-    "tags": ["claude", "anthropic"],
-    "api_env_var": "ANTHROPIC_API_KEY"
-  },
-  {
-    "name": "command-r",
-    "api_name": "command-r",
-    "can_read_images": true,
-    "api_provider": "cohere",
-    "api_url": "https://api.cohere.com/v2/chat",
-    "input_price": 0.15,
-    "output_price": 0.6,
-    "explanation": null,
-    "tags": ["cohere"],
-    "api_env_var": "COHERE_API_KEY"
-  },
-  {
-    "name": "command-r-plus",
-    "api_name": "command-r-plus",
-    "can_read_images": true,
-    "api_provider": "cohere",
-    "api_url": "https://api.cohere.com/v2/chat",
-    "input_price": 2.5,
-    "output_price": 10.0,
-    "explanation": null,
-    "tags": ["cohere"],
-    "api_env_var": "COHERE_API_KEY"
-  },
-  {
-    "name": "phi-4-14b-ollama",
-    "api_name": "phi4:14b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["phi", "microsoft", "ollama", "14b"],
-    "api_env_var": null
-  },
-  {
-    "name": "gemma-3-4b-ollama",
-    "api_name": "gemma3:4b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["gemma", "google", "ollama", "4b"],
-    "api_env_var": null
-  },
-  {
-    "name": "gemma-3-12b-ollama",
-    "api_name": "gemma3:12b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["gemma", "google", "ollama", "12b"],
-    "api_env_var": null
-  },
-  {
-    "name": "gemma-3-27b-ollama",
-    "api_name": "gemma3:27b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["gemma", "google", "ollama", "27b"],
-    "api_env_var": null
-  },
-  {
-    "name": "qwen-3-4b-ollama",
-    "api_name": "qwen3:4b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["qwen", "alibaba", "ollama", "4b"],
-    "api_env_var": null
-  },
-  {
-    "name": "qwen-3-8b-ollama",
-    "api_name": "qwen3:8b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["qwen", "alibaba", "ollama", "8b"],
-    "api_env_var": null
-  },
-  {
-    "name": "qwen-3-14b-ollama",
-    "api_name": "qwen3:14b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["qwen", "alibaba", "ollama", "14b"],
-    "api_env_var": null
-  },
-  {
-    "name": "qwen-3-30b-ollama",
-    "api_name": "qwen3:30b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["qwen", "alibaba", "ollama", "30b"],
-    "api_env_var": null
-  },
-  {
-    "name": "qwen-3-32b-ollama",
-    "api_name": "qwen3:32b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["qwen", "alibaba", "ollama", "32b"],
-    "api_env_var": null
-  },
-  {
-    "name": "qwen-3-235b-ollama",
-    "api_name": "qwen3:235b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["qwen", "alibaba", "ollama", "235b"],
-    "api_env_var": null
-  },
-  {
-    "name": "llama-3-8b-ollama",
-    "api_name": "llama3:8b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["llama", "meta", "ollama", "8b"],
-    "api_env_var": null
-  },
-  {
-    "name": "deepseek-r1-7b-ollama",
-    "api_name": "deepseek-r1:7b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["deepseek", "ollama", "7b"],
-    "api_env_var": null
-  },
-  {
-    "name": "deepseek-r1-8b-ollama",
-    "api_name": "deepseek-r1:8b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["deepseek", "ollama", "8b"],
-    "api_env_var": null
-  },
-  {
-    "name": "deepseek-r1-14b-ollama",
-    "api_name": "deepseek-r1:14b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["deepseek", "ollama", "14b"],
-    "api_env_var": null
-  },
-  {
-    "name": "deepseek-r1-32b-ollama",
-    "api_name": "deepseek-r1:32b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["deepseek", "ollama", "32b"],
-    "api_env_var": null
-  },
-  {
-    "name": "deepseek-r1-70b-ollama",
-    "api_name": "deepseek-r1:70b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["deepseek", "ollama", "70b"],
-    "api_env_var": null
-  },
-  {
-    "name": "deepseek-r1-671b-ollama",
-    "api_name": "deepseek-r1:671b",
-    "can_read_images": true,
-    "api_provider": "openai",
-    "api_url": "http://127.0.0.1:11434/v1/chat/completions",
-    "input_price": 0.0,
-    "output_price": 0.0,
-    "explanation": null,
-    "tags": ["deepseek", "ollama", "671b"],
-    "api_env_var": null
-  }
+    {
+        "name": "claude-3.5-haiku",
+        "api_name": "claude-3-5-haiku-20241022",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 0.8,
+        "output_price": 4.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
+        "name": "claude-3.7-sonnet",
+        "api_name": "claude-3-7-sonnet-20250219",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 3.0,
+        "output_price": 15.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
+        "name": "claude-4-opus",
+        "api_name": "claude-4-opus-20250514",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 15.0,
+        "output_price": 75.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
+        "name": "claude-4-sonnet",
+        "api_name": "claude-4-sonnet-20250514",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 3.0,
+        "output_price": 15.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
+        "name": "claude-4.1-opus",
+        "api_name": "claude-opus-4-1-20250805",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 15.0,
+        "output_price": 75.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
+        "name": "command-r",
+        "api_name": "command-r",
+        "can_read_images": true,
+        "api_provider": "cohere",
+        "api_url": "https://api.cohere.com/v2/chat",
+        "input_price": 0.15,
+        "output_price": 0.6,
+        "explanation": null,
+        "tags": [
+            "cohere"
+        ],
+        "api_env_var": "COHERE_API_KEY"
+    },
+    {
+        "name": "command-r-plus",
+        "api_name": "command-r-plus",
+        "can_read_images": true,
+        "api_provider": "cohere",
+        "api_url": "https://api.cohere.com/v2/chat",
+        "input_price": 2.5,
+        "output_price": 10.0,
+        "explanation": null,
+        "tags": [
+            "cohere"
+        ],
+        "api_env_var": "COHERE_API_KEY"
+    },
+    {
+        "name": "gemini-1.5-pro",
+        "api_name": "gemini-1.5-pro",
+        "can_read_images": true,
+        "api_provider": "google",
+        "api_url": null,
+        "input_price": 1.25,
+        "output_price": 5.0,
+        "explanation": null,
+        "tags": [
+            "gemini",
+            "google"
+        ],
+        "api_env_var": "GOOGLE_API_KEY"
+    },
+    {
+        "name": "gemini-2.0-flash",
+        "api_name": "gemini-2.0-flash",
+        "can_read_images": true,
+        "api_provider": "google",
+        "api_url": null,
+        "input_price": 0.1,
+        "output_price": 0.4,
+        "explanation": null,
+        "tags": [
+            "gemini",
+            "google"
+        ],
+        "api_env_var": "GOOGLE_API_KEY"
+    },
+    {
+        "name": "gemini-2.5-flash",
+        "api_name": "gemini-2.5-flash",
+        "can_read_images": true,
+        "api_provider": "google",
+        "api_url": null,
+        "input_price": 0.3,
+        "output_price": 2.5,
+        "explanation": null,
+        "tags": [
+            "gemini",
+            "google"
+        ],
+        "api_env_var": "GOOGLE_API_KEY"
+    },
+    {
+        "name": "gemini-2.5-flash-lite",
+        "api_name": "gemini-2.5-flash-lite",
+        "can_read_images": true,
+        "api_provider": "google",
+        "api_url": null,
+        "input_price": 0.1,
+        "output_price": 0.4,
+        "explanation": null,
+        "tags": [
+            "gemini",
+            "google"
+        ],
+        "api_env_var": "GOOGLE_API_KEY"
+    },
+    {
+        "name": "gemini-2.5-pro",
+        "api_name": "gemini-2.5-pro",
+        "can_read_images": true,
+        "api_provider": "google",
+        "api_url": null,
+        "input_price": 1.25,
+        "output_price": 10.0,
+        "explanation": null,
+        "tags": [
+            "gemini",
+            "google"
+        ],
+        "api_env_var": "GOOGLE_API_KEY"
+    },
+    {
+        "name": "gpt-oss-120b-groq",
+        "api_name": "openai/gpt-oss-120b",
+        "can_read_images": false,
+        "api_provider": "openai",
+        "api_url": "https://api.groq.com/openai/v1/chat/completions",
+        "input_price": 0.15,
+        "output_price": 0.75,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai",
+            "groq",
+            "120b"
+        ],
+        "api_env_var": "GROQ_API_KEY"
+    },
+    {
+        "name": "gpt-oss-20b-groq",
+        "api_name": "openai/gpt-oss-20b",
+        "can_read_images": false,
+        "api_provider": "openai",
+        "api_url": "https://api.groq.com/openai/v1/chat/completions",
+        "input_price": 0.1,
+        "output_price": 0.5,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai",
+            "groq",
+            "20b"
+        ],
+        "api_env_var": "GROQ_API_KEY"
+    },
+    {
+        "name": "llama3.1-8b-groq",
+        "api_name": "llama-3.1-8b-instant",
+        "can_read_images": false,
+        "api_provider": "openai",
+        "api_url": "https://api.groq.com/openai/v1/chat/completions",
+        "input_price": 0.05,
+        "output_price": 0.08,
+        "explanation": null,
+        "tags": [
+            "llama",
+            "meta",
+            "groq",
+            "8b"
+        ],
+        "api_env_var": "GROQ_API_KEY"
+    },
+    {
+        "name": "llama3.3-70b-groq",
+        "api_name": "llama-3.3-70b-versatile",
+        "can_read_images": false,
+        "api_provider": "openai",
+        "api_url": "https://api.groq.com/openai/v1/chat/completions",
+        "input_price": 0.59,
+        "output_price": 0.79,
+        "explanation": null,
+        "tags": [
+            "llama",
+            "meta",
+            "groq",
+            "70b"
+        ],
+        "api_env_var": "GROQ_API_KEY"
+    },
+    {
+        "name": "gpt-4.1",
+        "api_name": "gpt-4.1",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 2.0,
+        "output_price": 8.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-4.1-mini",
+        "api_name": "gpt-4.1-mini",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 0.4,
+        "output_price": 1.6,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-4.1-nano",
+        "api_name": "gpt-4.1-nano",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 0.1,
+        "output_price": 0.4,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-4o",
+        "api_name": "gpt-4o",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 2.5,
+        "output_price": 10.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-4o-mini",
+        "api_name": "gpt-4o-mini",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 0.15,
+        "output_price": 0.6,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-5",
+        "api_name": "gpt-5",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 1.25,
+        "output_price": 10.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-5-mini",
+        "api_name": "gpt-5-mini",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 0.25,
+        "output_price": 2.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "gpt-5-nano",
+        "api_name": "gpt-5-nano",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 0.05,
+        "output_price": 0.4,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "o3",
+        "api_name": "o3",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 2.0,
+        "output_price": 8.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "o4-mini",
+        "api_name": "o4-mini",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "https://api.openai.com/v1/chat/completions",
+        "input_price": 1.1,
+        "output_price": 4.4,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai"
+        ],
+        "api_env_var": "OPENAI_API_KEY"
+    },
+    {
+        "name": "deepseek-r1-14b-ollama",
+        "api_name": "deepseek-r1:14b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "deepseek",
+            "ollama",
+            "14b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "deepseek-r1-32b-ollama",
+        "api_name": "deepseek-r1:32b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "deepseek",
+            "ollama",
+            "32b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "deepseek-r1-671b-ollama",
+        "api_name": "deepseek-r1:671b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "deepseek",
+            "ollama",
+            "671b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "deepseek-r1-70b-ollama",
+        "api_name": "deepseek-r1:70b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "deepseek",
+            "ollama",
+            "70b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "deepseek-r1-7b-ollama",
+        "api_name": "deepseek-r1:7b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "deepseek",
+            "ollama",
+            "7b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "deepseek-r1-8b-ollama",
+        "api_name": "deepseek-r1:8b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "deepseek",
+            "ollama",
+            "8b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "gemma-3-12b-ollama",
+        "api_name": "gemma3:12b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "gemma",
+            "google",
+            "ollama",
+            "12b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "gemma-3-27b-ollama",
+        "api_name": "gemma3:27b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "gemma",
+            "google",
+            "ollama",
+            "27b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "gemma-3-4b-ollama",
+        "api_name": "gemma3:4b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "gemma",
+            "google",
+            "ollama",
+            "4b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "gpt-oss-120b-ollama",
+        "api_name": "gpt-oss:120b",
+        "can_read_images": false,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai",
+            "ollama",
+            "120b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "gpt-oss-20b-ollama",
+        "api_name": "gpt-oss:20b",
+        "can_read_images": false,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "gpt",
+            "openai",
+            "ollama",
+            "20b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "llama-3-8b-ollama",
+        "api_name": "llama3:8b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "llama",
+            "meta",
+            "ollama",
+            "8b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "phi-4-14b-ollama",
+        "api_name": "phi4:14b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "phi",
+            "microsoft",
+            "ollama",
+            "14b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "qwen-3-14b-ollama",
+        "api_name": "qwen3:14b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "qwen",
+            "alibaba",
+            "ollama",
+            "14b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "qwen-3-235b-ollama",
+        "api_name": "qwen3:235b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "qwen",
+            "alibaba",
+            "ollama",
+            "235b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "qwen-3-30b-ollama",
+        "api_name": "qwen3:30b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "qwen",
+            "alibaba",
+            "ollama",
+            "30b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "qwen-3-32b-ollama",
+        "api_name": "qwen3:32b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "qwen",
+            "alibaba",
+            "ollama",
+            "32b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "qwen-3-4b-ollama",
+        "api_name": "qwen3:4b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "qwen",
+            "alibaba",
+            "ollama",
+            "4b"
+        ],
+        "api_env_var": null
+    },
+    {
+        "name": "qwen-3-8b-ollama",
+        "api_name": "qwen3:8b",
+        "can_read_images": true,
+        "api_provider": "openai",
+        "api_url": "http://127.0.0.1:11434/v1/chat/completions",
+        "input_price": 0.0,
+        "output_price": 0.0,
+        "explanation": null,
+        "tags": [
+            "qwen",
+            "alibaba",
+            "ollama",
+            "8b"
+        ],
+        "api_env_var": null
+    }
 ]
