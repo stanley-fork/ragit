@@ -2530,16 +2530,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 else {
                     println!(
                         "{}",
-                        serde_json::to_string_pretty(
-                            &chunks.iter().map(
-                                |chunk| [
-                                    (String::from("uid"), chunk.uid.abbrev(abbrev).into()),
-                                    (String::from("source"), chunk.render_source().into()),
-                                    (String::from("title"), chunk.title.to_string().into()),
-                                    (String::from("summary"), chunk.summary.to_string().into()),
-                                ].into_iter().collect::<Map<String, Value>>(),
-                            ).collect::<Vec<_>>(),
-                        )?,
+                        serde_json::to_string_pretty(&chunks.prettify()?)?,
                     );
                 }
             }
