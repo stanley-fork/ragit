@@ -24,3 +24,4 @@ def query_options(test_model: str):
     assert "ragit" in cargo_run(["query", "In which city did Baehyunsol live?"], stdout=True).lower()
 
     assert cargo_run(["query", "--model=error", "It should fail."], check=False) != 0
+    assert "dummy" in cargo_run(["query", "--model=dummy", "Hello, World!"], stdout=True)
