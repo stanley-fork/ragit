@@ -138,6 +138,9 @@ impl Request {
                     result.insert(String::from("max_tokens"), max_tokens.into());
                 }
 
+                // TODO: make it configurable
+                result.insert(String::from("reasoning_effort"), "low".into());
+
                 result.into()
             },
             ApiProvider::Anthropic => {
@@ -173,7 +176,12 @@ impl Request {
                 }
 
                 // it's a required field
-                result.insert(String::from("max_tokens"), self.max_tokens.unwrap_or(2048).into());
+                result.insert(String::from("max_tokens"), self.max_tokens.unwrap_or(16384).into());
+
+                // TODO: make it configurable
+                let mut thinking = Map::new();
+                thinking.insert(String::from("type"), "disabled".into());
+                result.insert(String::from("thinking"), thinking.into());
 
                 result.into()
             },
