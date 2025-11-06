@@ -16,9 +16,10 @@ DESCRIPTION
 -----------
 It shows you the summary of the knowledge-base. The summary is created by a
 summary agent, and is cached and reused unless you edit the knowledge-base.
-By default, `rag build` command calls the summary agent so you don't have to
-care about it. You can turn this behavior off with
-`rag config --set summary_after_build false`.
+
+Historically, `rag build` command calls the summary agent after the build is
+complete. This behavior was disabled because it takes too long to create a
+summary. You can enable it with `rag config --set summary_after_build true`.
 
 If the summary is outdated or you haven't created one, this command will call
 the summary agent. It takes time and money to create a summary. If you don't

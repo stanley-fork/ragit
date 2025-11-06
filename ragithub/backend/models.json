@@ -75,6 +75,36 @@
         "api_env_var": "ANTHROPIC_API_KEY"
     },
     {
+        "name": "claude-4.5-haiku",
+        "api_name": "claude-haiku-4-5-20251001",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 1.0,
+        "output_price": 5.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
+        "name": "claude-4.5-sonnet",
+        "api_name": "claude-sonnet-4-5-20250929",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 3.0,
+        "output_price": 15.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
         "name": "command-r",
         "api_name": "command-r",
         "can_read_images": true,

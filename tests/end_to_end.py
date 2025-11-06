@@ -82,6 +82,7 @@ def end_to_end(test_model: str):
 
     cargo_run(["check", "--recover"])
     cargo_run(["config", "--set", "sleep_after_llm_call", "null"])
+    cargo_run(["config", "--set", "summary_after_build", "true"])
     cargo_run(["build"])
     cargo_run(["check"])
 
@@ -130,7 +131,6 @@ def end_to_end(test_model: str):
     assert file_count_prev == file_count
     assert chunk_count_prev > chunk_count  # `rag build` is not run yet
 
-    # By default, `rag build` calls `rag summary`.
     cargo_run(["build"])
     summary = cargo_run(["summary", "--cached"], stdout=True)
     send_message(f"--- summary of the knowledge-base ---\n\n{summary}")

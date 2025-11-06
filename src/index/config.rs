@@ -80,12 +80,16 @@ pub struct BuildConfig {
     pub compression_level: u32,
 
     /// If it's set, it runs `rag summary` after `rag build` is complete.
-    #[serde(default = "_true")]
+    #[serde(default = "_false")]
     pub summary_after_build: bool,
 }
 
 fn _true() -> bool {
     true
+}
+
+fn _false() -> bool {
+    false
 }
 
 impl Default for BuildConfig {
@@ -99,7 +103,7 @@ impl Default for BuildConfig {
             strict_file_reader: false,
             compression_threshold: 2048,
             compression_level: 3,
-            summary_after_build: true,
+            summary_after_build: false,
         }
     }
 }
