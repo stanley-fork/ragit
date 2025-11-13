@@ -2480,6 +2480,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
                 .optional_flag(&["--uid-only"])
                 .optional_flag(&["--json"])
                 .optional_flag(&["--super-rerank"])
+                .optional_arg_flag("--model", ArgType::String)
                 .optional_arg_flag("--max-retrieval", ArgType::uinteger())
                 .optional_arg_flag("--max-summaries", ArgType::uinteger())
                 .arg_flag_with_default("--abbrev", "9", ArgType::integer_between(Some(4), Some(64)))
@@ -2498,7 +2499,11 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let abbrev = parsed_args.arg_flags.get("--abbrev").unwrap().parse::<usize>().unwrap();
             let mut index = Index::load(root_dir?, LoadMode::OnlyJson)?;
 
-            let max_retrieval = match parsed_args.arg_flags.get("--max-chunks") {
+            let model = match parsed_args.arg_flags.get("--model") {
+                Some(model) => model.to_string(),
+                None => index.api_config.model.clone(),
+            };
+            let max_retrieval = match parsed_args.arg_flags.get("--max-retrieval") {
                 Some(n) => n.parse::<usize>().unwrap(),
                 None => index.query_config.max_retrieval,
             };
@@ -2509,6 +2514,7 @@ async fn run(args: Vec<String>) -> Result<(), Error> {
             let query = parsed_args.get_args_exact(1)?[0].clone();
 
             // It's okay to change the config because we're not gonna save this.
+            index.api_config.model = model;
             index.query_config.enable_rag = true;
             index.query_config.max_summaries = max_summaries;
             index.query_config.max_retrieval = max_retrieval;

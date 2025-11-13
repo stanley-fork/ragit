@@ -54,6 +54,7 @@ from ragit_api import ragit_api
 from real_repos import real_repos
 from real_repos_regression import real_repos_regression
 from recover import recover
+from retrieve_chunks import retrieve_chunks
 from server import server
 from server_ai_model import server_ai_model
 from server_chat import server_chat
@@ -378,6 +379,9 @@ Commands
                                 It's the smallest set of commands that parses and executes all
                                 the `.pdl` files in `prompts/` directory.
 
+    retrieve_chunks [model]     run `retrieve_chunks` test
+                                It tests the `rag retrieve-chunks` command.
+
     subdir                      run `subdir` test
                                 It checks whether `ragit` is smart enough to find `.ragit/` in
                                 any directory.
@@ -675,6 +679,13 @@ if __name__ == "__main__":
             test_model = test_model or "dummy"
             prompts(test_model=test_model)
 
+        elif command == "retrieve_chunks":
+            if test_model is None or test_model == "dummy":
+                print("Please specify which model to run the tests with. You cannot run this test with a dummy model.")
+                sys.exit(1)
+
+            retrieve_chunks(test_model=test_model)
+
         elif command == "subdir":
             subdir()
 
@@ -762,6 +773,8 @@ if __name__ == "__main__":
                 ("prompts gpt-oss-20b-groq", lambda: prompts(test_model="gpt-oss-20b-groq")),
                 ("prompts gemini-2.0-flash", lambda: prompts(test_model="gemini-2.0-flash")),
                 ("prompts claude-4.5-haiku", lambda: prompts(test_model="claude-4.5-haiku")),
+                ("retrieve_chunks claude-4.5-haiku", lambda: retrieve_chunks(test_model="claude-4.5-haiku")),
+                ("retrieve_chunks gpt-oss-20b-groq", lambda: retrieve_chunks(test_model="gpt-oss-20b-groq")),
                 ("empty dummy", lambda: empty(test_model="dummy")),
                 ("empty gpt-oss-20b-groq", lambda: empty(test_model="gpt-oss-20b-groq")),
                 ("server_chat gpt-oss-20b-groq", lambda: server_chat(test_model="gpt-oss-20b-groq")),
