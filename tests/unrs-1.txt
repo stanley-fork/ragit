@@ -1,0 +1,520 @@
+---------------------------
+----- model: gpt-4o -----
+-- query (0.78s) --
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag query '`rag query` command is sometimes terribly slow. Why?'`
+ApiError(ServerError { status_code: 400, body: Ok("{\n  \"error\": {\n    \"message\": \"Unrecognized request argument supplied: reasoning_effort\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": null\n  }\n}") })
+
+-- summary (0.82s) --
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag summary --force`
+ApiError(ServerError { status_code: 400, body: Ok("{\n  \"error\": {\n    \"message\": \"Unrecognized request argument supplied: reasoning_effort\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": null\n  }\n}") })
+
+-- build (2.92s) --
+---------------------------
+----- model: gpt-4o-mini -----
+-- query (0.82s) --
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag query '`rag query` command is sometimes terribly slow. Why?'`
+ApiError(ServerError { status_code: 400, body: Ok("{\n  \"error\": {\n    \"message\": \"Unrecognized request argument supplied: reasoning_effort\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": null\n  }\n}") })
+
+-- summary (0.71s) --
+    Finished `release` profile [optimized] target(s) in 0.10s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag summary --force`
+ApiError(ServerError { status_code: 400, body: Ok("{\n  \"error\": {\n    \"message\": \"Unrecognized request argument supplied: reasoning_effort\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": null\n  }\n}") })
+
+-- build (2.99s) --
+---------------------------
+----- model: gpt-5 -----
+-- query (66.52s) --
+Likely because each rag query triggers multiple LLM round-trips, and some options add even more:
+
+- Keyword extraction (step 2): one LLM call to turn your question into search keywords.
+- Reranking (step 4): another LLM call to review the retrieved chunks and pick the most relevant ones.
+- Final answer (step 5): a third LLM call to generate the answer from the selected chunks.
+- If you use --interactive (multi-turn), ragit first rewrites your follow-up into a fully contextualized query, which is an additional LLM call before the normal pipeline.
+
+Other factors that can slow it down:
+- Using large/slow models (default can be llama3.3-70b-groq unless you change it). Bigger models have higher latency.
+- Higher retrieval settings (max_summaries, max_retrieval) increase tokens and LLM work for reranking/answering.
+
+How to speed it up:
+- Switch to a faster/smaller model: rag config --set model gpt-4o-mini (or your fastest available).
+- Lower retrieval sizes: e.g., rag config --set max_summaries 10 and rag config --set max_retrieval 3.
+- Avoid --interactive unless you need multi-turn context rewriting.
+---- sources ----
+1st chunk of docs/multi_turn.md (67139bbc)
+1st chunk of docs/pipeline.md (9f6bcb72)
+2nd chunk of docs/quick_guide.md (e24840f6)
+
+-- summary (132.92s) --
+What it’s made from:
+Mostly documentation/reference files (.md, .txt, .yaml) with minimal code stubs (subcrate READMEs). It’s a docs‑centric KB for a tool named RAGIT.
+
+Summary:
+RAGIT is a git‑like RAG framework that turns local files into shareable knowledge‑bases. Features: per‑chunk titles/summaries; AI‑generated keywords + TF‑IDF search (no vectors); Markdown (incl. images); experimental multi‑turn queries; git‑style clone/push. README shows CLI flow (rag init/add/build/query) and model config via env vars (Groq/OpenAI). Primary support: Linux x64, mac aarch64; Windows works with caveats. Implementation is modular with subcrates (api, fs, korean).
+
+Structure:
+- README.md
+- docs/: guides (build, chunks, config, pipeline, prompt_engineering, publish, eval, models, multi_turn, uid_query), commands/ (~37 refs), ragithub/, server/
+- RelNotes/
+- crates/: api/, fs/, korean/ (READMEs)
+- tests/
+
+-- build (54.70s) --
+---------------------------
+----- model: gpt-5-mini -----
+-- query (23.14s) --
+Short answer: because rag-query runs multiple LLM+search steps for each query (keyword extraction → tfidf search → LLM reranking → final LLM RAG), and some modes add even more work (agent mode). Those LLM calls and extra retrievals are what make it slow.
+
+Why in more detail
+- Step 2: Every query is first sent to an LLM to extract search keywords. That’s an extra LLM call before retrieval.
+- Step 3: It runs a tfidf search on those keywords and retrieves up to max_summaries chunks (default can be 10; you can raise it). More chunks = more work downstream.
+- Step 4: Another LLM call is used to rerank the top-N tfidf results and pick max_retrieval chunks (defaults may be small, but reranking still costs an LLM call).
+- Step 5: The final RAG generation uses an LLM over the selected chunks (another LLM call).
+- Agent mode is much heavier: an agent browses files and does more LLM/search steps, and will be significantly slower and more expensive.
+- Tfidf itself is not as precise as embeddings, so the system relies on extra LLM reranking to prune noisy results — that increases latency.
+
+Things that make it slower on a given run
+- High max_summaries (retrieving many tfidf candidates).
+- High max_retrieval (asking reranker/RAG to consider more chunks).
+- Using --agent or interactive multi-turn work flows.
+- Having super-rerank or other reranking enabled (extra LLM passes).
+- Network latency and model latency (the LLM endpoints themselves).
+
+How to speed it up
+- Lower max_summaries and/or max_retrieval (temporary via --max-summaries and --max-retrieval, or persistent via rag config).
+- Avoid --agent for simple questions.
+- Disable additional reranking if you don’t need it (toggle super-rerank / enable_ii / enable_rag as appropriate).
+- Reuse conversation state with --continue when doing follow-ups to avoid redoing full pipeline.
+- If you frequently run short keyword searches, use rag tfidf --query or rag tfidf directly (tfidf is cheaper than full RAG).
+- If you must use an agent occasionally, run rag gc --audit and rag audit to understand cost before running.
+
+If you want, tell me:
+- your current config for max_summaries and max_retrieval, and whether you use --agent or super-rerank, and I’ll suggest specific settings to speed things up.
+---- sources ----
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of docs/commands/tfidf.txt (1e07af62)
+1st chunk of docs/commands/query.txt (4e2601c2)
+
+-- summary (88.08s) --
+The knowledge-base is a software project repository combining source (crates/, tests/) and extensive documentation (docs/, RelNotes/), README.md and metadata files (.md, .txt, .yaml). It’s the RAGIT (rag-it) tool: a Rust-based, git-like utility to turn local files into a chunked KB with per-chunk titles/summaries, AI keywords + TF‑IDF search, markdown/images support, experimental multi-turn queries, and clone/push semantics. Implementation hints: Rust crates, installable via cargo, configurable model selection and env API keys (GROQ_API_KEY, OPENAI_API_KEY). Contents: user guides, pipeline, prompts, commands, release notes, examples and interactive index. File structure: 72 files total; top-level dirs RelNotes/, crates/, docs/ (55 files incl. commands/, ragithub/, server/), tests/, README.md, docs/index.md. KB also includes a key-value metadata store with 9 keys.
+
+-- build (40.24s) --
+---------------------------
+----- model: gpt-oss-20b-groq -----
+-- query (3.29s) --
+`rag query` can feel sluggish for a few reasons that are baked into how Ragit’s RAG pipeline works:
+
+| Why it’s slow | What happens in the pipeline |
+|---------------|------------------------------|
+| **LLM has to do keyword extraction** | When you run `rag query`, the first thing the system does is send the raw user prompt to an LLM and ask it to return a list of “search‑keywords”. That is an API call (usually to OpenAI, Anthropic, etc.) and costs both time and tokens. If the LLM is slow, the whole query stalls. |
+| **Full‑text TF‑IDF search on the entire corpus** | Ragit does **not** use dense embeddings. Instead it runs a TF‑IDF similarity search over **every chunk** in your vector store. For a medium‑sized corpus (thousands of chunks) the search can take a few hundred milliseconds or longer, especially on a local machine or a small in‑memory index. |
+| **Retrieval + re‑ranking step** | After the TF‑IDF step, Ragit fetches the top‑N (default 10) chunks and then calls the LLM again to re‑rank those chunks. That is a *second* LLM request per query. If you have a high `max_summaries` or `max_retrieval` value, that adds more chunks to re‑rank, so more LLM calls and more latency. |
+| **No caching / cold‑start** | The first time you run a query, the TF‑IDF index has to be built (or loaded) and the LLM context has to be warmed up. Subsequent queries are faster, but if you’re clearing the cache or restarting `rag` each time you’ll see the “slow start”. |
+| **Configuration defaults** | The default configuration (`max_summaries = 20`, `max_retrieval = 5`) means more chunks are examined and more LLM calls are made. For a small collection this is fine, but for larger corpora it can add noticeable lag. |
+| **External factors** | Network latency to your LLM provider, token limits, and rate‑limits can all introduce delays, especially if you’re running on a shared account or a spot instance. |
+
+### How to speed it up
+
+1. **Reduce the number of chunks retrieved**  
+   ```bash
+   rag config --set max_summaries 10   # fewer chunks to score
+   rag config --set max_retrieval 3    # fewer chunks for LLM re‑ranking
+   ```
+
+2. **Cache the TF‑IDF index**  
+   Ensure that the index is persisted between runs (`rag init --persist` or similar). Once the index is loaded from disk, search is much faster.
+
+3. **Use embeddings (future feature)**  
+   The docs mention that an embeddings‑based search is planned. Dense embeddings usually give faster retrieval on large corpora because they can be queried via a vector‑search engine (FAISS, Milvus, etc.) instead of scanning every chunk.
+
+4. **Profile the logs**  
+   Enable logging (`rag config --set dump_log true`) and look at the time spent in each step. That will tell you whether the slowness comes from the LLM call or the TF‑IDF search.
+
+5. **Upgrade LLM provider / endpoint**  
+   If you’re hitting rate‑limits or a slow endpoint, switch to a higher‑performance model or provider.
+
+6. **Parallelize when possible**  
+   Some parts of the pipeline (e.g., TF‑IDF scoring) can be parallelized across CPU cores. Make sure you’re running on a machine with enough cores.
+
+---
+
+In short, the slowness is usually a *combination* of: an LLM call for keyword extraction, a TF‑IDF search over the whole corpus, and a second LLM call for re‑ranking. Tweaking the configuration and caching the index, or waiting for an embeddings implementation, are the most effective ways to reduce that latency.
+---- sources ----
+1st chunk of docs/eval.md (e9db5575)
+1st chunk of docs/pipeline.md (9f6bcb72)
+
+-- summary (1.99s) --
+    Finished `release` profile [optimized] target(s) in 0.10s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag summary --force`
+ApiError(ServerError { status_code: 400, body: Ok("{\"error\":{\"message\":\"Tool choice is none, but model called a tool\",\"type\":\"invalid_request_error\",\"code\":\"tool_use_failed\",\"failed_generation\":\"{\\\"name\\\": \\\"repo_browser.print_tree\\\", \\\"arguments\\\": {\\\"path\\\":\\\"docs\\\",\\\"depth\\\":2}}\"}}\n") })
+
+-- build (6.34s) --
+---------------------------
+----- model: gpt-oss-120b-groq -----
+-- query (4.96s) --
+**Short answer:**  
+`rag query` can feel “terribly slow” when the underlying retrieval steps have to work without a pre‑built inverted index (or when the index is out‑of‑date), because the pipeline falls back to a full‑scan TF‑IDF search plus an LLM‑driven reranking step for every query.
+
+**Why that happens – the pieces that matter**
+
+| Pipeline step (from the docs) | What it does | Why it can be slow if the index isn’t ready |
+|-------------------------------|--------------|--------------------------------------------|
+| **1️⃣ User input** | You type a query. | — |
+| **2️⃣ Keyword extraction** | An LLM pulls the most important words from the query (e.g. `["server","authentication","2fa","login","jwt"]`). | This is quick, but it adds a small LLM call. |
+| **3️⃣ TF‑IDF search** | The extracted keywords are used to score every document chunk via TF‑IDF and the *top‑N* chunks are returned. | TF‑IDF scoring is fast **only when an inverted index exists**. Without an index the engine must scan all stored chunks, compute TF‑IDF on‑the‑fly, and that becomes O(number‑of‑chunks). |
+| **4️⃣ Rerank** | The LLM looks at the titles/summaries of the retrieved chunks and picks the most relevant few (default 3). | This is another LLM call, but it only runs on a small set *if* step 3 already gave a reasonable shortlist. If step 3 had to examine many chunks because the index is missing, the rerank step gets more work and takes longer. |
+| **5️⃣ RAG** | The final answer is generated from the selected chunks. | Same LLM latency as usual. |
+
+So the **big culprit** is the **absence or staleness of the inverted index** that `rag ii-build` creates.
+
+### How the index helps
+From `rag-ii-build(1)`:
+
+> “It builds an inverted index, which makes text‑retrieval much faster.”
+
+When the index is present:
+
+* TF‑IDF scores can be computed by looking up term → posting‑list rather than scanning every chunk.
+* The search step drops from **linear time** in the collection size to **logarithmic/constant‑time** per term, shaving seconds (or minutes on large corpora) off the query.
+
+### Typical scenarios that trigger slowness
+
+| Situation | What’s happening under the hood | Result |
+|-----------|--------------------------------|--------|
+| **Never built the index** | `rag query` falls back to a full‑scan TF‑IDF search. | First queries after adding a lot of files are very slow. |
+| **Added/changed many files but didn’t rebuild** | The index is outdated; many new chunks are not in the posting lists, so the system still scans them. | Queries remain slow until you run `rag ii-build` again. |
+| **Using `--agent` mode** | The agent additionally crawls the filesystem, which is expensive. | Even slower, but the question mentioned “`rag query` command” (normal mode), so this is less likely. |
+| **Very high `max_retrieval` / `max_summaries`** | More chunks are pulled from TF‑IDF, then more are fed to the reranker. | More LLM calls → higher latency. |
+| **`--enable-rag` disabled** (i.e., RAG disabled) but you still request chunks via other commands – the pipeline may still run the full TF‑IDF step. | Same as above. | Slower than a pure‑LLM answer. |
+
+### What to do to eliminate the slowdown
+
+1. **Build (or rebuild) the inverted index** after adding or modifying source files:  
+   ```bash
+   rag ii-build        # or rag-build-ii (alias)
+   ```
+2. **Keep the index up‑to‑date** automatically:  
+   * Hook `rag ii-build` into your workflow (e.g., after `rag add` or `rag import`).  
+   * Run a periodic `rag gc --audit`/`rag audit` to see if the index needs a refresh.
+3. **Tune retrieval limits** if you don’t need many chunks:  
+   ```bash
+   rag config --set max_summaries 10   # fewer chunks to score
+   rag config --set max_retrieval 3    # fewer chunks for rerank
+   ```
+4. **Avoid unnecessary modes**:  
+   * Use plain `rag query <question>` instead of `--agent` unless you really need the agent’s file‑browsing.  
+   * Do not enable `--interactive` when you just need a quick answer.
+5. **Check config flags** if you have temporarily disabled the index:  
+   ```bash
+   rag query --enable-ii   # forces use of the inverted index for this run
+   rag query --disable-ii  # forces full scan (slow) – only use for debugging
+   ```
+
+### TL;DR
+
+`rag query` is slow mainly because **TF‑IDF search without an inverted index is O(N) over all chunks**, and the pipeline then feeds many chunks to the LLM for reranking. Running `rag ii-build` (or keeping the index fresh) makes step 3 a fast index lookup, dramatically cutting latency. Adjusting `max_summaries`/`max_retrieval` and avoiding the heavyweight `--agent` mode further reduces the time.
+---- sources ----
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of docs/commands/query.txt (4e2601c2)
+1st chunk of docs/commands/ii-build.txt (8202901c)
+
+-- summary (1.81s) --
+    Finished `release` profile [optimized] target(s) in 0.12s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag summary --force`
+ApiError(ServerError { status_code: 400, body: Ok("{\"error\":{\"message\":\"Parsing failed. The model generated output that could not be parsed. Please adjust your prompt. See 'failed_generation' for more details.\",\"type\":\"invalid_request_error\",\"code\":\"output_parse_failed\",\"failed_generation\":\"We need to request info. To we need list directory tree, then open some files. Let's choose action 4 to see list of root.\"}}\n") })
+
+-- build (6.42s) --
+---------------------------
+----- model: llama3.3-70b-groq -----
+-- query (0.59s) --
+    Finished `release` profile [optimized] target(s) in 0.09s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag query '`rag query` command is sometimes terribly slow. Why?'`
+ApiError(ServerError { status_code: 400, body: Ok("{\"error\":{\"message\":\"`reasoning_effort` is not supported with this model\",\"type\":\"invalid_request_error\"}}\n") })
+
+-- summary (0.63s) --
+    Finished `release` profile [optimized] target(s) in 0.11s
+     Running `/Users/baehyunsol/Documents/Rust/ragit/target/release/rag summary --force`
+ApiError(ServerError { status_code: 400, body: Ok("{\"error\":{\"message\":\"`reasoning_effort` is not supported with this model\",\"type\":\"invalid_request_error\"}}\n") })
+
+-- build (1.85s) --
+---------------------------
+----- model: gemini-2.0-flash -----
+-- query (8.09s) --
+Based on the documentation provided, here are the potential reasons why the `rag query` command might be slow:
+
+*   **Building the Knowledge Base:** The `rag build` command, which processes files and creates the index that `rag query` uses, can take a long time because LLMs have to read each file.
+*   **Agent Mode:** Using `rag query` with the `--agent` option is described as the "strongest and most expensive way to get an answer." This implies it involves more processing and, therefore, could be slower.
+*   **RAG Pipeline Steps:**
+    *   The `rag query` command internally uses LLM to extract search keywords.
+    *   It retrieves the top chunks, then reranks them using an LLM to select the most relevant ones. These steps involve LLM processing, which can contribute to slowness.
+
+
+---- sources ----
+1st chunk of docs/commands/query.txt (4e2601c2)
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of docs/commands/build.txt (d9ce4fd3)
+
+-- summary (54.92s) --
+RAGIT is a git-like tool turning local files into a knowledge base. It has crates for API routers, FS utils, and Korean tokenizer. Docs cover building, chunks, queries, etc. RelNotes detail updates. Tests include benchmark tests. Files are structured into `crates/`, `docs/`, `RelNotes/`, `tests/`, and a `README.md`.
+
+
+-- build (15.49s) --
+---------------------------
+----- model: gemini-2.5-pro -----
+-- query (50.19s) --
+Of course! Based on the documents you've provided, here's an explanation for why the `rag query` command can sometimes be slow.
+
+Hello! That's a very good question. The main reason `rag query` can be slow is that it makes **multiple calls to a Large Language Model (LLM)** as part of its process. The speed of these calls can vary depending on the model you're using and the current load on the API provider's servers.
+
+Here’s a breakdown of the pipeline, which highlights where these LLM calls happen:
+
+1.  **Keyword Extraction (1st LLM Call):** When you enter a query like `"How does this server implement user authentication?"`, `ragit` first sends this query to an LLM. The LLM's job is to extract a list of useful keywords for searching (e.g., `["server", "authentication", "2fa", "login", "jwt"]`). This step requires a network request to an LLM service, which takes time.
+
+2.  **TF-IDF Search (Fast):** `ragit` then uses these keywords to perform a very fast local search (called TF-IDF) to find an initial list of potentially relevant document chunks (e.g., the top 10). This part is usually not the bottleneck.
+
+3.  **Reranking Chunks (2nd LLM Call):** The initial search might not be perfect. To improve accuracy, `ragit` sends the titles and summaries of these 10 chunks to an LLM and asks it to pick the most relevant ones (e.g., the top 3). This is the second API call to an LLM.
+
+4.  **Generating the Final Answer (3rd LLM Call):** Finally, `ragit` takes the top 3 most relevant chunks, combines them with your original query, and sends everything to the LLM one last time to generate the final, comprehensive answer. This is the third and often most time-consuming LLM call.
+
+### In summary, the slowness comes from:
+
+*   **Three separate LLM calls:** Each query involves three distinct interactions with an LLM (for keywords, reranking, and final answer generation).
+*   **The Model You Use:** As mentioned in the documentation, you can change your model with `rag config --set model`. Larger, more powerful models can be slower to respond than smaller, faster ones (like `gpt-4o-mini` or models on Groq).
+*   **API Provider Latency:** The speed also depends on the external service (like OpenAI, Groq, or Anthropic). If their service is busy or you have a slow network connection, the response time will increase. This explains why the command is only "sometimes" slow.
+
+If you want to see what's happening behind the scenes, you can enable logging by running `rag config --set dump_log true`. This will show you the steps `ragit` is taking in the `.ragit/logs` directory.
+
+I hope this helps clarify things
+---- sources ----
+1st chunk of docs/eval.md (e9db5575)
+1st chunk of docs/pipeline.md (9f6bcb72)
+2nd chunk of docs/quick_guide.md (e24840f6)
+
+-- summary (139.28s) --
+This knowledge base contains the source code and documentation for RAGIT, a git-like command-line tool written in Rust.
+
+The project turns local files into a sharable RAG knowledge base. Its implementation is unique, opting for an AI-driven keyword generation and TF-IDF search mechanism instead of traditional vector embeddings. It also automatically enriches data chunks with titles and summaries to improve AI reranking. The documentation provides in-depth details on its pipeline, configuration, build process, and prompt engineering.
+
+The files are structured logically:
+*   `README.md` provides a high-level overview.
+*   `docs/` contains detailed documentation files.
+*   `crates/` holds the Rust source code, organized into modules.
+*   `RelNotes/` contains release notes.
+*   `tests/` contains test files.
+
+-- build (71.21s) --
+---------------------------
+----- model: gemini-2.5-flash -----
+-- query (18.88s) --
+The `rag query` command can sometimes be slow due to several factors, primarily involving calls to Large Language Models (LLMs) and the complexity of the retrieval and reranking pipeline.
+
+Here's a breakdown based on how Ragit works:
+
+1.  **Multiple LLM Calls:**
+    *   **Keyword Extraction:** First, an LLM is used to extract search keywords from your query.
+    *   **Chunk Reranking:** After an initial TFIDF search retrieves a set of potential chunks, an LLM reviews the titles and summaries of these chunks to select the most relevant ones.
+    *   **Final Answer Generation (RAG):** Finally, an LLM generates the response using the selected relevant chunks as context.
+    Each of these LLM interactions involves network requests and processing by the LLM, which can take time.
+
+2.  **`super_rerank` Option:**
+    *   If the `super_rerank` configuration is set to `true`, Ragit will review more chunks during the reranking phase. The documentation explicitly states that "If it's set, it reviews more chunks. It takes much longer time, but is likely to yield better results." This significantly contributes to increased query time.
+
+3.  **Absence or Disablement of Inverted Index:**
+    *   Ragit has an inverted index feature (`enable_ii`) that "makes searching much faster." If the inverted index is not enabled or has not been built (`rag ii-build`), the TFIDF search step might take longer.
+
+4.  **Configuration of `max_summaries` and `max_retrieval`:**
+    *   While not explicitly stated as a direct cause of "slowness" in terms of processing time *per se*, setting a higher `max_summaries` means the LLM in the reranking step (point 1) has more chunks to review, potentially extending the time taken for that LLM call.
+
+5.  **Retry Mechanisms and Sleep Times:**
+    *   If API calls to the LLM fail, Ragit can retry them (controlled by `max_retry`, default 5). There's also a `sleep_between_retries` (default 15000 milliseconds) configuration. If an API call fails and needs to retry, these sleep periods can add significant delays to the overall query time.
+    *   Additionally, if `sleep_after_llm_call` is configured, it will introduce a deliberate pause after each LLM interaction, which can be useful for avoiding 429 "Too Many Requests" errors but will also increase the total query time.
+
+In summary, the slowness often stems from the necessity of multiple LLM calls and the potential for increased computational work during reranking, especially when certain configuration options are enabled or not optimized.
+---- sources ----
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of docs/eval.md (e9db5575)
+2nd chunk of docs/config.md (2eef623a)
+
+-- summary (95.75s) --
+The knowledge-base consists of source code, documentation, and release notes for RAGIT, a Rust program that converts local files into an AI-searchable knowledge base. RAGIT differentiates itself by using AI-generated keyword TF-IDF search, enriching chunks with titles/summaries for AI reranking, and supporting markdown with images and experimental multi-turn queries.
+
+The project is structured with a `README.md` overview, a `crates/` directory containing modular Rust source code for core functionalities (API, filesystem, Korean tokenizer), extensive `docs/` covering build, config, contribution, and commands, `RelNotes/` for version release notes, and `tests/` with Python-based test suites.
+
+-- build (25.27s) --
+---------------------------
+----- model: claude-4-sonnet -----
+-- query (28.14s) --
+Based on the documents you provided, there are several reasons why the `rag query` command might be slow:
+
+## Multiple LLM Calls in the Pipeline
+
+The `rag query` command follows a multi-step RAG pipeline that involves several LLM calls:
+
+1. **Step 2**: LLM extracts search keywords from your query
+2. **Step 4**: LLM reranks chunks by reviewing titles and summaries 
+3. **Step 5**: LLM generates the final RAG response
+
+Each of these steps requires an API call to the language model, which can add significant latency, especially if you're using a slower model or if there's network latency.
+
+## Different Query Modes Have Different Performance
+
+The documentation mentions 3 modes with varying complexity:
+
+- **Normal mode**: Uses the standard pipeline (steps 1-5 above)
+- **Interactive mode**: Opens a shell for conversations
+- **Agent mode**: "the strongest and the most expensive way to get an answer" - this mode has an agent that browses files, making it much more resource-intensive
+
+If you're using agent mode (`--agent`), it will be significantly slower and more expensive.
+
+## Configuration Settings That Affect Performance
+
+Several configuration options can impact speed:
+- `max_summaries`: Controls how many chunks are retrieved from tfidf search (default seems to be 10-20)
+- `max_retrieval`: Controls how many chunks are selected for final RAG (default seems to be 3-5)
+- Higher numbers for these settings mean more processing time
+
+## Potential Solutions
+
+To improve performance, you could:
+1. Use a faster LLM model with the `--model` option
+2. Reduce `max_summaries` and `max_retrieval` values if appropriate for your use case
+3. Avoid agent mode unless you really need its advanced capabilities
+4. Consider the trade-off between accuracy and speed for your specific use case
+
+The multiple LLM calls in the pipeline are likely the primary cause of the slowness you're experiencing.
+---- sources ----
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of docs/commands/tfidf.txt (1e07af62)
+1st chunk of docs/commands/query.txt (4e2601c2)
+
+-- summary (132.01s) --
+This knowledge-base contains the source code and documentation for RAGIT, a Rust-based git-like tool that converts local files into knowledge-bases for RAG (Retrieval-Augmented Generation) applications. Instead of using vector embeddings, it employs TF-IDF search and adds AI-generated titles/summaries to text chunks. The program supports markdown with images, experimental multi-turn queries, and git-like clone/push functionality.
+
+The implementation consists of Rust modules for API routing, file system operations, and Korean language support. The typical workflow is: `rag init` → `rag add --all` → `rag build` → `rag query`. It primarily targets Linux/Mac with limited Windows support.
+
+The knowledge-base is structured with: RelNotes/ (11 release notes), crates/ (3 Rust modules), docs/ (55 documentation files including 37 command guides), tests/ (2 test files), and README.md.
+
+-- build (45.32s) --
+---------------------------
+----- model: claude-4.5-haiku -----
+-- query (10.48s) --
+Based on the documents provided, the `rag query` command can be slow because of **Step 2: LLM keyword extraction**.
+
+According to the pipeline documentation, the `rag query` command performs several steps:
+
+1. **Step 2 - LLM keyword extraction**: An LLM extracts search keywords from your query. This step uses a language model, which requires an API call and can take time depending on LLM latency.
+
+2. **Step 4 - LLM reranking**: After retrieving chunks via tfidf search, an LLM reviews the titles and summaries of all retrieved chunks to select the most relevant ones. This is another LLM API call that adds latency.
+
+Both steps involve calling an LLM, which can be slow depending on:
+- Network latency to the LLM API
+- LLM response time
+- Your API rate limits
+
+To debug this, you can:
+- Run `rag config --set dump_log true` to enable detailed logs and see which step is taking the longest
+- Run `rag config --set dump_api_usage true` to track API calls
+- Test individual steps with `rag extract-keywords` or `rag retrieve-chunks` commands to isolate where the slowness occurs
+---- sources ----
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of crates/korean/README.md (b3b1fafd)
+1st chunk of docs/eval.md (e9db5575)
+
+-- summary (63.86s) --
+# Knowledge-Base Summary
+
+**Source:** RAGIT is a Rust-based RAG (Retrieval-Augmented Generation) framework implemented as source code with comprehensive documentation.
+
+**Contents:** RAGIT converts local files into shareable knowledge-bases using git-like operations. It features AI-generated chunk summaries, tfidf-based keyword search (avoiding vector databases), markdown with image support, multi-turn queries, and modular architecture with crates for API, filesystem, and Korean language processing.
+
+**Structure:** 72 files organized into: RelNotes/ (11 release notes), crates/ (3 Rust modules), docs/ (55 files including 37 command references, guides on building/config/pipeline/models/prompting), tests/ (2 test files), and README.md. File types: 43.7% .txt, 42.5% .md documentation, 13.8% .yaml config files.
+
+-- build (24.26s) --
+---------------------------
+----- model: claude-4.5-sonnet -----
+-- query (31.20s) --
+Based on the documents provided, the `rag query` command can be slow because it goes through a multi-step RAG pipeline that involves multiple LLM calls:
+
+**Why it's slow:**
+
+1. **Step 2 - Keyword Extraction**: The first LLM call extracts search keywords from your natural language query (e.g., converting "How does this server implement user authentication?" into keywords like "server, authentication, 2fa, login, jwt")
+
+2. **Step 3 - TF-IDF Search**: Retrieves top chunks based on the keywords (default is 10 chunks, configurable via `max_summaries`)
+
+3. **Step 4 - Reranking**: Another LLM call reviews titles and summaries of all retrieved chunks to select the most relevant ones (default is 3 chunks, configurable via `max_retrieval`)
+
+4. **Step 5 - Final RAG**: A third LLM call generates the actual answer based on the selected chunks
+
+**How to optimize:**
+
+- **Reduce retrieved chunks**: Run `rag config --set max_summaries 5` to retrieve fewer chunks in step 3
+- **Reduce final chunks**: Run `rag config --set max_retrieval 2` to use fewer chunks for the final answer
+- **Use a faster model**: Change models with `rag config --set model <model-name>` - some models are faster than others
+- **Check logs**: Enable logging with `rag config --set dump_log true` to see where the time is being spent
+
+The multiple LLM calls, especially if using slower or rate-limited APIs, are the main reason for the slowness.
+---- sources ----
+1st chunk of docs/eval.md (e9db5575)
+1st chunk of docs/pipeline.md (9f6bcb72)
+2nd chunk of docs/quick_guide.md (e24840f6)
+
+-- summary (140.76s) --
+This knowledge-base contains the source code and documentation for **RAGIT**, a Rust-based RAG (Retrieval-Augmented Generation) system with git-like functionality. It transforms local files into searchable knowledge-bases for AI question-answering.
+
+**Implementation**: Written in Rust with three main crates (api, fs, korean). Uses TF-IDF-based search with AI-generated keywords instead of vector embeddings. Features automatic chunk titling/summarization for reranking, markdown support with images, multi-turn conversations, and git-like operations (clone/push) for sharing knowledge-bases.
+
+**Structure**: 
+- `docs/` (55 files): Comprehensive documentation including 37 command references, guides for configuration, pipeline architecture, and prompt engineering
+- `crates/`: Core Rust implementation 
+- `RelNotes/`: Version release notes
+- `tests/`: Test files
+- `README.md`: Main project overview
+
+Pipeline: keyword extraction → TF-IDF search → AI reranking → answer generation.
+
+-- build (54.97s) --
+---------------------------
+----- model: claude-4.5-opus -----
+-- query (22.14s) --
+Based on the documents, the `rag query` command can be slow because it involves **multiple LLM calls** in its pipeline. Here's what happens:
+
+1. **Step 2**: LLM extracts search-keywords from your query
+2. **Step 4**: LLM reranks chunks by reviewing titles and summaries to select the most relevant ones
+3. **Step 5**: LLM generates the final answer using RAG
+
+Additionally, if you have **super-rerank mode enabled**, it will be even slower. As mentioned in the release notes:
+
+> "If it's set, AI reviews more chunks before it answers your question. It takes longer time, but will give you a better result."
+
+You can check if super-rerank is enabled and disable it for faster (but potentially less accurate) results:
+- `rag query <YOUR_QUERY> --no-super-rerank`
+
+You can also adjust these configuration options to speed things up (at the cost of potentially lower quality):
+- `rag config --set max_summaries <n>` - fewer chunks retrieved from tfidf (default is 10)
+- `rag config --set max_retrieval <n>` - fewer chunks selected for final RAG (default is 3)
+
+If you want to debug and see exactly where time is being spent, you can enable logging with `rag config --set dump_log true` and check the logs in `.ragit/logs`.
+---- sources ----
+1st chunk of docs/pipeline.md (9f6bcb72)
+1st chunk of docs/eval.md (e9db5575)
+1st chunk of RelNotes/0.3.5.md (074493e5)
+
+-- summary (109.17s) --
+This knowledge-base is **documentation** for **RAGIT (rag-it)**, a git-like software written in Rust that transforms local files into a searchable knowledge-base.
+
+**What it does:** RAGIT provides a workflow (`rag init` → `rag add --all` → `rag build` → `rag query "..."`) for building and querying knowledge-bases. Key features include AI-powered chunk summarization, TF-IDF search with AI-generated keywords, markdown/image support, multi-turn queries, and git-like clone/push functionality.
+
+**Implementation:** Written in Rust, targeting Linux (x64) and Mac (aarch64), with partial Windows support. Default model is Groq's Llama.
+
+**File structure:**
+- `README.md` - project overview
+- `docs/` (55 files) - documentation including:
+  - `commands/` (37 files) - CLI command docs
+  - Various guides (build, chunks, config, pipeline, etc.)
+- `RelNotes/` (11 files) - release notes (v0.2.1 to v0.4.3)
+- `crates/` (3 files) - Rust source code
+- `tests/` (2 files) - test files
+
+-- build (49.27s) --

@@ -428,6 +428,11 @@ impl Request {
                         if !self.model.can_read_images && self.messages.iter().any(|message| message.has_image()) {
                             return Err(Error::CannotReadImage(self.model.name.clone()));
                         }
+
+                        // Assumption: if the input is invalid, there's no point in retrying over and over.
+                        if status_code == 400 {
+                            return Err(curr_error);
+                        }
                     },
                 },
                 Err(e) => {
