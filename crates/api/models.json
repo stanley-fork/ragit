@@ -90,6 +90,21 @@
         "api_env_var": "ANTHROPIC_API_KEY"
     },
     {
+        "name": "claude-4.5-opus",
+        "api_name": "claude-opus-4-5-20251101",
+        "can_read_images": true,
+        "api_provider": "anthropic",
+        "api_url": "https://api.anthropic.com/v1/messages",
+        "input_price": 5.0,
+        "output_price": 25.0,
+        "explanation": null,
+        "tags": [
+            "claude",
+            "anthropic"
+        ],
+        "api_env_var": "ANTHROPIC_API_KEY"
+    },
+    {
         "name": "claude-4.5-sonnet",
         "api_name": "claude-sonnet-4-5-20250929",
         "can_read_images": true,
