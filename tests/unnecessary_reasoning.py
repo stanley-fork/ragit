@@ -73,3 +73,5 @@ test(models)
 
 # t1: `reasoning_effort=low` for openai, `thinking={type=disabled}` for anthropic
 # -> unrs-1.txt
+# t2: no options for reasoning
+# -> unrs-2.txt
