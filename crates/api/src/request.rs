@@ -138,8 +138,10 @@ impl Request {
                     result.insert(String::from("max_tokens"), max_tokens.into());
                 }
 
-                // TODO: make it configurable
-                result.insert(String::from("reasoning_effort"), "low".into());
+                // NOTE: It's a temporary fix. Read `tests/unnecessary_reasoning.py` for more details.
+                if self.model.api_name.contains("gpt-5") {
+                    result.insert(String::from("reasoning_effort"), "low".into());
+                }
 
                 result.into()
             },
@@ -179,9 +181,9 @@ impl Request {
                 result.insert(String::from("max_tokens"), self.max_tokens.unwrap_or(16384).into());
 
                 // TODO: make it configurable
-                let mut thinking = Map::new();
-                thinking.insert(String::from("type"), "disabled".into());
-                result.insert(String::from("thinking"), thinking.into());
+                // let mut thinking = Map::new();
+                // thinking.insert(String::from("type"), "disabled".into());
+                // result.insert(String::from("thinking"), thinking.into());
 
                 result.into()
             },

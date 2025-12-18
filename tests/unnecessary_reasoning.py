@@ -75,3 +75,8 @@ test(models)
 # -> unrs-1.txt
 # t2: no options for reasoning
 # -> unrs-2.txt
+#
+# Quick conclusion:
+#     `reasoning_effort=low` makes gpt-5 series models 2~3 times faster, but it's not compatible with many old models (gpt-4, llama3.3-groq, ...)
+#     I'll enable it only for gpt-5 series models.
+#     It's just a temporary fix. When AI world gets more stable, I'll figure out more sustainable way to control their reasoning_effort.
